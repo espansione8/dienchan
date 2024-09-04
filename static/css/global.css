@@ -1,0 +1,26 @@
+.primary-color {
+  color: #00d1b2;
+}
+
+.primary-color-hover {
+  color: #00c4a7;
+}
+
+.bg-color {
+  background-color: #f1fdfb;
+}
+
+.flex-full-width {
+  flex: 1 0 auto;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.thumb28px {
+  height: 24px !important;
+  width: auto !important;
+  /* margin: 0 auto; */
+  /* object-fit: contain; */
+}

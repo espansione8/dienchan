@@ -1,0 +1,20 @@
+export type Users = {
+    name: string | null;
+    surname: string | null;
+    email: string | null;
+    shopDay: number | null;
+    shopMont: number | null;
+    shopYear: number | null;
+    shopHour: number | null;
+    shopMinute: number | null;
+    shopEuro: number | null;
+    shopCent: number | null;
+    onlineDay: number | null;
+    onlineMonth: number | null;
+    onlineYear: number | null;
+    onlineEuro: number | null;
+    onlineCents: number | null;
+    win: number | null;
+    status: string | null;
+    dateSubmit: string | null;
+};
