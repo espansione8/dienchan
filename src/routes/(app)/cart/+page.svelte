@@ -9,15 +9,10 @@
 	import { coursesInfo } from '$lib/stores/arrays.js';
 	import { Settings, X, Check } from 'lucide-svelte';
 
-	//console.log('cart', cart);
-
 	const date = new Date();
 
 	let { data } = $props();
-	let { userData } = $derived(data);
-
-	const listaProvince = $province;
-	// console.log('getTableUser', getTableUser);
+	let { userData, auth } = $derived(data);
 
 	const pad = (num: any) => {
 		const newNum = Number(num);
@@ -28,9 +23,18 @@
 		return outpupt;
 	};
 
-	const containsOnlyNumbers = (str: any) => {
-		return str.replace(/[^\d]+/g, '');
+	let error: string = $state('');
+	let password1 = $state('');
+	let password2 = $state('');
+	let checkPass = $state(false);
+	let checkSecondPass = $state(false);
+	let inputRef: any = $state(null);
+
+	const testPass = () => {
+		checkPass = password1.length >= 8;
+		checkSecondPass = password1 === password2;
 	};
+	const testSecondPass = () => (checkSecondPass = password1 === password2);
 
 	// function findNameRiflessologo(userIdCode) {
 	// 	const findRiflessologo = getTableUser.find((user) => user.userId === userIdCode);
@@ -69,8 +73,6 @@
 	let productCorsoDataFineOra = $state(pad(date.getHours() + 1));
 	let productCorsoDataFineMinuto = $state(date.getMinutes());
 
-	let error;
-
 	let productCorsoDataInizioCompleto = $derived(
 		`${productCorsoDataInizioAnno}-${productCorsoDataInizioMese}-${productCorsoDataInizioGiorno} ${productCorsoDataInizioOra}:${productCorsoDataInizioMinuto}`
 	);
@@ -83,32 +85,30 @@
 	let email = $state(userData.email || '');
 	let address = $state(userData.address || '');
 	let city = $state(userData.city || '');
-	let countryState = $state(userData.countryState || ''); // provincia
+	let countryState = $state(userData.countryState || 'AG'); // provincia
 	let postalCode = $state(userData.postalCode || '');
-	let country = $state(userData.country || '');
+	let country = $state(userData.country || 'Italy');
 	let phone = $state(userData.phone || '');
 	let mobilePhone = $state(userData.mobilePhone || '');
-	let businessName = $state(userData.businessData.businessName || '');
-	let vatNumber = $state(userData.businessData.vatNumber || '');
-	let businessAddress = $state(userData.businessData.businessAddress || '');
-	let businessCity = $state(userData.businessData.businessCity || '');
-	let businessCounty = $state(userData.businessData.businessCounty || '');
-	let businessPostalCode = $state(userData.businessData.businessPostalCode || '');
-	let businessCountry = $state(userData.businessData.businessCountry || '');
-	let membershipArray = $state(userData.membership || []);
-	let max = $state(new Date().getFullYear());
-	let min = $derived(max - 90);
-	let years = $state([]);
+	// let max = $state(new Date().getFullYear());
+	// let min = $derived(max - 90);
+	// let years = $state([]);
+	let namePublic = $state(userData.namePublic || false);
+	let surnamePublic = $state(userData.surnamePublic || false);
+	let emailPublic = $state(userData.emailPublic || false);
 	let addressPublic = $state(userData.addressPublic || false);
 	let cityPublic = $state(userData.cityPublic || false);
 	let statePublic = $state(userData.statePublic || false);
 	let postalCodePublic = $state(userData.postalCodePublic || false);
-	// let regionPublic = userData.regionPublic || false;
 	let countryPublic = $state(userData.countryPublic || false);
 	let phonePublic = $state(userData.phonePublic || false);
 	let mobilePhonePublic = $state(userData.mobilePhonePublic || false);
-	let closedInput = $state(true);
-
+	// let regionPublic = userData.regionPublic || false;
+	let paymentType = $state('bonifico');
+	let closedInput = $state(false);
+	if (auth) {
+		closedInput = true;
+	}
 	const openInput = () => (closedInput = false);
 	const closeInput = () => {
 		closedInput = true;
@@ -119,14 +119,17 @@
 		//alert('save data');
 		// console.log('test');
 
-		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/billing-data`, {
+		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/user/billing-data`, {
 			method: 'POST',
 			body: JSON.stringify({
-				id: userData._id,
+				//id: userData._id,
 				userId: userData.userId,
 				name,
 				surname,
 				email,
+				namePublic,
+				surnamePublic,
+				emailPublic,
 				address,
 				city,
 				countryState,
@@ -142,14 +145,7 @@
 				// regionPublic,
 				countryPublic,
 				phonePublic,
-				mobilePhonePublic,
-				businessAddress,
-				businessCity,
-				businessPostalCode,
-				businessCounty,
-				businessCountry,
-				businessName,
-				vatNumber
+				mobilePhonePublic
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -173,36 +169,35 @@
 		}
 	};
 
-	const onSwitchPublicProfile = async (type: string, value: boolean) => {
-		if (type == 'addressPublic') addressPublic = !value;
-		if (type == 'cityPublic') cityPublic = !value;
-		if (type == 'statePublic') statePublic = !value;
-		if (type == 'postalCodePublic') postalCodePublic = !value;
-		if (type == 'countryPublic') countryPublic = !value;
-		if (type == 'phonePublic') phonePublic = !value;
-		if (type == 'mobilePhonePublic') mobilePhonePublic = !value;
-		//userData[type] = !value;
-		// console.log('onSwitchPublicProfile', type, value);
+	let isModalConfirm = $state(false);
+	const onConfirmForm = async () => {
+		if (!checkPass || !checkSecondPass) {
+			error = 'CONTROLLARE LE PASSWORD';
+			inputRef.focus();
+			return;
+		}
+		isModalConfirm = true;
 	};
-
-	async function submitForm() {
-		error = null;
-
-		const response = await fetch(`/api/products-corso/register-corso`, {
+	const onConfirmCart = async () => {
+		error = '';
+		let newSubscription = false;
+		if (auth) newSubscription = true;
+		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/orders/purchase-first`, {
 			method: 'POST',
 			body: JSON.stringify({
-				productCorsoUserId,
-				productCorsoTitolo,
-				productCorsoDescrizione,
-				productCorsoDataInizioCompleto,
-				productCorsoDataFineCompleto,
-				productCorsoStatus,
-				productCorsoQuantitaPartecipanti,
-				productCorsoProvincia,
-				productCorsoCategoria,
-				productCorsoElencoEmailNotifica,
-				productCorsoElencoTag,
-				productCorsoPoints
+				name,
+				surname,
+				email,
+				password1, // only registration
+				address,
+				city,
+				countryState,
+				postalCode,
+				country,
+				phone,
+				mobilePhone,
+				cart: $cart,
+				paymentType
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -217,18 +212,17 @@
 		if (response.status != 200) {
 			alert(res.message);
 		}
-	}
+	};
 
+	let total = $state(0);
 	const totalCart = () => {
-		let total = 0;
-
 		$cart.forEach((element) => {
 			total = total + element.price;
 		});
+		if (auth) total -= 25;
 		return total;
 	};
 
-	let total = $state(totalCart);
 	// console.log('total', total);
 
 	const fieldReset = () => {};
@@ -244,7 +238,7 @@
 	};
 
 	function siglaToProvincia(provinciaSigla: any) {
-		const findProvincia = listaProvince.find((prov) => prov.sigla === provinciaSigla);
+		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
 		//**** listaProvince.place 'Online' is ignored */
 		if (findProvincia) {
 			return findProvincia.nome;
@@ -254,16 +248,19 @@
 	}
 
 	// cart store
+	totalCart();
 	const removeFromCart = (courseId: any) => {
 		cart.update((n) => {
 			console.log('courseId', courseId.prodCorsoId);
 			// Filtra il carrello per rimuovere il corso con l'ID specificato
 			return n.filter((item) => item.prodCorsoId !== courseId.prodCorsoId);
 		});
+		totalCart();
 	};
 
 	const clearCart = () => {
 		cart.set([]);
+		totalCart();
 	};
 
 	const onClickInfo = (idCourse: any) => {
@@ -384,24 +381,31 @@
 				<div
 					class="card-title bg-gray-300 text-lg font-semibold flex justify-between items-center px-4 py-2 rounded-lg"
 				>
-					<span>Profilo</span>
-					{#if closedInput}
-						<button class="btn btn-outline btn-xs btn-neutral rounded-lg" onclick={openInput}>
-							<Settings size="18" />
-						</button>
+					{#if auth}
+						<span>Profilo</span>
 					{:else}
-						<div class="flex space-x-2">
-							<button class="btn btn-outline btn-xs btn-error rounded-lg" onclick={closeInput}>
-								<X size="18" />
+						<span>Prima iscrizione</span>
+					{/if}
+
+					{#if auth}
+						{#if closedInput}
+							<button class="btn btn-outline btn-xs btn-neutral rounded-lg" onclick={openInput}>
+								<Settings size="18" />
 							</button>
-							<button class="btn btn-outline btn-xs btn-success rounded-lg" onclick={saveInput}>
-								<Check size="18" />
-							</button>
-						</div>
+						{:else}
+							<div class="flex space-x-2">
+								<button class="btn btn-outline btn-xs btn-error rounded-lg" onclick={closeInput}>
+									<X size="18" />
+								</button>
+								<button class="btn btn-outline btn-xs btn-success rounded-lg" onclick={saveInput}>
+									<Check size="18" />
+								</button>
+							</div>
+						{/if}
 					{/if}
 				</div>
 
-				<form class=" pt-2">
+				<form class=" pt-2" onsubmit={onConfirmForm}>
 					<fieldset disabled={closedInput} class="grid grid-cols-12 gap-2">
 						<!-- Nome -->
 						<div class="form-control col-span-12 md:col-span-6 w-full">
@@ -451,6 +455,63 @@
 								bind:value={email}
 							/>
 						</div>
+						<!-- Password -->
+						<div class="col-span-12 w-full">
+							<label for="password" class="label">
+								<p class="font-bold">
+									Password <br />
+									<span class="text-sm text-gray-600" class:text-red-500={error}
+										>( Almeno 8 caratteri numeri e lettere )</span
+									>
+								</p>
+							</label>
+							<div
+								class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-400 bg-white px-2 text-gray-900 shadow-sm"
+							>
+								<span class="flex items-center p-3 -m-2 rounded-l-md bg-gray-400">
+									<Lock color={checkPass ? 'green' : 'black'} />
+								</span>
+								<input
+									class="input rounded-md w-full"
+									id="password"
+									type="password"
+									placeholder="your password"
+									aria-label="Password"
+									aria-describedby="basic-password"
+									bind:value={password1}
+									oninput={testPass}
+									required
+								/>
+							</div>
+						</div>
+
+						<div class="col-span-12 w-full">
+							<label for="password2" class="label">
+								<p class="font-bold">
+									Conferma password <br />
+									{#if error}
+										<span class="text-xs text-red-600">{error}</span>
+									{/if}
+								</p>
+							</label>
+							<div
+								class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-400 bg-white px-2 text-gray-900 shadow-sm"
+							>
+								<span class="flex items-center p-3 -m-2 rounded-l-md bg-gray-400">
+									<Lock color={checkSecondPass && checkPass ? 'green' : 'black'} />
+								</span>
+								<input
+									class="input rounded-md w-full"
+									id="password2"
+									type="password"
+									placeholder="Repeat password"
+									bind:value={password2}
+									oninput={testSecondPass}
+									bind:this={inputRef}
+									required
+								/>
+							</div>
+						</div>
 						<!-- Indirizzo -->
 						<div class="form-control col-span-12 w-full">
 							<label for="address" class="label font-bold">
@@ -497,7 +558,7 @@
 								bind:value={countryState}
 							>
 								<option selected disabled>Scegli</option>
-								{#each province as provincia, i}
+								{#each $province as provincia, i}
 									<option value={provincia.sigla}>
 										{provincia.nome} ({provincia.sigla})
 									</option>
@@ -568,12 +629,37 @@
 								type="text"
 								class="input input-bordered w-full rounded-lg"
 								placeholder="Cellulare..."
-								required
 								readonly={closedInput}
 								bind:value={mobilePhone}
 							/>
 						</div>
 					</fieldset>
+					<div class="flex justify-center space-x-4 mt-4">
+						<button
+							class="btn btn-sm rounded-lg w-32 {$cart.length > 0
+								? 'btn-error bg-red-500 text-white hover:bg-red-600 hover:scale-105 transition-transform'
+								: 'btn-disabled bg-gray-200 text-gray-400'}"
+							onclick={() => clearCart()}
+							disabled={$cart.length == 0}
+						>
+							{#if $cart.length == 0}
+								<Lock class="mr-2" />
+							{/if}
+							Svuota
+						</button>
+						<button
+							type="submit"
+							class="btn btn-sm rounded-lg w-32 {$cart.length > 0
+								? 'btn-success bg-green-500 text-white hover:bg-green-600 hover:scale-105 transition-transform'
+								: 'btn-disabled bg-gray-200 text-gray-400'}"
+							disabled={$cart.length == 0}
+						>
+							{#if $cart.length == 0}
+								<Lock class="mr-2" />
+							{/if}
+							Acquista
+						</button>
+					</div>
 				</form>
 			</div>
 		{/if}
@@ -581,37 +667,79 @@
 		<div class="text-center mt-6">
 			<h2 class="text-2xl font-semibold">Totale Carrello:</h2>
 			{#if $cart.length > 0}
-				<p class="text-xl font-bold text-gray-800">{totalCart()} €</p>
+				<p class="text-xl font-bold text-gray-800">{total} €</p>
+				{#if auth}
+					<p class="text-gray-800">-25 € sconto tesserati</p>
+				{/if}
 			{:else}
 				<p class="text-xl font-semibold text-red-500">Nessun prodotto nel carrello</p>
 			{/if}
-
-			<div class="flex justify-center space-x-4 mt-4">
-				<button
-					class="btn btn-sm rounded-lg w-32 {$cart.length > 0
-						? 'btn-error bg-red-500 text-white hover:bg-red-600 hover:scale-105 transition-transform'
-						: 'btn-disabled bg-gray-200 text-gray-400'}"
-					onclick={() => clearCart()}
-					disabled={$cart.length == 0}
-				>
-					{#if $cart.length == 0}
-						<Lock class="mr-2" />
-					{/if}
-					Svuota
-				</button>
-				<button
-					class="btn btn-sm rounded-lg w-32 {$cart.length > 0
-						? 'btn-success bg-green-500 text-white hover:bg-green-600 hover:scale-105 transition-transform'
-						: 'btn-disabled bg-gray-200 text-gray-400'}"
-					disabled={$cart.length == 0}
-				>
-					{#if $cart.length == 0}
-						<Lock class="mr-2" />
-					{/if}
-					Acquista
-				</button>
-			</div>
 		</div>
 	</section>
 </div>
 <Notification {toastClosed} {notificationContent} {notificationError} />
+
+<!-- modal CART -->
+<dialog id="my_modal_2" class="modal" class:modal-open={isModalConfirm}>
+	<div class="modal-box">
+		<h3 class="font-bold text-lg">Riepilogo Ordine</h3>
+		<p class="py-1 font-semibold">Nome: {name} {surname}</p>
+		<p class="py-1 font-semibold">Email: {email}</p>
+		<p class="py-1 font-semibold">Indirizzo: {address}</p>
+		<p class="py-1 font-semibold">Città: {city}</p>
+		<p class="py-1 font-semibold">{postalCode} - {countryState} - {country}</p>
+		<p class="py-1 font-semibold">Tel: {phone} / Cell:{mobilePhone}</p>
+		{#each $cart as item}
+			<p class="inline-block py-2">
+				<img
+					src={imgSrc(item.category[0])}
+					alt="tipo corso"
+					class="w-16 object-cover border-2 rounded-lg"
+				/> <span class="font-semibold">{item.title}</span>
+			</p>
+		{/each}
+		<p class="py-4 font-bold">scelgi il metodo di pagamento</p>
+		<div class="form-control">
+			<label class="label cursor-pointer">
+				<span class="label-text font-semibold">Bonifico IBAN asdasd12345333</span>
+				<input
+					type="radio"
+					name="radio-paymentType"
+					class="radio checked:bg-blue-500"
+					bind:group={paymentType}
+					value={'bonifico'}
+				/>
+			</label>
+		</div>
+		<div class="form-control">
+			<label class="label cursor-pointer">
+				<span class="label-text font-semibold">Paypal</span>
+				<input
+					type="radio"
+					name="radio-paymentType"
+					class="radio checked:bg-blue-500"
+					bind:group={paymentType}
+					value={'paypal'}
+				/>
+			</label>
+		</div>
+		<div class="form-control">
+			<label class="label cursor-pointer">
+				<span class="label-text font-semibold">Contanti (all'inizio corso)</span>
+				<input
+					type="radio"
+					name="radio-paymentType"
+					class="radio checked:bg-blue-500"
+					bind:group={paymentType}
+					value={'contanti'}
+				/>
+			</label>
+		</div>
+		<div class="modal-action">
+			<button class="btn btn-error" onclick={() => (isModalConfirm = false)}>Annulla</button>
+			<button class="btn btn-success" onclick={() => onConfirmCart()}>Conferma</button>
+		</div>
+	</div>
+</dialog>
+
+<!-- /modal CART -->

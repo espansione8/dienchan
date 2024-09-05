@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 	//////////////////
 
 	const resUser = await fetch(
-		`${import.meta.env.VITE_API_URL}/api/user/findUserId/${params.idUser}`
+		`${import.meta.env.VITE_BASE_URL}/api/user/findUserId/${params.idUser}`
 	);
 
 	const getUser = await resUser.json();

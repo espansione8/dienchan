@@ -1,4 +1,4 @@
-// api/membership/new
+// api/membership/
 import { json } from '@sveltejs/kit';
 import { Users } from '$lib/models/Users.model';
 import dbConnect from '$lib/database';
@@ -8,6 +8,8 @@ export const POST = async ({ request }) => {
 
     const {
         id,
+        membershipLevel,
+        membershipSignUp,
         membershipActivation,
         membershipStatus,
         membershipExpiry
@@ -15,19 +17,21 @@ export const POST = async ({ request }) => {
 
     try {
         await dbConnect();
+
+        // REGISTRARE UTENTE
+        //////
+        // REGISTRARE membership
         const filter = {
             _id: id,
-            'membership.membershipSignUp': { $ne: '' }
+            'membership.membershipLevel': ''
         };
-
-        // Costruiamo l'update usando l'operatore $set per aggiornare campi specifici all'interno dell'array
         const update = {
-            $set: {
-                'membership.membershipActivation': membershipActivation,
-                'membership.membershipStatus': membershipStatus,
-                'membership.membershipExpiry': membershipExpiry
-            }
-        };
+            'membership.membershipLevel': membershipLevel,
+            'membership.membershipSignUp': membershipSignUp,
+            'membership.membershipActivation': membershipActivation,
+            'membership.membershipStatus': membershipStatus,
+            'membership.membershipExpiry': membershipExpiry,
+        }
 
         const newData = await Users.updateOne(filter, update, {
             new: true
@@ -35,20 +39,20 @@ export const POST = async ({ request }) => {
 
         if (newData.matchedCount == 0) {
             return json({
-                message: 'Rinnovo NON effettuato!',
+                message: 'Utente già socio!',
                 status: 200
             });
         }
 
         if (newData.matchedCount == 1) {
             return json({
-                message: 'Rinnovo evvenuto con successo',
+                message: 'Assocciazione evvenuta con successo',
                 status: 200
             });
         }
 
         return json({
-            message: 'POST Rinnovo update ERR',
+            message: 'POST User update ERR',
             status: 500
         });
     } catch (err) {
@@ -63,4 +67,3 @@ export const POST = async ({ request }) => {
         );
     }
 }
-

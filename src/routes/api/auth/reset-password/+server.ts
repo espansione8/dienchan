@@ -44,7 +44,7 @@ export const POST = async ({ request }) => {
 				email: loginEmail,
 				password: newPass
 			};
-			await fetch(`${import.meta.env.VITE_API_URL}/api/mailer/recover`, {
+			await fetch(`${import.meta.env.VITE_BASE_URL}/api/mailer/recover`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'

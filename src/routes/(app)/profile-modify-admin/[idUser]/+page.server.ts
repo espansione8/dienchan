@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 	}
 
 	// const res = await fetch(
-	// 	`${import.meta.env.VITE_API_URL}/api/document-page/page-content/${params.idUser}/${
+	// 	`${import.meta.env.VITE_BASE_URL}/api/document-page/page-content/${params.idUser}/${
 	// 		params.idPage
 	// 	}`
 	// );
@@ -16,19 +16,19 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 
 	// if (getPage.status == 'disabled') throw redirect(302, `/expired?ssn=${params.idPage}`);
 	// const resSessionUser = await fetch(
-	// 	`${import.meta.env.VITE_API_URL}/api/order/findId/${session.user.userId}`
+	// 	`${import.meta.env.VITE_BASE_URL}/api/orders/findId/${session.user.userId}`
 	// );
 	// const sessionUserData = await resSessionUser.json();
 	// console.log('sessionUserData', sessionUserData.level);
 
 	const resUser = await fetch(
-		`${import.meta.env.VITE_API_URL}/api/user/findUserId/${params.idUser}`
+		`${import.meta.env.VITE_BASE_URL}/api/user/findUserId/${params.idUser}`
 	);
 
 	const userData = await resUser.json();
 
 	const resOrder = await fetch(
-		`${import.meta.env.VITE_API_URL}/api/order/findId/${userData._id}`
+		`${import.meta.env.VITE_BASE_URL}/api/orders/findId/${userData._id}`
 	);
 	const getOrderData = await resOrder.json();
 

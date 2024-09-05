@@ -23,13 +23,10 @@ export const POST = async ({ request }) => {
 				from: '"Fast Track IP system" <info@fast-track-ip.com>', // sender address
 				to: body.registerEmail, // list of receivers
 				subject: 'New user registration',
-				text: `Dear user. \r\n ${
-					body.registerEmail
-				} have been registered on our app \r\n to complete the registration please <a href="${
-					import.meta.env.VITE_API_URL
-				}">LOG IN</a> and fill in the data in "Profile" section \r\n or copy and paste in your browser the following link for the first login: \r\n ${
-					import.meta.env.VITE_API_URL
-				} \r\n \r\n This is an automated message DO NOT REPLY to this communication, for questions and assistance please write to support@fast-track-ip.com< \r\n Best regards \r\n Fast Track IP Staff \r\n `,
+				text: `Dear user. \r\n ${body.registerEmail
+					} have been registered on our app \r\n to complete the registration please <a href="${import.meta.env.VITE_BASE_URL
+					}">LOG IN</a> and fill in the data in "Profile" section \r\n or copy and paste in your browser the following link for the first login: \r\n ${import.meta.env.VITE_BASE_URL
+					} \r\n \r\n This is an automated message DO NOT REPLY to this communication, for questions and assistance please write to support@fast-track-ip.com< \r\n Best regards \r\n Fast Track IP Staff \r\n `,
 				html: `
 				<!DOCTYPE html>
 				<html
@@ -390,11 +387,10 @@ export const POST = async ({ request }) => {
 														<div class="text">
 															<h2>Dear user,</h2>
 															<h4>${body.registerEmail} have been registered on our app</h4>
-															<h4>to complete the registration please <a href="${
-																import.meta.env.VITE_API_URL
-															}">LOG IN</a> and fill in the data in "Profile" section</h4>
+															<h4>to complete the registration please <a href="${import.meta.env.VITE_BASE_URL
+					}">LOG IN</a> and fill in the data in "Profile" section</h4>
 															<p>or copy and paste in your browser the following link for the first login: </p>
-														<pre>${import.meta.env.VITE_API_URL}</pre>
+														<pre>${import.meta.env.VITE_BASE_URL}</pre>
 														</ hr>
 														
 														<p>Best regards</p>
@@ -406,7 +402,7 @@ export const POST = async ({ request }) => {
 													<td style="text-align: center">
 														<div class="text-author">														
 															<p>
-																<a href="${import.meta.env.VITE_API_URL}" class="btn btn-primary"
+																<a href="${import.meta.env.VITE_BASE_URL}" class="btn btn-primary"
 																	>Login</a
 																>
 															</p>
@@ -505,10 +501,10 @@ export const POST = async ({ request }) => {
 				// html: `<p>Dear user</p>
 				// <p>${body.registerEmail} have been registered on our app</p>
 				// <p>to complete the registration please <a href="${
-				// 	import.meta.env.VITE_API_URL
+				// 	import.meta.env.VITE_BASE_URL
 				// }">LOG IN</a> and fill in the data in "Profile" section</p>
 				// <p>or copy and paste in your browser the following link for the first login: </p>
-				// <pre>${import.meta.env.VITE_API_URL}</pre>
+				// <pre>${import.meta.env.VITE_BASE_URL}</pre>
 				// </ hr>
 				// <p>This is an automated message DO NOT REPLY to this communication, for questions and assistance please write to support@fast-track-ip.com</p>
 				// <p>Best regards</p>

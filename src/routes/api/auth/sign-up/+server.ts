@@ -43,7 +43,7 @@ export const POST = async ({ request }) => {
 			.save()
 			.then(async (res) => {
 				if (res?.cookieId === cookieId) {
-					await fetch(`${import.meta.env.VITE_API_URL}/api/mailer/sign-up-confirm`, {
+					await fetch(`${import.meta.env.VITE_BASE_URL}/api/mailer/sign-up-confirm`, {
 						method: 'POST',
 						body: JSON.stringify({ registerEmail }),
 						headers: {

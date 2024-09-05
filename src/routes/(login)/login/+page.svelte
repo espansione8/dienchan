@@ -31,7 +31,7 @@
 		// Reset error from previous failed attempts
 		error = '';
 		try {
-			const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/sign-in`, {
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-in`, {
 				method: 'POST',
 				body: JSON.stringify({
 					loginEmail,
@@ -68,7 +68,7 @@
 			return;
 		}
 		try {
-			const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/sign-up`, {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-up`, {
 				method: 'POST',
 				body: JSON.stringify({ registerEmail, password1 }),
 				headers: {
@@ -93,17 +93,18 @@
 	// let viewPassword = false;
 	// const togglePassword = () => (viewPassword = !viewPassword);
 
-	const testPass = () => {
-		checkPass = password1.length >= 8;
-		checkSecondPass = password1 === password2;
-	};
-	const testSecondPass = () => (checkSecondPass = password1 === password2);
+	// const testPass = () => {
+	// 	checkPass = password1.length >= 8;
+	// 	checkSecondPass = password1 === password2;
+	// };
+	// const testSecondPass = () => (checkSecondPass = password1 === password2);
 
 	let isLogin = $state(true);
-	const switchForm = () => {
-		isLogin = !isLogin;
-		error = '';
-	};
+
+	// const switchForm = () => {
+	// 	isLogin = !isLogin;
+	// 	error = '';
+	// };
 
 	let isRecovery = true;
 	const enableModal = () => (isRecovery = !isRecovery);
@@ -122,7 +123,7 @@
 	// 	const data = {
 	// 		email: newData.userMail
 	// 	};
-	// 	const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/reset-password`, {
+	// 	const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/reset-password`, {
 	// 		method: 'POST',
 	// 		headers: {
 	// 			'Content-Type': 'application/json'
@@ -156,14 +157,14 @@
 			{isLogin ? 'LOGIN' : 'REGISTRAZIONE'}
 		</h1>
 		<!-- Button Group -->
-		<div class="flex justify-center">
+		<!-- <div class="flex justify-center">
 			<button
 				class="btn btn-md {isLogin
 					? 'btn-primary hover:text-white'
 					: ''} rounded-l-xl rounded-r-none"
 				onclick={switchForm}
 			>
-				<!-- <LogIn class={isLogin ? '' : 'hidden'} /> -->
+	
 				<LogIn />
 				<h5 class={isLogin ? 'text-bold' : 'text-semibold'}>LOGIN</h5>
 			</button>
@@ -176,11 +177,10 @@
 					: 'btn-primary hover:text-white'} rounded-r-xl rounded-l-none"
 				onclick={switchForm}
 			>
-				<!-- <UserPlus class={isLogin ? 'hidden' : ''} /> -->
 				<UserPlus />
 				<h5 class={isLogin ? 'text-bold' : 'text-semibold'}>REGISTRAZIONE</h5>
 			</button>
-		</div>
+		</div> -->
 		<!-- Separator -->
 		<hr class="bg-white h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
 		<!-- Info Text -->
@@ -269,10 +269,10 @@
 								</button>
 							</div>
 						</form>
-					{:else}
-						<!-- <RegisterForm on:success={redirectToCustomPage} /> -->
+						<!-- {:else}
+						
 						<form action="" onsubmit={submitRegistration}>
-							<!-- email -->
+				
 							<div class="mb-2">
 								<label for="email" class="label">
 									<p class="font-bold">Email</p>
@@ -295,7 +295,7 @@
 									/>
 								</div>
 							</div>
-							<!-- Password -->
+						
 							<div class="mb-2">
 								<label for="password" class="label">
 									<p class="font-bold">
@@ -324,7 +324,7 @@
 									/>
 								</div>
 							</div>
-							<!-- Conferma Password -->
+					
 							<div class="mb-2">
 								<label for="password2" class="label">
 									<p class="font-bold">
@@ -352,7 +352,7 @@
 									/>
 								</div>
 							</div>
-							<!-- button -->
+					
 							<div class="flex justify-center mt-8 mb-3">
 								<button
 									type="submit"
@@ -362,7 +362,7 @@
 									<UserPlus />
 								</button>
 							</div>
-						</form>
+						</form> -->
 					{/if}
 				</div>
 			</div>

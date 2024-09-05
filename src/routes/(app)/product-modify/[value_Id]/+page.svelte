@@ -275,7 +275,7 @@
 			filename,
 			doc: getProduct.prodId
 		};
-		const res = await fetch(`${import.meta.env.VITE_API_URL}/api/document-page/manage-file`, {
+		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/document-page/manage-file`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -302,7 +302,7 @@
 			uploadfilesType,
 			doc: getProduct.prodId
 		};
-		const res = await fetch(`${import.meta.env.VITE_API_URL}/api/document-page/manage-file`, {
+		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/document-page/manage-file`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'

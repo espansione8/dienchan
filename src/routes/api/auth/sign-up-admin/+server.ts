@@ -1,28 +1,44 @@
-import { json as json$1 } from '@sveltejs/kit';
-// src/routes/api/auth/sign-up.js
+// src/routes/api/auth/sign-up-admin
+import { json } from '@sveltejs/kit';
 import stringHash from 'string-hash';
-import { serialize } from 'cookie';
+//import { serialize } from 'cookie';
 import dbConnect from '$lib/database';
 import { Users } from '$lib/models/Users.model';
 
 export const POST = async ({ request }) => {
 	const body = await request.json();
-	const registerEmail = body.registerEmail.replace(/\s+/g, '').toLowerCase();
-	const registerNome = body.registerNome;
-	const registerCognome = body.registerCognome;
-	const registerIndirizzo = body.registerIndirizzo;
-	const registerCAP = body.registerCAP;
-	const registerCitta = body.registerCitta;
-	const registerProvincia = body.registerProvincia;
-	const registerNazione = body.registerNazione;
-	const registerTelefono = body.registerTelefono;
-	const registerCellulare = body.registerCellulare;
+	const {
+		name,
+		surname,
+		email,
+		address,
+		city,
+		countryState,
+		postalCode,
+		country,
+		phone,
+		mobilePhone,
+		password1
+	} = body;
+	const newPass = stringHash(password1);
+
+	// const registerNome = body.registerNome;
+	// const registerCognome = body.registerCognome;
+	// const registerEmail = body.registerEmail.replace(/\s+/g, '').toLowerCase();
+	// const registerIndirizzo = body.registerIndirizzo;
+	// const registerCAP = body.registerCAP;
+	// const registerCitta = body.registerCitta;
+	// const registerProvincia = body.registerProvincia;
+	// const registerNazione = body.registerNazione;
+	// const registerTelefono = body.registerTelefono;
+	// const registerCellulare = body.registerCellulare;
+	// const password1 = body.password1;
 	try {
 		// Connecting to DB
 		// All database code can only run inside async functions as it uses await
 		await dbConnect();
 		// Is there a user with such an email?
-		const user = await Users.findOne({ email: registerEmail }, { _id: 1, email: 1 })
+		const user = await Users.findOne({ email }, { _id: 1, email: 1 })
 			.limit(1)
 			.lean()
 			.exec();
@@ -30,7 +46,7 @@ export const POST = async ({ request }) => {
 		// If there is, either send status 409 Conflict and inform the user that their email is already taken
 		// or send status 202 or 204 and tell them to double-check on their credentials and try again - it is considered more secure
 		if (user) {
-			return json$1(
+			return json(
 				{
 					message: 'User already registered'
 				},
@@ -43,27 +59,28 @@ export const POST = async ({ request }) => {
 		// Add user to DB
 		// All database code can only run inside async functions as it uses await
 		const cookieId = crypto.randomUUID();
-		const newUser = new Userss();
-		newUser.email = registerEmail;
-		newUser.name = registerNome;
-		newUser.surname = registerCognome;
-		newUser.address = registerIndirizzo;
-		newUser.postalCode = registerCAP;
-		newUser.city = registerCitta;
-		newUser.countryState = registerProvincia;
-		newUser.country = registerNazione;
-		newUser.phone = registerTelefono;
-		newUser.mobilePhone = registerCellulare;
-		newUser.password = stringHash(body.password1);
+		const newUser = new Users();
+		newUser.name = name;
+		newUser.surname = surname;
+		newUser.email = email;
+		newUser.address = address;
+		newUser.postalCode = city;
+		newUser.city = countryState;
+		newUser.countryState = postalCode;
+		newUser.country = country;
+		newUser.phone = phone;
+		newUser.mobilePhone = mobilePhone;
+		newUser.password = newPass;
 		newUser.userId = stringHash(cookieId);
 		newUser.cookieId = cookieId;
 		await newUser
 			.save()
 			.then(async (res) => {
+				//console.log('res', res);
 				if (res?.cookieId === cookieId) {
-					await fetch(`${import.meta.env.VITE_API_URL}/api/mailer/sign-up-confirm`, {
+					await fetch(`${import.meta.env.VITE_BASE_URL}/api/mailer/sign-up-confirm`, {
 						method: 'POST',
-						body: JSON.stringify({ registerEmail }),
+						body: JSON.stringify({ email }),
 						headers: {
 							'Content-Type': 'application/json'
 						}
@@ -84,10 +101,11 @@ export const POST = async ({ request }) => {
 		// 	})
 		// };
 
-		return json$1(
+		return json(
 			{
 				message:
-					"Iscrizione fatta! controllale email (anche in SPAM) per la conferma."
+					"Iscrizione fatta! controllale email (anche in SPAM) per la conferma.",
+				userId: newUser.userId
 			},
 			{
 				status: 200
@@ -95,7 +113,7 @@ export const POST = async ({ request }) => {
 		);
 	} catch (err) {
 		console.log('registerUser ERROR:', err);
-		return json$1(
+		return json(
 			{
 				message: 'Sign Up failed'
 			},

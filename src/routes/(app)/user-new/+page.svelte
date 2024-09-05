@@ -3,8 +3,6 @@
 	import { province } from '$lib/stores/arrays';
 	import {
 		Mail,
-		SquareX,
-		Pen,
 		User,
 		Building2,
 		UserPlus,
@@ -19,16 +17,16 @@
 	const countryList = $country_list;
 	let password1 = $state('');
 	let password2 = $state('');
-	let registerEmail = $state('');
-	let registerNome = $state('');
-	let registerCognome = $state('');
-	let registerIndirizzo = $state('');
-	let registerCAP = $state('');
-	let registerCitta = $state('');
-	let registerProvincia = $state('');
-	let registerNazione = $state('');
-	let registerTelefono = $state('');
-	let registerCellulare = $state('');
+	let name = $state('');
+	let surname = $state('');
+	let email = $state('');
+	let address = $state('');
+	let postalCode = $state('');
+	let city = $state('');
+	let countryState = $state('');
+	let country = $state('');
+	let phone = $state('');
+	let mobilePhone = $state('');
 	let checkPass = $state(false);
 	let checkSecondPass = $state(false);
 	let error = $state();
@@ -41,19 +39,19 @@
 			inputRef.focus();
 			return;
 		}
-		const response = await fetch(`/api/auth/registrazione-nuovo-utente`, {
+		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-up-admin`, {
 			method: 'POST',
 			body: JSON.stringify({
-				registerEmail,
-				registerNome,
-				registerCognome,
-				registerIndirizzo,
-				registerCAP,
-				registerCitta,
-				registerProvincia,
-				registerNazione,
-				registerTelefono,
-				registerCellulare,
+				name,
+				surname,
+				email,
+				address,
+				postalCode,
+				city,
+				countryState,
+				country,
+				phone,
+				mobilePhone,
 				password1
 			}),
 			headers: {
@@ -80,20 +78,18 @@
 	}
 
 	const fieldReset = () => {
-		registerNome = '';
-		registerCognome = '';
-		registerEmail = '';
-		registerIndirizzo = '';
-		registerCAP = '';
-		registerCitta = '';
-		registerProvincia = '';
-		registerNazione = '';
-		registerTelefono = '';
-		registerCellulare = '';
+		name = '';
+		surname = '';
+		email = '';
+		address = '';
+		postalCode = '';
+		city = '';
+		countryState = '';
+		country = '';
+		phone = '';
+		mobilePhone = '';
 		password1 = '';
 		password2 = '';
-		password1 = '';
-		password1 = '';
 	};
 
 	const testPass = () => {
@@ -140,7 +136,7 @@
 							placeholder="Nome"
 							aria-label="nome"
 							aria-describedby="basic-nome"
-							bind:value={registerNome}
+							bind:value={name}
 							required
 						/>
 					</div>
@@ -159,7 +155,7 @@
 							placeholder="Cognome"
 							aria-label="cognome"
 							aria-describedby="basic-cognome"
-							bind:value={registerCognome}
+							bind:value={surname}
 							required
 						/>
 					</div>
@@ -178,7 +174,7 @@
 							placeholder="Tua Email"
 							aria-label="Email"
 							aria-describedby="basic-email"
-							bind:value={registerEmail}
+							bind:value={email}
 							required
 						/>
 					</div>
@@ -197,7 +193,7 @@
 							placeholder="Indirizzo"
 							aria-label="indirizzo"
 							aria-describedby="basic-indirizzo"
-							bind:value={registerIndirizzo}
+							bind:value={address}
 							required
 						/>
 					</div>
@@ -218,7 +214,7 @@
 								placeholder="CAP"
 								aria-label="cap"
 								aria-describedby="basic-cap"
-								bind:value={registerCAP}
+								bind:value={postalCode}
 								required
 							/>
 						</div>
@@ -237,7 +233,7 @@
 								placeholder="Città"
 								aria-label="citta"
 								aria-describedby="basic-citta"
-								bind:value={registerCitta}
+								bind:value={city}
 								required
 							/>
 						</div>
@@ -255,7 +251,7 @@
 								aria-label="Provincia"
 								aria-describedby="basic-provincia"
 								placeholder="Scegli"
-								bind:value={registerProvincia}
+								bind:value={countryState}
 								required
 							>
 								<option selected disabled>Scegli</option>
@@ -281,7 +277,7 @@
 							id="nazione"
 							name="nazione"
 							required
-							bind:value={registerNazione}
+							bind:value={country}
 						>
 							<option selected disabled>Scegli</option>
 							{#each countryList as country}
@@ -306,7 +302,7 @@
 							placeholder="Telefono"
 							aria-label="telefono"
 							aria-describedby="basic-telefono"
-							bind:value={registerTelefono}
+							bind:value={phone}
 						/>
 					</div>
 				</section>
@@ -324,7 +320,7 @@
 							placeholder="Cellulare"
 							aria-label="cellulare"
 							aria-describedby="basic-cellulare"
-							bind:value={registerCellulare}
+							bind:value={mobilePhone}
 						/>
 					</div>
 				</section>

@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 		// GET PRODUCTS
 		const resProductsCorso = await fetch(
-			`${import.meta.env.VITE_API_URL}/api/products/all-enabled/0/0`
+			`${import.meta.env.VITE_BASE_URL}/api/products/all-enabled/0/0`
 		);
 		const resGetTableProducts = await resProductsCorso.json();
 		getTableProducts = resGetTableProducts.map((obj) => ({
@@ -25,7 +25,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 		// GET USERS
 		// const res = await fetch(
-		// 	`${import.meta.env.VITE_API_URL}/api/user/all-active/0/0`
+		// 	`${import.meta.env.VITE_BASE_URL}/api/user/all-active/0/0`
 		// );
 		// const resGetTableUser = await res.json();
 		// //console.log('MY DOCS res.ok', res.ok);

@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		//const userData: locals.data,
 		//console.log('MY DOCS userData', userData);
 		const res = await fetch(
-			`${import.meta.env.VITE_API_URL}/api/user/all/0/0`
+			`${import.meta.env.VITE_BASE_URL}/api/user/all/0/0`
 		);
 		const resGetTableUser = await res.json();
 		//console.log('MY DOCS res.ok', res.ok);

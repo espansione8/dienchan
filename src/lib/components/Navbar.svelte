@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { LogOut, ChevronDown, Menu, Megaphone } from 'lucide-svelte';
+	import { LogOut, ChevronDown, Menu, Megaphone, LogIn } from 'lucide-svelte';
 	import { cart } from '$lib/stores/cart';
 	let logged = false;
 	let sessionAuth = $page?.data?.auth;
@@ -210,42 +210,42 @@
 	<!-- Menu for desktop -->
 	<div class="hidden sm:flex gap-2">
 		<ul class="hidden menu sm:menu-horizontal gap-3">
+			<a
+				class="btn btn-sm bg-transparent border-orange-500 rounded-full text-orange-500 hover:text-red-400 hover:bg-orange-300"
+				class:active={$page.url.pathname === '/membership-new/'}
+				href="/membership-new"
+				aria-current="page"
+				onclick={onBurgerclick}
+			>
+				<Megaphone /><strong>Diventa socio</strong>
+			</a>
+			<a
+				class="btn btn-sm bg-transparent border-gray-500 text-gray-500 px-3 py-2 hover:text-blue-900"
+				class:active={$page.url.pathname === '/course-filter/'}
+				href="/course-filter"
+				aria-current="page"
+				onclick={onBurgerclick}
+			>
+				<strong>Corsi</strong>
+			</a>
+
+			<a
+				class="btn btn-sm bg-transparent border-gray-500 text-gray-500 px-3 py-2 hover:text-blue-900"
+				class:active={$page.url.pathname === '/cart/'}
+				href="/cart"
+				aria-current="page"
+				onclick={onBurgerclick}
+			>
+				{#if $cart.length > 0}
+					<span
+						class="badge badge-sm p-2 indicator-item rounded-full bg-blue-200 text-green-600 border-green-500 hover:bg-yellow-500"
+						><strong>{$cart.length}</strong></span
+					>
+				{/if}
+
+				<strong>Carrello</strong>
+			</a>
 			{#if logged}
-				<a
-					class="btn btn-sm bg-transparent border-orange-500 rounded-full text-orange-500 hover:text-red-400 hover:bg-orange-300"
-					class:active={$page.url.pathname === '/membership-new/'}
-					href="/membership-new"
-					aria-current="page"
-					onclick={onBurgerclick}
-				>
-					<Megaphone /><strong>Diventa socio</strong>
-				</a>
-				<a
-					class="btn btn-sm bg-transparent border-gray-500 text-gray-500 px-3 py-2 hover:text-blue-900"
-					class:active={$page.url.pathname === '/course-filter/'}
-					href="/course-filter"
-					aria-current="page"
-					onclick={onBurgerclick}
-				>
-					<strong>Corsi</strong>
-				</a>
-
-				<a
-					class="btn btn-sm bg-transparent border-gray-500 text-gray-500 px-3 py-2 hover:text-blue-900"
-					class:active={$page.url.pathname === '/cart/'}
-					href="/cart"
-					aria-current="page"
-					onclick={onBurgerclick}
-				>
-					{#if $cart.length > 0}
-						<span
-							class="badge badge-sm p-2 indicator-item rounded-full bg-blue-200 text-green-600 border-green-500 hover:bg-yellow-500"
-							><strong>{$cart.length}</strong></span
-						>
-					{/if}
-
-					<strong>Carrello</strong>
-				</a>
 				<a
 					class="btn btn-sm bg-transparent border-gray-500 text-gray-500 px-3 py-2 hover:text-blue-900"
 					class:active={$page.url.pathname === '/profile-modify/'}
@@ -306,6 +306,8 @@
 						</ul>
 					</div>
 				{/if}
+			{/if}
+			{#if logged}
 				<button
 					onclick={logOutNow}
 					class="btn btn-sm bg-transparent border-red-900 text-red-900 hover:text-red-900 hover:border-red-900 hover:bg-red-500"
@@ -315,6 +317,16 @@
 						<strong>Logout</strong>
 					</span>
 				</button>
+			{:else}
+				<a
+					href="/login"
+					class="btn btn-sm bg-transparent border-green-900 text-green-900 hover:text-green-900 hover:border-green-900 hover:bg-green-500"
+				>
+					<span class="flex justify-center gap-1">
+						<LogIn size="16" strokeWidth={2.5} />
+						<strong>Login</strong>
+					</span>
+				</a>
 			{/if}
 		</ul>
 	</div>

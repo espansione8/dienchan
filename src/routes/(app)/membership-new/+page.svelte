@@ -26,21 +26,18 @@
 		}
 	];
 
-
-	
-
 	const onClickAssociateOrdinary = async () => {
 		//alert('save data');
-		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/membership/new`, {
+		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/membership/new`, {
 			method: 'POST',
 			body: JSON.stringify({
 				id: userData._id,
 				userId: userData.userId,
-				membershipLevel : 'Socio ordinario',
-				membershipSignUp : new Date(),
-				membershipActivation : '',
-				membershipExpiry : new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-				membershipStatus : true
+				membershipLevel: 'Socio ordinario',
+				membershipSignUp: new Date(),
+				membershipActivation: '',
+				membershipExpiry: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+				membershipStatus: true
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -52,7 +49,7 @@
 			let content = (await response.json()).message;
 			toastClosed = false;
 			notificationContent = content;
-			if(content == 'Utente già socio!'){
+			if (content == 'Utente già socio!') {
 				notificationError = true;
 			}
 			closeNotification();
@@ -69,16 +66,16 @@
 
 	const onClickAssociateLifetime = async () => {
 		//alert('save data');
-		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/membership/new`, {
+		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/membership/new`, {
 			method: 'POST',
 			body: JSON.stringify({
 				id: userData._id,
 				userId: userData.userId,
-				membershipLevel : 'Socio vitalizio',
-				membershipSignUp : new Date(),
-				membershipActivation : '',
-				membershipExpiry : new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-				membershipStatus : true
+				membershipLevel: 'Socio vitalizio',
+				membershipSignUp: new Date(),
+				membershipActivation: '',
+				membershipExpiry: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+				membershipStatus: true
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -90,7 +87,7 @@
 			let content = (await response.json()).message;
 			toastClosed = false;
 			notificationContent = content;
-			if(content == 'Utente già socio!'){
+			if (content == 'Utente già socio!') {
 				notificationError = true;
 			}
 			closeNotification();
@@ -107,14 +104,14 @@
 
 	const onClickRenew = async () => {
 		//alert('save data');
-		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/membership/renew`, {
+		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/membership/renew`, {
 			method: 'POST',
 			body: JSON.stringify({
 				id: userData._id,
-				userId: userData.userId,	
-				membershipActivation : new Date(),
-				membershipExpiry : new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-				membershipStatus : true
+				userId: userData.userId,
+				membershipActivation: new Date(),
+				membershipExpiry: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+				membershipStatus: true
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -126,7 +123,7 @@
 			let content = (await response.json()).message;
 			toastClosed = false;
 			notificationContent = content;
-			if(content == 'Rinnovo NON effettuato!'){
+			if (content == 'Rinnovo NON effettuato!') {
 				notificationError = true;
 			}
 			closeNotification();
@@ -256,13 +253,15 @@
 					</figure>
 				</div>
 				<div class="flex justify-between space-x-4 my-4">
-					<button class="btn btn-sm bg-red-500 text-white w-2/5 rounded-xl"
-					onclick={onClickAssociateOrdinary}>
-					Associati</button>
+					<button
+						class="btn btn-sm bg-red-500 text-white w-2/5 rounded-xl"
+						onclick={onClickAssociateOrdinary}
+					>
+						Associati</button
+					>
 					<button
 						class="btn btn-sm bg-transparent border-2 border-white text-white w-2/5 rounded-xl"
-						onclick={onClickRenew}
-						>Rinnova</button
+						onclick={onClickRenew}>Rinnova</button
 					>
 				</div>
 			</div>
@@ -289,9 +288,10 @@
 						<img src="/images/card-2.jpg" alt="tipo corso" class="h-40 rounded-full object-cover" />
 					</figure>
 				</div>
-				<button class="btn bg-red-500 text-white w-full rounded-xl mt-2"
-				onclick={onClickAssociateLifetime}
-				>Associati</button>
+				<button
+					class="btn bg-red-500 text-white w-full rounded-xl mt-2"
+					onclick={onClickAssociateLifetime}>Associati</button
+				>
 			</div>
 		</div>
 	</section>

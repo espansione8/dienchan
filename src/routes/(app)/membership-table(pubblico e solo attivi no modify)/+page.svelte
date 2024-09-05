@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
-	import { UserPlus  } from 'lucide-svelte';
+	import { UserPlus } from 'lucide-svelte';
 
 	// export let data;
 	// let { getTableUser } = data;
@@ -30,7 +30,7 @@
 			email
 		};
 		try {
-			const res = await fetch(`${import.meta.env.VITE_API_URL}/api/user/setactive`, {
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/user/setactive`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -62,7 +62,7 @@
 
 	const onGotoNewUser = () => {
 		goto(`/new-user`);
-	}
+	};
 </script>
 
 <svelte:head>
@@ -80,8 +80,10 @@
 
 <div class="overflow-x-auto mt-5 px-4 mb-5">
 	<span class="flex justify-between">
-		<button class="btn btn-success rounded-md text-white border-green-500 hover:bg-gray-200 hover:text-success hover:border-success"
-		onclick={() => onGotoNewUser()}><UserPlus /> Nuovo utente</button>
+		<button
+			class="btn btn-success rounded-md text-white border-green-500 hover:bg-gray-200 hover:text-success hover:border-success"
+			onclick={() => onGotoNewUser()}><UserPlus /> Nuovo utente</button
+		>
 		<header class="text-center text-2xl font-bold text-gray-700">Lista utenti</header>
 		<button class="btn btn-success invisible"><UserPlus /> Scarica CSV</button>
 	</span>

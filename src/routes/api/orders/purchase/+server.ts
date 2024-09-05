@@ -24,8 +24,8 @@ export const POST = async ({ request }) => {
 				}
 			],
 			mode: 'payment',
-			success_url: `${import.meta.env.VITE_API_URL}/my-docs`,
-			cancel_url: `${import.meta.env.VITE_API_URL}/profile`,
+			success_url: `${import.meta.env.VITE_BASE_URL}/my-docs`,
+			cancel_url: `${import.meta.env.VITE_BASE_URL}/profile`,
 			automatic_tax: { enabled: true }
 		});
 		console.log('order session', session, session.url);

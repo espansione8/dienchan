@@ -1,16 +1,16 @@
-import { redirect } from '@sveltejs/kit';
+//import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
 	//console.log('locals', locals);
-	if (!locals.auth) {
-		throw redirect(302, '/login');
-	}
+	// if (!locals.auth) {
+	// 	throw redirect(302, '/login');
+	// }
 
 	let getTableNames = [];
 
 	const resName = await fetch(
-		`${import.meta.env.VITE_API_URL}/api/user/all-active-names/0/0`
+		`${import.meta.env.VITE_BASE_URL}/api/user/all-active-names/0/0`
 	);
 	getTableNames = await resName.json();
 
@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	// let getTableUser = [];
 
 	// const res = await fetch(
-	// 	`${import.meta.env.VITE_API_URL}/api/user/all-active/0/0`
+	// 	`${import.meta.env.VITE_BASE_URL}/api/user/all-active/0/0`
 	// );
 	// const resGetTableUser = await res.json();
 	//console.log('MY DOCS res.ok', res.ok);

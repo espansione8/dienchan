@@ -60,7 +60,7 @@ export const POST = async ({ request }) => {
 					totalPoints: res.totalPoints,
 					totalInvoice: totalInvoice
 				};
-				const mailRes = await fetch(`${import.meta.env.VITE_API_URL}/api/mailer/order-bank-mail`, {
+				const mailRes = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mailer/order-bank-mail`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'

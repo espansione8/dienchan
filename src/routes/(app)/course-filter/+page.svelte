@@ -20,7 +20,7 @@
 
 	import { coursesInfo } from '$lib/stores/arrays.js';
 
-	console.log('cart', cart);
+	// console.log('cart', cart);
 
 	// import 'moment/locale/it';
 	import 'moment/min/locales.js';

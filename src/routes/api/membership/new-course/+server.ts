@@ -1,46 +1,52 @@
+// api/membership/new-course
 import { json } from '@sveltejs/kit';
 import { Users } from '$lib/models/Users.model';
 import dbConnect from '$lib/database';
-
-
 
 export const POST = async ({ request }) => {
     const body = await request.json();
 
     const {
-        id
+        userId,
+        membershipLevel,
+        membershipSignUp,
+        membershipActivation,
+        membershipExpiry,
+        membershipStatus,
     } = body;
 
     try {
         await dbConnect();
-        const filter = {
-            _id: id,
-            'membership.membershipLevel': ''
-        };
+
         const update = {
-            'membership.membershipLevel': body.membershipLevel,
-            'membership.membershipSignUp': body.membershipSignUp,
-            'membership.membershipActivation': body.membershipActivation,
-            'membership.membershipStatus': body.membershipStatus,
-            'membership.membershipExpiry': body.membershipExpiry
+            'membership.membershipLevel': membershipLevel,
+            'membership.membershipSignUp': membershipSignUp,
+            'membership.membershipActivation': membershipActivation,
+            'membership.membershipExpiry': membershipExpiry,
+            'membership.membershipStatus': membershipStatus,
         }
 
-        const newData = await Users.updateOne(filter, update, {
+        const newData = await Users.updateOne({ userId }, update, {
             new: true
         }).lean();
 
         if (newData.matchedCount == 0) {
             return json({
                 message: 'Utente già socio!',
-                status: 200
-            });
+            },
+                {
+                    status: 500
+                });
         }
 
         if (newData.matchedCount == 1) {
             return json({
                 message: 'Assocciazione evvenuta con successo',
-                status: 200
-            });
+                ok: true,
+            },
+                {
+                    status: 200
+                });
         }
 
         return json({
@@ -55,8 +61,6 @@ export const POST = async ({ request }) => {
             },
             {
                 status: 500
-            }
-        );
+            })
     }
 }
-

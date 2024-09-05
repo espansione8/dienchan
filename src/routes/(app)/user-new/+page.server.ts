@@ -7,7 +7,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		throw redirect(302, '/login');
 	}
 	const res = await fetch(
-		`${import.meta.env.VITE_API_URL}/api/order/findId/${locals.data.userId}`
+		`${import.meta.env.VITE_BASE_URL}/api/orders/findId/${locals.data.userId}`
 	);
 	const getOrderData = await res.json();
 	return {

@@ -42,7 +42,7 @@ const UserSchema = new mongoose.Schema(
 					'Socio contributore', // Membership Type: Life Time || Billing Type: Payment|| Price 1900 EUR
 					'Master Dien Chan', // Membership Type: Life Time || Billing Type: Free
 				],
-				default: ''
+				default: 'Socio ordinario'
 			},
 			membershipSignUp: { type: Date, default: '' }, // La prima volta che è stato attivato
 			membershipActivation: { type: Date, default: '' }, // la data del ultima attivazione - rinnovi
@@ -57,7 +57,9 @@ const UserSchema = new mongoose.Schema(
 		codeAdmin: { type: String, default: '' },
 		codeSuperAdmin: { type: String, default: '' },
 		name: { type: String, default: '' },
+		namePublic: { type: Boolean, default: false },
 		surname: { type: String, default: '' },
+		surnamePublic: { type: Boolean, default: false },
 		businessData: {
 			businessName: { type: String, default: '' },
 			vatNumber: { type: String, default: '' },

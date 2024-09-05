@@ -1,12 +1,12 @@
 <script lang="ts">
 	import '../../app.css';
-	import NavbarLogin from '$lib/components/NavbarLogin.svelte';
+	import Navbar from '$lib/components/Navbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	let { children } = $props();
 </script>
 
 <div data-theme="corporate" class="flex-col flex min-h-screen">
-	<NavbarLogin />
+	<Navbar />
 
 	<main class="flex-grow">
 		<!-- <slot /> -->

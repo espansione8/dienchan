@@ -1,9 +1,9 @@
- import { json } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
 import { Order } from '$lib/models/Orders.model';
 import dbConnect from '$lib/database';
 //import type { RequestHandler } from '@sveltejs/kit';
 
-///BASE_URL/api/order/findId/:value
+///BASE_URL/api/orders/findId/:value
 
 export const GET = async ({ params }) => {
 	try {

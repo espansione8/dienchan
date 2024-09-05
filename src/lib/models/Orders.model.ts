@@ -21,7 +21,7 @@ const orderSchema = new Schema(
 		status: {
 			type: String,
 			enum: ['requested', 'confirmed', 'cancelled', 'exported', 'processed'],
-			default: ''
+			default: 'confirmed'
 		},
 		//tk: { type: String, default: '' },
 		orderDate: { type: Date, default: Date.now },
@@ -89,7 +89,7 @@ const orderSchema = new Schema(
 			value: { type: String, default: '' }
 		},
 
-		products: []
+		cart: []
 	},
 	{
 		collection: 'orders',

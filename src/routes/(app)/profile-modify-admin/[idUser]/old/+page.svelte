@@ -31,7 +31,7 @@
 		closedInput = true;
 		console.log('test');
 
-		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/billing-data`, {
+		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/user/billing-data`, {
 			method: 'POST',
 			body: JSON.stringify({
 				id: userData._id,

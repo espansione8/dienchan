@@ -10,7 +10,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 		throw redirect(302, '/login');
 	}
 	// const res = await fetch(
-	// 	`${import.meta.env.VITE_API_URL}/api/document-page/page-content/${params.idUser}/${
+	// 	`${import.meta.env.VITE_BASE_URL}/api/document-page/page-content/${params.idUser}/${
 	// 		params.idPage
 	// 	}`
 	// );
@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 	// if (getPage.status == 'disabled') throw redirect(302, `/expired?ssn=${params.idPage}`);
 
 	const resProduct = await fetch(
-		`${import.meta.env.VITE_API_URL}/api/products/findId/${params.value_Id}`
+		`${import.meta.env.VITE_BASE_URL}/api/products/findId/${params.value_Id}`
 	);
 
 	const getProduct = await resProduct.json();

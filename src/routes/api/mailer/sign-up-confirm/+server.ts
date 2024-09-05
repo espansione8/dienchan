@@ -5,6 +5,10 @@ import nodemailer from 'nodemailer';
 export const POST = async ({ request }) => {
 	const body = await request.json();
 
+	const {
+		email
+	} = body;
+
 	try {
 		const mailer = async () => {
 			// create reusable transporter object using the default SMTP transport
@@ -21,15 +25,12 @@ export const POST = async ({ request }) => {
 			// send mail with defined transport object
 			const info = await transporter.sendMail({
 				from: '"Riflessologia Dien Chan" <info@riflessologiadienchan.it>', // sender address
-				to: body.registerEmail, // list of receivers
+				to: email, // list of receivers
 				subject: 'Registrazione nuovo utente Dien Chan',
-				text: `Gentile utente, \r\n ${
-					body.registerEmail
-				} sei stato registrato sulla nostra app \r\n per completare la registrazione effettua il <a href="${
-					import.meta.env.VITE_API_URL
-				}">LOG IN</a> e compila i dati nella sezione "Profilo" \r\n oppure copia e incolla nel tuo browser il seguente link per il primo accesso: \r\n ${
-					import.meta.env.VITE_API_URL
-				} \r\n \r\n Questo è un messaggio automatico NON RISPONDERE a questa comunicazione \r\n Distinti saluti \r\n Staff Dien Chan \r\n `,
+				text: `Gentile utente, \r\n ${email
+					} sei stato registrato sulla nostra app \r\n per completare la registrazione effettua il <a href="${import.meta.env.VITE_BASE_URL
+					}">LOG IN</a> e compila i dati nella sezione "Profilo" \r\n oppure copia e incolla nel tuo browser il seguente link per il primo accesso: \r\n ${import.meta.env.VITE_BASE_URL
+					} \r\n \r\n Questo è un messaggio automatico NON RISPONDERE a questa comunicazione \r\n Distinti saluti \r\n Staff Dien Chan \r\n `,
 				html: `
 				<!DOCTYPE html>
 				<html
@@ -389,12 +390,11 @@ export const POST = async ({ request }) => {
 													<td style="padding: 0 2.5em; text-align: center; padding-bottom: 3em">
 														<div class="text">
 															<h2>Gentile utente,</h2>
-															<h4>${body.registerEmail} sei stato registrato sulla nostra app</h4>
-															<h4>per completare la registrazione effettua il <a href="${
-																import.meta.env.VITE_API_URL
-															}">LOG IN</a> e compila i dati nella sezione "Profilo"</h4>
+															<h4>${email} sei stato registrato sulla nostra app</h4>
+															<h4>per completare la registrazione effettua il <a href="${import.meta.env.VITE_BASE_URL
+					}">LOG IN</a> e compila i dati nella sezione "Profilo"</h4>
 															<p>oppure copia e incolla nel tuo browser il seguente link per il primo accesso: </p>
-														<pre>${import.meta.env.VITE_API_URL}</pre>
+														<pre>${import.meta.env.VITE_BASE_URL}</pre>
 														<hr/>
 														
 														<h4>Distinti saluti</h4>
@@ -406,7 +406,7 @@ export const POST = async ({ request }) => {
 													<td style="text-align: center">
 														<div class="text-author">														
 															<p>
-																<a href="${import.meta.env.VITE_API_URL}" class="btn btn-primary"
+																<a href="${import.meta.env.VITE_BASE_URL}" class="btn btn-primary"
 																	>Login</a
 																>
 															</p>
@@ -425,12 +425,12 @@ export const POST = async ({ request }) => {
 				</html>
 				`
 				// html: `<p>Dear user</p>
-				// <p>${body.registerEmail} have been registered on our app</p>
+				// <p>${email} have been registered on our app</p>
 				// <p>to complete the registration please <a href="${
-				// 	import.meta.env.VITE_API_URL
+				// 	import.meta.env.VITE_BASE_URL
 				// }">LOG IN</a> and fill in the data in "Profile" section</p>
 				// <p>or copy and paste in your browser the following link for the first login: </p>
-				// <pre>${import.meta.env.VITE_API_URL}</pre>
+				// <pre>${import.meta.env.VITE_BASE_URL}</pre>
 				// </ hr>
 				// <p>This is an automated message DO NOT REPLY to this communication, for questions and assistance please write to support@fast-track-ip.com</p>
 				// <p>Best regards</p>

@@ -30,7 +30,7 @@
 			email
 		};
 		try {
-			const res = await fetch(`${import.meta.env.VITE_API_URL}/api/user/setactive`, {
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/user/setactive`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
