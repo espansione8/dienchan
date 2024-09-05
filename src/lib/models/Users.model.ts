@@ -23,36 +23,32 @@ const UserSchema = new mongoose.Schema(
 		level: {
 			type: String,
 			enum: [
-				'guest',
 				'user',
-				'formatore_attivo',
+				'formatore',
 				'admin',
 				'superadmin'
 			],
 			default: 'user'
 		},
-		membership: [
-			{
-				membershipLevel: {
-					type: String,
-					// enum:[
-					// 	'Socio inattivo', // Membership Type: Life Time || Billing Type: Free
-					// 	'Socio sostenitore', // Membership Type: Regular Period || Billing Type: Payment || Price 150 EUR
-					// 	'Socio ordinario annuale', // Membership Type: Regular Period || Billing Type: Payment|| Price 25 EUR
-					// 	'Socio vitalizio', // Membership Type: Life Time || Billing Type: Payment|| Price 380 EUR
-					// 	'Socio contributore', // Membership Type: Life Time || Billing Type: Payment|| Price 1900 EUR
-					// 	'Socio riflessologo attivo', // Membership Type: Life Time || Billing Type: Free
-					// 	'Riflessologo', // Membership Type: Life Time || Billing Type: Free
-					// 	'Master Dien Chan', // Membership Type: Life Time || Billing Type: Free
-					// ],
-					default: ''
-				},
-				membershipSignUp: { type: Date, default: '' }, // La prima volta che è stato attivato
-				membershipActivation: { type: Date, default: '' }, // la data del ultima attivazione
-				membershipExpiry: { type: Date, default: '' },
-				membershipStatus: { type: Boolean, default: false }
-			}
-		],
+		membership:
+		{
+			membershipLevel: {
+				type: String,
+				enum: [
+					'Socio inattivo', // Membership Type: Life Time || Billing Type: Free
+					'Socio ordinario', // Membership Type: Regular Period || Billing Type: Payment|| Price 25 EUR
+					'Socio sostenitore', // Membership Type: Regular Period || Billing Type: Payment || Price 150 EUR
+					'Socio vitalizio', // Membership Type: Life Time || Billing Type: Payment|| Price 380 EUR
+					'Socio contributore', // Membership Type: Life Time || Billing Type: Payment|| Price 1900 EUR
+					'Master Dien Chan', // Membership Type: Life Time || Billing Type: Free
+				],
+				default: ''
+			},
+			membershipSignUp: { type: Date, default: '' }, // La prima volta che è stato attivato
+			membershipActivation: { type: Date, default: '' }, // la data del ultima attivazione - rinnovi
+			membershipExpiry: { type: Date, default: '' }, // quando scade
+			membershipStatus: { type: Boolean, default: false }
+		},
 		codeSales: { type: String, default: '' },
 		codeManager: { type: String, default: '' },
 		codeSupervisor: { type: String, default: '' },

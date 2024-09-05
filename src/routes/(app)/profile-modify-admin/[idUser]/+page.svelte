@@ -678,7 +678,7 @@
 							bind:value={level}
 						>
 							<option value="user">user</option>
-							<option value="formatore_attivo">formatore attivo</option>
+							<option value="formatore">formatore</option>
 							<option value="admin">admin</option>
 						</select>
 					</label>

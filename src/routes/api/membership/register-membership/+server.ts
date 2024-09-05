@@ -6,6 +6,8 @@ import dbConnect from '$lib/database';
 import { Membership } from '$lib/models/Membership.model';
 import { File } from 'nft.storage';
 
+
+
 export const POST = async ({ request }) => {
 	const body = await request.json();
 	// const productUserId = body.productUserId;

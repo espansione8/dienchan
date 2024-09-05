@@ -1,5 +1,9 @@
-<script>
-	import { CircleCheckBig, ShieldAlert } from 'lucide-svelte';
+<script lang="ts">
+	import { CircleCheckBig } from 'lucide-svelte';
+	import Notification from '$lib/components/Notification.svelte';
+
+	let { data } = $props();
+	let { userData } = $derived(data);
 
 	const testimonials = [
 		{
@@ -10,7 +14,7 @@
 		},
 		{
 			name: 'Federico C',
-			image: '/images/successkid.jpg',
+			image: ' 	/images/michael-dam-mEZ3PoFGs_k-unsplash.jpg',
 			review:
 				'Per chi fa i corsi della durata di qualche giorno è possibile dormire direttamente sul posto grazie a letti a muro. È presente in bagno e una cucina per poter fare le proprie cose e fare colazione/cucinare all’occorrenza.'
 		},
@@ -21,12 +25,138 @@
 				'Associazione ben organizzata che insegna egregiamente e con passione tecniche utili per il benessere psicofisico.'
 		}
 	];
+
+
+	
+
+	const onClickAssociateOrdinary = async () => {
+		//alert('save data');
+		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/membership/new`, {
+			method: 'POST',
+			body: JSON.stringify({
+				id: userData._id,
+				userId: userData.userId,
+				membershipLevel : 'Socio ordinario',
+				membershipSignUp : new Date(),
+				membershipActivation : '',
+				membershipExpiry : new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+				membershipStatus : true
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		if (response.status == 200) {
+			clearTimeout(startTimeout);
+			console.log('OK', response);
+			let content = (await response.json()).message;
+			toastClosed = false;
+			notificationContent = content;
+			if(content == 'Utente già socio!'){
+				notificationError = true;
+			}
+			closeNotification();
+		}
+		if (response.status != 200) {
+			console.log('KO', response);
+			let error = (await response.json()).message;
+			toastClosed = false;
+			notificationContent = error;
+			notificationError = true;
+			closeNotification();
+		}
+	};
+
+	const onClickAssociateLifetime = async () => {
+		//alert('save data');
+		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/membership/new`, {
+			method: 'POST',
+			body: JSON.stringify({
+				id: userData._id,
+				userId: userData.userId,
+				membershipLevel : 'Socio vitalizio',
+				membershipSignUp : new Date(),
+				membershipActivation : '',
+				membershipExpiry : new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+				membershipStatus : true
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		if (response.status == 200) {
+			clearTimeout(startTimeout);
+			console.log('OK', response);
+			let content = (await response.json()).message;
+			toastClosed = false;
+			notificationContent = content;
+			if(content == 'Utente già socio!'){
+				notificationError = true;
+			}
+			closeNotification();
+		}
+		if (response.status != 200) {
+			console.log('KO', response);
+			let error = (await response.json()).message;
+			toastClosed = false;
+			notificationContent = error;
+			notificationError = true;
+			closeNotification();
+		}
+	};
+
+	const onClickRenew = async () => {
+		//alert('save data');
+		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/membership/renew`, {
+			method: 'POST',
+			body: JSON.stringify({
+				id: userData._id,
+				userId: userData.userId,	
+				membershipActivation : new Date(),
+				membershipExpiry : new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+				membershipStatus : true
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		if (response.status == 200) {
+			clearTimeout(startTimeout);
+			console.log('OK', response);
+			let content = (await response.json()).message;
+			toastClosed = false;
+			notificationContent = content;
+			if(content == 'Rinnovo NON effettuato!'){
+				notificationError = true;
+			}
+			closeNotification();
+		}
+		if (response.status != 200) {
+			console.log('KO', response);
+			let error = (await response.json()).message;
+			toastClosed = false;
+			notificationContent = error;
+			notificationError = true;
+			closeNotification();
+		}
+	};
+
+	// notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+		}, 3000); // 1000 milliseconds = 1 second
+	};
+	//clearTimeout(startTimeout); // reset timer
 </script>
 
 <svelte:head>
 	<title>Diventa socio</title>
 </svelte:head>
-
 
 <div class="bg-blue-50 grid grid-cols-6 grid-rows-[min-content] gap-y-8 p-4 md:p-10">
 	<span class="col-span-6 text-blue-900 font-bold text-5xl text-center mb-4">
@@ -119,7 +249,6 @@
 						SOCIO ORDINARIO
 					</h2>
 					<p class="text-4xl font-bold">25€ <span class="text-xl">annuali</span></p>
-					
 				</div>
 				<div class="flex justify-center my-4">
 					<figure class="px-4 pt-4">
@@ -127,8 +256,12 @@
 					</figure>
 				</div>
 				<div class="flex justify-between space-x-4 my-4">
-					<button class="btn btn-sm bg-red-500 text-white w-2/5 rounded-xl">Associati</button>
-					<button class="btn btn-sm  bg-transparent border-2 border-white text-white w-2/5 rounded-xl"
+					<button class="btn btn-sm bg-red-500 text-white w-2/5 rounded-xl"
+					onclick={onClickAssociateOrdinary}>
+					Associati</button>
+					<button
+						class="btn btn-sm bg-transparent border-2 border-white text-white w-2/5 rounded-xl"
+						onclick={onClickRenew}
 						>Rinnova</button
 					>
 				</div>
@@ -148,7 +281,7 @@
 					>
 						SOCIO VITALIZIO
 					</h2>
-					<p class="text-4xl font-bold ">390€</p>
+					<p class="text-4xl font-bold">390€</p>
 					<!-- <p class="text-xl invisible"> /a vita</p> -->
 				</div>
 				<div class="flex justify-center my-4">
@@ -156,7 +289,9 @@
 						<img src="/images/card-2.jpg" alt="tipo corso" class="h-40 rounded-full object-cover" />
 					</figure>
 				</div>
-				<button class="btn bg-red-500 text-white w-full rounded-xl mt-2">Associati</button>
+				<button class="btn bg-red-500 text-white w-full rounded-xl mt-2"
+				onclick={onClickAssociateLifetime}
+				>Associati</button>
 			</div>
 		</div>
 	</section>
@@ -184,7 +319,7 @@
 						<img
 							src={testimonial.image}
 							alt={testimonial.name}
-							class="rounded-full w-16 h-16 mr-4"
+							class="mask mask-circle w-16 mr-4"
 						/>
 						<h4 class="text-xl font-semibold text-gray-800">{testimonial.name}</h4>
 					</div>
@@ -264,3 +399,4 @@
 		</div>
 	</section>
 </div>
+<Notification {toastClosed} {notificationContent} {notificationError} />
