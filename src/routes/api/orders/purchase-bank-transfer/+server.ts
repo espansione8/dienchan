@@ -6,7 +6,7 @@ import nodemailer from 'nodemailer';
 import stringHash from 'string-hash';
 import dbConnect from '$lib/database';
 import { Order } from '$lib/models/Orders.model';
-//import { Users } from '$lib/models/Users.model';
+//import { User } from '$lib/models/Users.model';
 export const POST = async ({ request }) => {
 	const body = await request.json();
 	try {

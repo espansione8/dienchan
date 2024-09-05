@@ -28,7 +28,7 @@
 
 	const onClickAssociateOrdinary = async () => {
 		//alert('save data');
-		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/membership/new`, {
+		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/new`, {
 			method: 'POST',
 			body: JSON.stringify({
 				id: userData._id,
@@ -66,7 +66,7 @@
 
 	const onClickAssociateLifetime = async () => {
 		//alert('save data');
-		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/membership/new`, {
+		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/new`, {
 			method: 'POST',
 			body: JSON.stringify({
 				id: userData._id,
@@ -104,7 +104,7 @@
 
 	const onClickRenew = async () => {
 		//alert('save data');
-		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/membership/renew`, {
+		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/renew`, {
 			method: 'POST',
 			body: JSON.stringify({
 				id: userData._id,

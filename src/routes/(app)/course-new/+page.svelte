@@ -51,7 +51,7 @@
 	);
 
 	async function submitForm() {
-		const response = await fetch(`/api/products-corso/register-corso`, {
+		const response = await fetch(`/api/courses/register`, {
 			method: 'POST',
 			body: JSON.stringify({
 				productCorsoUserId,

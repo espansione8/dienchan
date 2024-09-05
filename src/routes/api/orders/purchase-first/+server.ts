@@ -68,7 +68,7 @@ export const POST = async ({ request }) => {
 		}
 		// REGISTRARE membership
 		if (userId) {
-			const responseMembership = await fetch(`${import.meta.env.VITE_BASE_URL}/api/membership/new-course`, {
+			const responseMembership = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/new-course`, {
 				method: 'POST',
 				body: JSON.stringify({
 					userId,

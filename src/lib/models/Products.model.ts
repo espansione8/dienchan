@@ -132,4 +132,4 @@ const productSchema = new Schema(
     }
 );
 
-export const Products = mongoose.models.Products || mongoose.model('Products', productSchema);
+export const Product = mongoose.models.Products || mongoose.model('Products', productSchema);

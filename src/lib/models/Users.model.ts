@@ -233,6 +233,6 @@ const UserSchema = new mongoose.Schema(
 
 //module.exports = mongoose.model('User', UserSchema);
 // export const User = mongoose.model('User', UserSchema);
-export const Users = mongoose.models.Users || mongoose.model('Users', UserSchema);
+export const User = mongoose.models.Users || mongoose.model('Users', UserSchema);
 // check for extra fixes https://stackoverflow.com/questions/19051041/cannot-overwrite-model-once-compiled-mongoose
 

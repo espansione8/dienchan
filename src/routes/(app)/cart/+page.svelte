@@ -119,7 +119,7 @@
 		//alert('save data');
 		// console.log('test');
 
-		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/user/billing-data`, {
+		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/billing-data`, {
 			method: 'POST',
 			body: JSON.stringify({
 				//id: userData._id,

@@ -123,7 +123,7 @@
 	// 	const data = {
 	// 		email: newData.userMail
 	// 	};
-	// 	const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/reset-password`, {
+	// 	const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/password-reset`, {
 	// 		method: 'POST',
 	// 		headers: {
 	// 			'Content-Type': 'application/json'

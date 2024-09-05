@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 	// if (getPage.status == 'disabled') throw redirect(302, `/expired?ssn=${params.idPage}`);
 
 	const resCourse = await fetch(
-		`${import.meta.env.VITE_BASE_URL}/api/products-corso/find-course/${params.idCourse}`
+		`${import.meta.env.VITE_BASE_URL}/api/courses/find/${params.idCourse}`
 	);
 
 	const getCourse = await resCourse.json();

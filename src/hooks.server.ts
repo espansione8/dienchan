@@ -4,7 +4,7 @@
 //https://www.youtube.com/watch?v=K1Tya6ovVOI // Protect SvelteKit Routes with Hooks
 
 import { parse } from 'cookie';
-import { Users } from '$lib/models/Users.model';
+import { User } from '$lib/models/Users.model';
 import dbConnect from '$lib/database';
 import type { Handle } from '@sveltejs/kit';
 

@@ -2,7 +2,7 @@ import { json as json$1 } from '@sveltejs/kit';
 // src/routes/api/sign-out.js
 import { parse, serialize } from 'cookie';
 import dbConnect from '$lib/database';
-import { Users } from '$lib/models/Users.model';
+import { User } from '$lib/models/Users.model';
 import type { RequestHandler } from '@sveltejs/kit';
 
 /** @type {import('@sveltejs/kit').RequestHandler} */

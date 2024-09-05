@@ -30,7 +30,7 @@
 		//alert('save data');
 		console.log('test');
 
-		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/user/billing-data`, {
+		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/billing-data`, {
 			method: 'POST',
 			body: JSON.stringify({
 				id: userData._id,
@@ -155,24 +155,27 @@
 		const file = /** @type {any} */ (target.elements)[inputId].files[0]; // NOTE: (target.elements).{INPUT ID}.files[0]
 		const headers = { 'x-file-name': file.name, 'x-folder-name': userData.userId }; // NOTE: change folder name to userid
 
-		// await upload.start({ url: '/api/upload/files', file, headers });
-		const response: any = await upload.start({ url: '/api/upload/files', file, headers });
+		// await upload.start({ url: '/api/uploads/files', file, headers });
+		const response: any = await upload.start({ url: '/api/uploads/files', file, headers });
 		// console.log('response up file', response);
 		// console.log('response.status:', typeof response.status, response.status);
 		if (response.status == 200) {
 			//// update DB with file path
-			const responseUpdate = await fetch(`${import.meta.env.VITE_BASE_URL}/api/user/update-photo`, {
-				method: 'POST',
-				body: JSON.stringify({
-					fileName: file.name,
-					email, // filter in DB
-					type: inputId,
-					action: 'new'
-				}),
-				headers: {
-					'Content-Type': 'application/json'
+			const responseUpdate = await fetch(
+				`${import.meta.env.VITE_BASE_URL}/api/users/update-photo`,
+				{
+					method: 'POST',
+					body: JSON.stringify({
+						fileName: file.name,
+						email, // filter in DB
+						type: inputId,
+						action: 'new'
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
 				}
-			});
+			);
 			const res = await responseUpdate.json();
 			// console.log('responseUpdate up db', responseUpdate);
 			// console.log('responseUpdate.status:', typeof responseUpdate.status, responseUpdate.status);
@@ -210,7 +213,7 @@
 	// pic delete
 	const onPicDelete = async (fileName: any, inputId: any) => {
 		// remove from DB
-		const responseUpdate = await fetch(`${import.meta.env.VITE_BASE_URL}/api/user/update-photo`, {
+		const responseUpdate = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/update-photo`, {
 			method: 'POST',
 			body: JSON.stringify({
 				fileName,
@@ -238,7 +241,7 @@
 			is_upload_submitting = false;
 		}
 		// remove from disk
-		const responseDelete = await fetch(`${import.meta.env.VITE_BASE_URL}/api/upload/files`, {
+		const responseDelete = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
 			method: 'DELETE',
 			body: JSON.stringify({
 				userId: userData.userId,

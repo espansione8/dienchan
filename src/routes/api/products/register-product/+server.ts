@@ -1,7 +1,7 @@
 import { json as json$1 } from '@sveltejs/kit';
 // src/routes/api/auth/sign-up.js
 import dbConnect from '$lib/database';
-import { Products } from '$lib/models/Products.model';
+import { Product } from '$lib/models/Products.model';
 import { File } from 'nft.storage';
 
 export const POST = async ({ request }) => {

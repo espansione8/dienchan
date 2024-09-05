@@ -3,7 +3,7 @@ import { json } from '@sveltejs/kit';
 import stringHash from 'string-hash';
 //import { serialize } from 'cookie';
 import dbConnect from '$lib/database';
-import { Users } from '$lib/models/Users.model';
+import { User } from '$lib/models/Users.model';
 
 export const POST = async ({ request }) => {
 	const body = await request.json();

@@ -18,13 +18,13 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 	// }
 
 	const resCourse = await fetch(
-		`${import.meta.env.VITE_BASE_URL}/api/products-corso/find-course/${params.idCourse}`
+		`${import.meta.env.VITE_BASE_URL}/api/courses/find/${params.idCourse}`
 	);
 
 	const getCourse = await resCourse.json();
 
 	const resUser = await fetch(
-		`${import.meta.env.VITE_BASE_URL}/api/user/findUserId/${getCourse.userId}`
+		`${import.meta.env.VITE_BASE_URL}/api/users/findUserId/${getCourse.userId}`
 	);
 
 	const userData = await resUser.json();

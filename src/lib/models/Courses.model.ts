@@ -217,4 +217,4 @@ ProductCorsoSchema.virtual('userView', {
 //         console.log('Product index error: ', error);
 // });
 
-export const Courses = mongoose.models.Courses || mongoose.model('Courses', ProductCorsoSchema);
+export const Course = mongoose.models.Courses || mongoose.model('Courses', ProductCorsoSchema);

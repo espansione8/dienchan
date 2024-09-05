@@ -66,7 +66,7 @@
 
 	async function submitForm() {
 		//console.log('getCourse.name', getCourse.reflexologistName);
-		const response = await fetch(`/api/products-corso/modify`, {
+		const response = await fetch(`/api/courses/modify`, {
 			method: 'POST',
 			body: JSON.stringify({
 				productCorsoID,

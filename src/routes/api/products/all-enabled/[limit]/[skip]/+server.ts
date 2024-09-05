@@ -1,9 +1,9 @@
 import { json } from '@sveltejs/kit';
-import { Products } from '$lib/models/Products.model';
+import { Product } from '$lib/models/Products.model';
 import dbConnect from '$lib/database';
 import type { RequestHandler } from '@sveltejs/kit';
 
-///BASE_URL/api/user/all/:limit/:skip
+///BASE_URL/api/users/all/:limit/:skip
 
 export const GET: RequestHandler = async ({ params }) => {
 	let queryLimit = 1;

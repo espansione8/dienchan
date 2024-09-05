@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 		// CORSI
 		const resProductsCorso = await fetch(
-			`${import.meta.env.VITE_BASE_URL}/api/products-corso/all-enabled/0/0`
+			`${import.meta.env.VITE_BASE_URL}/api/courses/all-enabled/0/0`
 		);
 		const resGetTableProductsCorso = await resProductsCorso.json();
 		getTableCourses = resGetTableProductsCorso.map((obj) => ({
@@ -26,7 +26,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 		// LISTA NOMI RIFLESSOLOGI
 		// const resName = await fetch(
-		// 	`${import.meta.env.VITE_BASE_URL}/api/user/all-active-names/0/0`
+		// 	`${import.meta.env.VITE_BASE_URL}/api/users/all-active-names/0/0`
 		// );
 		// getTableNames = await resName.json();
 
