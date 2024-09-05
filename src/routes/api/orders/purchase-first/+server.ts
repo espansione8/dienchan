@@ -117,7 +117,7 @@ export const POST = async ({ request }) => {
 			newOrder.cart = cart;
 			newOrder.payment.method = paymentType;
 
-			const order = await newOrder
+			const order = await newOrder.save()
 
 			if (order.orderId == orderId) {
 				console.log('OK order', order);

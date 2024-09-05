@@ -4,8 +4,8 @@ import mongoose, { Schema, Types } from 'mongoose';
 const orderSchema = new Schema(
 	{
 		orderId: {
-			type: Number,
-			default: 0,
+			type: String,
+			default: '',
 			index: true,
 			unique: true,
 			dropDups: true
