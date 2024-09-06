@@ -1,91 +1,86 @@
+///BASE_URL/api/users/billing-data/
 import { json } from '@sveltejs/kit';
 import { User } from '$lib/models/Users.model';
 import { Course } from '$lib/models/Courses.model';
 import dbConnect from '$lib/database';
 
-///BASE_URL/api/users/billing-data/
-
 export const POST = async ({ request }) => {
-	// dichiarato ma non usato
 	const body = await request.json();
 	// console.log('POST billing data', body);
-
-	// ESEMPIO DESTRUCTURING
-
-	// destructuring
 	const {
 		userId,
 		name,
 		surname,
-		id
+		email,
+		address,
+		city,
+		countryState,
+		postalCode,
+		country,
+		phone,
+		mobilePhone,
 	} = body;
-
-	// const level = body.level;
-	// const name = body.name;
-	// const surname = body.surname;
+	const level = body.level; // DA CONTROLLARE: alcune pagine non pasasno valore
+	const addressPublic = body.addressPublic || false;
+	const cityPublic = body.cityPublic || false;
+	const statePublic = body.statePublic || false;
+	const postalCodePublic = body.postalCodePublic || false;
+	const countryPublic = body.countryPublic || false;
+	const phonePublic = body.phonePublic || false;
+	const mobilePhonePublic = body.mobilePhonePublic || false;
 
 	try {
-		// apro mongo
 		await dbConnect();
-		// qua uso il secondo await
-		const filter = { _id: id };
+		const filter = { userId };
 		const update = {
-			userId: userId,
-			level: body.level,
+			level,
 			name,
 			surname,
-			email: body.email,
-			address: body.address,
-			city: body.city,
-			countryState: body.countryState,
-			postalCode: body.postalCode,
-			// region: body.region,
-			country: body.country,
-			phone: body.phone,
-			mobilePhone: body.mobilePhone,
-			addressPublic: body.addressPublic,
-			cityPublic: body.cityPublic,
-			statePublic: body.statePublic,
-			postalCodePublic: body.postalCodePublic,
+			email: email.replace(/\s+/g, '').toLowerCase(),
+			address,
+			city,
+			countryState,
+			postalCode,
+			country,
+			phone,
+			mobilePhone,
+			// privacy
+			addressPublic,
+			cityPublic,
+			statePublic,
+			postalCodePublic,
+			countryPublic,
+			phonePublic,
+			mobilePhonePublic,
 			// regionPublic: body.regionPublic,
-			countryPublic: body.countryPublic,
-			phonePublic: body.phonePublic,
-			mobilePhonePublic: body.mobilePhonePublic,
-			businessData: {
-				businessAddress: body.businessAddress,
-				businessCity: body.businessCity,
-				businessPostalCode: body.businessPostalCode,
-				businessCounty: body.businessCounty,
-				businessCountry: body.businessCountry,
-				businessName: body.businessName,
-				vatNumber: body.vatNumber
-			}
+			// businessData: {
+			// 	businessAddress: body.businessAddress,
+			// 	businessCity: body.businessCity,
+			// 	businessPostalCode: body.businessPostalCode,
+			// 	businessCounty: body.businessCounty,
+			// 	businessCountry: body.businessCountry,
+			// 	businessName: body.businessName,
+			// 	vatNumber: body.vatNumber
+			// }
 		};
 
 		const newData = await User.updateOne(filter, update, {
 			new: true
 		}).lean();
 
-		// const courseUpdateResult = await Course.updateMany(courseFilter, courseUpdate);
-
 		if (newData.matchedCount == 1) {
-
 			const courseFilter = { userId };
 			const courseUpdate = {
 				reflexologistName: name,
 				reflexologistSurname: surname
 			};
-
 			// Aggiungo un log per verificare il numero di corsi trovati
 			const coursesToUpdate = await Course.find(courseFilter);
 			// console.log(`Trovati ${coursesToUpdate.length} corsi da aggiornare per user_Id: ${body.userId}. nome ${body.name} surname ${body.surname}`);
-
 			if (coursesToUpdate.length > 0) {
-
 				// TODO: sbaglia apposta e agggiorna condizione dell IF
 				const courseUpdateResult = await Course.updateMany(courseFilter, courseUpdate);
 				//console.log('courseUpdateResult', courseUpdateResult)
-
 				// console.log(`Numero di corsi aggiornati: ${courseUpdateResult.modifiedCount}`);
 
 				if (!courseUpdateResult) {
@@ -95,7 +90,6 @@ export const POST = async ({ request }) => {
 					});
 				}
 			}
-
 
 			return json({
 				message: 'Profilo aggiornato',

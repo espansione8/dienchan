@@ -1,5 +1,5 @@
-import { json as json$1 } from '@sveltejs/kit';
-// src/routes/api/mailer/sign-up.js
+// src/routes/api/mailer/sign-up-confirm.js
+import { json } from '@sveltejs/kit';
 import nodemailer from 'nodemailer';
 
 export const POST = async ({ request }) => {
@@ -442,26 +442,36 @@ export const POST = async ({ request }) => {
 			//console.log('Message sent: %s', info.messageId);
 			// Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
 			//return info.messageId;
-			return json$1({
-				message: 'mail di conferma NON inviata',
-				info: info.messageId
-			});
+			return json(
+				{
+					message: 'mail di conferma inviata',
+					info: info.messageId
+				},
+				{
+					status: 200
+				}
+			);
 		};
 		mailer().catch(console.error);
 
-		return json$1({
+		return json({
 			message: 'mail di conferma NON inviata'
 		});
 	} catch (err) {
 		console.log('registerUser ERROR:', err);
-		//throw new Error("@1migration task: Migrate this return statement (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292701)");
-		return new Response(JSON.stringify({ message: `registerUser ERR: ${err}` }), {
-			status: 500,
-			headers: {
-				'content-type': 'application/json; charset=utf-8'
+		return json(
+			{
+				message: `registerUser ERR: ${err}`,
+			},
+			{
+				status: 500
 			}
-		});
-		//
-		//return Promise.reject(new Error(`registerUser ERR: ${err}`));
+		);
+		// return new Response(JSON.stringify({ message: `registerUser ERR: ${err}` }), {
+		// 	status: 500,
+		// 	headers: {
+		// 		'content-type': 'application/json; charset=utf-8'
+		// 	}
+		// });
 	}
 };

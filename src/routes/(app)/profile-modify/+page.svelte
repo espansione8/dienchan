@@ -33,7 +33,7 @@
 		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/billing-data`, {
 			method: 'POST',
 			body: JSON.stringify({
-				id: userData._id,
+				//id: userData._id,
 				userId: userData.userId,
 				name,
 				surname,
@@ -53,14 +53,14 @@
 				// regionPublic,
 				countryPublic,
 				phonePublic,
-				mobilePhonePublic,
-				businessAddress,
-				businessCity,
-				businessPostalCode,
-				businessCounty,
-				businessCountry,
-				businessName,
-				vatNumber
+				mobilePhonePublic
+				// businessAddress,
+				// businessCity,
+				// businessPostalCode,
+				// businessCounty,
+				// businessCountry,
+				// businessName,
+				// vatNumber
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -94,13 +94,13 @@
 	let country = $state(userData.country || '');
 	let phone = $state(userData.phone || '');
 	let mobilePhone = $state(userData.mobilePhone || '');
-	let businessName = $state(userData.businessData.businessName || '');
-	let vatNumber = $state(userData.businessData.vatNumber || '');
-	let businessAddress = $state(userData.businessData.businessAddress || '');
-	let businessCity = $state(userData.businessData.businessCity || '');
-	let businessCounty = $state(userData.businessData.businessCounty || '');
-	let businessPostalCode = $state(userData.businessData.businessPostalCode || '');
-	let businessCountry = $state(userData.businessData.businessCountry || '');
+	// let businessName = $state(userData.businessData.businessName || '');
+	// let vatNumber = $state(userData.businessData.vatNumber || '');
+	// let businessAddress = $state(userData.businessData.businessAddress || '');
+	// let businessCity = $state(userData.businessData.businessCity || '');
+	// let businessCounty = $state(userData.businessData.businessCounty || '');
+	// let businessPostalCode = $state(userData.businessData.businessPostalCode || '');
+	// let businessCountry = $state(userData.businessData.businessCountry || '');
 	let membershipArray = $state(userData.membership || []);
 	let max = $state(new Date().getFullYear());
 	let min = $derived(max - 90);

@@ -38,7 +38,7 @@ export const POST = async ({ request }) => {
 
 		if (user.email == 'guest') {
 			const password = stringHash(body.loginPassword);
-			await Users.updateOne(
+			await User.updateOne(
 				{ userId: body.ssn },
 				{
 					$set: {
@@ -75,7 +75,7 @@ export const POST = async ({ request }) => {
 		const cookieId = crypto.randomUUID();
 		// If there is user with cookie, update the cookie, otherwise create a new DB entry
 		if (duplicateUser) {
-			await Users.updateOne({ userId: body.ssn }, { $set: { cookieId } });
+			await User.updateOne({ userId: body.ssn }, { $set: { cookieId } });
 		}
 		// Set cookie
 		// If you want cookies to be passed alongside user when they redirect to another website using a link, change sameSite to 'lax'

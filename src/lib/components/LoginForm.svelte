@@ -12,7 +12,7 @@
 		error = undefined;
 
 		try {
-			const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/sign-in`, {
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-in`, {
 				method: 'POST',
 				body: JSON.stringify({
 					loginEmail,

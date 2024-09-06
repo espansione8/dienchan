@@ -33,7 +33,7 @@
 
 	const logOutNow = async () => {
 		try {
-			const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/sign-out`);
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-out`);
 			//const response = await res.json();
 			if (res.ok) {
 				redirectToLogin();

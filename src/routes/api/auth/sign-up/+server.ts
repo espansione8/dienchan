@@ -1,5 +1,5 @@
-import { json as json$1 } from '@sveltejs/kit';
 // src/routes/api/auth/sign-up.js
+import { json } from '@sveltejs/kit';
 import stringHash from 'string-hash';
 import { serialize } from 'cookie';
 import dbConnect from '$lib/database';
@@ -21,7 +21,7 @@ export const POST = async ({ request }) => {
 		// If there is, either send status 409 Conflict and inform the user that their email is already taken
 		// or send status 202 or 204 and tell them to double-check on their credentials and try again - it is considered more secure
 		if (user) {
-			return json$1(
+			return json(
 				{
 					message: 'User already registered'
 				},
@@ -66,7 +66,7 @@ export const POST = async ({ request }) => {
 			})
 		};
 
-		return json$1(
+		return json(
 			{
 				message:
 					"Sign up done! Check incoming email (don't forget SPAM folder) for the confirmation message."
@@ -77,7 +77,7 @@ export const POST = async ({ request }) => {
 		);
 	} catch (err) {
 		console.log('registerUser ERROR:', err);
-		return json$1(
+		return json(
 			{
 				message: 'Sign Up failed'
 			},

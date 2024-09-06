@@ -34,7 +34,7 @@
 		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/billing-data`, {
 			method: 'POST',
 			body: JSON.stringify({
-				id: userData._id,
+				//id: userData._id,
 				level,
 				name,
 				surname,
@@ -55,13 +55,13 @@
 				countryPublic,
 				phonePublic,
 				mobilePhonePublic,
-				businessAddress,
-				businessCity,
-				businessPostalCode,
-				businessCounty,
-				businessCountry,
-				businessName,
-				vatNumber
+				businessAddress
+				// businessCity,
+				// businessPostalCode,
+				// businessCounty,
+				// businessCountry,
+				// businessName,
+				// vatNumber
 			}),
 			headers: {
 				'Content-Type': 'application/json'

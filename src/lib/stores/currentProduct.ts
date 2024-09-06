@@ -10,8 +10,8 @@ export const isFetching = writable(initial);
 export async function getThisProd(productId) {
 	isFetching.set(true);
 	try {
-		//const responseProd = await axios.get(`${import.meta.env.VITE_API_URL}/api/product/findId/${productId}`);
-		const res = await fetch(`${import.meta.env.VITE_API_URL}/api/product/findId/${productId}`);
+		//const responseProd = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/product/findId/${productId}`);
+		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/product/findId/${productId}`);
 		const responseProd = await res.json();
 		//console.log('responseProd', responseProd);
 
@@ -37,10 +37,10 @@ export async function getThisProd(productId) {
 			const categoryArray = responseProd.category;
 			const categoryId = categoryArray[1] || categoryArray[0];
 			// const responseProdRelated = await axios.get(
-			// 	`${import.meta.env.VITE_API_URL}/api/product/related/${categoryId}`
+			// 	`${import.meta.env.VITE_BASE_URL}/api/product/related/${categoryId}`
 			// );
 			const responseProdRelated = await fetch(
-				`${import.meta.env.VITE_API_URL}/api/product/related/${categoryId}`
+				`${import.meta.env.VITE_BASE_URL}/api/product/related/${categoryId}`
 			);
 			const valueSet = await responseProdRelated.json()
 			relatedProd.set(valueSet);

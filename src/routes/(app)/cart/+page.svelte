@@ -2,26 +2,15 @@
 	import { cart } from '$lib/stores/cart';
 	import moment from 'moment';
 	import { Lock } from 'lucide-svelte';
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
 	import { province } from '$lib/stores/arrays.js';
 	import { country_list } from '$lib/stores/arrays.js';
 	import { coursesInfo } from '$lib/stores/arrays.js';
 	import { Settings, X, Check } from 'lucide-svelte';
 
-	const date = new Date();
-
 	let { data } = $props();
 	let { userData, auth } = $derived(data);
-
-	const pad = (num: any) => {
-		const newNum = Number(num);
-		const norm = Math.floor(Math.abs(newNum));
-		let text = '';
-		if (norm < 10) text = '0';
-		const outpupt = `${text}${norm}`;
-		return outpupt;
-	};
 
 	let error: string = $state('');
 	let password1 = $state('');
@@ -36,50 +25,6 @@
 	};
 	const testSecondPass = () => (checkSecondPass = password1 === password2);
 
-	// function findNameRiflessologo(userIdCode) {
-	// 	const findRiflessologo = getTableUser.find((user) => user.userId === userIdCode);
-	// 	// const findRiflessologo = '';
-
-	// 	if (!findRiflessologo) {
-	// 		console.warn(`Nessun riflessologo trovato per l'ID: ${userIdCode}`);
-	// 		return 'Riflessologo non trovato';
-	// 	}
-	// 	return `${findRiflessologo.name} ${findRiflessologo.surname}`;
-	// }
-
-	let productCorsoTitolo = $state('');
-	let productCorsoDescrizione = $state('');
-	let productCorsoUserId = $state(userData.userId);
-	let productCorsoStatus = $state('enabled');
-	let productCorsoProvincia = $state('');
-	let productCorsoCategoria = $state('Corso');
-	let productCorsoElencoTag: any[] = $state([]);
-	let productCorsoInputTag = $state('');
-	let productCorsoQuantitaPartecipanti = $state(1);
-	// let eventoProdotti;
-	let productCorsoElencoEmailNotifica = $state([userData.email]);
-	let productCorsoInputEmailNotifica = $state('');
-	let productCorsoPoints = $state(1);
-
-	let productCorsoDataInizioGiorno = $state(pad(date.getDate()));
-	let productCorsoDataInizioMese = $state(pad(date.getMonth() + 1));
-	let productCorsoDataInizioAnno = $state(date.getFullYear());
-	let productCorsoDataInizioOra = $state(pad(date.getHours()));
-	let productCorsoDataInizioMinuto = $state(pad(date.getMinutes()));
-
-	let productCorsoDataFineGiorno = $state(pad(date.getDate()));
-	let productCorsoDataFineMese = $state(pad(date.getMonth() + 1));
-	let productCorsoDataFineAnno = $state(pad(date.getFullYear()));
-	let productCorsoDataFineOra = $state(pad(date.getHours() + 1));
-	let productCorsoDataFineMinuto = $state(date.getMinutes());
-
-	let productCorsoDataInizioCompleto = $derived(
-		`${productCorsoDataInizioAnno}-${productCorsoDataInizioMese}-${productCorsoDataInizioGiorno} ${productCorsoDataInizioOra}:${productCorsoDataInizioMinuto}`
-	);
-	let productCorsoDataFineCompleto = $derived(
-		`${productCorsoDataFineAnno}-${productCorsoDataFineMese}-${productCorsoDataFineGiorno} ${productCorsoDataFineOra}:${productCorsoDataFineMinuto}`
-	);
-
 	let name = $state(userData.name || '');
 	let surname = $state(userData.surname || '');
 	let email = $state(userData.email || '');
@@ -90,22 +35,20 @@
 	let country = $state(userData.country || 'Italy');
 	let phone = $state(userData.phone || '');
 	let mobilePhone = $state(userData.mobilePhone || '');
-	// let max = $state(new Date().getFullYear());
-	// let min = $derived(max - 90);
-	// let years = $state([]);
-	let namePublic = $state(userData.namePublic || false);
-	let surnamePublic = $state(userData.surnamePublic || false);
-	let emailPublic = $state(userData.emailPublic || false);
-	let addressPublic = $state(userData.addressPublic || false);
-	let cityPublic = $state(userData.cityPublic || false);
-	let statePublic = $state(userData.statePublic || false);
-	let postalCodePublic = $state(userData.postalCodePublic || false);
-	let countryPublic = $state(userData.countryPublic || false);
-	let phonePublic = $state(userData.phonePublic || false);
-	let mobilePhonePublic = $state(userData.mobilePhonePublic || false);
-	// let regionPublic = userData.regionPublic || false;
+	// privacy
+	// let namePublic = $state(userData.namePublic || false);
+	// let surnamePublic = $state(userData.surnamePublic || false);
+	// let emailPublic = $state(userData.emailPublic || false);
+	// let addressPublic = $state(userData.addressPublic || false);
+	// let cityPublic = $state(userData.cityPublic || false);
+	// let statePublic = $state(userData.statePublic || false);
+	// let postalCodePublic = $state(userData.postalCodePublic || false);
+	// let countryPublic = $state(userData.countryPublic || false);
+	// let phonePublic = $state(userData.phonePublic || false);
+	// let mobilePhonePublic = $state(userData.mobilePhonePublic || false);
 	let paymentType = $state('bonifico');
 	let closedInput = $state(false);
+
 	if (auth) {
 		closedInput = true;
 	}
@@ -127,25 +70,23 @@
 				name,
 				surname,
 				email,
-				namePublic,
-				surnamePublic,
-				emailPublic,
 				address,
 				city,
 				countryState,
 				postalCode,
-				// region,
 				country,
 				phone,
-				mobilePhone,
-				addressPublic,
-				cityPublic,
-				statePublic,
-				postalCodePublic,
-				// regionPublic,
-				countryPublic,
-				phonePublic,
-				mobilePhonePublic
+				mobilePhone
+				// namePublic,
+				// surnamePublic,
+				// emailPublic,
+				// addressPublic,
+				// cityPublic,
+				// statePublic,
+				// postalCodePublic,
+				// countryPublic,
+				// phonePublic,
+				// mobilePhonePublic
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -170,6 +111,8 @@
 	};
 
 	let isModalConfirm = $state(false);
+	let isModalSuccess = $state(false);
+
 	const onConfirmForm = async () => {
 		if (!checkPass || !checkSecondPass) {
 			error = 'CONTROLLARE LE PASSWORD';
@@ -206,11 +149,23 @@
 
 		const res = await response.json();
 		if (response.status == 200) {
-			alert(res.message);
+			//alert(res.message);
+			//console.log('OK', response);
 			fieldReset(); // svuota i campi dopo inserimento
+			isModalConfirm = false;
+			toastClosed = false;
+			notificationContent = res.message;
+			clearTimeout(startTimeout);
+			closeNotification();
+			isModalSuccess = true;
 		}
 		if (response.status != 200) {
-			alert(res.message);
+			//alert(res.message);
+			// console.log('OK', response);
+			//isModalConfirm = false;
+			toastClosed = false;
+			notificationContent = res.message;
+			clearTimeout(startTimeout);
 		}
 	};
 
@@ -222,10 +177,6 @@
 		if (auth) total -= 25;
 		return total;
 	};
-
-	// console.log('total', total);
-
-	const fieldReset = () => {};
 
 	const categoryColors = {
 		'Corso base': 'bg-green-500',
@@ -261,6 +212,20 @@
 	const clearCart = () => {
 		cart.set([]);
 		totalCart();
+	};
+
+	const fieldReset = () => {
+		name = '';
+		surname = '';
+		email = '';
+		address = '';
+		city = '';
+		countryState = 'AG';
+		postalCode = '';
+		country = 'Italy';
+		phone = '';
+		mobilePhone = '';
+		clearCart();
 	};
 
 	const onClickInfo = (idCourse: any) => {
@@ -698,7 +663,7 @@
 				/> <span class="font-semibold">{item.title}</span>
 			</p>
 		{/each}
-		<p class="py-4 font-bold">scelgi il metodo di pagamento</p>
+		<p class="py-4 font-bold">scegli il metodo di pagamento</p>
 		<div class="form-control">
 			<label class="label cursor-pointer">
 				<span class="label-text font-semibold">Bonifico IBAN asdasd12345333</span>
@@ -741,5 +706,17 @@
 		</div>
 	</div>
 </dialog>
-
 <!-- /modal CART -->
+
+<!-- modal CONFIRM -->
+<dialog id="my_modal_2" class="modal" class:modal-open={isModalSuccess}>
+	<div class="modal-box">
+		<h3 class="font-bold text-lg">ORDINE CONFERMATO</h3>
+		<p class="py-2 font-semibold">Ora puoi fare LOGIN con EMAIL e PASSWORD</p>
+		<p class="py-1 font-semibold">per completare il PROFILO e vedere il tuo STORICO ordini</p>
+		<div class="modal-action">
+			<button class="btn btn-error" onclick={() => (isModalSuccess = false)}>Chiudi</button>
+		</div>
+	</div>
+</dialog>
+<!-- /modal CONFIRM -->

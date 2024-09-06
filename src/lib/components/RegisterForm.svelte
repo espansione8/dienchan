@@ -26,7 +26,7 @@
 			inputRef.focus();
 			return;
 		}
-		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/sign-up`, {
+		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-up`, {
 			method: 'POST',
 			body: JSON.stringify({ registerEmail, password1 }),
 			headers: {

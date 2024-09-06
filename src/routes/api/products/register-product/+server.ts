@@ -28,7 +28,7 @@ export const POST = async ({ request }) => {
 		await dbConnect();
 		// Is there a user with such an email?
 		async function isProdIdExists(prodId) {
-			return await Products.exists({ prodId })
+			return await Product.exists({ prodId })
 				.limit(1)
 				.lean()
 				.exec();

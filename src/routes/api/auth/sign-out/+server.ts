@@ -17,7 +17,7 @@ export const GET: RequestHandler = async ({ request }) => {
 			await dbConnect();
 			//const res = await User.updateOne({ cookieId: cookies.session_id }, { $set: { cookieId:'' } });
 			//console.log(res.acknowledged);
-			await Users.updateOne({ cookieId: cookies.session_id }, { $set: { cookieId: '' } }).lean().exec();
+			await User.updateOne({ cookieId: cookies.session_id }, { $set: { cookieId: '' } }).lean().exec();
 		} catch (err) {
 			console.log('Logout ERROR:', err);
 			//throw new Error("@1migration task: Migrate this return statement (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292701)");

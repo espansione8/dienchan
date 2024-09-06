@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import stringHash from 'string-hash';
-//import { serialize } from 'cookie';
+import { serialize } from 'cookie';
 import dbConnect from '$lib/database';
 import { Order } from '$lib/models/Orders.model';
 // src/routes/api/orders/purchaes-first.
@@ -113,6 +113,7 @@ export const POST = async ({ request }) => {
 			const orderId = stringHash(id);
 			const newOrder = new Order();
 			newOrder.orderId = orderId
+			newOrder.orderCode = id
 			newOrder.userId = userId;
 			newOrder.cart = cart;
 			newOrder.payment.method = paymentType;
@@ -120,13 +121,23 @@ export const POST = async ({ request }) => {
 			const order = await newOrder.save()
 
 			if (order.orderId == orderId) {
-				console.log('OK order', order);
+				////console.log('OK order', order);
+				// // Set cookie
+				// const headers = {
+				// 	'Set-Cookie': serialize('session_id', cookieId, {
+				// 		httpOnly: true,
+				// 		maxAge: 60 * 60 * 24 * 7, // one week
+				// 		sameSite: 'strict',
+				// 		path: '/'
+				// 	})
+				// };
 				return json(
 					{
 						message: 'Corso ordinato con successo',
 					},
 					{
-						status: 200
+						status: 200,
+						//headers
 					}
 				);
 			}
@@ -137,7 +148,7 @@ export const POST = async ({ request }) => {
 						message: 'order KO'
 					},
 					{
-						status: 500
+						status: 500,
 					})
 			}
 		} else {
@@ -150,24 +161,20 @@ export const POST = async ({ request }) => {
 				})
 		}
 
-		return json(
-			{
-				message: 'Sign Up failed'
-			},
+		return json({
+			message: 'Sign Up failed'
+		},
 			{
 				status: 500
-			}
-		);
+			});
 	} catch (err) {
 		console.log('order purchase ERROR:', err);
-		//throw new Error("@1migration task: Migrate this return statement (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292701)");
-		return new Response(JSON.stringify({ message: `order purchase ERR: ${err}` }), {
-			status: 500,
-			headers: {
-				'content-type': 'application/json; charset=utf-8'
-			}
-		});
-		//
-		//return Promise.reject(new Error(`registerUser ERR: ${err}`));
+		return json({
+			message: `order purchase ERR: ${err}`
+		},
+			{
+				status: 500
+			});
+
 	}
 };
