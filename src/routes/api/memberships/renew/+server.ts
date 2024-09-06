@@ -17,7 +17,8 @@ export const POST = async ({ request }) => {
         await dbConnect();
         const filter = {
             _id: id,
-            'membership.membershipSignUp': { $ne: '' }
+            'membership.membershipSignUp': { $ne: '' },
+            'membership.membershipLevel': 'Socio ordinario'
         };
 
         // Costruiamo l'update usando l'operatore $set per aggiornare campi specifici all'interno dell'array
@@ -34,6 +35,7 @@ export const POST = async ({ request }) => {
         }).lean();
 
         if (newData.matchedCount == 0) {
+            
             return json({
                 message: 'Rinnovo NON effettuato!',
                 status: 200

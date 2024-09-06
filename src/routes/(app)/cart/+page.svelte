@@ -36,9 +36,9 @@
 	let phone = $state(userData.phone || '');
 	let mobilePhone = $state(userData.mobilePhone || '');
 	// privacy
-	// let namePublic = $state(userData.namePublic || false);
-	// let surnamePublic = $state(userData.surnamePublic || false);
-	// let emailPublic = $state(userData.emailPublic || false);
+	let namePublic = $state(userData.namePublic || false);
+	let surnamePublic = $state(userData.surnamePublic || false);
+	let emailPublic = $state(userData.emailPublic || false);
 	// let addressPublic = $state(userData.addressPublic || false);
 	// let cityPublic = $state(userData.cityPublic || false);
 	// let statePublic = $state(userData.statePublic || false);
@@ -76,10 +76,10 @@
 				postalCode,
 				country,
 				phone,
-				mobilePhone
-				// namePublic,
-				// surnamePublic,
-				// emailPublic,
+				mobilePhone,
+				namePublic,
+				surnamePublic,
+				emailPublic
 				// addressPublic,
 				// cityPublic,
 				// statePublic,
@@ -112,65 +112,115 @@
 
 	let isModalConfirm = $state(false);
 	let isModalSuccess = $state(false);
+	let isModalSuccessLogin = $state(false);
 
 	const onConfirmForm = async () => {
-		if (!checkPass || !checkSecondPass) {
-			error = 'CONTROLLARE LE PASSWORD';
-			inputRef.focus();
-			return;
+		if (!auth) {
+			if (!checkPass || !checkSecondPass) {
+				error = 'CONTROLLARE LE PASSWORD';
+				inputRef.focus();
+				return;
+			}
 		}
 		isModalConfirm = true;
 	};
+
 	const onConfirmCart = async () => {
 		error = '';
-		let newSubscription = false;
-		if (auth) newSubscription = true;
-		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/orders/purchase-first`, {
-			method: 'POST',
-			body: JSON.stringify({
-				name,
-				surname,
-				email,
-				password1, // only registration
-				address,
-				city,
-				countryState,
-				postalCode,
-				country,
-				phone,
-				mobilePhone,
-				cart: $cart,
-				paymentType
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
+		if (!auth) {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/orders/purchase-first`, {
+				method: 'POST',
+				body: JSON.stringify({
+					name,
+					surname,
+					email,
+					password1, // only registration
+					address,
+					city,
+					countryState,
+					postalCode,
+					country,
+					phone,
+					mobilePhone,
+					cart: $cart,
+					paymentType
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
 
-		const res = await response.json();
-		if (response.status == 200) {
-			//alert(res.message);
-			//console.log('OK', response);
-			fieldReset(); // svuota i campi dopo inserimento
-			isModalConfirm = false;
-			toastClosed = false;
-			notificationContent = res.message;
-			clearTimeout(startTimeout);
-			closeNotification();
-			isModalSuccess = true;
-		}
-		if (response.status != 200) {
-			//alert(res.message);
-			// console.log('OK', response);
-			//isModalConfirm = false;
-			toastClosed = false;
-			notificationContent = res.message;
-			clearTimeout(startTimeout);
+			const res = await response.json();
+			if (response.status == 200) {
+				//alert(res.message);
+				//console.log('OK', response);
+				fieldReset(); // svuota i campi dopo inserimento
+				isModalConfirm = false;
+				toastClosed = false;
+				notificationContent = res.message;
+				clearTimeout(startTimeout);
+				closeNotification();
+				isModalSuccess = true;
+			}
+			if (response.status != 200) {
+				//alert(res.message);
+				// console.log('OK', response);
+				//isModalConfirm = false;
+				toastClosed = false;
+				notificationContent = res.message;
+				clearTimeout(startTimeout);
+			}
+		} else {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/orders/purchase`, {
+				method: 'POST',
+				body: JSON.stringify({
+					name,
+					surname,
+					email,
+					password1, // only registration
+					address,
+					city,
+					countryState,
+					postalCode,
+					country,
+					phone,
+					mobilePhone,
+					cart: $cart,
+					paymentType,
+					userId: userData.userId
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			const res = await response.json();
+			if (response.status == 200) {
+				//alert(res.message);
+				//console.log('OK', response);
+				fieldReset(); // svuota i campi dopo inserimento
+				isModalConfirm = false;
+				toastClosed = false;
+				notificationContent = res.message;
+				clearTimeout(startTimeout);
+				closeNotification();
+				isModalSuccessLogin = true;
+			}
+			if (response.status != 200) {
+				//alert(res.message);
+				// console.log('OK', response);
+				//isModalConfirm = false;
+				toastClosed = false;
+				notificationContent = res.message;
+				clearTimeout(startTimeout);
+			}
 		}
 	};
 
 	let total = $state(0);
+
 	const totalCart = () => {
+		total = 0;
 		$cart.forEach((element) => {
 			total = total + element.price;
 		});
@@ -342,14 +392,14 @@
 	<section class="col-span-12 xl:col-span-3 bg-base-100 rounded-lg flex flex-col justify-start p-4">
 		{#if $cart.length > 0}
 			<!-- PROFILO -->
-			<div class="card bg-gray-100 shadow-xl p-3 rounded-lg">
+			<div class="card bg-orange-100 shadow-xl p-3 rounded-lg">
 				<div
-					class="card-title bg-gray-300 text-lg font-semibold flex justify-between items-center px-4 py-2 rounded-lg"
+					class="card-title bg-indigo-100 text-xl font-bold flex justify-between items-center px-4 py-2 rounded-lg"
 				>
 					{#if auth}
 						<span>Profilo</span>
 					{:else}
-						<span>Prima iscrizione</span>
+						<span class="">Prima iscrizione!</span>
 					{/if}
 
 					{#if auth}
@@ -420,63 +470,66 @@
 								bind:value={email}
 							/>
 						</div>
-						<!-- Password -->
-						<div class="col-span-12 w-full">
-							<label for="password" class="label">
-								<p class="font-bold">
-									Password <br />
-									<span class="text-sm text-gray-600" class:text-red-500={error}
-										>( Almeno 8 caratteri numeri e lettere )</span
-									>
-								</p>
-							</label>
-							<div
-								class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-400 bg-white px-2 text-gray-900 shadow-sm"
-							>
-								<span class="flex items-center p-3 -m-2 rounded-l-md bg-gray-400">
-									<Lock color={checkPass ? 'green' : 'black'} />
-								</span>
-								<input
-									class="input rounded-md w-full"
-									id="password"
-									type="password"
-									placeholder="your password"
-									aria-label="Password"
-									aria-describedby="basic-password"
-									bind:value={password1}
-									oninput={testPass}
-									required
-								/>
+						{#if !auth}
+							<!-- Password -->
+							<div class="col-span-12 w-full">
+								<label for="password" class="label">
+									<p class="font-bold">
+										Password <br />
+										<span class="text-sm text-gray-600" class:text-red-500={error}
+											>( Almeno 8 caratteri numeri e lettere )</span
+										>
+									</p>
+								</label>
+								<div
+									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-200 bg-white px-2 text-gray-900 shadow-sm"
+								>
+									<span class="flex items-center p-3 -m-2 rounded-l-md bg-indigo-200">
+										<Lock color={checkPass ? 'green' : 'black'} />
+									</span>
+									<input
+										class="input rounded-md w-full"
+										id="password"
+										type="password"
+										placeholder="your password"
+										aria-label="Password"
+										aria-describedby="basic-password"
+										bind:value={password1}
+										oninput={testPass}
+										required={!auth}
+									/>
+								</div>
 							</div>
-						</div>
 
-						<div class="col-span-12 w-full">
-							<label for="password2" class="label">
-								<p class="font-bold">
-									Conferma password <br />
-									{#if error}
-										<span class="text-xs text-red-600">{error}</span>
-									{/if}
-								</p>
-							</label>
-							<div
-								class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-400 bg-white px-2 text-gray-900 shadow-sm"
-							>
-								<span class="flex items-center p-3 -m-2 rounded-l-md bg-gray-400">
-									<Lock color={checkSecondPass && checkPass ? 'green' : 'black'} />
-								</span>
-								<input
-									class="input rounded-md w-full"
-									id="password2"
-									type="password"
-									placeholder="Repeat password"
-									bind:value={password2}
-									oninput={testSecondPass}
-									bind:this={inputRef}
-									required
-								/>
+							<div class="col-span-12 w-full">
+								<label for="password2" class="label">
+									<p class="font-bold">
+										Conferma password <br />
+										{#if error}
+											<span class="text-xs text-red-600">{error}</span>
+										{/if}
+									</p>
+								</label>
+								<div
+									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-200 bg-white px-2 text-gray-900 shadow-sm"
+								>
+									<span class="flex items-center p-3 -m-2 rounded-l-md bg-indigo-200">
+										<Lock color={checkSecondPass && checkPass ? 'green' : 'black'} />
+									</span>
+									<input
+										class="input rounded-md w-full"
+										id="password2"
+										type="password"
+										placeholder="Repeat password"
+										bind:value={password2}
+										oninput={testSecondPass}
+										bind:this={inputRef}
+										required={!auth}
+									/>
+								</div>
 							</div>
-						</div>
+						{/if}
+
 						<!-- Indirizzo -->
 						<div class="form-control col-span-12 w-full">
 							<label for="address" class="label font-bold">
@@ -599,74 +652,126 @@
 							/>
 						</div>
 					</fieldset>
-					<div class="flex justify-center space-x-4 mt-4">
-						<button
-							class="btn btn-sm rounded-lg w-32 {$cart.length > 0
-								? 'btn-error bg-red-500 text-white hover:bg-red-600 hover:scale-105 transition-transform'
-								: 'btn-disabled bg-gray-200 text-gray-400'}"
-							onclick={() => clearCart()}
-							disabled={$cart.length == 0}
-						>
-							{#if $cart.length == 0}
-								<Lock class="mr-2" />
+					<section class=" ">
+						<div class="text-center mt-6">
+							<h2 class="text-2xl font-semibold">Totale Carrello:</h2>
+							{#if $cart.length > 0}
+								<p class="text-xl font-bold text-gray-800">{total} €</p>
+								{#if auth}
+									<p class="text-gray-800">-25 € sconto tesserati</p>
+								{/if}
+							{:else}
+								<p class="text-xl font-semibold text-red-500">Nessun prodotto nel carrello</p>
 							{/if}
-							Svuota
-						</button>
-						<button
-							type="submit"
-							class="btn btn-sm rounded-lg w-32 {$cart.length > 0
-								? 'btn-success bg-green-500 text-white hover:bg-green-600 hover:scale-105 transition-transform'
-								: 'btn-disabled bg-gray-200 text-gray-400'}"
-							disabled={$cart.length == 0}
-						>
-							{#if $cart.length == 0}
-								<Lock class="mr-2" />
-							{/if}
-							Acquista
-						</button>
-					</div>
+						</div>
+						<div class="flex justify-center space-x-4 mt-4">
+							<button
+								class="btn btn-sm rounded-lg w-32 {$cart.length > 0
+									? 'btn-error bg-red-500 text-white hover:bg-red-600 hover:scale-105 transition-transform'
+									: 'btn-disabled bg-gray-200 text-gray-400'}"
+								onclick={() => clearCart()}
+								disabled={$cart.length == 0}
+							>
+								{#if $cart.length == 0}
+									<Lock class="mr-2" />
+								{/if}
+								Svuota
+							</button>
+							<button
+								type="submit"
+								class="btn btn-sm rounded-lg w-32 {$cart.length > 0
+									? 'btn-success bg-green-500 text-white hover:bg-green-600 hover:scale-105 transition-transform'
+									: 'btn-disabled bg-gray-200 text-gray-400'}"
+								disabled={$cart.length == 0}
+							>
+								{#if $cart.length == 0}
+									<Lock class="mr-2" />
+								{/if}
+								Acquista
+							</button>
+						</div>
+					</section>
 				</form>
 			</div>
 		{/if}
-
-		<div class="text-center mt-6">
-			<h2 class="text-2xl font-semibold">Totale Carrello:</h2>
-			{#if $cart.length > 0}
-				<p class="text-xl font-bold text-gray-800">{total} €</p>
-				{#if auth}
-					<p class="text-gray-800">-25 € sconto tesserati</p>
-				{/if}
-			{:else}
-				<p class="text-xl font-semibold text-red-500">Nessun prodotto nel carrello</p>
-			{/if}
-		</div>
 	</section>
 </div>
 <Notification {toastClosed} {notificationContent} {notificationError} />
 
 <!-- modal CART -->
 <dialog id="my_modal_2" class="modal" class:modal-open={isModalConfirm}>
-	<div class="modal-box">
-		<h3 class="font-bold text-lg">Riepilogo Ordine</h3>
-		<p class="py-1 font-semibold">Nome: {name} {surname}</p>
-		<p class="py-1 font-semibold">Email: {email}</p>
-		<p class="py-1 font-semibold">Indirizzo: {address}</p>
-		<p class="py-1 font-semibold">Città: {city}</p>
-		<p class="py-1 font-semibold">{postalCode} - {countryState} - {country}</p>
-		<p class="py-1 font-semibold">Tel: {phone} / Cell:{mobilePhone}</p>
-		{#each $cart as item}
-			<p class="inline-block py-2">
-				<img
-					src={imgSrc(item.category[0])}
-					alt="tipo corso"
-					class="w-16 object-cover border-2 rounded-lg"
-				/> <span class="font-semibold">{item.title}</span>
-			</p>
-		{/each}
-		<p class="py-4 font-bold">scegli il metodo di pagamento</p>
-		<div class="form-control">
+	<div class="modal-box grid grid-cols-2">
+		<h3 class="col-span-2 font-bold text-xl text-center mb-4">Riepilogo Ordine</h3>
+		{#if !auth}
+			<div class="col-span-2 grid grid-cols-2 gap-2 mb-4">
+				<div class="flex flex-col items-center">
+					<p class="text-sm text-gray-600">Nome/Cognome</p>
+					<p class="font-bold text-center mt-1">{name} {surname}</p>
+				</div>
+				<div class="flex flex-col items-center">
+					<p class="text-sm text-gray-600">Email</p>
+					<p class="font-bold text-center mt-1">{email}</p>
+				</div>
+				<div class="flex flex-col items-center">
+					<p class="text-sm text-gray-600">Città</p>
+					<p class="font-bold text-center mt-1">{city}</p>
+				</div>
+				<div class="flex flex-col items-center">
+					<p class="text-sm text-gray-600">Indirizzo</p>
+					<p class="font-bold text-center mt-1">{address}</p>
+				</div>
+				<div class="flex flex-col items-center">
+					<p class="text-sm text-gray-600">Codice Postale - Stato</p>
+					<p class="font-bold text-center mt-1">{postalCode} - {country}</p>
+				</div>
+				<div class="flex flex-col items-center">
+					<p class="text-sm text-gray-600">Paese</p>
+					<p class="font-bold text-center mt-1">{countryState}</p>
+				</div>
+				<div class="flex flex-col items-center">
+					<p class="text-sm text-gray-600">Telefono</p>
+					<p class="font-bold text-center mt-1">{phone}</p>
+				</div>
+				<div class="flex flex-col items-center">
+					<p class="text-sm text-gray-600">Cellulare</p>
+					<p class="font-bold text-center mt-1">{mobilePhone}</p>
+				</div>
+			</div>
+		{/if}
+		<div class="col-span-2 flex flex-col items-center w-full gap-3 my-4">
+			{#each $cart as item}
+				<div
+					class="flex items-center w-full max-w-96 bg-indigo-100 rounded-lg shadow-md overflow-hidden"
+				>
+					<div class="w-1/3 p-3">
+						<img
+							src={imgSrc(item.category[0])}
+							alt="Immagine corso"
+							class="w-full h-full object-cover"
+						/>
+					</div>
+					<div class="w-2/3 p-4 flex items-center justify-center">
+						<h2 class="text-center text-md font-semibold">
+							{item.title} <br /><br />
+							{item.price}€
+						</h2>
+					</div>
+				</div>
+			{/each}
+		</div>
+		<div class="col-span-2 text-center mt-3">
+			<h2 class="text-lg font-bold">Totale Carrello:</h2>
+			{#if $cart.length > 0}
+				<p class="text-xl font-semibold text-black-800">{total} €</p>
+				{#if auth}
+					<p class="text-gray-800">-25 € sconto tesserati</p>
+				{/if}
+			{/if}
+		</div>
+		<p class=" col-span-2 font-bold text-lg text-center mt-4">Scegli il metodo di pagamento:</p>
+		<div class="form-control col-span-2 mx-2">
 			<label class="label cursor-pointer">
-				<span class="label-text font-semibold">Bonifico IBAN asdasd12345333</span>
+				<span class="label-text font-semibold">Bonifico (IBAN: 1548416800005462)</span>
 				<input
 					type="radio"
 					name="radio-paymentType"
@@ -676,7 +781,7 @@
 				/>
 			</label>
 		</div>
-		<div class="form-control">
+		<div class="form-control col-span-2 mx-2">
 			<label class="label cursor-pointer">
 				<span class="label-text font-semibold">Paypal</span>
 				<input
@@ -688,7 +793,7 @@
 				/>
 			</label>
 		</div>
-		<div class="form-control">
+		<div class="form-control col-span-2 mx-2">
 			<label class="label cursor-pointer">
 				<span class="label-text font-semibold">Contanti (all'inizio corso)</span>
 				<input
@@ -700,9 +805,15 @@
 				/>
 			</label>
 		</div>
-		<div class="modal-action">
-			<button class="btn btn-error" onclick={() => (isModalConfirm = false)}>Annulla</button>
-			<button class="btn btn-success" onclick={() => onConfirmCart()}>Conferma</button>
+		<div class="modal-action col-span-2">
+			<button
+				class="btn btn-sm btn-error w-24 hover:bg-white hover:text-red-500 rounded-lg"
+				onclick={() => (isModalConfirm = false)}>Annulla</button
+			>
+			<button
+				class="btn btn-sm btn-success w-24 hover:bg-white hover:text-green-500 rounded-lg"
+				onclick={() => onConfirmCart()}>Conferma</button
+			>
 		</div>
 	</div>
 </dialog>
@@ -715,7 +826,26 @@
 		<p class="py-2 font-semibold">Ora puoi fare LOGIN con EMAIL e PASSWORD</p>
 		<p class="py-1 font-semibold">per completare il PROFILO e vedere il tuo STORICO ordini</p>
 		<div class="modal-action">
-			<button class="btn btn-error" onclick={() => (isModalSuccess = false)}>Chiudi</button>
+			<button
+				class="btn btn-sm btn-primary w-24 hover:bg-white hover:blue-red-500 rounded-lg"
+				onclick={() => (isModalSuccess = false)}>Chiudi</button
+			>
+		</div>
+	</div>
+</dialog>
+<!-- /modal CONFIRM -->
+
+<!-- modal CONFIRM LOGIN -->
+<dialog id="my_modal_2" class="modal" class:modal-open={isModalSuccessLogin}>
+	<div class="modal-box">
+		<h3 class="font-bold text-lg">CORSO ORDINE CONFERMATO</h3>
+		<p class="py-2 font-semibold">Puoi vedere lo storico odini nella pagina: Impostazioni.</p>
+		
+		<div class="modal-action">
+			<button
+				class="btn btn-sm btn-primary w-24 hover:bg-white hover:text-blue-500 rounded-lg"
+				onclick={() => (isModalSuccessLogin = false)}>Chiudi</button
+			>
 		</div>
 	</div>
 </dialog>

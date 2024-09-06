@@ -608,7 +608,7 @@
 						</h5>
 						<!-- price -->
 						<p class="card-text">
-							Prezzo: <b>{corsoData.price}</b>
+							Prezzo: <b>{corsoData.price} €</b>
 						</p>
 
 						<div class="card-actions">

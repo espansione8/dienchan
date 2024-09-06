@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { CircleCheckBig } from 'lucide-svelte';
 	import Notification from '$lib/components/Notification.svelte';
+	import moment from 'moment';
 
 	let { data } = $props();
 	let { userData } = $derived(data);
@@ -35,7 +36,7 @@
 				userId: userData.userId,
 				membershipLevel: 'Socio ordinario',
 				membershipSignUp: new Date(),
-				membershipActivation: '',
+				membershipActivation: new Date(),
 				membershipExpiry: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
 				membershipStatus: true
 			}),
@@ -73,8 +74,8 @@
 				userId: userData.userId,
 				membershipLevel: 'Socio vitalizio',
 				membershipSignUp: new Date(),
-				membershipActivation: '',
-				membershipExpiry: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+				membershipActivation: new Date(),
+				membershipExpiry: new Date(new Date().setFullYear(new Date().getFullYear() + 50)),
 				membershipStatus: true
 			}),
 			headers: {
@@ -102,15 +103,22 @@
 		}
 	};
 
-	const onClickRenew = async () => {
+	// const addOneYear = date => new Date(date.setFullYear(date.getFullYear() + 1));
+
+	const onClickConfirmRenew = async () => {
 		//alert('save data');
+		isModalSuccess = false;
 		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/renew`, {
 			method: 'POST',
 			body: JSON.stringify({
 				id: userData._id,
 				userId: userData.userId,
-				membershipActivation: new Date(),
-				membershipExpiry: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+				membershipActivation: userData.membership.membershipExpiry,
+				membershipExpiry: new Date(
+					new Date(userData.membership.membershipExpiry).setFullYear(
+						new Date(userData.membership.membershipExpiry).getFullYear() + 1
+					)
+				),
 				membershipStatus: true
 			}),
 			headers: {
@@ -149,6 +157,9 @@
 		}, 3000); // 1000 milliseconds = 1 second
 	};
 	//clearTimeout(startTimeout); // reset timer
+
+	let paymentType = $state('bonifico');
+	let isModalSuccess = $state(false);
 </script>
 
 <svelte:head>
@@ -261,7 +272,9 @@
 					>
 					<button
 						class="btn btn-sm bg-transparent border-2 border-white text-white w-2/5 rounded-xl"
-						onclick={onClickRenew}>Rinnova</button
+						onclick={() => {
+							isModalSuccess = true;
+						}}>Rinnova</button
 					>
 				</div>
 			</div>
@@ -329,19 +342,27 @@
 		</div>
 		<!-- Sezione Statistiche -->
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12 mx-10">
-			<div class="flex flex-col items-center justify-center p-2 bg-white rounded-lg shadow-md">
+			<div
+				class="flex flex-col items-center justify-center p-2 bg-white rounded-lg shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+			>
 				<h3 class="text-4xl font-bold text-gray-800">2,000+</h3>
 				<p class="text-gray-600">Lezioni svolte</p>
 			</div>
-			<div class="flex flex-col items-center justify-center bg-white rounded-lg shadow-md">
+			<div
+				class="flex flex-col items-center justify-center bg-white rounded-lg shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+			>
 				<h3 class="text-4xl font-bold text-gray-800">360+</h3>
 				<p class="text-gray-600">Riflessologi istruiti</p>
 			</div>
-			<div class="flex flex-col items-center justify-center bg-white rounded-lg shadow-md">
+			<div
+				class="flex flex-col items-center justify-center bg-white rounded-lg shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+			>
 				<h3 class="text-4xl font-bold text-gray-800">40+</h3>
 				<p class="text-gray-600">Paesi di diffusione</p>
 			</div>
-			<div class="flex flex-col items-center justify-center bg-white rounded-lg shadow-md">
+			<div
+				class="flex flex-col items-center justify-center bg-white rounded-lg shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+			>
 				<h3 class="text-4xl font-bold text-gray-800">12+</h3>
 				<p class="text-gray-600">Anni di esperienza</p>
 			</div>
@@ -353,7 +374,10 @@
 			<h1 class="text-3xl font-bold text-center -mt-8 mb-10">Domande e risposte</h1>
 
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-				<div id="question" class="bg-gray-100 p-4 rounded-lg shadow-md">
+				<div
+					id="question"
+					class="bg-gray-100 p-4 rounded-lg shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+				>
 					<h2 class="text-lg font-semibold text-blue-800 mb-2">Come divento socio?</h2>
 					<p class="text-gray-700">
 						In questa pagina "Quote associative" è possibile iscriversi come socio ordinario
@@ -362,7 +386,10 @@
 					</p>
 				</div>
 
-				<div id="answer" class="bg-gray-100 p-4 rounded-lg shadow-md">
+				<div
+					id="answer"
+					class="bg-gray-100 p-4 rounded-lg shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+				>
 					<h2 class="text-lg font-semibold text-blue-800 mb-2">
 						Cosa succede se come socio ordinario non rinnovo l'iscrizione in tempo?
 					</h2>
@@ -372,7 +399,10 @@
 					</p>
 				</div>
 
-				<div id="question" class="bg-gray-100 p-4 rounded-lg shadow-md">
+				<div
+					id="question"
+					class="bg-gray-100 p-4 rounded-lg shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+				>
 					<h2 class="text-lg font-semibold text-blue-800 mb-2">
 						Quali sono le differenze tra un socio ordinario e un socio vitalizio?
 					</h2>
@@ -386,7 +416,10 @@
 					</p>
 				</div>
 
-				<div id="answer" class="bg-gray-100 p-4 rounded-lg shadow-md">
+				<div
+					id="answer"
+					class="bg-gray-100 p-4 rounded-lg shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+				>
 					<h2 class="text-lg font-semibold text-blue-800 mb-2">
 						Posso diventare socio vitalizio se sono già socio ordinario?
 					</h2>
@@ -400,3 +433,72 @@
 	</section>
 </div>
 <Notification {toastClosed} {notificationContent} {notificationError} />
+
+<!-- modal CONFIRM RENEW -->
+<dialog id="my_modal_2" class="modal" class:modal-open={isModalSuccess}>
+	<div class="modal-box flex flex-col text-center">
+		<h3 class="font-bold text-xl">Confermi rinnovo annuale: socio vitalizio?</h3>
+		<p class="py-2 font-semibold mt-2">
+			Attuale data di scadenza:
+			<strong class='text-red-500'>{moment(userData.membership.membershipExpiry).format('DD/MM/YYYY')}</strong>
+		</p>
+		<p class=" font-semibold">
+			Futura data di scadenza:
+			<b class='text-green-500'>{moment(
+				new Date(
+					new Date(userData.membership.membershipExpiry).setFullYear(
+						new Date(userData.membership.membershipExpiry).getFullYear() + 1
+					)
+				)
+			).format('DD/MM/YYYY')}</b>
+		</p>
+		<hr class="bg-black h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
+		<p class=" col-span-2 font-bold text-lg text-center mt-4">Scegli il metodo di pagamento:</p>
+		<div class="form-control col-span-2 mx-2">
+			<label class="label cursor-pointer">
+				<span class="label-text font-semibold">Bonifico (IBAN: 1548416800005462)</span>
+				<input
+					type="radio"
+					name="radio-paymentType"
+					class="radio checked:bg-blue-500"
+					bind:group={paymentType}
+					value={'bonifico'}
+				/>
+			</label>
+		</div>
+		<div class="form-control col-span-2 mx-2">
+			<label class="label cursor-pointer">
+				<span class="label-text font-semibold">Paypal</span>
+				<input
+					type="radio"
+					name="radio-paymentType"
+					class="radio checked:bg-blue-500"
+					bind:group={paymentType}
+					value={'paypal'}
+				/>
+			</label>
+		</div>
+		<div class="form-control col-span-2 mx-2">
+			<label class="label cursor-pointer">
+				<span class="label-text font-semibold">Contanti (all'inizio corso)</span>
+				<input
+					type="radio"
+					name="radio-paymentType"
+					class="radio checked:bg-blue-500"
+					bind:group={paymentType}
+					value={'contanti'}
+				/>
+			</label>
+		</div>
+		<div class="modal-action">
+			<button
+				class="btn btn-sm btn-error w-24 hover:bg-white hover:text-red-500 rounded-lg"
+				onclick={() => (isModalSuccess = false)}>Chiudi</button
+			>
+			<button
+				class="btn btn-sm btn-success w-24 hover:bg-white hover:text-green-500 rounded-lg"
+				onclick={onClickConfirmRenew}>Conferma</button
+			>
+		</div>
+	</div>
+</dialog>

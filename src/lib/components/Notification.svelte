@@ -30,14 +30,14 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
  
-<div class="toast toast-top toast-center z-1000" class:hidden={toastClosed}>
-	<div class={notificationError ? 'alert alert-error' : 'alert alert-info'}>
+<div class="toast toast-top toast-center z-1000 " class:hidden={toastClosed}>
+	<div class={notificationError ? 'alert alert-error rounded-lg' : 'alert alert-info rounded-lg'}>
 		<span>
 			<button
 				onclick={() => (toastClosed = !toastClosed)}
 				class={notificationError
 					? 'btn btn-error inline btn-circle btn-sm'
-					: 'btn btn-info inline btn-circle btn-sm'}><X /></button
+					: 'btn btn-info inline btn-circle btn-sm '}><X /></button
 			>
 			{notificationContent}
 		</span>

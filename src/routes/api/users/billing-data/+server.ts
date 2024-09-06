@@ -19,6 +19,9 @@ export const POST = async ({ request }) => {
 		country,
 		phone,
 		mobilePhone,
+		namePublic,
+		surnamePublic,
+		emailPublic
 	} = body;
 	const level = body.level; // DA CONTROLLARE: alcune pagine non pasasno valore
 	const addressPublic = body.addressPublic || false;
@@ -45,6 +48,9 @@ export const POST = async ({ request }) => {
 			phone,
 			mobilePhone,
 			// privacy
+			namePublic,
+			surnamePublic,
+			emailPublic,
 			addressPublic,
 			cityPublic,
 			statePublic,

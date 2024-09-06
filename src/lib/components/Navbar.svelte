@@ -320,7 +320,7 @@
 			{:else}
 				<a
 					href="/login"
-					class="btn btn-sm bg-transparent border-green-900 text-green-900 hover:text-green-900 hover:border-green-900 hover:bg-green-500"
+					class="btn btn-sm bg-transparent border-green-700 text-green-700 hover:text-green-700 hover:border-green-700 hover:bg-green-500"
 				>
 					<span class="flex justify-center gap-1">
 						<LogIn size="16" strokeWidth={2.5} />

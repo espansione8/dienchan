@@ -1,34 +1,44 @@
-import { json as json$1 } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
+
+import dbConnect from '$lib/database';
 // src/routes/api/mailer/sign-up.
 //import nodemailer from 'nodemailer';
 // const Stripe = require('stripe');
-import Stripe from 'stripe';
+import stringHash from 'string-hash';
 
-const stripe = new Stripe(
-	'sk_test_51LpVjwBlFxSU04Fgeyo8NfdCXh2niPLZDGqTJOg9wtIlVsh3DujLCtGO5RVB7doh41L1BJdE8cXkrN7FmD1SE3qA00Kj6kbzTC',
-	{
-		apiVersion: '2022-08-01'
-	}
-);
+import { Order } from '$lib/models/Orders.model';
+// import Stripe from 'stripe';
+
+// const stripe = new Stripe(
+// 	'sk_test_51LpVjwBlFxSU04Fgeyo8NfdCXh2niPLZDGqTJOg9wtIlVsh3DujLCtGO5RVB7doh41L1BJdE8cXkrN7FmD1SE3qA00Kj6kbzTC',
+// 	{
+// 		apiVersion: '2022-08-01'
+// 	}
+// );
 
 export const POST = async ({ request }) => {
 	const body = await request.json();
-
+	const {
+		cart,
+		paymentType,
+		userId
+	} = body
 	try {
-		const session = await stripe.checkout.sessions.create({
-			line_items: [
-				{
-					// Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-					price: 'price_1LzONmBlFxSU04FgnRU6wR04',
-					quantity: 1
-				}
-			],
-			mode: 'payment',
-			success_url: `${import.meta.env.VITE_BASE_URL}/my-docs`,
-			cancel_url: `${import.meta.env.VITE_BASE_URL}/profile`,
-			automatic_tax: { enabled: true }
-		});
-		console.log('order session', session, session.url);
+		await dbConnect();
+		// const session = await stripe.checkout.sessions.create({
+		// 	line_items: [
+		// 		{
+		// 			// Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+		// 			price: 'price_1LzONmBlFxSU04FgnRU6wR04',
+		// 			quantity: 1
+		// 		}
+		// 	],
+		// 	mode: 'payment',
+		// 	success_url: `${import.meta.env.VITE_BASE_URL}/my-docs`,
+		// 	cancel_url: `${import.meta.env.VITE_BASE_URL}/profile`,
+		// 	automatic_tax: { enabled: true }
+		// });
+		// console.log('order session', session, session.url);
 
 		// const mailer = async () => {
 		// 	// create reusable transporter object using the default SMTP transport
@@ -68,20 +78,35 @@ export const POST = async ({ request }) => {
 		// };
 		// mailer().catch(console.error);
 
-		return json$1({
-			message: 'order sent',
-			return: session
-		});
+		const id = crypto.randomUUID();
+		const orderId = stringHash(id);
+		const newOrder = new Order();
+		newOrder.orderId = orderId
+		newOrder.orderCode = id
+		newOrder.userId = userId;
+		newOrder.cart = cart;
+		newOrder.payment.method = paymentType;
+
+
+		const order = await newOrder.save()
+
+		if (order.orderId == orderId) {
+			return json(
+				{
+					message: 'Corso ordinato con successo',
+				},
+				{
+					status: 200,
+				}
+			);
+		}
 	} catch (err) {
 		console.log('order purchase ERROR:', err);
-		//throw new Error("@1migration task: Migrate this return statement (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292701)");
-		return new Response(JSON.stringify({ message: `order purchase ERR: ${err}` }), {
-			status: 500,
-			headers: {
-				'content-type': 'application/json; charset=utf-8'
-			}
-		});
-		//
-		//return Promise.reject(new Error(`registerUser ERR: ${err}`));
+		return json({
+			message: `order purchase ERR: ${err}`
+		},
+			{
+				status: 500
+			});
 	}
 };

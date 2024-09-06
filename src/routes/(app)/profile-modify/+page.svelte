@@ -3,16 +3,21 @@
 	import { cubicOut } from 'svelte/easing';
 	import { create_upload } from '$lib/stores/upload';
 	import Notification from '$lib/components/Notification.svelte';
-	import { Settings, X, Check, UserRound, Eye, EyeOff, Trash2 } from 'lucide-svelte';
+	import { Settings, X, Check, UserRound, Eye, EyeOff, Trash2, Award } from 'lucide-svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { province } from '$lib/stores/arrays.js';
 	import moment from 'moment';
 	import 'moment/min/locales.js';
 	import { country_list } from '$lib/stores/arrays.js';
+	import { coursesInfo } from '$lib/stores/arrays.js';
+
 	moment.locale('it');
 
 	let { data } = $props();
 	let { userData, orderData } = $derived(data);
+
+	console.log('orderData', orderData);
+	console.log('orderData.cart0', orderData[0].cart[0]);
 
 	let picFilter = $derived(
 		userData.uploadfiles.filter((item: any) => {
@@ -46,6 +51,9 @@
 				country,
 				phone,
 				mobilePhone,
+				namePublic,
+				surnamePublic,
+				emailPublic,
 				addressPublic,
 				cityPublic,
 				statePublic,
@@ -94,6 +102,9 @@
 	let country = $state(userData.country || '');
 	let phone = $state(userData.phone || '');
 	let mobilePhone = $state(userData.mobilePhone || '');
+	let membershipLevel = $state(userData.membership.membershipLevel || '');
+	let membershipStatus = $state(userData.membership.membershipStatus || '');
+	let membershipExpiry = $state(userData.membership.membershipExpiry || '');
 	// let businessName = $state(userData.businessData.businessName || '');
 	// let vatNumber = $state(userData.businessData.vatNumber || '');
 	// let businessAddress = $state(userData.businessData.businessAddress || '');
@@ -101,7 +112,7 @@
 	// let businessCounty = $state(userData.businessData.businessCounty || '');
 	// let businessPostalCode = $state(userData.businessData.businessPostalCode || '');
 	// let businessCountry = $state(userData.businessData.businessCountry || '');
-	let membershipArray = $state(userData.membership || []);
+	// let membershipArray = $state(userData.membership || []);
 	let max = $state(new Date().getFullYear());
 	let min = $derived(max - 90);
 	let years = $state([]);
@@ -113,6 +124,9 @@
 	let countryPublic = $state(userData.countryPublic || false);
 	let phonePublic = $state(userData.phonePublic || false);
 	let mobilePhonePublic = $state(userData.mobilePhonePublic || false);
+	let namePublic = $state(userData.namePublic || false);
+	let surnamePublic = $state(userData.surnamePublic || false);
+	let emailPublic = $state(userData.emailPublic || false);
 
 	for (let i = max; i >= min; i--) {
 		years.push(i);
@@ -123,6 +137,9 @@
 	const enableReset = () => (resetState = !resetState);
 
 	const onSwitchPublicProfile = async (type: string, value: boolean) => {
+		if (type == 'namePublic') namePublic = !value;
+		if (type == 'surnamePublic') surnamePublic = !value;
+		if (type == 'emailPublic') emailPublic = !value;
 		if (type == 'addressPublic') addressPublic = !value;
 		if (type == 'cityPublic') cityPublic = !value;
 		if (type == 'statePublic') statePublic = !value;
@@ -274,6 +291,21 @@
 		toastClosed = false;
 		notificationContent = 'registrazione effettuta, completare il profilo';
 	}
+
+	const imgSrc = (value: string) => {
+		const src = $coursesInfo.filter((item: any) => item.id == value);
+		return src[0].urlPic;
+	};
+
+	function siglaToProvincia(provinciaSigla: any) {
+		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
+		//**** listaProvince.place 'Online' is ignored */
+		if (findProvincia) {
+			return findProvincia.nome;
+		} else if (provinciaSigla === 'Online') {
+			return 'Online';
+		}
+	}
 </script>
 
 <svelte:head>
@@ -314,7 +346,30 @@
 				<!-- Nome -->
 				<div class="form-control col-span-12 md:col-span-6">
 					<label for="Name" class="form-label">
-						<span class="label-text font-bold">Nome</span>
+						<div class="flex items-center justify-between gap-4">
+							<span class="label-text font-bold">Nome</span>
+							<input
+								type="checkbox"
+								class="hidden"
+								id="btn-check8"
+								autocomplete="off"
+								checked={namePublic}
+								onclick={() => onSwitchPublicProfile('namePublic', namePublic)}
+							/>
+							<label
+								class={namePublic
+									? 'btn btn-success btn-sm rounded-md'
+									: 'btn btn-secondary btn-sm rounded-md'}
+								for="btn-check8"
+							>
+								{#if namePublic}
+									<Eye size="20" color="white" strokeWidth={2.5} />
+								{:else}
+									<EyeOff size="20" color="white" strokeWidth={2.5} />
+								{/if}
+								<span class="text-white">{namePublic ? 'Pubblico' : 'Privato'}</span>
+							</label>
+						</div>
 						<input
 							id="Name"
 							name="name"
@@ -331,7 +386,30 @@
 				<!-- Cognome -->
 				<div class="form-control col-span-12 md:col-span-6">
 					<label for="Surname" class="form-label">
-						<span class="label-text font-bold">Cognome</span>
+						<div class="flex items-center justify-between gap-4">
+							<span class="label-text font-bold">Cognome</span>
+							<input
+								type="checkbox"
+								class="hidden"
+								id="btn-check9"
+								autocomplete="off"
+								checked={surnamePublic}
+								onclick={() => onSwitchPublicProfile('surnamePublic', surnamePublic)}
+							/>
+							<label
+								class={surnamePublic
+									? 'btn btn-success btn-sm rounded-md'
+									: 'btn btn-secondary btn-sm rounded-md'}
+								for="btn-check9"
+							>
+								{#if surnamePublic}
+									<Eye size="20" color="white" strokeWidth={2.5} />
+								{:else}
+									<EyeOff size="20" color="white" strokeWidth={2.5} />
+								{/if}
+								<span class="text-white">{surnamePublic ? 'Pubblico' : 'Privato'}</span>
+							</label>
+						</div>
 						<input
 							id="Surname"
 							name="surname"
@@ -348,7 +426,30 @@
 				<!-- Email -->
 				<div class="form-control col-span-12">
 					<label for="Email" class="form-label">
-						<span class="label-text font-bold">Email</span>
+						<div class="flex items-center justify-between gap-4">
+							<span class="label-text font-bold">Email</span>
+							<input
+								type="checkbox"
+								class="hidden"
+								id="btn-check10"
+								autocomplete="off"
+								checked={emailPublic}
+								onclick={() => onSwitchPublicProfile('emailPublic', emailPublic)}
+							/>
+							<label
+								class={emailPublic
+									? 'btn btn-success btn-sm rounded-md'
+									: 'btn btn-secondary btn-sm rounded-md'}
+								for="btn-check10"
+							>
+								{#if emailPublic}
+									<Eye size="20" color="white" strokeWidth={2.5} />
+								{:else}
+									<EyeOff size="20" color="white" strokeWidth={2.5} />
+								{/if}
+								<span class="text-white">{emailPublic ? 'Pubblico' : 'Privato'}</span>
+							</label>
+						</div>
 						<input
 							id="Email"
 							name="email"
@@ -662,7 +763,7 @@
 		</div>
 	</section>
 	<!-- section 2: immagine ecc -->
-	<section class="card col-span-12 xl:col-span-6 gap-y-8 rounded-lg bg-white">
+	<section class="card col-span-12 xl:col-span-6 gap-y-4 rounded-lg bg-white">
 		<div
 			class="card-title bg-gray-400 glass font-bold flex justify-between p-3 mx-4 mt-4 rounded-lg"
 		>
@@ -705,50 +806,46 @@
 
 				<figure>
 					{#if picFilter[0]?.type == 'avatar'}
-						<img src={`/files/${userData.userId}/${picFilter[0].filename}`} alt="avatar" />
+						<img
+							src={`/files/${userData.userId}/${picFilter[0].filename}`}
+							alt="avatar"
+							class="object-cover rounded-md"
+						/>
 					{/if}
 				</figure>
 			</form>
 			<hr />
 			<span class=" py-4">
-				<strong>Membership:</strong> <br />
+				<strong>Associato:</strong> <br />
 			</span>
-			{#each membershipArray as membershipSingle}
-				<span class="flex items-center space-x-2">
-					<button class="btn btn-primary btn-md rounded-md">
-						<UserRound />
-					</button>
-					<span class="ml-4">
-						Tipo: <b>{membershipSingle.membershipLevel}</b> | Status:
-						<b>{membershipSingle.membershipStatus ? 'attivo' : 'inattivo'}</b>
-						| Scade il:
-						<b>{moment(membershipSingle.membershipExpiry).format('DD/MM/YYYY HH:mm')}</b>
-					</span>
+			<span class="flex items-center space-x-2 mb-4">
+				<button class="btn btn-md bg-indigo-200 rounded-full hover:bg-yellow-400">
+					<Award size="30" color="orange" strokeWidth={2.5} />
+				</button>
+				<span class="ml-4">
+					Livello: <b>{membershipLevel}</b> | Status:
+					<b>{membershipStatus ? 'Attivo' : 'Inattivo'}</b>
+					| Scade il:
+					<b>{moment(membershipExpiry).format('DD/MM/YYYY')}</b>
 				</span>
-			{/each}
-			{#each orderData as element}
-				<p>
-					<button type="button" class="btn btn-primary ml-6">
-						<span class="icon">
-							<i class="fa-solid fa-user-pen" />
-						</span>
-					</button>
-					{element.orderDate.substring(0, 10)} | {element.totalPoints} credits | {element.status}
-				</p>
-			{/each}
-			<hr />
-			<span class=" py-4">
-				<strong>Order History:</strong> <br />
 			</span>
-			{#each orderData as element}
-				<p>
-					<button type="button" class="btn btn-primary ml-6">
-						<span class="icon">
-							<i class="fa-solid fa-download" />
+			<hr />
+			<span class=" py-2">
+				<strong>Storico oridini:</strong> <br />
+			</span>
+			{#each orderData as order}
+				{#each orderData[0].cart as course}
+					<span class="flex items-center space-x-1">
+						<img src={imgSrc(course.category[0])} alt="Immagine corso" class="w-16 object-cover" />
+						<span>
+							<b>{course.title}</b> , {moment(course.createdAt).format('DD/MM/YYYY')} , {siglaToProvincia(
+								course.place
+							)},
+							{course.reflexologistName}
+							{course.reflexologistSurname}
 						</span>
-					</button>
-					{element.orderDate.substring(0, 10)} | {element.totalPoints} credits | {element.status}
-				</p>
+					</span>
+				{/each}
 			{/each}
 		</div>
 	</section>
