@@ -13,7 +13,7 @@ export const POST = async ({ request }) => {
 		// All database code can only run inside async functions as it uses await
 		await dbConnect();
 		// Is there a user with such an email?
-		const user = await Users.findOne({ email: registerEmail }, { _id: 1, email: 1 })
+		const user = await User.findOne({ email: registerEmail }, { _id: 1, email: 1 })
 			.limit(1)
 			.lean()
 			.exec();
@@ -34,7 +34,7 @@ export const POST = async ({ request }) => {
 		// Add user to DB
 		// All database code can only run inside async functions as it uses await
 		const cookieId = crypto.randomUUID();
-		const newUser = new Users();
+		const newUser = new User();
 		newUser.email = registerEmail;
 		newUser.password = stringHash(body.password1);
 		newUser.userId = stringHash(cookieId);

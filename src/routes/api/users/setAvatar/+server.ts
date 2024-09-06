@@ -30,7 +30,7 @@ export const POST = async ({ request }) => {
 	try {
 		await dbConnect();
 
-		const userId = await Users.exists(
+		const userId = await User.exists(
 			{ _id: body.dbId }
 			//{ _id: 1, documentPageId: 1 }
 		)
@@ -48,7 +48,7 @@ export const POST = async ({ request }) => {
 			);
 		}
 
-		const updateUser = await Users.updateOne(
+		const updateUser = await User.updateOne(
 			{ _id: body.dbId },
 			{
 				$set: {

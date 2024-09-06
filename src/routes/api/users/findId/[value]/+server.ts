@@ -8,7 +8,7 @@ import dbConnect from '$lib/database';
 export const GET = async ({ params }) => {
 	try {
 		await dbConnect();
-		const findId = await Users.findOne({ _id: params.value }).lean().exec();
+		const findId = await User.findOne({ _id: params.value }).lean().exec();
 		//throw new Error("@1migration task: Migrate this return statement (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292701)");
 		// Suggestion (check for correctness before using):
 		return json(findId);

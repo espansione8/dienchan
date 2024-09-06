@@ -74,7 +74,7 @@ export const POST = async ({ request }) => {
 		});
 		changeProd['uploadfiles'] = await [...uploadfiles]
 
-		const updateProduct = await Products.findOneAndUpdate(
+		const updateProduct = await Product.findOneAndUpdate(
 			{ prodId: productProdId },
 			{
 				$set: changeProd
@@ -145,7 +145,7 @@ export const POST = async ({ request }) => {
 		// 		path: '/'
 		// 	})
 		// };
-		const findId = await Products.find({ _id: updateProduct._id });
+		const findId = await Product.find({ _id: updateProduct._id });
 		if (findId.length > 0) {
 			return json$1(
 				{

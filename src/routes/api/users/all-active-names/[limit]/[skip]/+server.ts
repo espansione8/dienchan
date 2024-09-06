@@ -23,7 +23,7 @@ export const GET: RequestHandler = async ({ params }) => {
 	try {
 		await dbConnect();
 
-		const all = await Users.find({ active: true }, { name: 1, surname: 1, userId: 1 }).limit(queryLimit).skip(skipResults).lean().exec();
+		const all = await User.find({ active: true }, { name: 1, surname: 1, userId: 1 }).limit(queryLimit).skip(skipResults).lean().exec();
 		//throw new Error("@1migration task: Migrate this return statement (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292701)");
 		// Suggestion (check for correctness before using):
 		return json(all);

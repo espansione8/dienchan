@@ -31,7 +31,7 @@ export const POST = async ({ request }) => {
 		// Add user to DB
 		// All database code can only run inside async functions as it uses await
 		// const cookieId = crypto.randomUUID();
-		const newEvent = new Courses();
+		const newEvent = new Course();
 		newEvent.prodCorsoId = crypto.randomUUID();
 		newEvent.userId = productCorsoUserId;
 		newEvent.reflexologistName = reflexologistName;

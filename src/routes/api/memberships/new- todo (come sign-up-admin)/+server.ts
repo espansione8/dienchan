@@ -33,7 +33,7 @@ export const POST = async ({ request }) => {
             'membership.membershipExpiry': membershipExpiry,
         }
 
-        const newData = await Users.updateOne(filter, update, {
+        const newData = await User.updateOne(filter, update, {
             new: true
         }).lean();
 

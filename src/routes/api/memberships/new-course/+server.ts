@@ -26,7 +26,7 @@ export const POST = async ({ request }) => {
             'membership.membershipStatus': membershipStatus,
         }
 
-        const newData = await Users.updateOne({ userId }, update, {
+        const newData = await User.updateOne({ userId }, update, {
             new: true
         }).lean();
 

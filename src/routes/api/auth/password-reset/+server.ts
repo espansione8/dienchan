@@ -14,7 +14,7 @@ export const POST = async ({ request }) => {
 		// All database code can only run inside async functions as it uses await
 		await dbConnect();
 
-		const userCheck = await Users.exists({ email: loginEmail }).limit(1).lean().exec();
+		const userCheck = await User.exists({ email: loginEmail }).limit(1).lean().exec();
 
 		if (!userCheck) {
 			return json$1(
@@ -29,7 +29,7 @@ export const POST = async ({ request }) => {
 		const randomString = crypto.randomUUID();
 		const newPass = randomString.slice(-12);
 		const password = stringHash(newPass).toString();
-		const updateNewUser = await Users.updateOne(
+		const updateNewUser = await User.updateOne(
 			{ email: loginEmail },
 			{
 				$set: {

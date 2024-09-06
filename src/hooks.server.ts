@@ -14,7 +14,7 @@ import type { Handle } from '@sveltejs/kit';
 // OLD
 // const getSessionFromApi = async (id) => {
 // 	await dbConnect();
-// 	const getSession = await Users.findOne(
+// 	const getSession = await User.findOne(
 // 		{ cookieId: id },
 // 		{ _id: 1, password: 0, remoteIP: 0, remoteHost: 0, remoteBrowser: 0, notesOnUser: 0 }
 // 	)
@@ -35,7 +35,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			// console.log('checkAuth', checkAuth);
 			await dbConnect();
 			// check auth
-			const getSession = await Users.findOne(
+			const getSession = await User.findOne(
 				{ cookieId: cookies.session_id },
 				{ _id: 1, password: 0, remoteIP: 0, remoteHost: 0, remoteBrowser: 0, notesOnUser: 0 }
 			)

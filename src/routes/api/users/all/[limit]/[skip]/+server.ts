@@ -22,7 +22,7 @@ export const GET: RequestHandler = async ({ params }) => {
 
 	try {
 		await dbConnect();
-		const all = await Users.find().limit(queryLimit).skip(skipResults).lean().sort({ createdAt: -1 }).exec();
+		const all = await User.find().limit(queryLimit).skip(skipResults).lean().sort({ createdAt: -1 }).exec();
 		//throw new Error("@1migration task: Migrate this return statement (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292701)");
 		// Suggestion (check for correctness before using):
 		return json(all);

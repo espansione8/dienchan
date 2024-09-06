@@ -54,7 +54,7 @@ export const POST = async ({ request }) => {
         };
         console.log('Oggetto di aggiornamento:', update);
 
-        const result = await Courses.updateOne(filter, update);
+        const result = await Course.updateOne(filter, update);
         // console.log('Risultato dell\'aggiornamento:', result);
 
         if (result.matchedCount === 1) {

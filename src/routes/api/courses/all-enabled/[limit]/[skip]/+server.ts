@@ -23,7 +23,7 @@ export const GET: RequestHandler = async ({ params }) => {
 		await dbConnect();
 		// const all = await ProductCorso.find({status: 'enabled'}).limit(queryLimit).skip(skipResults).lean().populate({path: 'userView', model: 'ProductCorso', options: { strictPopulate: false }}).exec();
 
-		const all = await Courses.find({ status: 'enabled' }) // Find all courses with 'enabled' status
+		const all = await Course.find({ status: 'enabled' }) // Find all courses with 'enabled' status
 			.limit(queryLimit) // Limit results to the specified number
 			.skip(skipResults) // Skip a certain number of results (for pagination)
 			.sort({ createdAt: -1 })

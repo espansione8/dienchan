@@ -15,7 +15,7 @@ export const GET: RequestHandler = async ({ request }) => {
 	if (cookies.session_id) {
 		try {
 			await dbConnect();
-			//const res = await Users.updateOne({ cookieId: cookies.session_id }, { $set: { cookieId:'' } });
+			//const res = await User.updateOne({ cookieId: cookies.session_id }, { $set: { cookieId:'' } });
 			//console.log(res.acknowledged);
 			await Users.updateOne({ cookieId: cookies.session_id }, { $set: { cookieId: '' } }).lean().exec();
 		} catch (err) {

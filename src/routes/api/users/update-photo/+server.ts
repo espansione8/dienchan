@@ -20,7 +20,7 @@ export const POST = async ({ request }) => {
 		await dbConnect();
 
 		//check esisting users
-		const pageId = await Users.exists(
+		const pageId = await User.exists(
 			{ email }
 			//{ _id: 1, documentPageId: 1 }
 		)
@@ -40,7 +40,7 @@ export const POST = async ({ request }) => {
 		}
 
 		if (action === 'new') {
-			const userUpdate = await Users.updateOne(
+			const userUpdate = await User.updateOne(
 				{ email },
 				{
 					$push: {
@@ -69,7 +69,7 @@ export const POST = async ({ request }) => {
 		}
 
 		if (action === 'delete') {
-			const userUpdate = await Users.updateOne(
+			const userUpdate = await User.updateOne(
 				{ email },
 				{
 					$pull: {

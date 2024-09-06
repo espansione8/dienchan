@@ -14,7 +14,7 @@ export const POST = async ({ request }) => {
 		const update = {
 			pointsBalance: body.pointsBalance
 		};
-		const newData = await Users.updateOne(filter, update, {
+		const newData = await User.updateOne(filter, update, {
 			new: true
 		}).lean();
 

@@ -59,7 +59,7 @@ export const POST = async ({ request }) => {
 		} while (attempts < 10 && isDuplicate)
 		// Add user to DB
 		// All database code can only run inside async functions as it uses await
-		const newProd = new Products();
+		const newProd = new Product();
 		newProd.prodId = uUID;
 		newProd.userId = productUserId;
 		newProd.title = productTitle;
@@ -154,7 +154,7 @@ export const POST = async ({ request }) => {
 		// 		path: '/'
 		// 	})
 		// };
-		const findId = await Products.find({ _id: newProd._id });
+		const findId = await Product.find({ _id: newProd._id });
 		// console.log('111111111111', findId);
 		if (findId.length > 0) {
 			return json$1(

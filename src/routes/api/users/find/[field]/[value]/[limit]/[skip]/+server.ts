@@ -30,7 +30,7 @@ export const GET = async ({ params }) => {
 
 	try {
 		await dbConnect();
-		const find = await Users.find({ [field]: value })
+		const find = await User.find({ [field]: value })
 			.limit(queryLimit)
 			.skip(skipResults)
 			.lean()

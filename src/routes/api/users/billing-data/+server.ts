@@ -62,11 +62,11 @@ export const POST = async ({ request }) => {
 			}
 		};
 
-		const newData = await Users.updateOne(filter, update, {
+		const newData = await User.updateOne(filter, update, {
 			new: true
 		}).lean();
 
-		// const courseUpdateResult = await Courses.updateMany(courseFilter, courseUpdate);
+		// const courseUpdateResult = await Course.updateMany(courseFilter, courseUpdate);
 
 		if (newData.matchedCount == 1) {
 
@@ -77,13 +77,13 @@ export const POST = async ({ request }) => {
 			};
 
 			// Aggiungo un log per verificare il numero di corsi trovati
-			const coursesToUpdate = await Courses.find(courseFilter);
+			const coursesToUpdate = await Course.find(courseFilter);
 			// console.log(`Trovati ${coursesToUpdate.length} corsi da aggiornare per user_Id: ${body.userId}. nome ${body.name} surname ${body.surname}`);
 
 			if (coursesToUpdate.length > 0) {
 
 				// TODO: sbaglia apposta e agggiorna condizione dell IF
-				const courseUpdateResult = await Courses.updateMany(courseFilter, courseUpdate);
+				const courseUpdateResult = await Course.updateMany(courseFilter, courseUpdate);
 				//console.log('courseUpdateResult', courseUpdateResult)
 
 				// console.log(`Numero di corsi aggiornati: ${courseUpdateResult.modifiedCount}`);

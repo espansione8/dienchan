@@ -16,7 +16,7 @@ export const POST = async ({ request }) => {
 		// All database code can only run inside async functions as it uses await
 		await dbConnect();
 
-		const userCheck = await Users.exists({ email: body.email, password: currentPass })
+		const userCheck = await User.exists({ email: body.email, password: currentPass })
 			.limit(1)
 			.lean()
 			.exec();
@@ -43,7 +43,7 @@ export const POST = async ({ request }) => {
 		);
 
 		// Look for existing email to avoid duplicate entries
-		/* const duplicateUser = await Users.exists({ userId: body.ssn }).limit(1).lean().exec();
+		/* const duplicateUser = await User.exists({ userId: body.ssn }).limit(1).lean().exec();
 
 		const cookieId = crypto.randomUUID();
 		// If there is user with cookie, update the cookie, otherwise create a new DB entry
