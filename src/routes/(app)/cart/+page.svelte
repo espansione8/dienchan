@@ -36,9 +36,9 @@
 	let phone = $state(userData.phone || '');
 	let mobilePhone = $state(userData.mobilePhone || '');
 	// privacy
-	let namePublic = $state(userData.namePublic || false);
-	let surnamePublic = $state(userData.surnamePublic || false);
-	let emailPublic = $state(userData.emailPublic || false);
+	// let namePublic = $state(userData.namePublic || false);
+	// let surnamePublic = $state(userData.surnamePublic || false);
+	// let emailPublic = $state(userData.emailPublic || false);
 	// let addressPublic = $state(userData.addressPublic || false);
 	// let cityPublic = $state(userData.cityPublic || false);
 	// let statePublic = $state(userData.statePublic || false);
@@ -76,10 +76,10 @@
 				postalCode,
 				country,
 				phone,
-				mobilePhone,
-				namePublic,
-				surnamePublic,
-				emailPublic
+				mobilePhone
+				// namePublic,
+				// surnamePublic,
+				// emailPublic
 				// addressPublic,
 				// cityPublic,
 				// statePublic,
@@ -840,7 +840,7 @@
 	<div class="modal-box">
 		<h3 class="font-bold text-lg">CORSO ORDINE CONFERMATO</h3>
 		<p class="py-2 font-semibold">Puoi vedere lo storico odini nella pagina: Impostazioni.</p>
-		
+
 		<div class="modal-action">
 			<button
 				class="btn btn-sm btn-primary w-24 hover:bg-white hover:text-blue-500 rounded-lg"

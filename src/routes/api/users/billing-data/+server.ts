@@ -19,11 +19,11 @@ export const POST = async ({ request }) => {
 		country,
 		phone,
 		mobilePhone,
-		namePublic,
-		surnamePublic,
-		emailPublic
 	} = body;
 	const level = body.level; // DA CONTROLLARE: alcune pagine non pasasno valore
+	const namePublic = body.namePublic || false;
+	const surnamePublic = body.surnamePublic || false;
+	const emailPublic = body.emailPublic || false;
 	const addressPublic = body.addressPublic || false;
 	const cityPublic = body.cityPublic || false;
 	const statePublic = body.statePublic || false;
