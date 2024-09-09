@@ -38,7 +38,7 @@
 	const removeFromCart = (courseId) => {
 		cart.update((n) => {
 			// Filtra il carrello per rimuovere il corso con l'ID specificato
-			return n.filter((item) => item.prodCorsoId !== courseId.prodCorsoId);
+			return n.filter((item) => item.courseId !== courseId.courseId);
 		});
 	};
 
@@ -160,7 +160,7 @@
 			<section class="col-span-5 space-y-3 mt-12">
 				<!-- Riflessologo -->
 				<div class="text-2xl font-semibold text-gray-700">
-					Riflessologo: <b>{getCourse.reflexologistName} {getCourse.reflexologistSurname}</b>
+					Riflessologo: <b>{getCourse.reflexologistName} {getCourse.surname}</b>
 				</div>
 				<!-- Luogo -->
 				<div class="text-2xl font-semibold text-gray-700">
@@ -181,7 +181,7 @@
 					Prezzo: <b>{getCourse.price} €</b>
 				</div>
 				<div class="flex justify-end">
-					{#if $cart.some((item: any) => item.prodCorsoId == getCourse.prodCorsoId)}
+					{#if $cart.some((item: any) => item.courseId == getCourse.courseId)}
 						<button
 							class="btn btn-sm bg-red-200 w-40 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400"
 							onclick={() => removeFromCart(getCourse)}>Rimuovi dal Carrello</button

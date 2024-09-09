@@ -12,6 +12,18 @@
 	let { data } = $props();
 	let { userData, auth } = $derived(data);
 
+	// notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+		}, 3000); // 1000 milliseconds = 1 second
+	};
+	//clearTimeout(startTimeout); // reset timer
+
 	let error: string = $state('');
 	let password1 = $state('');
 	let password2 = $state('');
@@ -149,11 +161,11 @@
 					'Content-Type': 'application/json'
 				}
 			});
-
 			const res = await response.json();
+			console.log('res cart', res);
 			if (response.status == 200) {
 				//alert(res.message);
-				//console.log('OK', response);
+				console.log('OK', response);
 				fieldReset(); // svuota i campi dopo inserimento
 				isModalConfirm = false;
 				toastClosed = false;
@@ -167,6 +179,7 @@
 				// console.log('OK', response);
 				//isModalConfirm = false;
 				toastClosed = false;
+				notificationError = true;
 				notificationContent = res.message;
 				clearTimeout(startTimeout);
 			}
@@ -210,6 +223,7 @@
 				//alert(res.message);
 				// console.log('OK', response);
 				//isModalConfirm = false;
+				notificationError = true;
 				toastClosed = false;
 				notificationContent = res.message;
 				clearTimeout(startTimeout);
@@ -252,9 +266,9 @@
 	totalCart();
 	const removeFromCart = (courseId: any) => {
 		cart.update((n) => {
-			console.log('courseId', courseId.prodCorsoId);
+			console.log('courseId', courseId.courseId);
 			// Filtra il carrello per rimuovere il corso con l'ID specificato
-			return n.filter((item) => item.prodCorsoId !== courseId.prodCorsoId);
+			return n.filter((item) => item.courseId !== courseId.courseId);
 		});
 		totalCart();
 	};
@@ -296,18 +310,6 @@
 		}
 		return null; // Restituisce null se non trova un oggetto corrispondente
 	};
-
-	// notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-		}, 3000); // 1000 milliseconds = 1 second
-	};
-	//clearTimeout(startTimeout); // reset timer
 
 	const imgSrc = (value: string) => {
 		const src = $coursesInfo.filter((item: any) => item.id == value);
@@ -357,7 +359,7 @@
 						</h5>
 						<!-- riflessologo -->
 						<p class="card-text">
-							Riflessologo: <b>{item.reflexologistName} {item.reflexologistSurname}</b>
+							Riflessologo: <b>{item.reflexologistName} {item.surname}</b>
 						</p>
 						<!-- dalle x alle y -->
 						<h5 class="card-text">
@@ -373,7 +375,7 @@
 							<span class="flex justify-between gap-10 my-3">
 								<button
 									class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:text-gray-300"
-									onclick={() => onClickInfo(item.prodCorsoId)}>Info</button
+									onclick={() => onClickInfo(item.courseId)}>Info</button
 								>
 								<button
 									class="btn btn-sm bg-red-200 w-40 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400"

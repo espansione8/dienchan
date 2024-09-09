@@ -29,8 +29,8 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
- 
-<div class="toast toast-top toast-center z-1000 " class:hidden={toastClosed}>
+
+<div class="toast toast-top toast-center z-[9999]" class:hidden={toastClosed}>
 	<div class={notificationError ? 'alert alert-error rounded-lg' : 'alert alert-info rounded-lg'}>
 		<span>
 			<button

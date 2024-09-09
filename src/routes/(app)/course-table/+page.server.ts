@@ -8,33 +8,24 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	}
 
 	let getTableCourses = [];
-	// let getTableNames = [];
+	const userId = locals.data.userId || ''
 
 	try {
-		// const userData = session.user;
-		//console.log('MY DOCS userData', userData);
+		let path = `${import.meta.env.VITE_BASE_URL}/api/courses/all-enabled/0/0`
+		if (userId) path = `${import.meta.env.VITE_BASE_URL}/api/courses/user-id/${userId}`
 
-		// CORSI
-		const resProductsCorso = await fetch(
-			`${import.meta.env.VITE_BASE_URL}/api/courses/all-enabled/0/0`
-		);
+		// ADMIN course
+		const resProductsCorso = await fetch(path);
 		const resGetTableProductsCorso = await resProductsCorso.json();
 		getTableCourses = resGetTableProductsCorso.map((obj) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10)
 		}));
 
-		// LISTA NOMI RIFLESSOLOGI
-		// const resName = await fetch(
-		// 	`${import.meta.env.VITE_BASE_URL}/api/users/all-active-names/0/0`
-		// );
-		// getTableNames = await resName.json();
-
-
 	} catch (error) {
 		console.log('products-corso fetch error:', error);
 	}
-	//console.log('getTableCorsi', getTableCorsi);
+
 	return {
 		getTableCourses,
 		auth: locals.auth

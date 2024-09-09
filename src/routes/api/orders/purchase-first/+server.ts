@@ -1,9 +1,10 @@
 import { json } from '@sveltejs/kit';
 import stringHash from 'string-hash';
-import { serialize } from 'cookie';
+//import { serialize } from 'cookie';
 import dbConnect from '$lib/database';
 import { Order } from '$lib/models/Orders.model';
-// src/routes/api/orders/purchaes-first.
+import { User } from '$lib/models/Users.model';
+// src/routes/api/orders/purchase-first
 //import nodemailer from 'nodemailer';
 
 export const POST = async ({ request }) => {
@@ -31,6 +32,24 @@ export const POST = async ({ request }) => {
 
 	try {
 		await dbConnect();
+		// CHECK IF USER ALREADY EXISTS
+		const userCheck = await User.findOne({ email: registerEmail }, { _id: 1, email: 1 })
+			.limit(1)
+			.lean()
+			.exec();
+
+		// If there is, either send status 409 Conflict and inform the user that their email is already taken
+		// or send status 202 or 204 and tell them to double-check on their credentials and try again - it is considered more secure
+		if (userCheck) {
+			return json(
+				{
+					message: 'Utente esistente'
+				},
+				{
+					status: 409
+				}
+			);
+		}
 		// REGISTRARE UTENTE
 		const responseUser = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-up-admin`, {
 			method: 'POST',

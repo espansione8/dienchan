@@ -5,7 +5,11 @@ import daisyui from "daisyui";
 module.exports = {
   content: ['./src/**/*.{html,js,svelte,ts}'],
   theme: {
-    extend: {},
+    extend: {
+      zIndex: {
+        '9999': '9999',
+      }
+    },
   },
   plugins: [
     daisyui,

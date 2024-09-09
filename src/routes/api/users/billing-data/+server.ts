@@ -78,7 +78,7 @@ export const POST = async ({ request }) => {
 			const courseFilter = { userId };
 			const courseUpdate = {
 				reflexologistName: name,
-				reflexologistSurname: surname
+				surname: surname
 			};
 			// Aggiungo un log per verificare il numero di corsi trovati
 			const coursesToUpdate = await Course.find(courseFilter);

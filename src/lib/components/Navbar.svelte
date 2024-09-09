@@ -306,6 +306,27 @@
 						</ul>
 					</div>
 				{/if}
+				{#if logged && userLevel == 'formatore'}
+					<div class="dropdown dropdown-end">
+						<button
+							class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"
+						>
+							<span class="flex justify-between"
+								><strong>Gestione</strong>
+								<ChevronDown class="-mt-1" /></span
+							>
+						</button>
+						<ul class="dropdown-content menu z-[1] bg-gray-200 p-2 rounded-lg shadow w-max gap-2">
+							<li>
+								<a
+									class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"
+									href="/course-table"
+									aria-current="page"><strong>Corsi</strong></a
+								>
+							</li>
+						</ul>
+					</div>
+				{/if}
 			{/if}
 			{#if logged}
 				<button

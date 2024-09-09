@@ -22,19 +22,19 @@ export const POST = async ({ request }) => {
         productCorsoElencoTag,
         productPriceCorso,
         reflexologistName,
-        reflexologistSurname
+        surname
     } = body;
 
     // const productCorsoTitolo = body.productCorsoTitolo;
 
     // console.log('Corpo della richiesta:', body);
-    // console.log('body.prodCorsoId', productCorsoID);
+    // console.log('body.courseId', productCorsoID);
 
     try {
         await dbConnect();
         // console.log('Connessione al database avvenuta con successo');
 
-        const filter = { prodCorsoId: productCorsoID };
+        const filter = { courseId: productCorsoID };
         // console.log('Filtro utilizzato:', filter);
 
         const update = {
@@ -42,7 +42,7 @@ export const POST = async ({ request }) => {
             infoExtra: productCorsoInfoExtra,
             descrLong: productCorsoDescrizione,
             reflexologistName,
-            reflexologistSurname,
+            surname,
             eventStartDate: productCorsoDataInizioCompleto,
             eventEndDate: productCorsoDataFineCompleto,
             place: productCorsoProvincia,

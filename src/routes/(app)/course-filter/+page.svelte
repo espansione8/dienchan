@@ -280,7 +280,7 @@
 	const removeFromCart = (courseId) => {
 		cart.update((n) => {
 			// Filtra il carrello per rimuovere il corso con l'ID specificato
-			return n.filter((item) => item.prodCorsoId !== courseId.prodCorsoId);
+			return n.filter((item) => item.courseId !== courseId.courseId);
 		});
 	};
 
@@ -615,10 +615,10 @@
 							<span class="flex justify-between gap-10 my-3">
 								<button
 									class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:text-gray-300"
-									onclick={() => onClickInfo(corsoData.prodCorsoId)}>Info</button
+									onclick={() => onClickInfo(corsoData.courseId)}>Info</button
 								>
 
-								{#if $cart.some((item) => item.prodCorsoId == corsoData.prodCorsoId)}
+								{#if $cart.some((item) => item.courseId == corsoData.courseId)}
 									<!-- in carello -->
 									<button
 										class="btn btn-sm bg-red-200 w-40 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400"

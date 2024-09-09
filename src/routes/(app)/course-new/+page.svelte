@@ -68,7 +68,7 @@
 				productCorsoElencoTag,
 				productPriceCorso,
 				reflexologistName: userData.name,
-				reflexologistSurname: userData.surname
+				surname: userData.surname
 			}),
 			headers: {
 				'Content-Type': 'application/json'

@@ -438,19 +438,22 @@
 <dialog id="my_modal_2" class="modal" class:modal-open={isModalSuccess}>
 	<div class="modal-box flex flex-col text-center">
 		<h3 class="font-bold text-xl">Confermi rinnovo annuale: socio vitalizio?</h3>
-		<p class="py-2 font-semibold mt-2">
+		<!-- ATTENZIONE ERRORE 500 -->
+		<!-- <p class="py-2 font-semibold mt-2">
 			Attuale data di scadenza:
 			<strong class='text-red-500'>{moment(userData.membership.membershipExpiry).format('DD/MM/YYYY')}</strong>
-		</p>
+		</p> -->
 		<p class=" font-semibold">
 			Futura data di scadenza:
-			<b class='text-green-500'>{moment(
+			<!-- ATTENZIONE ERRORE 500 -->
+			<!-- <b class='text-green-500'>{moment(
 				new Date(
 					new Date(userData.membership.membershipExpiry).setFullYear(
 						new Date(userData.membership.membershipExpiry).getFullYear() + 1
 					)
 				)
 			).format('DD/MM/YYYY')}</b>
+		</p> -->
 		</p>
 		<hr class="bg-black h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
 		<p class=" col-span-2 font-bold text-lg text-center mt-4">Scegli il metodo di pagamento:</p>

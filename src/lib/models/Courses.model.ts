@@ -17,7 +17,8 @@ import mongoose, { Schema, Types } from 'mongoose';
 
 const ProductCorsoSchema = new Schema(
 	{
-		prodCorsoId: {
+		//prodCorsoId: { OLD
+		courseId: {
 			type: String,
 			index: true,
 			unique: true,
@@ -33,8 +34,8 @@ const ProductCorsoSchema = new Schema(
 		descrLong: { type: String, default: '' },
 		descrShort: { type: String, default: '' },
 		infoExtra: { type: String, default: '' },
-		reflexologistName: { type: String, default: '' },
-		reflexologistSurname: { type: String, default: '' },
+		name: { type: String, default: '' },
+		surname: { type: String, default: '' },
 		/** aggiunta */
 		eventStartDate: { type: Date, default: Date.now },
 		eventEndDate: { type: Date, default: Date.now },
@@ -52,7 +53,7 @@ const ProductCorsoSchema = new Schema(
 		],
 		filterPermissionToSee: [],
 		filterPermissionToEdit: [],
-		userId: { type: String, default: '', index: true }, // Creato da add virtual
+		userId: { type: String, default: '', index: true }, // make index
 		tag: [{ type: String, default: '' }],
 		priceSetByBundle: { type: Boolean, default: false },
 		bundleProduct: [{
@@ -170,7 +171,7 @@ const ProductCorsoSchema = new Schema(
 		orderQuantity: { type: Number, default: 0 },
 	},
 	{
-		collection: 'productsCorso',
+		collection: 'courses',
 		timestamps: true,
 		toJSON: { virtuals: true }
 	}

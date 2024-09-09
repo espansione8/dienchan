@@ -24,7 +24,7 @@
 	};
 
 	let productCorsoTitolo = $state(getCourse.title);
-	let productCorsoID = $state(getCourse.prodCorsoId);
+	let productCorsoID = $state(getCourse.courseId);
 	let productCorsoInfoExtra = $state(getCourse.infoExtra);
 	let productCorsoDescrizione = $state(getCourse.descrLong);
 	let productCorsoUserId = $state(getCourse.userId);
@@ -84,7 +84,7 @@
 				productCorsoElencoTag,
 				productPriceCorso,
 				reflexologistName: getCourse.reflexologistName,
-				reflexologistSurname: getCourse.reflexologistSurname
+				surname: getCourse.surname
 			}),
 			headers: {
 				'Content-Type': 'application/json'

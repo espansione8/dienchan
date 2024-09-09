@@ -20,7 +20,7 @@ export const POST = async ({ request }) => {
 	const productCorsoElencoTag = body.productCorsoElencoTag;
 	const productPriceCorso = body.productPriceCorso;
 	const reflexologistName = body.reflexologistName;
-	const reflexologistSurname = body.reflexologistSurname;
+	const surname = body.surname;
 
 	try {
 		// Connecting to DB
@@ -32,10 +32,10 @@ export const POST = async ({ request }) => {
 		// All database code can only run inside async functions as it uses await
 		// const cookieId = crypto.randomUUID();
 		const newEvent = new Course();
-		newEvent.prodCorsoId = crypto.randomUUID();
+		newEvent.courseId = crypto.randomUUID();
 		newEvent.userId = productCorsoUserId;
 		newEvent.reflexologistName = reflexologistName;
-		newEvent.reflexologistSurname = reflexologistSurname;
+		newEvent.surname = surname;
 		newEvent.title = productCorsoTitle;
 		newEvent.descrLong = productCorsoDescrLong;
 		newEvent.eventStartDate = productCorsoEventStartDate;
@@ -54,7 +54,7 @@ export const POST = async ({ request }) => {
 		if (saveCourse.userId == productCorsoUserId) {
 
 			// console.log('reflexologistName', reflexologistName)
-			// console.log('reflexologistSurname', reflexologistSurname)
+			// console.log('surname', surname)
 			return json(
 				{
 					message: "Corso registrato"

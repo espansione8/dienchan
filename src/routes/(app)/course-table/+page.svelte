@@ -21,7 +21,7 @@
 	const removeFromCart = (courseId: any) => {
 		cart.update((n) => {
 			// Filtra il carrello per rimuovere il corso con l'ID specificato
-			return n.filter((item) => item.corso.prodCorsoId !== courseId.corso.prodCorsoId);
+			return n.filter((item) => item.corso.courseId !== courseId.corso.courseId);
 		});
 	};
 
@@ -85,7 +85,7 @@
 					<!-- Data inserimento -->
 					<td>{row.createdAt}</td>
 					<!-- Nome Cognome Riflessologo -->
-					<td>{row.reflexologistName} {row.reflexologistSurname}</td>
+					<td>{row.reflexologistName} {row.surname}</td>
 					<!-- Email Riflessologo -->
 					<td>{row.notificationEmail[0]}</td>
 					<!-- Titolo -->
@@ -114,12 +114,12 @@
 					<!-- Azione -->
 					<td class="space-4">
 						<button
-							onclick={() => onClickModify(row.prodCorsoId)}
+							onclick={() => onClickModify(row.courseId)}
 							class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:bg-gray-300 hover:text-gray-800 hover:bg-gray-400 mt-2"
 						>
 							Modifica
 						</button>
-						<!-- {#if $cart.some((item) => item.corso.prodCorsoId == row.prodCorsoId)}
+						<!-- {#if $cart.some((item) => item.corso.courseId == row.courseId)}
 							
 							<button
 								class="btn btn-sm bg-red-200 w-40 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400"
