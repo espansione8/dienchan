@@ -8,7 +8,7 @@ import dbConnect from '$lib/database';
 export const GET = async ({ params }) => {
 	try {
 		await dbConnect();
-		const findId = await Order.find({ userId: params.value }).lean().exec();
+		const findId = await Order.find({ userId: params.value }, { _id: 0 }).lean().exec();
 
 		return json(findId);
 		// return {

@@ -3,15 +3,15 @@
 	import { cubicOut } from 'svelte/easing';
 	import { create_upload } from '$lib/stores/upload';
 	import Notification from '$lib/components/Notification.svelte';
-	import { Settings, X, Check, UserRound, Eye, EyeOff, Trash2, Award } from 'lucide-svelte';
+	import { Settings, X, Check, Eye, EyeOff, Trash2, Award } from 'lucide-svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { province } from '$lib/stores/arrays.js';
-	import moment from 'moment';
-	import 'moment/min/locales.js';
+	// import moment from 'moment';
+	// import 'moment/min/locales.js';
 	import { country_list } from '$lib/stores/arrays.js';
 	import { coursesInfo } from '$lib/stores/arrays.js';
 
-	moment.locale('it');
+	//moment.locale('it');
 
 	let { data } = $props();
 	let { userData, orderData } = $derived(data);
@@ -825,25 +825,31 @@
 				<span class="ml-4">
 					Livello: <b>{membershipLevel}</b> | Status:
 					<b>{membershipStatus ? 'Attivo' : 'Inattivo'}</b>
-					| Scade il:
-					<b>{moment(membershipExpiry).format('DD/MM/YYYY')}</b>
+					| Scadenza:
+					<!-- <b>{moment(membershipExpiry).format('DD/MM/YYYY')}</b> -->
+					<b>{membershipExpiry}</b>
 				</span>
 			</span>
 			<hr />
 			<span class=" py-2">
-				<strong>Storico oridini:</strong> <br />
+				<strong>Storico ordini:</strong> <br />
 			</span>
 			{#each orderData as order}
 				{#each orderData[0].cart as course}
 					<span class="flex items-center space-x-1">
 						<img src={imgSrc(course.category[0])} alt="Immagine corso" class="w-16 object-cover" />
 						<span>
+							<b>{course.title}</b> , {course.createdAt} , {siglaToProvincia(course.place)},
+							{course.name}
+							{course.surname}
+						</span>
+						<!-- <span>
 							<b>{course.title}</b> , {moment(course.createdAt).format('DD/MM/YYYY')} , {siglaToProvincia(
 								course.place
 							)},
 							{course.name}
 							{course.surname}
-						</span>
+						</span> -->
 					</span>
 				{/each}
 			{/each}

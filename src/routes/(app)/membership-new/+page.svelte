@@ -1,11 +1,22 @@
 <script lang="ts">
 	import { CircleCheckBig } from 'lucide-svelte';
 	import Notification from '$lib/components/Notification.svelte';
-	import moment from 'moment';
 	import { invalidateAll } from '$app/navigation';
 
 	let { data } = $props();
-	let { userData } = $derived(data);
+	let { userData, auth } = $derived(data);
+
+	let newExpire: any;
+	// MEMO DERIVED
+	if (auth) {
+		newExpire = new Date(
+			new Date(userData.membership.membershipExpiry).setFullYear(
+				new Date(userData.membership.membershipExpiry).getFullYear() + 1
+			)
+		)
+			.toISOString()
+			.substring(0, 10);
+	}
 
 	const testimonials = [
 		{
@@ -27,8 +38,10 @@
 				'Associazione ben organizzata che insegna egregiamente e con passione tecniche utili per il benessere psicofisico.'
 		}
 	];
-
-	const onClickAssociateOrdinary = async () => {
+	const onClickAssociateOrdinary = () => {
+		isModalRegister = true;
+	};
+	const onConfirmRegister = async () => {
 		//alert('save data');
 		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/new`, {
 			method: 'POST',
@@ -108,11 +121,11 @@
 
 	const onClickConfirmRenew = async () => {
 		//alert('save data');
-		isModalSuccess = false;
+		isModalRenew = false;
 		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/renew`, {
 			method: 'POST',
 			body: JSON.stringify({
-				id: userData._id,
+				userId: userData.userId,
 				membershipActivation: userData.membership.membershipExpiry,
 				membershipExpiry: new Date(
 					new Date(userData.membership.membershipExpiry).setFullYear(
@@ -160,7 +173,9 @@
 	//clearTimeout(startTimeout); // reset timer
 
 	let paymentType = $state('bonifico');
-	let isModalSuccess = $state(false);
+	let isModalRenew = $state(false);
+	let isModalRegister = $state(false);
+	let isModalLifetime = $state(false);
 </script>
 
 <svelte:head>
@@ -244,43 +259,51 @@
 			</div>
 		</div>
 	</section>
-
-	<section class="col-start-2 col-end-4">
-		<!-- Card per Socio Ordinario -->
-		<div class="flex justify-center space-x-6 my-8">
-			<div
-				class="bg-gradient-to-b from-indigo-700 via-indigo-600 to-indigo-500 rounded-xl p-6 w-80 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
-			>
-				<div class="text-center">
-					<h2
-						class="text-white font-semibold text-lg mb-4 border-2 border-white rounded-md inline-block px-3 py-1"
-					>
-						SOCIO ORDINARIO
-					</h2>
-					<p class="text-4xl font-bold">25€ <span class="text-xl">annuali</span></p>
-				</div>
-				<div class="flex justify-center my-4">
-					<figure class="px-4 pt-4">
-						<img src="/images/card-1.jpg" alt="tipo corso" class="h-40 rounded-full object-cover" />
-					</figure>
-				</div>
-				<div class="flex justify-between space-x-4 my-4">
-					<button
-						class="btn btn-sm bg-red-500 text-white w-2/5 rounded-xl"
-						onclick={onClickAssociateOrdinary}
-					>
-						Associati</button
-					>
-					<button
-						class="btn btn-sm bg-transparent border-2 border-white text-white w-2/5 rounded-xl"
-						onclick={() => {
-							isModalSuccess = true;
-						}}>Rinnova</button
-					>
+	{#if userData.membership.membershipLevel != 'Socio vitalizio'}
+		<section class="col-start-2 col-end-4">
+			<!-- Card per Socio Ordinario -->
+			<div class="flex justify-center space-x-6 my-8">
+				<div
+					class="bg-gradient-to-b from-indigo-700 via-indigo-600 to-indigo-500 rounded-xl p-6 w-80 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+				>
+					<div class="text-center">
+						<h2
+							class="text-white font-semibold text-lg mb-4 border-2 border-white rounded-md inline-block px-3 py-1"
+						>
+							SOCIO ORDINARIO
+						</h2>
+						<p class="text-4xl font-bold">25€ <span class="text-xl">annuali</span></p>
+					</div>
+					<div class="flex justify-center my-4">
+						<figure class="px-4 pt-4">
+							<img
+								src="/images/card-1.jpg"
+								alt="tipo corso"
+								class="h-40 rounded-full object-cover"
+							/>
+						</figure>
+					</div>
+					<div class="flex justify-between space-x-4 my-4">
+						{#if !auth}
+							<button
+								class="btn bg-red-500 text-white w-full rounded-xl mt-2"
+								onclick={onClickAssociateOrdinary}
+							>
+								Associati</button
+							>
+						{:else}
+							<button
+								class="btn bg-transparent border-2 border-white text-white w-full rounded-xl mt-2"
+								onclick={() => {
+									isModalRenew = true;
+								}}>Rinnova</button
+							>
+						{/if}
+					</div>
 				</div>
 			</div>
-		</div>
-	</section>
+		</section>
+	{/if}
 
 	<section class="col-start-4 col-end-6">
 		<!-- Card per Socio Vitalizio -->
@@ -436,24 +459,20 @@
 <Notification {toastClosed} {notificationContent} {notificationError} />
 
 <!-- modal CONFIRM RENEW -->
-<dialog id="my_modal_2" class="modal" class:modal-open={isModalSuccess}>
+<dialog id="my_modal_2" class="modal" class:modal-open={isModalRenew}>
 	<div class="modal-box flex flex-col text-center">
-		<h3 class="font-bold text-xl">Confermi rinnovo annuale: socio vitalizio?</h3>
-		<!-- ATTENZIONE ERRORE 500 -->
+		<h3 class="font-bold text-xl">Confermi rinnovo annuale</h3>
 		<p class="py-2 font-semibold mt-2">
 			Attuale data di scadenza:
-			<strong class='text-red-500'>{moment(userData.membership.membershipExpiry).format('DD/MM/YYYY')}</strong>
+			{#if auth}
+				<strong class="text-red-500">{userData.membership.membershipExpiry}</strong>
+			{/if}
 		</p>
 		<p class=" font-semibold">
 			Futura data di scadenza:
-			<!-- ATTENZIONE ERRORE 500 -->
-			<b class='text-green-500'>{moment(
-				new Date(
-					new Date(userData.membership.membershipExpiry).setFullYear(
-						new Date(userData.membership.membershipExpiry).getFullYear() + 1
-					)
-				)
-			).format('DD/MM/YYYY')}</b>
+			{#if auth}
+				<b class="text-green-500">{newExpire}</b>
+			{/if}
 		</p>
 		<hr class="bg-black h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
 		<p class=" col-span-2 font-bold text-lg text-center mt-4">Scegli il metodo di pagamento:</p>
@@ -496,7 +515,7 @@
 		<div class="modal-action">
 			<button
 				class="btn btn-sm btn-error w-24 hover:bg-white hover:text-red-500 rounded-lg"
-				onclick={() => (isModalSuccess = false)}>Chiudi</button
+				onclick={() => (isModalRenew = false)}>Chiudi</button
 			>
 			<button
 				class="btn btn-sm btn-success w-24 hover:bg-white hover:text-green-500 rounded-lg"
@@ -505,3 +524,26 @@
 		</div>
 	</div>
 </dialog>
+<!-- modal END CONFIRM RENEW -->
+
+<!-- modal CONFIRM REGISTER -->
+<dialog id="my_modal_2" class="modal" class:modal-open={isModalRegister}>
+	<div class="modal-box flex flex-col text-center">
+		<h3 class="font-bold text-xl">Nuova iscrizione socio</h3>
+		<!-- insert form  HERE -->
+		<!-- button cancel -->
+		<!-- button onConfirmRegister -->
+	</div>
+</dialog>
+<!-- modal END CONFIRM REGISTER -->
+
+<!-- modal CONFIRM LIFETIME -->
+<dialog id="my_modal_2" class="modal" class:modal-open={isModalLifetime}>
+	<div class="modal-box flex flex-col text-center">
+		<h3 class="font-bold text-xl">Iscrizione Vitalizia</h3>
+		<!-- insert form  HERE -->
+		<!-- button cancel -->
+		<!-- button onConfirmrLifetime -->
+	</div>
+</dialog>
+<!-- modal END CONFIRM LIFETIME -->

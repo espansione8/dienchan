@@ -704,42 +704,40 @@
 <dialog id="my_modal_2" class="modal" class:modal-open={isModalConfirm}>
 	<div class="modal-box grid grid-cols-2">
 		<h3 class="col-span-2 font-bold text-xl text-center mb-4">Riepilogo Ordine</h3>
-		{#if !auth}
-			<div class="col-span-2 grid grid-cols-2 gap-2 mb-4">
-				<div class="flex flex-col items-center">
-					<p class="text-sm text-gray-600">Nome/Cognome</p>
-					<p class="font-bold text-center mt-1">{name} {surname}</p>
-				</div>
-				<div class="flex flex-col items-center">
-					<p class="text-sm text-gray-600">Email</p>
-					<p class="font-bold text-center mt-1">{email}</p>
-				</div>
-				<div class="flex flex-col items-center">
-					<p class="text-sm text-gray-600">Città</p>
-					<p class="font-bold text-center mt-1">{city}</p>
-				</div>
-				<div class="flex flex-col items-center">
-					<p class="text-sm text-gray-600">Indirizzo</p>
-					<p class="font-bold text-center mt-1">{address}</p>
-				</div>
-				<div class="flex flex-col items-center">
-					<p class="text-sm text-gray-600">Codice Postale - Stato</p>
-					<p class="font-bold text-center mt-1">{postalCode} - {country}</p>
-				</div>
-				<div class="flex flex-col items-center">
-					<p class="text-sm text-gray-600">Paese</p>
-					<p class="font-bold text-center mt-1">{countryState}</p>
-				</div>
-				<div class="flex flex-col items-center">
-					<p class="text-sm text-gray-600">Telefono</p>
-					<p class="font-bold text-center mt-1">{phone}</p>
-				</div>
-				<div class="flex flex-col items-center">
-					<p class="text-sm text-gray-600">Cellulare</p>
-					<p class="font-bold text-center mt-1">{mobilePhone}</p>
-				</div>
+		<div class="col-span-2 grid grid-cols-2 gap-2 mb-4">
+			<div class="flex flex-col items-center">
+				<p class="text-sm text-gray-600">Nome/Cognome</p>
+				<p class="font-bold text-center mt-1">{name} {surname}</p>
 			</div>
-		{/if}
+			<div class="flex flex-col items-center">
+				<p class="text-sm text-gray-600">Email</p>
+				<p class="font-bold text-center mt-1">{email}</p>
+			</div>
+			<div class="flex flex-col items-center">
+				<p class="text-sm text-gray-600">Città</p>
+				<p class="font-bold text-center mt-1">{city}</p>
+			</div>
+			<div class="flex flex-col items-center">
+				<p class="text-sm text-gray-600">Indirizzo</p>
+				<p class="font-bold text-center mt-1">{address}</p>
+			</div>
+			<div class="flex flex-col items-center">
+				<p class="text-sm text-gray-600">Codice Postale - Stato</p>
+				<p class="font-bold text-center mt-1">{postalCode} - {country}</p>
+			</div>
+			<div class="flex flex-col items-center">
+				<p class="text-sm text-gray-600">Paese</p>
+				<p class="font-bold text-center mt-1">{countryState}</p>
+			</div>
+			<div class="flex flex-col items-center">
+				<p class="text-sm text-gray-600">Telefono</p>
+				<p class="font-bold text-center mt-1">{phone}</p>
+			</div>
+			<div class="flex flex-col items-center">
+				<p class="text-sm text-gray-600">Cellulare</p>
+				<p class="font-bold text-center mt-1">{mobilePhone}</p>
+			</div>
+		</div>
 		<div class="col-span-2 flex flex-col items-center w-full gap-3 my-4">
 			{#each $cart as item}
 				<div
@@ -841,7 +839,7 @@
 <dialog id="my_modal_2" class="modal" class:modal-open={isModalSuccessLogin}>
 	<div class="modal-box">
 		<h3 class="font-bold text-lg">CORSO ORDINE CONFERMATO</h3>
-		<p class="py-2 font-semibold">Puoi vedere lo storico odini nella pagina: Impostazioni.</p>
+		<p class="py-2 font-semibold">Puoi vedere lo storico ordini nella pagina: Impostazioni.</p>
 
 		<div class="modal-action">
 			<button

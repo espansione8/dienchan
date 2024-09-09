@@ -7,7 +7,7 @@ export const POST = async ({ request }) => {
     const body = await request.json();
 
     const {
-        id,
+        userId,
         membershipActivation,
         membershipExpiry,
         membershipStatus
@@ -16,7 +16,7 @@ export const POST = async ({ request }) => {
     try {
         await dbConnect();
         const filter = {
-            _id: id,
+            userId,
             'membership.membershipSignUp': { $ne: '' },
             'membership.membershipLevel': 'Socio ordinario'
         };
@@ -35,7 +35,7 @@ export const POST = async ({ request }) => {
         }).lean();
 
         if (newData.matchedCount == 0) {
-            
+
             return json({
                 message: 'Rinnovo NON effettuato!',
                 status: 200

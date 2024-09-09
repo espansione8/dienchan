@@ -37,20 +37,19 @@ export const handle: Handle = async ({ event, resolve }) => {
 			// check auth
 			const getSession = await User.findOne(
 				{ cookieId: cookies.session_id },
-				{ _id: 1, password: 0, remoteIP: 0, remoteHost: 0, remoteBrowser: 0, notesOnUser: 0 }
+				{ _id: 0, password: 0, remoteIP: 0, remoteHost: 0, remoteBrowser: 0, notesOnUser: 0 }
 			)
 				.limit(1)
 				.lean()
 				.exec();
-			// console.log('getSession', getSession);
+
 			if (getSession) {
 				//event.locals.userData = getSession // All USER data, only for debug
 				//event.locals.userSidebar = getSession
 
 				//OLD
-				const newData = JSON.stringify(getSession);
 				event.locals.user = { email: getSession.email };
-				event.locals.data = JSON.parse(newData);
+				event.locals.data = getSession;
 				event.locals.session = cookies.session_id;
 				event.locals.auth = true;
 				// end OLD

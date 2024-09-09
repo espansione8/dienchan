@@ -217,7 +217,7 @@
 				aria-current="page"
 				onclick={onBurgerclick}
 			>
-				<Megaphone /><strong>Diventa socio</strong>
+				<Megaphone /><strong>Tesseramento</strong>
 			</a>
 			<a
 				class="btn btn-sm bg-transparent border-gray-500 text-gray-500 px-3 py-2 hover:text-blue-900"

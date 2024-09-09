@@ -6,10 +6,19 @@ export const load: PageServerLoad = async ({ locals }) => {
 	// if (!locals.auth) {
 	// 	throw redirect(302, '/login');
 	// }
+	//console.log('locals.data', locals.data);
+
+	let user = locals.data
+	if (locals.auth) {
+		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
+		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
+		user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
+	}
+
 	return {
 		//sessionAuth: session.auth,
 		//userEmail: session.user.email,
-		userData: locals.data,
+		userData: user,
 		auth: locals.auth
 	};
 }
