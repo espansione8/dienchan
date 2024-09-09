@@ -30,7 +30,7 @@
 	let productCorsoUserId = $state(getCourse.userId);
 	let productCorsoStatus = $state(getCourse.status);
 	let productCorsoProvincia = $state(getCourse.place);
-	let productCorsoCategoria = $state();
+	let productCorsoCategoria = $state(getCourse.category[0]);
 	let productCorsoElencoTag: any[] = $state(getCourse.tag);
 	let productCorsoInputTag = $state('');
 	let productCorsoQuantitaPartecipanti = $state(getCourse.stockQty);
@@ -65,7 +65,6 @@
 	// console.log('productCorsoDataInizioAnno', productCorsoDataInizioAnno);
 
 	async function submitForm() {
-		//console.log('getCourse.name', getCourse.reflexologistName);
 		const response = await fetch(`/api/courses/modify`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -83,7 +82,7 @@
 				productCorsoElencoEmailNotifica,
 				productCorsoElencoTag,
 				productPriceCorso,
-				reflexologistName: getCourse.reflexologistName,
+				name: getCourse.name,
 				surname: getCourse.surname
 			}),
 			headers: {
@@ -143,23 +142,15 @@
 			toastClosed = true;
 		}, 3000); // 1000 milliseconds = 1 second
 	};
+	console.log('productCorsoCategoria', productCorsoCategoria[0]);
 	//clearTimeout(startTimeout); // reset timer
 	const selectCategory = () => {
-		switch (productCorsoCategoria) {
-			case 'Corso base':
-				productCorsoTitolo = $coursesInfo[0].title;
-				productCorsoDescrizione = $coursesInfo[0].descr;
-				break;
-			case 'Corso avanzato':
-				productCorsoTitolo = $coursesInfo[1].title;
-				productCorsoDescrizione = $coursesInfo[1].descr;
-				break;
-			case 'Workshop':
-				productCorsoTitolo = $coursesInfo[2].title;
-				productCorsoDescrizione = $coursesInfo[2].descr;
-				break;
-			default:
-		}
+		const course = $coursesInfo.filter((item: any) => item.id == productCorsoCategoria);
+		//console.log('course', course);
+		productCorsoTitolo = course[0].title;
+		productCorsoDescrizione = course[0].descr;
+		productPriceCorso = course[0].totalPrice;
+		productCorsoCategoria = course[0].id;
 	};
 </script>
 
@@ -188,9 +179,9 @@
 				onchange={() => selectCategory()}
 				required
 			>
-				<option disabled value="">Scegli</option>
-				{#each $coursesTypes as option}
-					<option value={option}>{option}</option>
+				<option value="">Scegli</option>
+				{#each $coursesInfo as option}
+					<option value={option.id}>{option.id}</option>
 				{/each}
 			</select>
 		</div>

@@ -841,7 +841,7 @@
 							<b>{course.title}</b> , {moment(course.createdAt).format('DD/MM/YYYY')} , {siglaToProvincia(
 								course.place
 							)},
-							{course.reflexologistName}
+							{course.name}
 							{course.surname}
 						</span>
 					</span>

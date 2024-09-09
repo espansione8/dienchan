@@ -160,7 +160,7 @@
 			<section class="col-span-5 space-y-3 mt-12">
 				<!-- Riflessologo -->
 				<div class="text-2xl font-semibold text-gray-700">
-					Riflessologo: <b>{getCourse.reflexologistName} {getCourse.surname}</b>
+					Riflessologo: <b>{getCourse.name} {getCourse.surname}</b>
 				</div>
 				<!-- Luogo -->
 				<div class="text-2xl font-semibold text-gray-700">

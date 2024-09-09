@@ -20,6 +20,7 @@ export const POST = async ({ request }) => {
 		phone,
 		mobilePhone,
 	} = body;
+	
 	const level = body.level; // DA CONTROLLARE: alcune pagine non pasasno valore
 	const namePublic = body.namePublic || false;
 	const surnamePublic = body.surnamePublic || false;
@@ -77,7 +78,7 @@ export const POST = async ({ request }) => {
 		if (newData.matchedCount == 1) {
 			const courseFilter = { userId };
 			const courseUpdate = {
-				reflexologistName: name,
+				name: name,
 				surname: surname
 			};
 			// Aggiungo un log per verificare il numero di corsi trovati

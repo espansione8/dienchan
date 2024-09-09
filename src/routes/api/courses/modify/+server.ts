@@ -14,14 +14,14 @@ export const POST = async ({ request }) => {
         productCorsoDescrizione,
         productCorsoDataInizioCompleto,
         productCorsoDataFineCompleto,
-        // productCorsoStatus,
+        productCorsoStatus,
         productCorsoQuantitaPartecipanti,
         productCorsoProvincia,
-        // productCorsoCategoria,
+        productCorsoCategoria,
         productCorsoElencoEmailNotifica,
         productCorsoElencoTag,
         productPriceCorso,
-        reflexologistName,
+        name,
         surname
     } = body;
 
@@ -41,7 +41,7 @@ export const POST = async ({ request }) => {
             title: productCorsoTitolo,
             infoExtra: productCorsoInfoExtra,
             descrLong: productCorsoDescrizione,
-            reflexologistName,
+            name,
             surname,
             eventStartDate: productCorsoDataInizioCompleto,
             eventEndDate: productCorsoDataFineCompleto,
@@ -50,6 +50,8 @@ export const POST = async ({ request }) => {
             tag: productCorsoElencoTag,
             userId: productCorsoUserId,
             price: productPriceCorso,
+            status: productCorsoStatus,
+            category: productCorsoCategoria,
             stockQty: productCorsoQuantitaPartecipanti
         };
         console.log('Oggetto di aggiornamento:', update);

@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 	try {
 		let path = `${import.meta.env.VITE_BASE_URL}/api/courses/all-enabled/0/0`
-		if (userId) path = `${import.meta.env.VITE_BASE_URL}/api/courses/user-id/${userId}`
+		if (locals.data.level == 'formatore') path = `${import.meta.env.VITE_BASE_URL}/api/courses/user-id/${userId}`
 
 		// ADMIN course
 		const resProductsCorso = await fetch(path);

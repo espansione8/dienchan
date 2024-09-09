@@ -3,9 +3,9 @@ import type { PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
 	//console.log('locals', locals);
-	if (!locals.auth) {
-		throw redirect(302, '/login');
-	}
+	// if (!locals.auth) {
+	// 	throw redirect(302, '/login');
+	// }
 	let getTableUser = [];
 	try {
 		//const userData = session.user;

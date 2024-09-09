@@ -7,7 +7,6 @@ export const POST = async ({ request }) => {
 	const body = await request.json();
 	const productCorsoUserId = body.productCorsoUserId;
 	const productCorsoTitle = body.productCorsoTitolo;
-
 	const productCorsoDescrLong = body.productCorsoDescrizione;
 	const productCorsoInfoExtra = body.productCorsoInfoExtra;
 	const productCorsoEventStartDate = body.productCorsoDataInizioCompleto;
@@ -19,7 +18,7 @@ export const POST = async ({ request }) => {
 	const productCorsoElencoEmailNotifica = body.productCorsoElencoEmailNotifica;
 	const productCorsoElencoTag = body.productCorsoElencoTag;
 	const productPriceCorso = body.productPriceCorso;
-	const reflexologistName = body.reflexologistName;
+	const name = body.name;
 	const surname = body.surname;
 
 	try {
@@ -34,7 +33,7 @@ export const POST = async ({ request }) => {
 		const newEvent = new Course();
 		newEvent.courseId = crypto.randomUUID();
 		newEvent.userId = productCorsoUserId;
-		newEvent.reflexologistName = reflexologistName;
+		newEvent.name = name;
 		newEvent.surname = surname;
 		newEvent.title = productCorsoTitle;
 		newEvent.descrLong = productCorsoDescrLong;
@@ -53,7 +52,6 @@ export const POST = async ({ request }) => {
 
 		if (saveCourse.userId == productCorsoUserId) {
 
-			// console.log('reflexologistName', reflexologistName)
 			// console.log('surname', surname)
 			return json(
 				{

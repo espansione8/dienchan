@@ -359,7 +359,7 @@
 						</h5>
 						<!-- riflessologo -->
 						<p class="card-text">
-							Riflessologo: <b>{item.reflexologistName} {item.surname}</b>
+							Riflessologo: <b>{item.name} {item.surname}</b>
 						</p>
 						<!-- dalle x alle y -->
 						<h5 class="card-text">

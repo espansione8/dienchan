@@ -9,8 +9,8 @@ export const POST = async ({ request }) => {
     const {
         id,
         membershipActivation,
-        membershipStatus,
-        membershipExpiry
+        membershipExpiry,
+        membershipStatus
     } = body;
 
     try {

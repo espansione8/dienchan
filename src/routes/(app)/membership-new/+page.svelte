@@ -2,6 +2,7 @@
 	import { CircleCheckBig } from 'lucide-svelte';
 	import Notification from '$lib/components/Notification.svelte';
 	import moment from 'moment';
+	import { invalidateAll } from '$app/navigation';
 
 	let { data } = $props();
 	let { userData } = $derived(data);
@@ -112,7 +113,6 @@
 			method: 'POST',
 			body: JSON.stringify({
 				id: userData._id,
-				userId: userData.userId,
 				membershipActivation: userData.membership.membershipExpiry,
 				membershipExpiry: new Date(
 					new Date(userData.membership.membershipExpiry).setFullYear(
@@ -134,6 +134,7 @@
 			if (content == 'Rinnovo NON effettuato!') {
 				notificationError = true;
 			}
+			invalidateAll();
 			closeNotification();
 		}
 		if (response.status != 200) {
@@ -439,21 +440,20 @@
 	<div class="modal-box flex flex-col text-center">
 		<h3 class="font-bold text-xl">Confermi rinnovo annuale: socio vitalizio?</h3>
 		<!-- ATTENZIONE ERRORE 500 -->
-		<!-- <p class="py-2 font-semibold mt-2">
+		<p class="py-2 font-semibold mt-2">
 			Attuale data di scadenza:
 			<strong class='text-red-500'>{moment(userData.membership.membershipExpiry).format('DD/MM/YYYY')}</strong>
-		</p> -->
+		</p>
 		<p class=" font-semibold">
 			Futura data di scadenza:
 			<!-- ATTENZIONE ERRORE 500 -->
-			<!-- <b class='text-green-500'>{moment(
+			<b class='text-green-500'>{moment(
 				new Date(
 					new Date(userData.membership.membershipExpiry).setFullYear(
 						new Date(userData.membership.membershipExpiry).getFullYear() + 1
 					)
 				)
 			).format('DD/MM/YYYY')}</b>
-		</p> -->
 		</p>
 		<hr class="bg-black h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
 		<p class=" col-span-2 font-bold text-lg text-center mt-4">Scegli il metodo di pagamento:</p>

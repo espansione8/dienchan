@@ -9,28 +9,14 @@
 	let { getTableCourses } = $derived(data);
 	let coursesList = $state(getTableCourses);
 
-	// cart store
-	const addToCart = (course: any) => {
-		cart.update((n) => {
-			// console.log('n', n);
-			n.push(course);
-			return n;
-		});
-	};
 
-	const removeFromCart = (courseId: any) => {
-		cart.update((n) => {
-			// Filtra il carrello per rimuovere il corso con l'ID specificato
-			return n.filter((item) => item.corso.courseId !== courseId.corso.courseId);
-		});
-	};
 
 	const onClickModify = (idCourse: any) => {
 		console.log('idCourse', idCourse);
 		goto(`/course-modify/${idCourse}`);
 	};
 
-	function siglaToProvincia(provinciaSigla) {
+	function siglaToProvincia(provinciaSigla: any) {
 		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
 		//**** listaProvince.place 'Online' is ignored */
 		if (findProvincia) {
@@ -85,7 +71,7 @@
 					<!-- Data inserimento -->
 					<td>{row.createdAt}</td>
 					<!-- Nome Cognome Riflessologo -->
-					<td>{row.reflexologistName} {row.surname}</td>
+					<td>{row.name} {row.surname}</td>
 					<!-- Email Riflessologo -->
 					<td>{row.notificationEmail[0]}</td>
 					<!-- Titolo -->
@@ -119,19 +105,7 @@
 						>
 							Modifica
 						</button>
-						<!-- {#if $cart.some((item) => item.corso.courseId == row.courseId)}
-							
-							<button
-								class="btn btn-sm bg-red-200 w-40 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400"
-								onclick={() => removeFromCart({ corso: row })}>Rimuovi dal Carrello</button
-							>
-						{:else}
-							
-							<button
-								class="btn btn-sm bg-green-200 w-40 btn-success rounded-md text-green-700 hover:text-green-300"
-								onclick={() => addToCart({ corso: row })}>Aggiungi a Carrello</button
-							>
-						{/if} -->
+						
 					</td>
 				</tr>
 			{/each}

@@ -33,7 +33,7 @@
 	// inizializzo ordinando visualizzanco prima quelli con giorno di svolgimento più recente
 	coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
-	// console.log('getTableNames', getTableNames);
+	console.log('getTableNames', getTableNames);
 
 	const categoryColors = {
 		'Corso base': 'bg-green-500',
@@ -56,7 +56,8 @@
 	}
 
 	function findNameRiflessologo(userIdCode) {
-		const findRiflessologo = getTableNames.find((user) => user.userId === userIdCode);
+		console.log('userIdCode', userIdCode);
+		const findRiflessologo = getTableCourses.find((user) => user.userId === userIdCode);
 		return `${findRiflessologo.name} ${findRiflessologo.surname}`;
 	}
 
@@ -183,8 +184,6 @@
 				return eventMonth === monthNumber;
 			});
 		}
-
-		// console.log('coursesList_ before', coursesList);
 		// Evento
 		if (filtriAttivi.evento) {
 			coursesList = coursesList.filter((item) => item.category == filtriAttivi.evento);

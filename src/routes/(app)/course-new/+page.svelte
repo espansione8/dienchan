@@ -67,7 +67,7 @@
 				productCorsoElencoEmailNotifica,
 				productCorsoElencoTag,
 				productPriceCorso,
-				reflexologistName: userData.name,
+				name: userData.name,
 				surname: userData.surname
 			}),
 			headers: {
