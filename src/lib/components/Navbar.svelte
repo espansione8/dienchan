@@ -2,10 +2,12 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { LogOut, ChevronDown, Menu, Megaphone, LogIn } from 'lucide-svelte';
-	import { cart } from '$lib/stores/cart';
+	//import { cart } from '$lib/stores/cart';
+	import { cartProducts, emptyCart } from '$lib/stores/cart';
 	let logged = false;
 	let sessionAuth = $page?.data?.auth;
 	//console.log('Nav', $page?.data?.userData?.level);
+	//console.log('cartProducts navbar', $cartProducts);
 
 	let pointsBalance = 0;
 
@@ -36,6 +38,7 @@
 			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-out`);
 			//const response = await res.json();
 			if (res.ok) {
+				emptyCart();
 				redirectToLogin();
 			}
 		} catch (err) {
@@ -103,10 +106,10 @@
 						aria-current="page"
 						onclick={onBurgerclick}
 					>
-						{#if $cart.length > 0}
+						{#if $cartProducts.length > 0}
 							<span
 								class="badge badge-sm p-2 indicator-item rounded-full bg-blue-400 text-green-500 border-green-500"
-								><strong>{$cart.length}</strong></span
+								><strong>{$cartProducts.length}</strong></span
 							>
 						{/if}
 						<strong>Carrello</strong>
@@ -236,10 +239,10 @@
 				aria-current="page"
 				onclick={onBurgerclick}
 			>
-				{#if $cart.length > 0}
+				{#if $cartProducts.length > 0}
 					<span
 						class="badge badge-sm p-2 indicator-item rounded-full bg-blue-200 text-green-600 border-green-500 hover:bg-yellow-500"
-						><strong>{$cart.length}</strong></span
+						><strong>{$cartProducts.length}</strong></span
 					>
 				{/if}
 
@@ -275,13 +278,13 @@
 							>
 						</button>
 						<ul class="dropdown-content menu z-[1] bg-gray-200 p-2 rounded-lg shadow w-max gap-2">
-							<li>
+							<!-- <li>
 								<a
 									class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"
 									href="/product-table"
 									aria-current="page"><strong>Prodotti</strong></a
 								>
-							</li>
+							</li> -->
 							<li>
 								<a
 									class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"

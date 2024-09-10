@@ -18,7 +18,7 @@ import mongoose, { Schema, Types } from 'mongoose';
 const ProductCorsoSchema = new Schema(
 	{
 		//prodCorsoId: { OLD
-		courseId: {
+		prodId: {
 			type: String,
 			index: true,
 			unique: true,

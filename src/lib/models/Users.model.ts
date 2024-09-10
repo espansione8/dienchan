@@ -217,6 +217,7 @@ const UserSchema = new mongoose.Schema(
 		], // list documentPageId
 		uploadfiles: [
 			{
+				_id: false,  // This prevents MongoDB from adding _id to array elements
 				type: { type: String, enum: ['id', 'avatar'], default: 'none' },
 				filetype: { type: String, default: '' },
 				filename: { type: String, default: '' },

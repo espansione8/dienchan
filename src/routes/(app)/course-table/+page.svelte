@@ -9,8 +9,6 @@
 	let { getTableCourses } = $derived(data);
 	let coursesList = $state(getTableCourses);
 
-
-
 	const onClickModify = (idCourse: any) => {
 		console.log('idCourse', idCourse);
 		goto(`/course-modify/${idCourse}`);
@@ -100,12 +98,11 @@
 					<!-- Azione -->
 					<td class="space-4">
 						<button
-							onclick={() => onClickModify(row.courseId)}
+							onclick={() => onClickModify(row.prodId)}
 							class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:bg-gray-300 hover:text-gray-800 hover:bg-gray-400 mt-2"
 						>
 							Modifica
 						</button>
-						
 					</td>
 				</tr>
 			{/each}

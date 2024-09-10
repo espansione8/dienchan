@@ -17,8 +17,9 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		...obj,
 		createdAt: obj.createdAt.substring(0, 10)
 	}));
+	//console.log('getOrder', getOrder);
 
-	let user = locals.data
+	const user = locals.data
 	if (locals.auth) {
 		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
 		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);

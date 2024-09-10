@@ -268,7 +268,7 @@ export const coursesInfo = readable([
     {
         id: "Corso avanzato",
         title: "Corso avanzato Dien Chan®",
-        descr: "E’ il passo successivo dopo il corso base per approfondire altri 7 strumenti e tecniche del Dien Chan®. Molte altre risposte che aumenteranno la tua fiducia nell’usare il Dien Chan® per aiutare Te Stesso e gli Altri. Le attività dell’Associazione sono rivolte esclusivamente agli Associati con la quota associativa in corso di validità. Pertanto per qualunque attività è richiesta innanzitutto l’iscrizione e/o il rinnovo della Quota ordinaria di €  25,00. Questo dà diritto di partecipare alle attività gratuite come, per esempio, il CORSO BASE DI AUTOTRATTAMENTO  oppure al CORSO AVANZATO INTENSIVO DI APPROFONDIMENTO RISERVATI AI SOCI",
+        descr: "E’ il passo successivo dopo il corso base per approfondire altri 7 strumenti e tecniche del Dien Chan®. Molte altre risposte che aumenteranno la tua fiducia nell’usare il Dien Chan® per aiutare Te Stesso e gli Altri.",
         urlPic: "/images/corso_dienchan_avanzato.jpg",
         totalPrice: 150
     },

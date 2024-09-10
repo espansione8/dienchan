@@ -1,6 +1,5 @@
 <script lang="ts">
 	// @ts-nocheck
-
 	import { onMount } from 'svelte';
 	import moment from 'moment';
 	import {
@@ -15,13 +14,9 @@
 	import Notification from '$lib/components/Notification.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { coursesTypes } from '$lib/stores/arrays';
-	import { cart } from '$lib/stores/cart';
-	import { province } from '$lib/stores/arrays.js';
-
-	import { coursesInfo } from '$lib/stores/arrays.js';
-
-	// console.log('cart', cart);
-
+	//import { cart } from '$lib/stores/cart';
+	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
+	import { province, coursesInfo } from '$lib/stores/arrays.js';
 	// import 'moment/locale/it';
 	import 'moment/min/locales.js';
 	// moment.locale('it');
@@ -30,10 +25,14 @@
 	let { getTableCourses, getTableNames } = $derived(data);
 	let coursesList = $state(getTableCourses);
 	const listaProvince = $province;
+	const checkCart = (id) => {
+		const check = $cartProducts.some((item) => item.prodId == id);
+		return check;
+	};
 	// inizializzo ordinando visualizzanco prima quelli con giorno di svolgimento più recente
 	coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
-	console.log('getTableNames', getTableNames);
+	//console.log('getTableNames', getTableNames);
 
 	const categoryColors = {
 		'Corso base': 'bg-green-500',
@@ -56,7 +55,7 @@
 	}
 
 	function findNameRiflessologo(userIdCode) {
-		console.log('userIdCode', userIdCode);
+		//console.log('userIdCode', userIdCode);
 		const findRiflessologo = getTableCourses.find((user) => user.userId === userIdCode);
 		return `${findRiflessologo.name} ${findRiflessologo.surname}`;
 	}
@@ -267,21 +266,21 @@
 		goto(`/course-detail/${idCourse}`);
 	};
 
-	// cart store
-	const addToCart = (course) => {
-		cart.update((n) => {
-			// console.log('n', n);
-			n.push(course);
-			return n;
-		});
-	};
+	// cart store CURRENT, commented to test
+	// const addToCart = (course) => {
+	// 	cart.update((n) => {
+	// 		// console.log('n', n);
+	// 		n.push(course);
+	// 		return n;
+	// 	});
+	// };
 
-	const removeFromCart = (courseId) => {
-		cart.update((n) => {
-			// Filtra il carrello per rimuovere il corso con l'ID specificato
-			return n.filter((item) => item.courseId !== courseId.courseId);
-		});
-	};
+	// const removeFromCart = (prodId) => {
+	// 	cart.update((n) => {
+	// 		// Filtra il carrello per rimuovere il corso con l'ID specificato
+	// 		return n.filter((item) => item.prodId !== prodId.prodId);
+	// 	});
+	// };
 
 	// console.log('getTableCourses.category',getTableCourses)
 	const course = $coursesInfo.filter((item: any) => item.id == coursesList.category);
@@ -556,20 +555,19 @@
 					<div>
 						<ShieldAlert />
 						<br />
-						<span class="mt-2 text-semibold"
-							>Nessun corso trovato per il mese selezionato. Prova a selezionare un altro mese o
-							resetta il filtro.</span
-						>
+						<span class="mt-2 text-semibold">
+							Nessun corso trovato. Cambia parametri o resetta il filtro.
+						</span>
 					</div>
 				</div>
 			{/if}
-			{#each coursesList as corsoData, i}
+			{#each coursesList as courseData, i}
 				<div
 					class="card card-compact overflow-hidden bg-base-100 max-w-xs rounded-xl shadow-md border"
 				>
 					<figure class="px-8 pt-8">
 						<img
-							src={imgSrc(corsoData.category[0])}
+							src={imgSrc(courseData.category[0])}
 							alt="tipo corso"
 							class="h-full w-full object-cover border-2 rounded-lg"
 						/>
@@ -577,57 +575,60 @@
 					<div class="card-body items-center text-center">
 						<!-- data giorno -->
 						<h2 class="card-title text-2xl">
-							{moment(corsoData.eventStartDate).format('DD/MM/YYYY')}
+							{moment(courseData.eventStartDate).format('DD/MM/YYYY')}
 						</h2>
 						<!-- luogo -->
-						{#if corsoData.place !== 'Online'}
+						{#if courseData.place !== 'Online'}
 							<p class="card-text text-xl">
-								<b>{siglaToProvincia(corsoData.place)}</b>
+								<b>{siglaToProvincia(courseData.place)}</b>
 							</p>
-						{:else if corsoData.place === 'Online'}
+						{:else if courseData.place === 'Online'}
 							<p class="card-text text-xl">
-								<b>{corsoData.place}</b>
+								<b>{courseData.place}</b>
 							</p>
 						{/if}
 						<!-- title -->
 						<h5
 							class="card-text text-xl bg-base-200 border rounded-md shadow-sm font-semibold p-2
-						{categoryColors[corsoData.category]}"
+						{categoryColors[courseData.category]}"
 						>
-							{corsoData.title}
+							{courseData.title}
 						</h5>
 						<!-- riflessologo -->
 						<p class="card-text">
-							Riflessologo: <b>{findNameRiflessologo(corsoData.userId)}</b>
+							Riflessologo: <b>{findNameRiflessologo(courseData.userId)}</b>
 						</p>
 						<!-- dalle x alle y -->
 						<h5 class="card-text">
-							Dalle <b>{moment(corsoData.eventStartDate).format('HH:mm')}</b>
-							alle <b>{moment(corsoData.eventEndDate).format(' HH:mm')}</b>
+							Dalle <b>{moment(courseData.eventStartDate).format('HH:mm')}</b>
+							alle <b>{moment(courseData.eventEndDate).format(' HH:mm')}</b>
 						</h5>
 						<!-- price -->
 						<p class="card-text">
-							Prezzo: <b>{corsoData.price} €</b>
+							Prezzo: <b>{courseData.price} €</b>
 						</p>
 
 						<div class="card-actions">
 							<span class="flex justify-between gap-10 my-3">
 								<button
 									class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:text-gray-300"
-									onclick={() => onClickInfo(corsoData.courseId)}>Info</button
+									onclick={() => onClickInfo(courseData.prodId)}>Info</button
 								>
 
-								{#if $cart.some((item) => item.courseId == corsoData.courseId)}
+								<!-- {#if currentCart.some((item) => item.prodId == courseData.prodId)} -->
+								{#if checkCart(courseData.prodId)}
 									<!-- in carello -->
 									<button
 										class="btn btn-sm bg-red-200 w-40 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400"
-										onclick={() => removeFromCart(corsoData)}>Rimuovi dal Carrello</button
+										onclick={() => removeFromCart($cartProducts, courseData)}
+										>Rimuovi dal Carrello</button
 									>
 								{:else}
 									<!-- non in carello -->
 									<button
 										class="btn btn-sm bg-green-200 w-40 btn-success rounded-md text-green-700 hover:text-green-300"
-										onclick={() => addToCart(corsoData)}>Aggiungi a Carrello</button
+										onclick={() => addToCart($cartProducts, courseData, false)}
+										>Aggiungi a Carrello</button
 									>
 								{/if}
 							</span>

@@ -1,11 +1,16 @@
 <script lang="ts">
 	import moment from 'moment';
 	import { coursesInfo } from '$lib/stores/arrays.js';
-	import { cart } from '$lib/stores/cart';
+	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
 	import { province } from '$lib/stores/arrays.js';
 
 	let { data } = $props();
 	let { getCourse, userData } = $derived(data);
+
+	const checkCart = (id) => {
+		const check = $cartProducts.some((item) => item.prodId == id);
+		return check;
+	};
 
 	let userfiles = $state(userData.uploadfiles);
 	let findAvatar = $state(userfiles.filter((file: any) => file.type === 'avatar'));
@@ -26,21 +31,21 @@
 		}
 	}
 
-	// cart store
-	const addToCart = (course) => {
-		cart.update((n) => {
-			// console.log('n', n);
-			n.push(course);
-			return n;
-		});
-	};
+	// // cart store
+	// const addToCart = (course) => {
+	// 	cart.update((n) => {
+	// 		// console.log('n', n);
+	// 		n.push(course);
+	// 		return n;
+	// 	});
+	// };
 
-	const removeFromCart = (courseId) => {
-		cart.update((n) => {
-			// Filtra il carrello per rimuovere il corso con l'ID specificato
-			return n.filter((item) => item.courseId !== courseId.courseId);
-		});
-	};
+	// const removeFromCart = (prodId) => {
+	// 	cart.update((n) => {
+	// 		// Filtra il carrello per rimuovere il corso con l'ID specificato
+	// 		return n.filter((item) => item.prodId !== prodId.prodId);
+	// 	});
+	// };
 
 	const course = $coursesInfo.filter((item: any) => item.id == getCourse.category);
 </script>
@@ -113,19 +118,31 @@
 						role="tabpanel"
 						class="tab-content border-base-300 rounded-lg text-lg leading-relaxed text-gray-600 bg-gray-50 p-4 shadow-inner"
 					>
-						{getCourse.descrLong}
-						<br />
-						Le attività dell’Associazione sono rivolte esclusivamente agli Associati con la quota associativa
-						rinnovata nell’anno corrente. Pertanto per qualunque attività è richiesta innanzitutto l’iscrizione
-						e/o il rinnovo della Quota ordinaria di € 25,00 Questo dà diritto di partecipare alle attività
-						gratuite come, per esempio, il CORSO BASE DI AUTOTRATTAMENTO oppure al CORSO AVANZATO INTENSIVO
-						DI APPROFONDIMENTO RISERVATI AI SOCI L’ASSOCIAZIONE NON FA’ ATTIVITA’ COMMERCIALI, distribuisce
-						esclusivamente materiale didattico necessario ai suoi Associati al fine della pratica della
-						Riflessologia facciale. Pertanto, per i Soci che intendono iscriversi sia al Corso base di
-						autotrattamento riservato ai Soci, sia al Corso Avanzato Intensivo di approfondimento riservato
-						ai soci, dovranno dotarsi dei materiali e strumenti(denominato Kit base plus) acquistabile
-						presso il negozio online www.dienchan-online.com (di diritto vietnamita) separato dall’attività
-						dell’Associazione. Ritirerà il materiale all’inizio del Corso base.
+						<p class="my-3">
+							{getCourse.descrLong}
+						</p>
+						<hr />
+						<p class="my-3">
+							Le attività dell’Associazione sono rivolte esclusivamente agli Associati con la quota
+							associativa rinnovata nell’anno corrente.
+						</p>
+
+						<p class="my-3">
+							Pertanto per qualunque attività è richiesta innanzitutto l’iscrizione e/o il rinnovo
+							della Quota ordinaria di € 25,00 Questo dà diritto di partecipare alle attività
+							gratuite come, per esempio, il CORSO BASE DI AUTOTRATTAMENTO oppure al CORSO AVANZATO
+							INTENSIVO DI APPROFONDIMENTO RISERVATI AI SOCI, L’ASSOCIAZIONE NON FA’ ATTIVITA’
+							COMMERCIALI, distribuisce esclusivamente materiale didattico necessario ai suoi
+							Associati al fine della pratica della Riflessologia facciale.
+						</p>
+						<p class="my-3">
+							Pertanto, per i Soci che intendono iscriversi sia al Corso base di autotrattamento
+							riservato ai Soci, sia al Corso Avanzato Intensivo di approfondimento riservato ai
+							soci, dovranno dotarsi dei materiali e strumenti(denominato Kit base plus)
+							acquistabile presso il negozio online www.dienchan-online.com (di diritto vietnamita)
+							separato dall’attività dell’Associazione. Ritirerà il materiale all’inizio del Corso
+							base.
+						</p>
 					</div>
 
 					<!-- <input
@@ -180,16 +197,17 @@
 				<div class="text-2xl font-semibold text-gray-700">
 					Prezzo: <b>{getCourse.price} €</b>
 				</div>
-				<div class="flex justify-end">
-					{#if $cart.some((item: any) => item.courseId == getCourse.courseId)}
+				<div class="flex justify-start">
+					<!-- {#if $cartProducts.some((item: any) => item.prodId == getCourse.prodId)} -->
+					{#if checkCart(getCourse.prodId)}
 						<button
 							class="btn btn-sm bg-red-200 w-40 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400"
-							onclick={() => removeFromCart(getCourse)}>Rimuovi dal Carrello</button
+							onclick={() => removeFromCart($cartProducts, getCourse)}>Rimuovi dal Carrello</button
 						>
 					{:else}
 						<button
 							class="btn btn-sm bg-green-200 w-40 btn-success rounded-md text-green-700 hover:text-green-300"
-							onclick={() => addToCart(getCourse)}>Aggiungi a Carrello</button
+							onclick={() => addToCart($cartProducts, getCourse, false)}>Aggiungi a Carrello</button
 						>
 					{/if}
 				</div>

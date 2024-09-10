@@ -24,7 +24,7 @@
 	};
 
 	let productCorsoTitolo = $state(getCourse.title);
-	let productCorsoID = $state(getCourse.courseId);
+	let productCorsoID = $state(getCourse.prodId);
 	let productCorsoInfoExtra = $state(getCourse.infoExtra);
 	let productCorsoDescrizione = $state(getCourse.descrLong);
 	let productCorsoUserId = $state(getCourse.userId);

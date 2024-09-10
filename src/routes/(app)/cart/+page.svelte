@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { cart } from '$lib/stores/cart';
+	//import { cart } from '$lib/stores/cart';
+	import { cartProducts, removeFromCart, emptyCart } from '$lib/stores/cart';
 	import moment from 'moment';
 	import { Lock } from 'lucide-svelte';
 	import { goto } from '$app/navigation';
@@ -154,7 +155,7 @@
 					country,
 					phone,
 					mobilePhone,
-					cart: $cart,
+					cart: $cartProducts,
 					paymentType
 				}),
 				headers: {
@@ -198,7 +199,7 @@
 					country,
 					phone,
 					mobilePhone,
-					cart: $cart,
+					cart: $cartProducts,
 					paymentType,
 					userId: userData.userId
 				}),
@@ -233,14 +234,14 @@
 
 	let total = $state(0);
 
-	const totalCart = () => {
-		total = 0;
-		$cart.forEach((element) => {
-			total = total + element.price;
-		});
-		if (auth) total -= 25;
-		return total;
-	};
+	// const totalCart = () => {
+	// 	total = 0;
+	// 	$cartProducts.forEach((element) => {
+	// 		total = total + element.price;
+	// 	});
+	// 	if (auth) total -= 25;
+	// 	return total;
+	// };
 
 	const categoryColors = {
 		'Corso base': 'bg-green-500',
@@ -263,20 +264,20 @@
 	}
 
 	// cart store
-	totalCart();
-	const removeFromCart = (courseId: any) => {
-		cart.update((n) => {
-			console.log('courseId', courseId.courseId);
-			// Filtra il carrello per rimuovere il corso con l'ID specificato
-			return n.filter((item) => item.courseId !== courseId.courseId);
-		});
-		totalCart();
-	};
+	//totalCart();
+	// const removeFromCart = (prodId: any) => {
+	// 	cart.update((n) => {
+	// 		console.log('prodId', prodId.prodId);
+	// 		// Filtra il carrello per rimuovere il corso con l'ID specificato
+	// 		return n.filter((item) => item.prodId !== prodId.prodId);
+	// 	});
+	// 	totalCart();
+	// };
 
-	const clearCart = () => {
-		cart.set([]);
-		totalCart();
-	};
+	// const clearCart = () => {
+	// 	cart.set([]);
+	// 	//totalCart();
+	// };
 
 	const fieldReset = () => {
 		name = '';
@@ -289,7 +290,7 @@
 		country = 'Italy';
 		phone = '';
 		mobilePhone = '';
-		clearCart();
+		emptyCart();
 	};
 
 	const onClickInfo = (idCourse: any) => {
@@ -324,7 +325,7 @@
 <div class="bg-base-200 grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-8 lg:p-8">
 	<section class="col-span-12 xl:col-span-9 bg-base-100 rounded-lg">
 		<div class="flex flex-wrap justify-center gap-3 my-5">
-			{#each $cart as item}
+			{#each $cartProducts as item}
 				<div
 					class="card card-compact overflow-hidden bg-base-100 max-w-xs rounded-xl shadow-md border"
 				>
@@ -375,11 +376,11 @@
 							<span class="flex justify-between gap-10 my-3">
 								<button
 									class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:text-gray-300"
-									onclick={() => onClickInfo(item.courseId)}>Info</button
+									onclick={() => onClickInfo(item.prodId)}>Info</button
 								>
 								<button
 									class="btn btn-sm bg-red-200 w-40 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400"
-									onclick={() => removeFromCart(item)}>Rimuovi dal Carrello</button
+									onclick={() => removeFromCart($cartProducts, item)}>Rimuovi dal Carrello</button
 								>
 							</span>
 						</div>
@@ -392,7 +393,7 @@
 	</section>
 
 	<section class="col-span-12 xl:col-span-3 bg-base-100 rounded-lg flex flex-col justify-start p-4">
-		{#if $cart.length > 0}
+		{#if $cartProducts.length > 0}
 			<!-- PROFILO -->
 			<div class="card bg-orange-100 shadow-xl p-3 rounded-lg">
 				<div
@@ -407,7 +408,7 @@
 					{#if auth}
 						{#if closedInput}
 							<button class="btn btn-outline btn-xs btn-neutral rounded-lg" onclick={openInput}>
-								<Settings size="18" />
+								<Settings size="18" /> Modifica
 							</button>
 						{:else}
 							<div class="flex space-x-2">
@@ -657,7 +658,7 @@
 					<section class=" ">
 						<div class="text-center mt-6">
 							<h2 class="text-2xl font-semibold">Totale Carrello:</h2>
-							{#if $cart.length > 0}
+							{#if $cartProducts.length > 0}
 								<p class="text-xl font-bold text-gray-800">{total} €</p>
 								{#if auth}
 									<p class="text-gray-800">-25 € sconto tesserati</p>
@@ -668,25 +669,25 @@
 						</div>
 						<div class="flex justify-center space-x-4 mt-4">
 							<button
-								class="btn btn-sm rounded-lg w-32 {$cart.length > 0
+								class="btn btn-sm rounded-lg w-32 {$cartProducts.length > 0
 									? 'btn-error bg-red-500 text-white hover:bg-red-600 hover:scale-105 transition-transform'
 									: 'btn-disabled bg-gray-200 text-gray-400'}"
-								onclick={() => clearCart()}
-								disabled={$cart.length == 0}
+								onclick={() => emptyCart()}
+								disabled={$cartProducts.length == 0}
 							>
-								{#if $cart.length == 0}
+								{#if $cartProducts.length == 0}
 									<Lock class="mr-2" />
 								{/if}
-								Svuota
+								Annulla
 							</button>
 							<button
 								type="submit"
-								class="btn btn-sm rounded-lg w-32 {$cart.length > 0
+								class="btn btn-sm rounded-lg w-32 {$cartProducts.length > 0
 									? 'btn-success bg-green-500 text-white hover:bg-green-600 hover:scale-105 transition-transform'
 									: 'btn-disabled bg-gray-200 text-gray-400'}"
-								disabled={$cart.length == 0}
+								disabled={$cartProducts.length == 0}
 							>
-								{#if $cart.length == 0}
+								{#if $cartProducts.length == 0}
 									<Lock class="mr-2" />
 								{/if}
 								Acquista
@@ -739,7 +740,7 @@
 			</div>
 		</div>
 		<div class="col-span-2 flex flex-col items-center w-full gap-3 my-4">
-			{#each $cart as item}
+			{#each $cartProducts as item}
 				<div
 					class="flex items-center w-full max-w-96 bg-indigo-100 rounded-lg shadow-md overflow-hidden"
 				>
@@ -761,7 +762,7 @@
 		</div>
 		<div class="col-span-2 text-center mt-3">
 			<h2 class="text-lg font-bold">Totale Carrello:</h2>
-			{#if $cart.length > 0}
+			{#if $cartProducts.length > 0}
 				<p class="text-xl font-semibold text-black-800">{total} €</p>
 				{#if auth}
 					<p class="text-gray-800">-25 € sconto tesserati</p>

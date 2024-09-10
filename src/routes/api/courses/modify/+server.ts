@@ -28,13 +28,13 @@ export const POST = async ({ request }) => {
     // const productCorsoTitolo = body.productCorsoTitolo;
 
     // console.log('Corpo della richiesta:', body);
-    // console.log('body.courseId', productCorsoID);
+    // console.log('body.prodId', productCorsoID);
 
     try {
         await dbConnect();
         // console.log('Connessione al database avvenuta con successo');
 
-        const filter = { courseId: productCorsoID };
+        const filter = { prodId: productCorsoID };
         // console.log('Filtro utilizzato:', filter);
 
         const update = {

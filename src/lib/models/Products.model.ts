@@ -82,7 +82,7 @@ const productSchema = new Schema(
         points: { type: Number, default: 0 },
 
         cost: { type: Number, default: 0 }, //PDV: cost
-        // price: { type: Number, default: 0 }, //PVP: Recommended Price for online channels
+        price: { type: Number, default: 0 }, //PVP: Recommended Price for online channels
         // msrp: { type: Number, default: 0 }, //PRICE: Retail price (off line shops)
         vatValue: { type: Number, default: 0 },
         vatType: { type: String, default: '' },

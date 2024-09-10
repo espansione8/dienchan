@@ -815,44 +815,60 @@
 				</figure>
 			</form>
 			<hr />
-			<span class=" py-4">
-				<strong>Associato:</strong> <br />
-			</span>
-			<span class="flex items-center space-x-2 mb-4">
-				<button class="btn btn-md bg-indigo-200 rounded-full hover:bg-yellow-400">
-					<Award size="30" color="orange" strokeWidth={2.5} />
-				</button>
-				<span class="ml-4">
-					Livello: <b>{membershipLevel}</b> | Status:
-					<b>{membershipStatus ? 'Attivo' : 'Inattivo'}</b>
-					| Scadenza:
-					<!-- <b>{moment(membershipExpiry).format('DD/MM/YYYY')}</b> -->
-					<b>{membershipExpiry}</b>
+			<div class="card-body">
+				<span class=" py-4">
+					<strong>Associato:</strong> <br />
 				</span>
-			</span>
-			<hr />
-			<span class=" py-2">
-				<strong>Storico ordini:</strong> <br />
-			</span>
-			{#each orderData as order}
-				{#each orderData[0].cart as course}
-					<span class="flex items-center space-x-1">
-						<img src={imgSrc(course.category[0])} alt="Immagine corso" class="w-16 object-cover" />
-						<span>
-							<b>{course.title}</b> , {course.createdAt} , {siglaToProvincia(course.place)},
-							{course.name}
-							{course.surname}
-						</span>
-						<!-- <span>
-							<b>{course.title}</b> , {moment(course.createdAt).format('DD/MM/YYYY')} , {siglaToProvincia(
-								course.place
-							)},
-							{course.name}
-							{course.surname}
-						</span> -->
+				<span class="flex items-center space-x-2 mb-4">
+					<button class="btn btn-md bg-indigo-200 rounded-full hover:bg-yellow-400">
+						<Award size="30" color="orange" strokeWidth={2.5} />
+					</button>
+					<span class="ml-4">
+						Livello: <b>{membershipLevel}</b> | Status:
+						<b>{membershipStatus ? 'Attivo' : 'Inattivo'}</b>
+						| Scadenza:
+						<b>{membershipExpiry}</b>
 					</span>
+				</span>
+			</div>
+			<hr />
+			<div class="card-body">
+				<p class="font-bold">Storico ordini:</p>
+				<!-- {#each orderData as order}
+					{#each orderData[0].cart as course}
+						<span class="flex items-center space-x-1">
+							<img
+								src={imgSrc(course.category[0])}
+								alt="Immagine corso"
+								class="w-16 object-cover"
+							/>
+							<span>
+								<b>{course.title}</b> , {course.createdAt} , {siglaToProvincia(course.place)},
+								{course.name}
+								{course.surname}
+							</span>
+						</span>
+					{/each}
+				{/each} -->
+				{#each orderData as order}
+					<span class="font-bold text-lg">DATA: {order.createdAt} - ID: {order.orderId}</span>
+					{#each order.cart as course}
+						<span class="flex items-center space-x-1">
+							<img
+								src={imgSrc(course.category[0])}
+								alt="Immagine corso"
+								class="w-16 object-cover"
+							/>
+							<span class="font-semibold">
+								<b>{course.title}</b> <br />
+								{course.eventStartDate.substring(0, 10)} - {siglaToProvincia(course.place)} -
+								{course.name}
+								{course.surname}
+							</span>
+						</span>
+					{/each}
 				{/each}
-			{/each}
+			</div>
 		</div>
 	</section>
 </div>
