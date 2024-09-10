@@ -14,6 +14,8 @@
 	} from 'lucide-svelte';
 	import { country_list } from '$lib/stores/arrays.js';
 
+	let provinceFilterate = $province.filter((p) => p.sigla !== 'ON');
+
 	const countryList = $country_list;
 	let password1 = $state('');
 	let password2 = $state('');
@@ -255,7 +257,7 @@
 								required
 							>
 								<option selected disabled>Scegli</option>
-								{#each $province as provincia, i}
+								{#each provinceFilterate as provincia, i}
 									<option value={provincia.sigla}>
 										{provincia.nome} ({provincia.sigla})
 									</option>

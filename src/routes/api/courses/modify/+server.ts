@@ -54,7 +54,7 @@ export const POST = async ({ request }) => {
             category: productCorsoCategoria,
             stockQty: productCorsoQuantitaPartecipanti
         };
-        console.log('Oggetto di aggiornamento:', update);
+        // console.log('Oggetto di aggiornamento:', update);
 
         const result = await Course.updateOne(filter, update);
         // console.log('Risultato dell\'aggiornamento:', result);

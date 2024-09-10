@@ -23,12 +23,7 @@
 
 	function siglaToProvincia(provinciaSigla: any) {
 		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
-		//**** province.place 'Online' is ignored */
-		if (findProvincia) {
-			return findProvincia.nome;
-		} else if (provinciaSigla === 'Online') {
-			return 'Online';
-		}
+		return findProvincia.nome;
 	}
 
 	// // cart store
@@ -74,15 +69,9 @@
 				</div>
 				<div class="text-4xl font-semibold text-gray-800">{getCourse.title}</div>
 				<div class=" text-3xl text-blue-900">
-					{#if getCourse.place !== 'Online'}
-						<p>
-							<b>{siglaToProvincia(getCourse.place)}</b>
-						</p>
-					{:else if getCourse.place === 'Online'}
-						<p>
-							<b>{getCourse.place}</b>
-						</p>
-					{/if}
+					<p>
+						<b>{siglaToProvincia(getCourse.place)}</b>
+					</p>
 				</div>
 			</div>
 			<!-- immagine riflessologo -->

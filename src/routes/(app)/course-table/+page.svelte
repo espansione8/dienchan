@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { cart } from '$lib/stores/cart';
+	// import { cart } from '$lib/stores/cart';
 	import { ListPlus } from 'lucide-svelte';
 	import moment from 'moment';
 	import { province } from '$lib/stores/arrays.js';
@@ -16,12 +16,7 @@
 
 	function siglaToProvincia(provinciaSigla: any) {
 		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
-		//**** listaProvince.place 'Online' is ignored */
-		if (findProvincia) {
-			return findProvincia.nome;
-		} else if (provinciaSigla === 'Online') {
-			return 'Online';
-		}
+		return findProvincia.nome;
 	}
 
 	const onGotoNewProduct = () => {
@@ -83,7 +78,7 @@
 					</td>
 					<!-- Luogo -->
 					<td>
-						{#if row.place !== 'Online'}
+						<!-- {#if row.place !== 'Online'}
 							<p class="card-text">
 								{siglaToProvincia(row.place)}
 							</p>
@@ -91,7 +86,10 @@
 							<p class="card-text">
 								{row.place}
 							</p>
-						{/if}
+						{/if} -->
+						<p class="card-text">
+							{siglaToProvincia(row.place)}
+						</p>
 					</td>
 					<!-- Prezzo -->
 					<td>{row.price} €</td>

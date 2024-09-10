@@ -13,7 +13,6 @@
 	} from 'lucide-svelte';
 	import Notification from '$lib/components/Notification.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
-	import { coursesTypes } from '$lib/stores/arrays';
 	//import { cart } from '$lib/stores/cart';
 	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
 	import { province, coursesInfo } from '$lib/stores/arrays.js';
@@ -44,14 +43,9 @@
 		Accademia: 'bg-red-600'
 	};
 
-	function siglaToProvincia(provinciaSigla) {
-		const findProvincia = listaProvince.find((prov) => prov.sigla === provinciaSigla);
-		//**** listaProvince.place 'Online' is ignored */
-		if (findProvincia) {
-			return findProvincia.nome;
-		} else if (provinciaSigla === 'Online') {
-			return 'Online';
-		}
+	function siglaToProvincia(provinciaSigla: any) {
+		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
+		return findProvincia.nome;
 	}
 
 	function findNameRiflessologo(userIdCode) {

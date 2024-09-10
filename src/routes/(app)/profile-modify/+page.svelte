@@ -15,6 +15,9 @@
 
 	let { data } = $props();
 	let { userData, orderData } = $derived(data);
+	
+
+	let provinceFilterate = $province.filter((p) => p.sigla !== 'ON');
 
 	// console.log('orderData', orderData);
 	// console.log('orderData.cart0', orderData[0].cart[0]);
@@ -299,12 +302,7 @@
 
 	function siglaToProvincia(provinciaSigla: any) {
 		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
-		//**** listaProvince.place 'Online' is ignored */
-		if (findProvincia) {
-			return findProvincia.nome;
-		} else if (provinciaSigla === 'Online') {
-			return 'Online';
-		}
+		return findProvincia.nome;
 	}
 </script>
 
@@ -580,7 +578,7 @@
 							bind:value={countryState}
 						>
 							<option selected disabled>Scegli</option>
-							{#each $province as provincia, i}
+							{#each provinceFilterate as provincia, i}
 								<option value={provincia.sigla}>
 									{provincia.nome} ({provincia.sigla})
 								</option>
@@ -816,7 +814,7 @@
 			</form>
 			<hr />
 			<div class="card-body">
-				<span class=" py-4">
+				<span class=" py-2 text-xl">
 					<strong>Associato:</strong> <br />
 				</span>
 				<span class="flex items-center space-x-2 mb-4">
@@ -826,14 +824,16 @@
 					<span class="ml-4">
 						Livello: <b>{membershipLevel}</b> | Status:
 						<b>{membershipStatus ? 'Attivo' : 'Inattivo'}</b>
-						| Scadenza:
-						<b>{membershipExpiry}</b>
+						{#if userData.membership.membershipLevel == 'Socio ordinario'}
+							| Scadenza:
+							<b>{membershipExpiry}</b>
+						{/if}
 					</span>
 				</span>
 			</div>
 			<hr />
 			<div class="card-body">
-				<p class="font-bold">Storico ordini:</p>
+				<p class="font-bold text-xl">Storico ordini:</p>
 				<!-- {#each orderData as order}
 					{#each orderData[0].cart as course}
 						<span class="flex items-center space-x-1">
@@ -851,22 +851,37 @@
 					{/each}
 				{/each} -->
 				{#each orderData as order}
-					<span class="font-bold text-lg">DATA: {order.createdAt} - ID: {order.orderId}</span>
-					{#each order.cart as course}
-						<span class="flex items-center space-x-1">
-							<img
-								src={imgSrc(course.category[0])}
-								alt="Immagine corso"
-								class="w-16 object-cover"
-							/>
-							<span class="font-semibold">
-								<b>{course.title}</b> <br />
-								{course.eventStartDate.substring(0, 10)} - {siglaToProvincia(course.place)} -
-								{course.name}
-								{course.surname}
-							</span>
-						</span>
-					{/each}
+					<div class="bg-indigo-200 my-4 p-6 rounded-lg shadow-lg">
+						<div class="flex justify-between items-center mb-4">
+							<div class="text-orange-600 text-lg font-bold">
+								<span class="block"
+									>Data: <span class="text-gray-800">{order.createdAt.substring(0, 10)}</span></span
+								>
+							</div>
+							<div class="text-orange-600 text-sm font-medium">
+								<span class="block"
+									>Ordine ID: <span class="text-gray-900">{order.orderId}</span></span
+								>
+							</div>
+						</div>
+						{#each order.cart as course}
+							<div class="flex items-center space-x-4 mb-3">
+								<img
+									src={imgSrc(course.category[0])}
+									alt="Immagine corso"
+									class="w-16 h-16 object-cover rounded-md"
+								/>
+								<div class="font-semibold">
+									<b>{course.title}</b> <br />
+									<span class="text-gray-600 text-sm">
+										{course.eventStartDate.substring(0, 10)} - {siglaToProvincia(course.place)} -
+										{course.name}
+										{course.surname}
+									</span>
+								</div>
+							</div>
+						{/each}
+					</div>
 				{/each}
 			</div>
 		</div>

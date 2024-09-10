@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Calendar, Pen, Users, Building2, Send, List, Calculator, FileDown } from 'lucide-svelte';
 	import Notification from '$lib/components/Notification.svelte';
-	import { coursesTypes, coursesInfo } from '$lib/stores/arrays';
+	import {  coursesInfo } from '$lib/stores/arrays';
 	import { province } from '$lib/stores/arrays.js';
 	import moment from 'moment';
 	const date = new Date();
@@ -467,7 +467,6 @@
 				required
 			>
 				<option disabled value="">Scegli</option>
-				<option value="Online">Online</option>
 				{#each $province as provincia, i}
 					<option value={provincia.sigla}>
 						{provincia.nome} ({provincia.sigla})

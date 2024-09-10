@@ -684,7 +684,6 @@
 				required
 			>
 				<option disabled value="">Scegli</option>
-				<option value="Online">Online</option>
 				{#each $province as provincia, i}
 					<option value={provincia.sigla}>
 						{provincia.nome} ({provincia.sigla})

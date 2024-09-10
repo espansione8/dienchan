@@ -255,12 +255,7 @@
 
 	function siglaToProvincia(provinciaSigla: any) {
 		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
-		//**** listaProvince.place 'Online' is ignored */
-		if (findProvincia) {
-			return findProvincia.nome;
-		} else if (provinciaSigla === 'Online') {
-			return 'Online';
-		}
+		return findProvincia.nome;
 	}
 
 	// cart store
@@ -342,7 +337,7 @@
 							{moment(item.eventStartDate).format('DD/MM/YYYY')}
 						</h2>
 						<!-- luogo -->
-						{#if item.place !== 'Online'}
+						<!-- {#if item.place !== 'Online'}
 							<p class="card-text text-xl">
 								<b>{siglaToProvincia(item.place)}</b>
 							</p>
@@ -350,7 +345,10 @@
 							<p class="card-text text-xl">
 								<b>{item.place}</b>
 							</p>
-						{/if}
+						{/if} -->
+						<p class="card-text text-xl">
+							<b>{siglaToProvincia(item.place)}</b>
+						</p>
 						<!-- title -->
 						<h5
 							class="card-text text-xl bg-base-200 border rounded-md shadow-sm font-semibold p-2

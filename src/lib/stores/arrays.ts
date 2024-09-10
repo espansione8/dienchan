@@ -251,11 +251,6 @@ export const country_list = readable([
     'Kyrgyzstan'
 ])
 
-export const coursesTypes = readable([
-    'Corso base',
-    'Corso avanzato',
-    'Workshop'
-])
 
 export const coursesInfo = readable([
     {
@@ -311,6 +306,11 @@ export const coursesInfo = readable([
 
 export const province = readable(
     [
+        {
+            "nome": "Online",
+            "sigla": "ON",
+            "regione": "Online"
+        },
         {
             "nome": "Agrigento",
             "sigla": "AG",

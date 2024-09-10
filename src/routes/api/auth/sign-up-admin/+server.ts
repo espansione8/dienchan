@@ -17,7 +17,9 @@ export const POST = async ({ request }) => {
 		country,
 		phone,
 		mobilePhone,
-		password1
+		password1,
+		membershipLevel,
+		membershipExpiry
 	} = body;
 	const newPass = stringHash(password1);
 
@@ -62,6 +64,8 @@ export const POST = async ({ request }) => {
 		newUser.password = newPass;
 		newUser.userId = id;
 		newUser.cookieId = cookieId;
+		newUser.membership.membershipLevel = membershipLevel;
+		newUser.membership.membershipExpiry = membershipExpiry;
 		const user = await newUser.save()
 
 		if (user.userId == id) {
