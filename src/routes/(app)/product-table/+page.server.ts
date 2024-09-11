@@ -6,7 +6,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	if (!locals.auth) {
 		throw redirect(302, '/login');
 	}
-	let getTableProducts = [];
+	let getTable = [];
 	//let getTableUser = [];
 
 	try {
@@ -14,11 +14,11 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		//console.log('MY DOCS userData', userData);
 
 		// GET PRODUCTS
-		const resProductsCorso = await fetch(
+		const res = await fetch(
 			`${import.meta.env.VITE_BASE_URL}/api/products/all-enabled/0/0`
 		);
-		const resGetTableProducts = await resProductsCorso.json();
-		getTableProducts = resGetTableProducts.map((obj) => ({
+		const resGetTable = await res.json();
+		getTable = resGetTable.map((obj) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10)
 		}));
@@ -40,7 +40,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	}
 
 	return {
-		getTableProducts,
+		getTable,
 		auth: locals.auth
 		//getTableUser,
 		//userData

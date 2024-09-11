@@ -24,6 +24,7 @@
 	};
 </script>
 
+tableList
 <svelte:head>
 	<title>Lista corsi</title>
 </svelte:head>
