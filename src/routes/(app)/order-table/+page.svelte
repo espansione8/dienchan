@@ -1,6 +1,6 @@
 <script lang="ts">
 	let { data } = $props();
-	let { getTableUser, checkUpdates } = $derived(data);
+	let { getOrders } = $derived(data);
 </script>
 
 <svelte:head>
@@ -23,34 +23,48 @@
 		<!-- head -->
 		<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">
 			<tr class="">
-				<th>Data partecipazione</th>
-				<th>Riflessologo</th>
-				<th>Provincia</th>
-				<th>Periodo</th>
+				<th>Data</th>
+				<th>ID</th>
+				<th>Tipo pagamento</th>
+				<th>Ordine</th>
+				<th>Totale</th>
+				<th>Stato</th>
 				<th>Azione</th>
 			</tr>
 		</thead>
 		<!-- body -->
 		<tbody>
 			<!-- row -->
-			{#if getTableUser.length == 0}
+			{#if getOrders.length == 0}
 				<tr class="hover:bg-gray-100">
 					<td>no data</td>
 				</tr>
 			{/if}
 
-			{#each getTableUser as row, i}
+			{#each getOrders as row}
 				<tr class="hover:bg-gray-100">
-					<!-- Data partecipazione -->
-					<td>{row.createdAt}</td>
-					<!-- Riflessologo -->
-					<td>{row.email}</td>
-					<!-- Provincia -->
+					<!-- Data -->
+					<td>{row.orderDate}</td>
+					<!-- ID -->
+					<td>{row.orderId}</td>
+					<!-- Tipo pagamento -->
 					<td>
-						{row.email}
+						{row.payment.method}
 					</td>
-					<!-- Periodo -->
-					<td>{row.name} {row.surname}</td>
+					<!-- Ordine -->
+					<td>
+						<div class="flex flex-col space-y-1">
+							{#each row.cart as item}
+								<span >{item.type} -> {item.title}</span>
+							{/each}
+						</div>
+					</td>
+					<!-- Totale -->
+					<td>€{row.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(0)}</td>
+					<!-- Status -->
+					<td>
+						{row.payment.statusPayment}
+					</td>
 					<!-- Azione -->
 					<td class=" space-4">
 						<button

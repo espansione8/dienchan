@@ -60,6 +60,7 @@
 			<!-- Dettagli del corso -->
 			<div class="flex flex-col gap-4 mx-auto text-center">
 				<div class="text-3xl font-bold text-blue-600">
+					<!-- {getCourse.eventStartDate} -->
 					{moment(getCourse.eventStartDate).format('DD/MM/YYYY')}
 				</div>
 				<div class="text-2xl font-bold text-blue-500 -mt-4">

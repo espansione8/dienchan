@@ -23,6 +23,8 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 
 	const getCourse = await resCourse.json();
 
+	// getCourse.eventStartDate = getCourse.eventStartDate.toISOString().substring(0, 10);
+
 	const resUser = await fetch(
 		`${import.meta.env.VITE_BASE_URL}/api/users/findUserId/${getCourse.userId}`
 	);
