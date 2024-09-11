@@ -46,7 +46,7 @@
 			sortDirection = 'asc';
 		}
 
-		coursesList = coursesList.sort((a, b) => {
+		tableList = tableList.sort((a, b) => {
 			let valueA = column === 'eventStartDate' ? new Date(a[column]) : a[column];
 			let valueB = column === 'eventStartDate' ? new Date(b[column]) : b[column];
 
@@ -82,7 +82,7 @@
 	// filter
 	let selectedLocation = $state('');
 	let isModalProvincie = $state(false);
-	let filteredCoursesList = $state(coursesList);
+	let filteredCoursesList = $state(tableList);
 
 	const toggleLocationFilter = () => {
 		isModalProvincie = !isModalProvincie;
@@ -90,9 +90,9 @@
 
 	const filterByLocation = () => {
 		if (selectedLocation === '') {
-			filteredCoursesList = coursesList;
+			filteredCoursesList = tableList;
 		} else {
-			filteredCoursesList = coursesList.filter(
+			filteredCoursesList = tableList.filter(
 				(course) => siglaToProvincia(course.place) === selectedLocation
 			);
 		}
@@ -105,7 +105,7 @@
 
 	const resetLocationFilter = () => {
 		selectedLocation = '';
-		filteredCoursesList = coursesList;
+		filteredCoursesList = tableList;
 	};
 </script>
 
@@ -205,10 +205,10 @@
 		<!-- body -->
 		<tbody>
 			<!-- row -->
-			{#if tableList.length == 0}
+			{#if filteredCoursesList.length == 0}
 				<tr class="hover:bg-gray-300"><td> no data</td></tr>
 			{/if}
-			{#each tableList as row}
+			{#each filteredCoursesList as row}
 				<tr class="hover:bg-gray-300">
 					<!-- Data inserimento -->
 					<td>{row.createdAt}</td>
