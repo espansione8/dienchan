@@ -24,10 +24,11 @@
 		<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">
 			<tr class="">
 				<th>Data</th>
-				<th>ID</th>
-				<th>Tipo pagamento</th>
+				<th>ID ordine</th>
+				<th>Email</th>
 				<th>Ordine</th>
 				<th>Totale</th>
+				<th>Tipo pagamento</th>
 				<th>Stato</th>
 				<th>Azione</th>
 			</tr>
@@ -45,22 +46,24 @@
 				<tr class="hover:bg-gray-100">
 					<!-- Data -->
 					<td>{row.orderDate}</td>
-					<!-- ID -->
+					<!-- ID ordine-->
 					<td>{row.orderId}</td>
-					<!-- Tipo pagamento -->
-					<td>
-						{row.payment.method}
-					</td>
+					<!-- Email-->
+					<td>{row.userView.email}</td>
 					<!-- Ordine -->
 					<td>
 						<div class="flex flex-col space-y-1">
 							{#each row.cart as item}
-								<span >{item.type} -> {item.title}</span>
+							<span > {item.title}</span>
 							{/each}
 						</div>
 					</td>
 					<!-- Totale -->
 					<td>€{row.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(0)}</td>
+					<!-- Tipo pagamento -->
+					<td>
+						{row.payment.method}
+					</td>
 					<!-- Status -->
 					<td>
 						{row.payment.statusPayment}

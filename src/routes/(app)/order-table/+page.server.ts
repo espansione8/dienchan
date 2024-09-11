@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		);
 		const resGetOrders = await res.json();
 		//console.log('MY DOCS res.ok', res.ok);
-		//console.log('res resGetOrders', resGetOrders)
+		console.log('res resGetOrders', resGetOrders)
 		getOrders = resGetOrders.map((obj) => ({
 			...obj,
 			orderDate: obj.orderDate.substring(0, 10)
