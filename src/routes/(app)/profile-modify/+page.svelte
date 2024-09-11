@@ -15,7 +15,6 @@
 
 	let { data } = $props();
 	let { userData, orderData } = $derived(data);
-	
 
 	let provinceFilterate = $province.filter((p) => p.sigla !== 'ON');
 
@@ -300,10 +299,10 @@
 		return src[0].urlPic;
 	};
 
-	function siglaToProvincia(provinciaSigla: any) {
+	const siglaToProvincia = (provinciaSigla: any) => {
 		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
 		return findProvincia.nome;
-	}
+	};
 </script>
 
 <svelte:head>
@@ -834,22 +833,6 @@
 			<hr />
 			<div class="card-body">
 				<p class="font-bold text-xl">Storico ordini:</p>
-				<!-- {#each orderData as order}
-					{#each orderData[0].cart as course}
-						<span class="flex items-center space-x-1">
-							<img
-								src={imgSrc(course.category[0])}
-								alt="Immagine corso"
-								class="w-16 object-cover"
-							/>
-							<span>
-								<b>{course.title}</b> , {course.createdAt} , {siglaToProvincia(course.place)},
-								{course.name}
-								{course.surname}
-							</span>
-						</span>
-					{/each}
-				{/each} -->
 				{#each orderData as order}
 					<div class="bg-indigo-200 my-4 p-6 rounded-lg shadow-lg">
 						<div class="flex justify-between items-center mb-4">

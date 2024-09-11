@@ -3,17 +3,7 @@
 	import Notification from '$lib/components/Notification.svelte';
 	import { province } from '$lib/stores/arrays';
 	import { invalidateAll } from '$app/navigation';
-	import {
-		Mail,
-		User,
-		Building2,
-		UserPlus,
-		MapPin,
-		Globe,
-		Phone,
-		Smartphone,
-		Lock
-	} from 'lucide-svelte';
+	import { Mail, User, Building2, MapPin, Globe, Phone, Smartphone, Lock } from 'lucide-svelte';
 	import { country_list } from '$lib/stores/arrays.js';
 
 	let { data } = $props();
@@ -21,18 +11,9 @@
 
 	let provinceFilterate = $province.filter((p) => p.sigla !== 'ON');
 
-	let newExpire = $derived(
-		new Date(
-			new Date(userData?.membership?.membershipExpiry).setFullYear(
-				new Date(userData?.membership?.membershipExpiry).getFullYear() + 1
-			)
-		)
-			.toISOString()
-			.substring(0, 10)
-	);
+	let newExpire = $state();
 
 	const testimonials = [
-		
 		{
 			name: 'Stefania Sica',
 			image: '/images/michael-dam-mEZ3PoFGs_k-unsplash.jpg',
@@ -54,6 +35,17 @@
 	];
 	const onClickAssociateOrdinary = () => {
 		isModalRegister = true;
+	};
+
+	const onClickRenew = () => {
+		isModalRenew = true;
+		newExpire = new Date(
+			new Date(userData?.membership?.membershipExpiry).setFullYear(
+				new Date(userData?.membership?.membershipExpiry).getFullYear() + 1
+			)
+		)
+			.toISOString()
+			.substring(0, 10);
 	};
 
 	const onConfirmRegister = async () => {
@@ -238,7 +230,7 @@
 				mobilePhone,
 				password1,
 				membershipLevel: 'Socio ordinario',
-				membershipExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) 
+				membershipExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -288,7 +280,7 @@
 				mobilePhone,
 				password1,
 				membershipLevel: 'Socio vitalizio',
-				membershipExpiry: new Date(Date.now() + 36500 * 24 * 60 * 60 * 1000) 
+				membershipExpiry: new Date(Date.now() + 36500 * 24 * 60 * 60 * 1000)
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -447,9 +439,7 @@
 						{:else}
 							<button
 								class="btn bg-transparent border-2 border-white text-white w-full rounded-xl mt-2"
-								onclick={() => {
-									isModalRenew = true;
-								}}>Rinnova</button
+								onclick={onClickRenew}>Rinnova</button
 							>
 						{/if}
 					</div>
@@ -636,7 +626,8 @@
 				<span class="label-text font-semibold">Bonifico (IBAN: 1548416800005462)</span>
 				<input
 					type="radio"
-					name="radio-paymentType"
+					id="radio-bonifico"
+					name="radio-bonifico"
 					class="radio checked:bg-blue-500"
 					bind:group={paymentType}
 					value={'bonifico'}
@@ -648,7 +639,8 @@
 				<span class="label-text font-semibold">Paypal</span>
 				<input
 					type="radio"
-					name="radio-paymentType"
+					id="radio-paypal"
+					name="radio-paypal"
 					class="radio checked:bg-blue-500"
 					bind:group={paymentType}
 					value={'paypal'}
@@ -660,7 +652,8 @@
 				<span class="label-text font-semibold">Contanti (all'inizio corso)</span>
 				<input
 					type="radio"
-					name="radio-paymentType"
+					id="radio-contanti"
+					name="radio-contanti"
 					class="radio checked:bg-blue-500"
 					bind:group={paymentType}
 					value={'contanti'}
@@ -1283,7 +1276,8 @@
 				<span class="label-text font-semibold">Bonifico (IBAN: 1548416800005462)</span>
 				<input
 					type="radio"
-					name="radio-paymentType"
+					id="radio-bonifico"
+					name="radio-bonifico"
 					class="radio checked:bg-blue-500"
 					bind:group={paymentType}
 					value={'bonifico'}
@@ -1295,7 +1289,8 @@
 				<span class="label-text font-semibold">Paypal</span>
 				<input
 					type="radio"
-					name="radio-paymentType"
+					id="radio-paypal"
+					name="radio-paypal"
 					class="radio checked:bg-blue-500"
 					bind:group={paymentType}
 					value={'paypal'}
@@ -1307,7 +1302,8 @@
 				<span class="label-text font-semibold">Contanti (all'inizio corso)</span>
 				<input
 					type="radio"
-					name="radio-paymentType"
+					id="radio-contanti"
+					name="radio-contanti"
 					class="radio checked:bg-blue-500"
 					bind:group={paymentType}
 					value={'contanti'}

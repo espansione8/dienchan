@@ -1,7 +1,7 @@
+// src/routes/api/courses/register
 import { json } from '@sveltejs/kit';
-// src/routes/api/auth/sign-up.js
 import dbConnect from '$lib/database';
-import { Course } from '$lib/models/Courses.model.js';
+import { Product } from '$lib/models/Products.model';
 
 export const POST = async ({ request }) => {
 	const body = await request.json();
@@ -30,7 +30,7 @@ export const POST = async ({ request }) => {
 		// Add user to DB
 		// All database code can only run inside async functions as it uses await
 		// const cookieId = crypto.randomUUID();
-		const newEvent = new Course();
+		const newEvent = new Product();
 		newEvent.prodId = crypto.randomUUID();
 		newEvent.userId = productCorsoUserId;
 		newEvent.name = name;
@@ -47,6 +47,7 @@ export const POST = async ({ request }) => {
 		newEvent.tag = productCorsoElencoTag;
 		newEvent.price = productPriceCorso;
 		newEvent.infoExtra = productCorsoInfoExtra;
+		newEvent.type = 'course';
 
 		const saveCourse = await newEvent.save();
 

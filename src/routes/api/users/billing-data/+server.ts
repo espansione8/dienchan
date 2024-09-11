@@ -1,7 +1,7 @@
 ///BASE_URL/api/users/billing-data/
 import { json } from '@sveltejs/kit';
 import { User } from '$lib/models/Users.model';
-import { Course } from '$lib/models/Courses.model';
+import { Product } from '$lib/models/Products.model';
 import dbConnect from '$lib/database';
 
 export const POST = async ({ request }) => {
@@ -20,7 +20,7 @@ export const POST = async ({ request }) => {
 		phone,
 		mobilePhone,
 	} = body;
-	
+
 	const level = body.level; // DA CONTROLLARE: alcune pagine non pasasno valore
 	const namePublic = body.namePublic || false;
 	const surnamePublic = body.surnamePublic || false;
@@ -76,17 +76,15 @@ export const POST = async ({ request }) => {
 		}).lean();
 
 		if (newData.matchedCount == 1) {
-			const courseFilter = { userId };
+			const courseFilter = { userId, type: 'course' };
 			const courseUpdate = {
 				name: name,
 				surname: surname
 			};
-			// Aggiungo un log per verificare il numero di corsi trovati
-			const coursesToUpdate = await Course.find(courseFilter);
-			// console.log(`Trovati ${coursesToUpdate.length} corsi da aggiornare per user_Id: ${body.userId}. nome ${body.name} surname ${body.surname}`);
+
+			const coursesToUpdate = await Product.find(courseFilter);
 			if (coursesToUpdate.length > 0) {
-				// TODO: sbaglia apposta e agggiorna condizione dell IF
-				const courseUpdateResult = await Course.updateMany(courseFilter, courseUpdate);
+				const courseUpdateResult = await Product.updateMany(courseFilter, courseUpdate);
 				//console.log('courseUpdateResult', courseUpdateResult)
 				// console.log(`Numero di corsi aggiornati: ${courseUpdateResult.modifiedCount}`);
 

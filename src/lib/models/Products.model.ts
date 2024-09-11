@@ -32,12 +32,12 @@ const productSchema = new Schema(
         },
         condition: { type: String, default: '' },
         feature: { type: String, default: '' },
-        // attributes: [
-        //     {
-        //         attribute: { type: String, default: '' },
-        //         value: { type: String, default: '' },
-        //     }
-        // ],
+        attributes: [
+            {
+                attribute: { type: String, default: '' },
+                value: { type: String, default: '' },
+            }
+        ],
         attribute1: { type: String, default: '' },
         value1: { type: String, default: '' },
         attribute2: { type: String, default: '' },
@@ -96,7 +96,8 @@ const productSchema = new Schema(
         brandId: { type: String, default: '' },
         brand: { type: String, default: '' },
         categoryId: [{ type: String, default: 'none' }],
-        category: { type: String, default: 'none', index: true },
+        category: [{ type: String, default: 'none', index: true }],
+
 
         // shippingDetails: {
         //     price: { type: Number, default: 0 },
@@ -117,12 +118,45 @@ const productSchema = new Schema(
 
         uploadfiles: [
             {
+                _id: false,  // This prevents MongoDB from adding _id to array elements
                 type: { type: String, enum: ['product-primary', 'product-gallery'], default: 'none' },
                 filetype: { type: String, default: '' },
                 filename: { type: String, default: '' },
                 fileUrl: { type: String, default: '' }
             }
         ],
+        type: { type: String, default: '' },
+        //types: course product membership
+        /** new addons */
+        infoExtra: { type: String, default: '' },
+        name: { type: String, default: '' },
+        surname: { type: String, default: '' },
+        eventStartDate: { type: Date, default: Date.now },
+        eventEndDate: { type: Date, default: Date.now },
+        state: { type: String, default: '' },
+        place: { type: String, default: '' },
+        notificationEmail: [{ type: String, default: '' }],
+        listSubscribers: [
+            {
+                userId: { type: String, default: '' },
+                name: { type: String, default: '' },
+                surname: { type: String, default: '' },
+                email: { type: String, default: '' },
+                confirmDate: { type: Date, default: Date.now }
+            }
+        ],
+        filterPermissionToSee: [],
+        filterPermissionToEdit: [],
+        userId: { type: String, default: '', index: true }, // make index
+        tag: [{ type: String, default: '' }],
+        priceSetByBundle: { type: Boolean, default: false },
+        bundleProduct: [{
+            prodId: { type: String, default: '' },
+            title: { type: String, default: '' },
+            price: { type: Number, default: 0 }
+            // add product category
+        }],
+        /** end addons */
 
     },
     {
@@ -131,5 +165,14 @@ const productSchema = new Schema(
         toJSON: { virtuals: true }
     }
 );
+
+productSchema.virtual('userView', {
+    ref: 'Users', // The model to use
+    localField: 'userId', // FIND WHERE `localField` 
+    foreignField: 'userId', // IS EQUAL TO `foreignField` 
+    //justOne: true,
+    //match: { isActive: true },
+    //count: true // And only get the number of docs
+});
 
 export const Product = mongoose.models.Products || mongoose.model('Products', productSchema);

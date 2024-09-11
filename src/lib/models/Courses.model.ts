@@ -33,10 +33,10 @@ const ProductCorsoSchema = new Schema(
 		title: { type: String, default: '' },
 		descrLong: { type: String, default: '' },
 		descrShort: { type: String, default: '' },
+		/** aggiunta */
 		infoExtra: { type: String, default: '' },
 		name: { type: String, default: '' },
 		surname: { type: String, default: '' },
-		/** aggiunta */
 		eventStartDate: { type: Date, default: Date.now },
 		eventEndDate: { type: Date, default: Date.now },
 		state: { type: String, default: '' },

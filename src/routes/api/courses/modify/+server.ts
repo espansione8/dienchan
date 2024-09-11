@@ -1,6 +1,6 @@
 
 import { json } from '@sveltejs/kit';
-import { Course } from '$lib/models/Courses.model';
+import { Product } from '$lib/models/Products.model';
 import dbConnect from '$lib/database';
 
 export const POST = async ({ request }) => {
@@ -34,7 +34,7 @@ export const POST = async ({ request }) => {
         await dbConnect();
         // console.log('Connessione al database avvenuta con successo');
 
-        const filter = { prodId: productCorsoID };
+        const filter = { prodId: productCorsoID, type: 'course' };
         // console.log('Filtro utilizzato:', filter);
 
         const update = {
@@ -56,7 +56,7 @@ export const POST = async ({ request }) => {
         };
         // console.log('Oggetto di aggiornamento:', update);
 
-        const result = await Course.updateOne(filter, update);
+        const result = await Product.updateOne(filter, update);
         // console.log('Risultato dell\'aggiornamento:', result);
 
         if (result.matchedCount === 1) {

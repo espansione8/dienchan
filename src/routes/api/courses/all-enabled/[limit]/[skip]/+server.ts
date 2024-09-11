@@ -1,6 +1,6 @@
 ///BASE_URL/api/courses/all-enabled/:limit/:skip
 import { json } from '@sveltejs/kit';
-import { Course } from '$lib/models/Courses.model';
+import { Product } from '$lib/models/Products.model';
 import dbConnect from '$lib/database';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -23,7 +23,7 @@ export const GET: RequestHandler = async ({ params }) => {
 		await dbConnect();
 		// const all = await ProductCorso.find({status: 'enabled'}).limit(queryLimit).skip(skipResults).lean().populate({path: 'userView', model: 'ProductCorso', options: { strictPopulate: false }}).exec();
 
-		const all = await Course.find({ status: 'enabled' }) // Find all courses with 'enabled' status
+		const all = await Product.find({ status: 'enabled', type: 'course' }) // Find all courses with 'enabled' status
 			.limit(queryLimit) // Limit results to the specified number
 			.skip(skipResults) // Skip a certain number of results (for pagination)
 			.sort({ createdAt: -1 })

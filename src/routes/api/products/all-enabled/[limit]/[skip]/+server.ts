@@ -8,7 +8,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 export const GET: RequestHandler = async ({ params }) => {
 	let queryLimit = 1;
 	if (isNaN(Number(params.limit)) || params.limit === '0') {
-		queryLimit = 10;
+		queryLimit = 1000;
 	} else {
 		queryLimit = Number(params.limit);
 	}

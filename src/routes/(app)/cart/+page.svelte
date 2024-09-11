@@ -1,5 +1,4 @@
 <script lang="ts">
-	//import { cart } from '$lib/stores/cart';
 	import { cartProducts, removeFromCart, emptyCart } from '$lib/stores/cart';
 	import moment from 'moment';
 	import { Lock } from 'lucide-svelte';
@@ -140,108 +139,90 @@
 
 	const onConfirmCart = async () => {
 		error = '';
-		if (!auth) {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/orders/purchase-first`, {
-				method: 'POST',
-				body: JSON.stringify({
-					name,
-					surname,
-					email,
-					password1, // only registration
-					address,
-					city,
-					countryState,
-					postalCode,
-					country,
-					phone,
-					mobilePhone,
-					cart: $cartProducts,
-					paymentType
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			const res = await response.json();
-			console.log('res cart', res);
-			if (response.status == 200) {
-				//alert(res.message);
-				console.log('OK', response);
-				fieldReset(); // svuota i campi dopo inserimento
-				isModalConfirm = false;
-				toastClosed = false;
-				notificationContent = res.message;
-				clearTimeout(startTimeout);
-				closeNotification();
-				isModalSuccess = true;
+		let path = `${import.meta.env.VITE_BASE_URL}/api/orders/purchase-first`;
+		if (auth) path = `${import.meta.env.VITE_BASE_URL}/api/orders/purchase`;
+		//if (!auth) {
+		const response = await fetch(path, {
+			method: 'POST',
+			body: JSON.stringify({
+				name,
+				surname,
+				email,
+				password1, // only registration
+				address,
+				city,
+				countryState,
+				postalCode,
+				country,
+				phone,
+				mobilePhone,
+				cart: $cartProducts,
+				paymentType,
+				userId: userData.userId
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
-			if (response.status != 200) {
-				//alert(res.message);
-				// console.log('OK', response);
-				//isModalConfirm = false;
-				toastClosed = false;
-				notificationError = true;
-				notificationContent = res.message;
-				clearTimeout(startTimeout);
-			}
-		} else {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/orders/purchase`, {
-				method: 'POST',
-				body: JSON.stringify({
-					name,
-					surname,
-					email,
-					password1, // only registration
-					address,
-					city,
-					countryState,
-					postalCode,
-					country,
-					phone,
-					mobilePhone,
-					cart: $cartProducts,
-					paymentType,
-					userId: userData.userId
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-
-			const res = await response.json();
-			if (response.status == 200) {
-				//alert(res.message);
-				//console.log('OK', response);
-				fieldReset(); // svuota i campi dopo inserimento
-				isModalConfirm = false;
-				toastClosed = false;
-				notificationContent = res.message;
-				clearTimeout(startTimeout);
-				closeNotification();
-				isModalSuccessLogin = true;
-			}
-			if (response.status != 200) {
-				//alert(res.message);
-				// console.log('OK', response);
-				//isModalConfirm = false;
-				notificationError = true;
-				toastClosed = false;
-				notificationContent = res.message;
-				clearTimeout(startTimeout);
-			}
+		});
+		const res = await response.json();
+		console.log('res cart', res);
+		if (response.status == 200) {
+			fieldReset();
+			isModalConfirm = false;
+			toastClosed = false;
+			notificationContent = res.message;
+			clearTimeout(startTimeout);
+			closeNotification();
+			isModalSuccess = true;
 		}
+		if (response.status != 200) {
+			toastClosed = false;
+			notificationError = true;
+			notificationContent = res.message;
+			clearTimeout(startTimeout);
+		}
+		// } else {
+		// 	const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/orders/purchase`, {
+		// 		method: 'POST',
+		// 		body: JSON.stringify({
+		// 			name,
+		// 			surname,
+		// 			email,
+		// 			password1, // only registration
+		// 			address,
+		// 			city,
+		// 			countryState,
+		// 			postalCode,
+		// 			country,
+		// 			phone,
+		// 			mobilePhone,
+		// 			cart: $cartProducts,
+		// 			paymentType,
+		// 			userId: userData.userId
+		// 		}),
+		// 		headers: {
+		// 			'Content-Type': 'application/json'
+		// 		}
+		// 	});
+
+		// 	const res = await response.json();
+		// 	if (response.status == 200) {
+		// 		fieldReset();
+		// 		isModalConfirm = false;
+		// 		toastClosed = false;
+		// 		notificationContent = res.message;
+		// 		clearTimeout(startTimeout);
+		// 		closeNotification();
+		// 		isModalSuccessLogin = true;
+		// 	}
+		// 	if (response.status != 200) {
+		// 		notificationError = true;
+		// 		toastClosed = false;
+		// 		notificationContent = res.message;
+		// 		clearTimeout(startTimeout);
+		// 	}
+		// }
 	};
-
-	let total = $state(0);
-
-	// const totalCart = () => {
-	// 	total = 0;
-	// 	$cartProducts.forEach((element) => {
-	// 		total = total + element.price;
-	// 	});
-	// 	if (auth) total -= 25;
-	// 	return total;
-	// };
 
 	const categoryColors = {
 		'Corso base': 'bg-green-500',
@@ -258,21 +239,26 @@
 		return findProvincia.nome;
 	}
 
-	// cart store
-	//totalCart();
-	// const removeFromCart = (prodId: any) => {
-	// 	cart.update((n) => {
-	// 		console.log('prodId', prodId.prodId);
-	// 		// Filtra il carrello per rimuovere il corso con l'ID specificato
-	// 		return n.filter((item) => item.prodId !== prodId.prodId);
-	// 	});
-	// 	totalCart();
-	// };
+	let total = $state(0);
+	let grandTotal = $state(0);
 
-	// const clearCart = () => {
-	// 	cart.set([]);
-	// 	//totalCart();
-	// };
+	const totalCart = () => {
+		total = 0;
+		grandTotal = 0;
+		$cartProducts.forEach((element: number) => {
+			total = total + element.price;
+		});
+		grandTotal = total;
+		if (auth) total -= 25;
+		return total;
+	};
+
+	// cart store
+	totalCart();
+	const onRemoveFromCart = (item: any) => {
+		removeFromCart($cartProducts, item);
+		totalCart();
+	};
 
 	const fieldReset = () => {
 		name = '';
@@ -293,19 +279,19 @@
 		goto(`/course-detail/${idCourse}`);
 	};
 
-	const findObjectByParam = (jsonArray, paramName, paramValue) => {
-		// Itera attraverso ogni oggetto nell'array JSON
-		console.log('jsonArray', jsonArray);
-		console.log('paramName', paramName);
-		console.log('paramValue', paramValue);
-		for (let i = 0; i < jsonArray.length; i++) {
-			// Controlla se il parametro nell'oggetto corrisponde al valore cercato
-			if (jsonArray[i][paramName] === paramValue) {
-				return jsonArray[i]; // Restituisce l'oggetto se trovato
-			}
-		}
-		return null; // Restituisce null se non trova un oggetto corrispondente
-	};
+	// const findObjectByParam = (jsonArray, paramName, paramValue) => {
+	// 	// Itera attraverso ogni oggetto nell'array JSON
+	// 	console.log('jsonArray', jsonArray);
+	// 	console.log('paramName', paramName);
+	// 	console.log('paramValue', paramValue);
+	// 	for (let i = 0; i < jsonArray.length; i++) {
+	// 		// Controlla se il parametro nell'oggetto corrisponde al valore cercato
+	// 		if (jsonArray[i][paramName] === paramValue) {
+	// 			return jsonArray[i]; // Restituisce l'oggetto se trovato
+	// 		}
+	// 	}
+	// 	return null; // Restituisce null se non trova un oggetto corrispondente
+	// };
 
 	const imgSrc = (value: string) => {
 		const src = $coursesInfo.filter((item: any) => item.id == value);
@@ -378,7 +364,7 @@
 								>
 								<button
 									class="btn btn-sm bg-red-200 w-40 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400"
-									onclick={() => removeFromCart($cartProducts, item)}>Rimuovi dal Carrello</button
+									onclick={() => onRemoveFromCart(item)}>Rimuovi dal Carrello</button
 								>
 							</span>
 						</div>
@@ -656,11 +642,14 @@
 					<section class=" ">
 						<div class="text-center mt-6">
 							<h2 class="text-2xl font-semibold">Totale Carrello:</h2>
+							<p class="text-xl font-bold text-gray-800">{grandTotal} €</p>
+
 							{#if $cartProducts.length > 0}
-								<p class="text-xl font-bold text-gray-800">{total} €</p>
 								{#if auth}
-									<p class="text-gray-800">-25 € sconto tesserati</p>
+									<p class="text-gray-800 font-semibold">-25 € sconto tesserati</p>
 								{/if}
+								<div class="divider"></div>
+								<p class="text-xl font-bold text-gray-800">Totale da pagare:{total} €</p>
 							{:else}
 								<p class="text-xl font-semibold text-red-500">Nessun prodotto nel carrello</p>
 							{/if}
