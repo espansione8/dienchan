@@ -3,7 +3,8 @@
 	import { CopyPlus } from 'lucide-svelte';
 
 	let { data } = $props();
-	let { getTableProducts } = $derived(data);
+	let { getTable } = $derived(data);
+	let tableList = $state(getTable);
 
 	const onClickModify = (id: number) => {
 		goto(`/product-modify/${id}`);
@@ -57,7 +58,7 @@
 		<!-- body -->
 		<tbody class="">
 			<!-- row 1 -->
-			{#each getTableProducts as row}
+			{#each tableList as row}
 				<tr class="hover:bg-gray-100">
 					<!-- ID -->
 					<td>{row.prodId}</td>

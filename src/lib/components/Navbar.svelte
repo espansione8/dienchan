@@ -278,20 +278,6 @@
 							>
 						</button>
 						<ul class="dropdown-content menu z-[1] bg-gray-200 p-2 rounded-lg shadow w-max gap-2">
-							<!-- <li>
-								<a
-									class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"
-									href="/product-table"
-									aria-current="page"><strong>Prodotti</strong></a
-								>
-							</li> -->
-							<li>
-								<a
-									class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"
-									href="/user-table"
-									aria-current="page"><strong>Utenti</strong></a
-								>
-							</li>
 							<li>
 								<a
 									class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"
@@ -299,6 +285,28 @@
 									aria-current="page"><strong>Corsi</strong></a
 								>
 							</li>
+							<li>
+								<a
+									class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"
+									href="/product-table"
+									aria-current="page"><strong>Prodotti</strong></a
+								>
+							</li>
+							<li>
+								<a
+									class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"
+									href="/membership-table"
+									aria-current="page"><strong>Membership</strong></a
+								>
+							</li>
+							<li>
+								<a
+									class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"
+									href="/user-table"
+									aria-current="page"><strong>Utenti</strong></a
+								>
+							</li>
+
 							<li>
 								<a
 									class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"

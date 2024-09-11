@@ -15,8 +15,8 @@
 	import { province } from '$lib/stores/arrays.js';
 
 	let { data } = $props();
-	let { getTableCourses } = $derived(data);
-	let coursesList = $state(getTableCourses);
+	let { getTable } = $derived(data);
+	let tableList = $state(getTable);
 
 	const onClickModify = (idCourse: any) => {
 		console.log('idCourse', idCourse);
@@ -205,10 +205,10 @@
 		<!-- body -->
 		<tbody>
 			<!-- row -->
-			{#if filteredCoursesList.length == 0}
+			{#if tableList.length == 0}
 				<tr class="hover:bg-gray-300"><td> no data</td></tr>
 			{/if}
-			{#each filteredCoursesList as row}
+			{#each tableList as row}
 				<tr class="hover:bg-gray-300">
 					<!-- Data inserimento -->
 					<td>{row.createdAt}</td>

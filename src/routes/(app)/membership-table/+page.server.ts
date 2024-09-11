@@ -6,24 +6,21 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	if (!locals.auth) {
 		throw redirect(302, '/login');
 	}
-
 	let getTable = [];
-	const userId = locals.data.userId || ''
 
 	try {
-		let path = `${import.meta.env.VITE_BASE_URL}/api/products/find/type/course/0/0`
-		if (locals.data.level == 'formatore') path = `${import.meta.env.VITE_BASE_URL}/api/courses/user-id/${userId}`
+		const path = `${import.meta.env.VITE_BASE_URL}/api/products/find/type/membership/0/0`
 
 		// ADMIN course
-		const res = await fetch(path);
-		const resGetTable = await res.json();
-		getTable = resGetTable.map((obj) => ({
+		const resProductsCorso = await fetch(path);
+		const resGetTableProductsCorso = await resProductsCorso.json();
+		getTable = resGetTableProductsCorso.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10)
 		}));
 
 	} catch (error) {
-		console.log('products-corso fetch error:', error);
+		console.log('membershipfetch error:', error);
 	}
 
 	return {
