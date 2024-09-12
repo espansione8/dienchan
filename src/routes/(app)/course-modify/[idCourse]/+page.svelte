@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Calendar, Pen, Users, Building2, Send, List, Calculator, FileDown } from 'lucide-svelte';
 	import Notification from '$lib/components/Notification.svelte';
-	import {  coursesInfo } from '$lib/stores/arrays';
+	import { coursesInfo } from '$lib/stores/arrays';
 	import { province } from '$lib/stores/arrays.js';
 	import moment from 'moment';
 	const date = new Date();
@@ -29,7 +29,7 @@
 	let productCorsoDescrizione = $state(getCourse.descrLong);
 	let productCorsoUserId = $state(getCourse.userId);
 	let productCorsoStatus = $state(getCourse.status);
-	let productCorsoProvincia = $state(getCourse.place);
+	let productCorsoProvincia = $state(getCourse.location);
 	let productCorsoCategoria = $state(getCourse.category[0]);
 	let productCorsoElencoTag: any[] = $state(getCourse.tag);
 	let productCorsoInputTag = $state('');

@@ -26,7 +26,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			//.limit(queryLimit) // Limit results to the specified number
 			//.skip(skipResults) // Skip a certain number of results (for pagination)
 			.sort({ createdAt: -1 })
-			// .populate('userView')
+			.populate('userView')
 			.exec(); // Execute the query and return a promise
 
 		return json(all);

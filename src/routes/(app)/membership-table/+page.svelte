@@ -79,17 +79,17 @@ tableList
 					</td>
 					<!-- Luogo -->
 					<td>
-						<!-- {#if row.place !== 'Online'}
+						<!-- {#if row.location !== 'Online'}
 							<p class="card-text">
-								{siglaToProvincia(row.place)}
+								{siglaToProvincia(row.location)}
 							</p>
-						{:else if row.place === 'Online'}
+						{:else if row.location === 'Online'}
 							<p class="card-text">
-								{row.place}
+								{row.location}
 							</p>
 						{/if} -->
 						<p class="card-text">
-							{siglaToProvincia(row.place)}
+							{siglaToProvincia(row.location)}
 						</p>
 					</td>
 					<!-- Prezzo -->

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
-	// import { cart } from '$lib/stores/cart';
+	import Notification from '$lib/components/Notification.svelte';
 	import {
 		ListPlus,
 		Filter,
@@ -20,12 +20,12 @@
 	let tableList = $state(getTable);
 
 	const onClickModify = (idCourse: any) => {
-		console.log('idCourse', idCourse);
+		//console.log('idCourse', idCourse);
 		goto(`/course-modify/${idCourse}`);
 	};
 
 	function siglaToProvincia(provinciaSigla: any) {
-		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
+		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla) || '';
 		return findProvincia.nome;
 	}
 
@@ -47,7 +47,7 @@
 			sortDirection = 'asc';
 		}
 
-		tableList = tableList.sort((a, b) => {
+		tableList = tableList.sort((a: any, b: any) => {
 			let valueA = column === 'eventStartDate' ? new Date(a[column]) : a[column];
 			let valueB = column === 'eventStartDate' ? new Date(b[column]) : b[column];
 
@@ -64,10 +64,55 @@
 	let errorFilterModal = $state('');
 	let quickSearch = $state('data'); // radio button
 	let quickSearchInput = $state('');
+	//filter
+	let selectedLocation = $state('');
+	let selectedTitle = $state('');
+	let selectedUserId = $state('');
 
 	const onCloseFilterSearch = () => {
 		isModalFilterCourse = false;
 		onFilterReset();
+	};
+
+	const onSubmitFilterSearch = async () => {
+		resetActive = true;
+		let location = '';
+		let title = '';
+		let userId = '';
+		if (selectedLocation) location = selectedLocation;
+		if (selectedTitle) title = selectedTitle;
+		if (selectedUserId) userId = selectedUserId;
+		const arrayField = ['location', 'title', 'userId', 'type'];
+		const arrayValue = [location, title, userId, 'course'];
+		const response = await fetch(`/api/finds/0/0`, {
+			method: 'POST',
+			body: JSON.stringify({
+				schema: 'product',
+				arrayField,
+				arrayValue
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		const res = await response.json();
+		if (response.status == 200) {
+			//console.log('res table', res);
+			tableList = res;
+			clearTimeout(startTimeout);
+			isModalFilterCourse = false;
+			toastClosed = false;
+			notificationContent = 'corsi filtrati';
+			closeNotification();
+		}
+		if (response.status != 200) {
+			console.log('KO', response);
+			toastClosed = false;
+			notificationContent = 'errore filtro';
+			notificationError = true;
+			closeNotification();
+		}
 	};
 
 	const onOpenFilter = () => {
@@ -76,14 +121,13 @@
 	};
 
 	const onFilterReset = () => {
+		resetActive = false;
+		tableList = getTable;
 		invalidateAll();
 		quickSearchInput = '';
 	};
 
 	// filter
-	let selectedLocation = $state('');
-	let selectedCategory = $state('');
-	let selectedReflexologist = $state('');
 	// let isModalProvincie = $state(false);
 	// let filteredCoursesList = $state(tableList);
 
@@ -96,7 +140,7 @@
 	// 		filteredCoursesList = tableList;
 	// 	} else {
 	// 		filteredCoursesList = tableList.filter(
-	// 			(course) => siglaToProvincia(course.place) === selectedLocation
+	// 			(course) => siglaToProvincia(course.location) === selectedLocation
 	// 		);
 	// 	}
 	// 	isModalProvincie = false;
@@ -110,6 +154,18 @@
 	// 	selectedLocation = '';
 	// 	filteredCoursesList = tableList;
 	// };
+
+	//notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+		}, 5000); // 1000 milliseconds = 1 second
+	};
+	//clearTimeout(startTimeout); // reset timer
 </script>
 
 <svelte:head>
@@ -122,7 +178,7 @@
 			{#if resetActive == true}
 				<button
 					class="btn btn-error rounded-md text-white border-orange-500 hover:bg-red-200 hover:text-red-600 hover:border-red-400"
-					onclick={() => (resetActive = false)}
+					onclick={onFilterReset}
 				>
 					<XCircle class="mt-1" /> Reset Filtro
 				</button>
@@ -243,17 +299,17 @@
 					</td>
 					<!-- Luogo -->
 					<td>
-						<!-- {#if row.place !== 'Online'}
+						<!-- {#if row.location !== 'Online'}
 							<p class="card-text">
-								{siglaToProvincia(row.place)}
+								{siglaToProvincia(row.location)}
 							</p>
-						{:else if row.place === 'Online'}
+						{:else if row.location === 'Online'}
 							<p class="card-text">
-								{row.place}
+								{row.location}
 							</p>
 						{/if} -->
 						<p class="card-text">
-							{siglaToProvincia(row.place)}
+							{siglaToProvincia(row.location)}
 						</p>
 					</td>
 					<!-- Prezzo -->
@@ -272,7 +328,7 @@
 		</tbody>
 	</table>
 </div>
-
+<Notification {toastClosed} {notificationContent} {notificationError} />
 <!-- modal filter Province -->
 <!-- <dialog id="my_modal_2" class="modal" class:modal-open={isModalProvincie}>
 	<div class="modal-box flex flex-col text-center rounded-lg">
@@ -315,7 +371,7 @@
 						bind:group={quickSearch}
 						value={'location'}
 					/>
-					<label for="id-radio">Luogo</label>
+					<label for="location-radio" class="cursor-pointer">Luogo</label>
 				</div>
 				<!-- category -->
 				<div class="flex items-center">
@@ -327,7 +383,7 @@
 						bind:group={quickSearch}
 						value={'category'}
 					/>
-					<label for="data-radio">Categoria</label>
+					<label for="category-radio" class="cursor-pointer">Categoria</label>
 				</div>
 				<!-- riflessologo -->
 				<div class="flex items-center">
@@ -339,7 +395,7 @@
 						bind:group={quickSearch}
 						value={'reflexologist'}
 					/>
-					<label for="data-radio">Riflessologo</label>
+					<label for="reflexologist-radio" class="cursor-pointer">Riflessologo</label>
 				</div>
 			</div>
 			{#if quickSearch == 'location'}
@@ -349,52 +405,43 @@
 					<select bind:value={selectedLocation} class="select select-bordered w-full max-w-xs">
 						<option value="">Tutti i luoghi</option>
 						{#each $province as item}
-							<option value={item.nome}>{item.nome}</option>
+							<option value={item.sigla}>{item.nome}</option>
 						{/each}
 					</select>
 				</div>
 				<div class="modal-action">
 					<button class="btn btn-error" onclick={() => onCloseFilterSearch()}>Annulla</button>
-					<button
-						class="btn btn-success"
-						onclick={() => {
-							(resetActive = true), (isModalFilterCourse = false);
-						}}>Cerca</button
-					>
+					<button class="btn btn-success" onclick={onSubmitFilterSearch}>Cerca</button>
 				</div>
 			{:else if quickSearch == 'category'}
 				<!-- category -->
 				<h3 class="font-bold text-center text-xl mt-4">Seleziona la categoria</h3>
 				<div class="mt-4 flex justify-center">
-					<select bind:value={selectedCategory} class="select select-bordered w-full max-w-xs">
+					<select bind:value={selectedTitle} class="select select-bordered w-full max-w-xs">
 						<option disabled value="">Scegli</option>
 						{#each $coursesInfo as option}
-							<option value={option.id}>{option.id}</option>
+							<option value={option.title}>{option.id}</option>
 						{/each}
 					</select>
 				</div>
 				<div class="modal-action">
 					<button class="btn btn-error" onclick={() => onCloseFilterSearch()}>Annulla</button>
-					<button class="btn btn-success" onclick={() => {
-						(resetActive = true), (isModalFilterCourse = false);
-					}}>Cerca</button>
+					<button class="btn btn-success" onclick={onSubmitFilterSearch}>Cerca</button>
 				</div>
 			{:else if quickSearch == 'reflexologist'}
 				<!-- reflexologist -->
 				<h3 class="font-bold text-center text-xl mt-4">Seleziona il riflessologo</h3>
 				<div class="mt-4 flex justify-center">
-					<select bind:value={selectedReflexologist} class="select select-bordered w-full max-w-xs">
+					<select bind:value={selectedUserId} class="select select-bordered w-full max-w-xs">
 						<option disabled value="">Scegli</option>
 						{#each getTableNames as item}
-							<option value={`${item.name} ${item.surname}`}>{item.name}{item.surname}</option>
+							<option value={item.userId}>{item.surname} {item.name}</option>
 						{/each}
 					</select>
 				</div>
 				<div class="modal-action">
 					<button class="btn btn-error" onclick={() => onCloseFilterSearch()}>Annulla</button>
-					<button class="btn btn-success" onclick={() => {
-						(resetActive = true), (isModalFilterCourse = false);
-					}}>Cerca</button>
+					<button class="btn btn-success" onclick={onSubmitFilterSearch}>Cerca</button>
 				</div>
 			{/if}
 		</section>

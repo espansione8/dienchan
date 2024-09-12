@@ -224,7 +224,6 @@
 		// }
 	};
 
-
 	function siglaToProvincia(provinciaSigla: any) {
 		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
 		return findProvincia.nome;
@@ -319,17 +318,17 @@
 							{moment(item.eventStartDate).format('DD/MM/YYYY')}
 						</h2>
 						<!-- luogo -->
-						<!-- {#if item.place !== 'Online'}
+						<!-- {#if item.location !== 'Online'}
 							<p class="card-text text-xl">
-								<b>{siglaToProvincia(item.place)}</b>
+								<b>{siglaToProvincia(item.location)}</b>
 							</p>
-						{:else if item.place === 'Online'}
+						{:else if item.location === 'Online'}
 							<p class="card-text text-xl">
-								<b>{item.place}</b>
+								<b>{item.location}</b>
 							</p>
 						{/if} -->
 						<p class="card-text text-xl">
-							<b>{siglaToProvincia(item.place)}</b>
+							<b>{siglaToProvincia(item.location)}</b>
 						</p>
 						<!-- title -->
 						<h5

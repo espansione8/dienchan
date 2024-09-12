@@ -857,7 +857,7 @@
 								<div class="font-semibold">
 									<b>{course.title}</b> <br />
 									<span class="text-gray-600 text-sm">
-										{course.eventStartDate.substring(0, 10)} - {siglaToProvincia(course.place)} -
+										{course.eventStartDate.substring(0, 10)} - {siglaToProvincia(course.location)} -
 										{course.name}
 										{course.surname}
 									</span>

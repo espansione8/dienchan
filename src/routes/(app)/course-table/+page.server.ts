@@ -17,8 +17,9 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 		// ADMIN course
 		const res = await fetch(path);
+
 		const resGetTable = await res.json();
-		getTable = resGetTable.map((obj) => ({
+		getTable = resGetTable.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10),
 			eventStartDate: obj.eventStartDate.substring(0, 10)

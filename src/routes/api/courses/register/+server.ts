@@ -41,7 +41,7 @@ export const POST = async ({ request }) => {
 		newEvent.eventEndDate = productCorsoEventEndDate;
 		newEvent.status = productCorsoStatus;
 		newEvent.stockQty = productCorsoQuantitaPartecipanti;
-		newEvent.place = productCorsoPlace;
+		newEvent.location = productCorsoPlace;
 		newEvent.category = productCorsoCategory;
 		newEvent.notificationEmail = productCorsoElencoEmailNotifica;
 		newEvent.tag = productCorsoElencoTag;

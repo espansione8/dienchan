@@ -31,8 +31,6 @@
 	// inizializzo ordinando visualizzanco prima quelli con giorno di svolgimento più recente
 	coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
-	
-
 	function siglaToProvincia(provinciaSigla: any) {
 		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
 		return findProvincia.nome;
@@ -49,7 +47,7 @@
 
 	// Iteriamo sull'array e contiamo le occorrenze delle province
 	coursesList.forEach((item) => {
-		const provincia = item.place;
+		const provincia = item.location;
 		conteggioProvince[provincia] = (conteggioProvince[provincia] || 0) + 1;
 	});
 
@@ -153,7 +151,7 @@
 		coursesList = getTableCourses;
 		// provincia
 		if (filtriAttivi.provincia) {
-			coursesList = coursesList.filter((item) => item.place === filtriAttivi.provincia);
+			coursesList = coursesList.filter((item) => item.location === filtriAttivi.provincia);
 		}
 		// riflessologo
 		if (filtriAttivi.riflessologo) {
@@ -278,7 +276,6 @@
 		const src = $coursesInfo.filter((item: any) => item.id == value);
 		return src[0].bgColor;
 	};
-	
 </script>
 
 <svelte:head>
@@ -568,13 +565,13 @@
 							{moment(courseData.eventStartDate).format('DD/MM/YYYY')}
 						</h2>
 						<!-- luogo -->
-						{#if courseData.place !== 'Online'}
+						{#if courseData.location !== 'Online'}
 							<p class="card-text text-xl">
-								<b>{siglaToProvincia(courseData.place)}</b>
+								<b>{siglaToProvincia(courseData.location)}</b>
 							</p>
-						{:else if courseData.place === 'Online'}
+						{:else if courseData.location === 'Online'}
 							<p class="card-text text-xl">
-								<b>{courseData.place}</b>
+								<b>{courseData.location}</b>
 							</p>
 						{/if}
 						<!-- title -->

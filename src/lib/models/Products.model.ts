@@ -170,7 +170,7 @@ productSchema.virtual('userView', {
     ref: 'Users', // The model to use
     localField: 'userId', // FIND WHERE `localField` 
     foreignField: 'userId', // IS EQUAL TO `foreignField` 
-    //justOne: true,
+    justOne: true,
     //match: { isActive: true },
     //count: true // And only get the number of docs
 });

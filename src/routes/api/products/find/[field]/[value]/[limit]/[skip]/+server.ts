@@ -32,6 +32,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			.limit(queryLimit)
 			.skip(skipResults)
 			.lean()
+			.populate('userView')
 			.exec();
 
 		return json(find);

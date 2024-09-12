@@ -71,7 +71,7 @@
 				<div class="text-4xl font-semibold text-gray-800">{getCourse.title}</div>
 				<div class=" text-3xl text-blue-900">
 					<p>
-						<b>{siglaToProvincia(getCourse.place)}</b>
+						<b>{siglaToProvincia(getCourse.location)}</b>
 					</p>
 				</div>
 			</div>
@@ -171,7 +171,7 @@
 				</div>
 				<!-- Luogo -->
 				<div class="text-2xl font-semibold text-gray-700">
-					Luogo: <b>{siglaToProvincia(getCourse.place)} </b>
+					Luogo: <b>{siglaToProvincia(getCourse.location)} </b>
 				</div>
 				<!-- Data -->
 				<div class="text-2xl font-semibold text-gray-700">
