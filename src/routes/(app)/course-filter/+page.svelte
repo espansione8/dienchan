@@ -31,17 +31,7 @@
 	// inizializzo ordinando visualizzanco prima quelli con giorno di svolgimento più recente
 	coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
-	//console.log('getTableNames', getTableNames);
-
-	const categoryColors = {
-		'Corso base': 'bg-green-500',
-		'Corso avanzato': 'bg-orange-400',
-		'Workshop - Bellezza viso': 'bg-purple-400',
-		'Workshop - Difese immunitarie': 'bg-blue-400',
-		'Workshop - Pronto soccorso': 'bg-blue-400',
-		'Workshop - Occhi & Vista': 'bg-blue-400',
-		Accademia: 'bg-red-600'
-	};
+	
 
 	function siglaToProvincia(provinciaSigla: any) {
 		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
@@ -283,6 +273,12 @@
 		const src = $coursesInfo.filter((item: any) => item.id == value);
 		return src[0].urlPic;
 	};
+
+	const bgColor = (value: string) => {
+		const src = $coursesInfo.filter((item: any) => item.id == value);
+		return src[0].bgColor;
+	};
+	
 </script>
 
 <svelte:head>
@@ -584,7 +580,7 @@
 						<!-- title -->
 						<h5
 							class="card-text text-xl bg-base-200 border rounded-md shadow-sm font-semibold p-2
-						{categoryColors[courseData.category]}"
+						 {bgColor(courseData.category)}"
 						>
 							{courseData.title}
 						</h5>

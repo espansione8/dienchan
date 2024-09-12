@@ -26,6 +26,7 @@
 				<th>Data</th>
 				<th>ID ordine</th>
 				<th>Email</th>
+				<th>Associato</th>
 				<th>Ordine</th>
 				<th>Totale</th>
 				<th>Tipo pagamento</th>
@@ -50,6 +51,8 @@
 					<td>{row.orderId}</td>
 					<!-- Email-->
 					<td>{row.userView.email}</td>
+					<!-- Nome-->
+					<td>{row.userView.name} {row.userView.surname}</td>
 					<!-- Ordine -->
 					<td>
 						<div class="flex flex-col space-y-1">

@@ -8,6 +8,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	}
 
 	let getTable = [];
+	let getTableNames = [];
 	const userId = locals.data.userId || ''
 
 	try {
@@ -19,8 +20,15 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		const resGetTable = await res.json();
 		getTable = resGetTable.map((obj) => ({
 			...obj,
-			createdAt: obj.createdAt.substring(0, 10)
+			createdAt: obj.createdAt.substring(0, 10),
+			eventStartDate: obj.eventStartDate.substring(0, 10)
 		}));
+
+		// LISTA NOMI RIFLESSOLOGI
+		const resName = await fetch(
+			`${import.meta.env.VITE_BASE_URL}/api/users/all-active-names/0/0`
+		);
+		getTableNames = await resName.json();
 
 	} catch (error) {
 		console.log('products-corso fetch error:', error);
@@ -28,6 +36,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 	return {
 		getTable,
+		getTableNames,
 		auth: locals.auth
 		//userData
 	};

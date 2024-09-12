@@ -258,6 +258,7 @@ export const coursesInfo = readable([
         title: "Corso base Dien Chan®",
         descr: "E’ il primo passo per apprendere uno stupefacente metodo alternativo di gestione della propria salute. In questo corso vi saranno spiegate le mappe Dien Chan®, come usare i primi strumenti della riflessologia facciale, come applicare i cerottini riscaldanti Salonpas, i vari massaggi facciali, e molto altro ancora! Prendersi cura di Se Stessi con la Riflessologia facciale vietnamita -DIEN CHAN® BUI QUOC CHAU- in maniera semplice, con il solo utilizzo delle proprie mani. Un video/corso accurato per commentare tutti i passaggi da fare nel momento di bisogno o di aiuto immediato, usando gli schemi del Dien Chan® senza conoscere per forza le basi dell’utilizzo degli strumenti.",
         urlPic: "/images/corso_dienchan_base.jpg",
+        bgColor: 'bg-green-500',
         totalPrice: 50
     },
     {
@@ -265,6 +266,7 @@ export const coursesInfo = readable([
         title: "Corso avanzato Dien Chan®",
         descr: "E’ il passo successivo dopo il corso base per approfondire altri 7 strumenti e tecniche del Dien Chan®. Molte altre risposte che aumenteranno la tua fiducia nell’usare il Dien Chan® per aiutare Te Stesso e gli Altri.",
         urlPic: "/images/corso_dienchan_avanzato.jpg",
+        bgColor: 'bg-orange-500',
         totalPrice: 150
     },
     {
@@ -272,6 +274,7 @@ export const coursesInfo = readable([
         title: "Workshop - Bellezza viso Dien Chan®",
         descr: "Un laboratorio, alla portata di tutti, per imparare ad utilizzare alcuni strumenti dedicati alla bellezza del viso, per poter fare una pulizia profonda, una stimolazione del microcircolo, per riattivare la produzione del collagene, per un riequilibrio idrico…tutto per poter avere, in 20-30 minuti di lavoro, un effetto incredibile di tonificazione con diminuzione delle rughe e una pelle più rosea e fine. Il trattamento proposto sarà adatto per tutti i tipi di pelle inoltre, stimolando il viso si andrà a stimolare per riflesso anche tutti gli organi interni e tutte le parti del corpo e, per l’effetto di “acqua che va verso la depressione”, cioè dell’energia che va dove serve, si avranno piacevoli “effetti collaterali” di un miglioramento generale dello stato di salute.",
         urlPic: "/images/corso_dienchan_bellezza_viso.jpg",
+        bgColor: 'bg-purple-500',
         totalPrice: 80
     },
     {
@@ -279,6 +282,7 @@ export const coursesInfo = readable([
         title: "Workshop - Difese immunitarie Dien Chan®",
         descr: "In questo incontro di vi insegneremo alcuni massaggi generali di Dien Chan® che aiutano a rafforzare l’organismo e ad uscire dai disagi velocemente. Sono delle perle di questo metodo perchè molto semplici e, allo stesso tempo, sono il frutto di tanti ragionamenti e conoscenze. Inoltre, vi mostreremo alcuni massaggi per intervenire ai primi sintomi di mal di gola, raffreddore, tosse, mal di testa e malessere generalizzato. Infine, vi trasmetteremo alcune conoscenze popolari vietnamite, che hanno sempre dato ottimi risultati per gli stati influenzali, aiutando il corpo a disintossicare ed ad aumentare le difese immunitarie (vi faremo vedere anche come si cucinano le zuppe di riso che si fanno assumere agli ammalati affinchè guariscano velocemente: disintossicanti, nutrienti e leggere allo stesso tempo.",
         urlPic: "/images/corso_dienchan_difese.jpg",
+        bgColor: 'bg-blue-500',
         totalPrice: 120
     },
     {
@@ -286,6 +290,7 @@ export const coursesInfo = readable([
         title: "Workshop - Pronto soccorso Dien Chan®",
         descr: "Prendersi cura di Se Stessi con la Riflessologia facciale vietnamita -DIEN CHAN® BUI QUOC CHAU- in maniera semplice, con il solo utilizzo delle proprie mani. Un video/corso accurato per commentare tutti i passaggi da fare nel momento di bisogno o di aiuto immediato, usando gli schemi del Dien Chan® senza conoscere per forza le basi dell’utilizzo degli strumenti. Il corso spiega come intervenire prontamente su 60 disagi comuni compiendo manovre con le mani.",
         urlPic: "/images/corso_dienchan_pronto_soccorso.jpg",
+        bgColor: 'bg-blue-500',
         totalPrice: 75
     },
     {
@@ -293,6 +298,7 @@ export const coursesInfo = readable([
         title: "Workshop - Occhi & Vista Dien Chan®",
         descr: "Un laboratorio di 4 ore divise in vari incontri per imparare e praticare insieme come prendersi cura dei propri occhi , dei massaggi basati sulle teorie e tecniche di Dien Chan®. I massaggi proposti sono la semplificazione dei protocolli di trattamento per i problemi di vista praticati a lungo da diversi riflessologi vietnamiti. Non si baseranno su schemi complicati per rendere la pratica fattibile a tutti, anche ai più piccini o a coloro che non conoscono il Dien Chan® e i punti BQC. I partecipanti potranno vedere migliorare la vista di giorno in giorno, facendo la pratica quotidiana guidata. Potranno essere utilizzati gli strumenti specifici di Dien Chan® o anche solo le mani. Ovviamente con gli strumenti la pratica risulterà un pò più efficace e piacevole. Gli strumenti suggeriti sono: il doppio rastrello, il cercapunti, il martelletto, i monorulli yin yang lisci, i monorulli yin yang, i cerotti salonpas.",
         urlPic: "/images/corso_dienchan_occhi.jpg",
+        bgColor: 'bg-blue-500',
         totalPrice: 200
     },
     {
@@ -300,6 +306,7 @@ export const coursesInfo = readable([
         title: "Accademia Dien Chan®",
         descr: "Dopo aver completato il Corso base ed il corso Avanzato di approfondimento, è il momento di valutare se si vuole completare il percorso Accademia Italia ed eventualmente il Master livello 10 in Vietnam direttamente con il Prof. Bui Quoc Chau. Il completamento dell’accademia svolta in Italia tenuto da Truong Van Tri qualifica il frequentante ad essere Riflessologo in Italia. Una volta completato anche Il Master Dien Chan in Vietnam il Riflessologo è riconosciuto nel circuito internazionale del Centro Viet Y Dao in Vietnam del Prof. Bui Quoc Chau e qualificato anche formatore fino al 3° livello.",
         urlPic: "/images/corso_dienchan_accademia.jpg",
+        bgColor: 'bg-red-500',
         totalPrice: 180
     }
 ])
