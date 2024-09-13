@@ -4,7 +4,7 @@
 	import { LogOut, ChevronDown, Menu, Megaphone, LogIn } from 'lucide-svelte';
 	//import { cart } from '$lib/stores/cart';
 	import { cartProducts, emptyCart } from '$lib/stores/cart';
-	let logged = false;
+	let logged = $state(false);
 	let sessionAuth = $page?.data?.auth;
 	//console.log('Nav', $page?.data?.userData?.level);
 	//console.log('cartProducts navbar', $cartProducts);
@@ -17,9 +17,9 @@
 	} else {
 		logged = false;
 	}
-	const userLevel = $page?.data?.userData?.level || '';
-	const userName = $page?.data?.userData?.name || '';
-	const userurname = $page?.data?.userData?.surname || '';
+	let userLevel = $state($page?.data?.userData?.level || '');
+	const userName = $derived($page?.data?.userData?.name || '');
+	const userSurname = $derived($page?.data?.userData?.surname || '');
 	const userId = $page?.data?.userData?.userId || '';
 
 	let menuActive = false;
@@ -45,6 +45,17 @@
 			console.log('Error logout', err);
 		}
 	};
+	$effect(() => {
+		sessionAuth = $page?.data?.auth;
+		if (sessionAuth) {
+			logged = true;
+			userLevel = $page?.data?.userData?.level || '';
+		} else {
+			logged = false;
+			userLevel = '';
+		}
+		pointsBalance = $page?.data?.userData?.pointsBalance || 0;
+	});
 </script>
 
 <!-- Navbar -->
@@ -57,7 +68,7 @@
 		<!-- <strong> Diện Chẩn Bùi Quốc Châu ® </strong> -->
 		{#if logged}
 			<span class="text-gray-400 mx-1">
-				<strong>Buongiorno {`${userName} ${userurname}`}</strong>
+				<strong>Buongiorno {`${userName} ${userSurname}`}</strong>
 			</span>
 			<span class="text-green-800 mx-1">
 				<strong>Punti: {pointsBalance}</strong>
@@ -214,7 +225,7 @@
 	<div class="hidden sm:flex gap-2">
 		<ul class="hidden menu sm:menu-horizontal gap-3">
 			<a
-				class="btn btn-sm bg-transparent border-orange-500 rounded-full text-orange-500 hover:text-red-400 hover:bg-orange-300"
+				class="btn btn-sm btn-outline btn-accent rounded-full text-warning"
 				class:active={$page.url.pathname === '/membership-new/'}
 				href="/membership-new"
 				aria-current="page"

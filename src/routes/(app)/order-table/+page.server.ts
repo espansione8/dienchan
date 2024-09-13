@@ -19,7 +19,8 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		// console.log('res resGetOrders', resGetOrders)
 		getOrders = resGetOrders.map((obj) => ({
 			...obj,
-			orderDate: obj.orderDate.substring(0, 10)
+			orderDate: obj.orderDate.substring(0, 10),
+			totalCart: obj.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(0)
 		}));
 
 		// LISTA NOMI RIFLESSOLOGI
@@ -28,11 +29,19 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		);
 		getTableNames = await resName.json();
 
+
 	} catch (error) {
 		console.log('orders fetch error:', error);
 	}
+	const user = locals.data
+	if (locals.auth) {
+		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
+		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
+		user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
+	}
 	//console.log('res getTableData', getTableData);
 	return {
+		userData: user,
 		getOrders,
 		getTableNames,
 		auth: locals.auth

@@ -22,7 +22,9 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		getTable = resGetTable.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10),
-			eventStartDate: obj.eventStartDate.substring(0, 10)
+			eventStartDate: obj.eventStartDate.substring(0, 10),
+			timeStartDate: obj.eventStartDate.substring(11, 16),
+			timeEndDate: obj.eventEndDate.substring(11, 16),
 		}));
 
 		// LISTA NOMI RIFLESSOLOGI

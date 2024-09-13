@@ -48,6 +48,7 @@ export const POST: RequestHandler = async ({ request, params }) => {
 		const find = await model.find(filter)
 			.limit(queryLimit)
 			.skip(skipResults)
+			.populate('userView')
 			.lean()
 			.exec();
 

@@ -162,7 +162,6 @@
 	};
 	//clearTimeout(startTimeout); // reset timer
 
-
 	// //CSV file
 	// const csvCreate = () => {
 	// 	let csv = $state('');
@@ -276,40 +275,40 @@
 	// };
 
 	const csvCreate = () => {
-    let csv = $state('');
-    let newList: any = $state();
+		let csv = $state('');
+		let newList: any = $state();
 
-    const flattenObject = (obj: any, prefix = '') => {
-        return Object.keys(obj).reduce((acc, k) => {
-            const pre = prefix.length ? prefix + '_' : '';
-            if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
-                Object.assign(acc, flattenObject(obj[k], pre + k));
-            } else {
-                acc[pre + k] = obj[k];
-            }
-            return acc;
-        }, {});
-    };
+		const flattenObject = (obj: any, prefix = '') => {
+			return Object.keys(obj).reduce((acc, k) => {
+				const pre = prefix.length ? prefix + '_' : '';
+				if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
+					Object.assign(acc, flattenObject(obj[k], pre + k));
+				} else {
+					acc[pre + k] = obj[k];
+				}
+				return acc;
+			}, {});
+		};
 
-    const flattenedArray = tableList.map((obj: any) => {
-        return flattenObject(obj);
-    });
+		const flattenedArray = tableList.map((obj: any) => {
+			return flattenObject(obj);
+		});
 
-    newList = flattenedArray.map((obj: any) => ({
-        ...obj,
-        createdAt: obj.createdAt?.substring(0, 10),
-        birthdate: obj.birthdate?.substring(0, 10)
-    }));
+		newList = flattenedArray.map((obj: any) => ({
+			...obj,
+			createdAt: obj.createdAt?.substring(0, 10),
+			birthdate: obj.birthdate?.substring(0, 10)
+		}));
 
-    // Lista dei campi da rimuovere
-    // const fieldsToRemove = ['__v', 'attribute1', 'attribute2', 'attribute3', 'attribute4', 'attribute5', 'attribute6', 'attribute7', 'attribute8', 'attribute9', 'brand', 'brandId', 'bundleProduct', 'categoryId', 'cost', 'dateAdd', 'dateUpd', 'depth', 'attribute10', 'condition', 'feature', 'filterPermissionToEdit', 'height', 'image1', 'image2', 'image3', 'image4', 'image5', 'image6', 'image7', 'image8', 'imgFull', 'imgThumb', 'listSubscribers', 'manufacturer', 'manufacturerCod', 'msrp', 'notes', 'points', 'priceSetByBundle', 'promoEndDate', 'promoStartDate', 'promoterProCod', 'rating', 'rewardProgramDetails', 'shippingCost', 'sku', 'state', 'value1', 'value2', 'value3', 'value4', 'value5', 'value6', 'value7', 'value8', 'value9', 'value10', 'vatType', 'vatValue', 'weight', 'video', 'birthdate', 'filterPermissionToSee', 'manufacturerId', 'orderQuantity', 'width'];
+		// Lista dei campi da rimuovere
+		// const fieldsToRemove = ['__v', 'attribute1', 'attribute2', 'attribute3', 'attribute4', 'attribute5', 'attribute6', 'attribute7', 'attribute8', 'attribute9', 'brand', 'brandId', 'bundleProduct', 'categoryId', 'cost', 'dateAdd', 'dateUpd', 'depth', 'attribute10', 'condition', 'feature', 'filterPermissionToEdit', 'height', 'image1', 'image2', 'image3', 'image4', 'image5', 'image6', 'image7', 'image8', 'imgFull', 'imgThumb', 'listSubscribers', 'manufacturer', 'manufacturerCod', 'msrp', 'notes', 'points', 'priceSetByBundle', 'promoEndDate', 'promoStartDate', 'promoterProCod', 'rating', 'rewardProgramDetails', 'shippingCost', 'sku', 'state', 'value1', 'value2', 'value3', 'value4', 'value5', 'value6', 'value7', 'value8', 'value9', 'value10', 'vatType', 'vatValue', 'weight', 'video', 'birthdate', 'filterPermissionToSee', 'manufacturerId', 'orderQuantity', 'width'];
 
-    // newList.forEach((obj: any) => {
-    //     fieldsToRemove.forEach(field => {
-    //         delete obj[field];
-    //     });
-    // });
-	newList.forEach((obj: any) => {
+		// newList.forEach((obj: any) => {
+		//     fieldsToRemove.forEach(field => {
+		//         delete obj[field];
+		//     });
+		// });
+		newList.forEach((obj: any) => {
 			delete obj.__v;
 			delete obj.attribute1;
 			delete obj.attribute2;
@@ -377,40 +376,102 @@
 			delete obj.manufacturerId;
 			delete obj.orderQuantity;
 			delete obj.width;
-			delete obj.userView_businessData_businessName;
-			delete obj.userView_businessData_vatNumber;
-			delete obj.userView_businessData_businessCategory;
-			delete obj.userView_businessData_businessAddress;
-			delete obj.userView_businessData_businessPostalCode;
-			delete obj.userView_businessData_businessState;
-			delete obj.userView_businessData_businessCountry;
-			delete obj.userView_businessData_businessCounty;
-			delete obj.userView_businessData_numberEmployed;
-			delete obj.userView_businessData_grossIncome;
+			delete obj.businessData_businessName;
+			delete obj.businessData_vatNumber;
+			delete obj.businessData_businessCategory;
+			delete obj.businessData_businessAddress;
+			delete obj.businessData_businessPostalCode;
+			delete obj.businessData_businessState;
+			delete obj.businessData_businessCountry;
+			delete obj.businessData_businessCounty;
+			delete obj.businessData_numberEmployed;
+			delete obj.businessData_grossIncome;
+			delete obj.extra0;
+			delete obj.extra1;
+			delete obj.extra2;
+			delete obj.extra3;
+			delete obj.extra4;
+			delete obj.extra5;
+			delete obj.extra6;
+			delete obj.extra7;
+			delete obj.extra8;
+			delete obj.extra9;
+			delete obj.extra10;
+			delete obj.extra11;
+			delete obj.extra12;
+			delete obj.extraFieldNumber1;
+			delete obj.extraFieldNumber2;
+			delete obj.extraFieldNumber3;
+			delete obj.extraFieldNumber4;
+			delete obj.extraFieldNumber5;
+			delete obj.extraFieldNumber6;
+			delete obj.extraFieldNumber7;
+			delete obj.extraFieldNumber8;
+			delete obj.extraFieldNumber9;
+			delete obj.extraFieldNumber10;
+			delete obj.extraFieldNumber11;
+			delete obj.extraFieldNumber12;
+			delete obj.extraFieldNumber13;
+			delete obj.extraFieldNumber14;
+			delete obj.extraFieldNumber15;
+			delete obj.extraFieldNumber16;
+			delete obj.extraFieldNumber17;
+			delete obj.extraFieldNumber18;
+			delete obj.extraFieldNumber19;
+			delete obj.extraFieldNumber20;
+			delete obj.extraFieldNumber21;
+			delete obj.extraFieldNumber22;
+			delete obj.extraFieldNumber23;
+			delete obj.extraFieldNumber24;
+			delete obj.extraFieldText1;
+			delete obj.extraFieldText2;
+			delete obj.extraFieldText3;
+			delete obj.extraFieldText4;
+			delete obj.extraFieldText5;
+			delete obj.extraFieldText6;
+			delete obj.extraFieldText7;
+			delete obj.extraFieldText8;
+			delete obj.extraFieldText9;
+			delete obj.extraFieldText10;
+			delete obj.extraFieldText11;
+			delete obj.extraFieldText12;
+			delete obj.extraFieldText13;
+			delete obj.extraFieldText14;
+			delete obj.extraFieldText15;
+			delete obj.extraFieldText16;
+			delete obj.extraFieldText17;
+			delete obj.extraFieldText18;
+			delete obj.extraFieldText19;
+			delete obj.extraFieldText20;
+			delete obj.extraFieldText21;
+			delete obj.extraFieldText22;
+			delete obj.extraFieldText23;
+			delete obj.extraFieldText24;
+		});
+		console.log('newList user', newList);
+
+		//CSV UNPARSE
+		csv = Papa.unparse(newList, {
+			quotes: false,
+			quoteChar: '"',
+			escapeChar: '"',
+			delimiter: ';',
+			header: true,
+			skipEmptyLines: false
 		});
 
-    //CSV UNPARSE
-    csv = Papa.unparse(newList, {
-        quotes: false,
-        quoteChar: '"',
-        escapeChar: '"',
-        delimiter: ';',
-        header: true,
-        skipEmptyLines: false
-    });
+		//DOWNLOAD file
+		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+		const link = document.createElement('a');
+		link.href = URL.createObjectURL(blob);
+		link.download = `TableExport_Utenti.csv`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
 
-    //DOWNLOAD file
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `TableExport_Utenti.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    // Release the URL object
-    URL.revokeObjectURL(link.href);
-};
+		// Release the URL object
+		URL.revokeObjectURL(link.href);
+	};
 </script>
 
 <svelte:head>

@@ -14,7 +14,6 @@
 		Search,
 		ShieldAlert
 	} from 'lucide-svelte';
-	import moment from 'moment';
 	import { coursesInfo, province } from '$lib/stores/arrays';
 
 	let { data } = $props();
@@ -159,7 +158,70 @@
 			delete obj.manufacturerId;
 			delete obj.orderQuantity;
 			delete obj.width;
+			delete obj.extra0;
+			delete obj.extra1;
+			delete obj.extra2;
+			delete obj.extra3;
+			delete obj.extra4;
+			delete obj.extra5;
+			delete obj.extra6;
+			delete obj.extra7;
+			delete obj.extra8;
+			delete obj.extra9;
+			delete obj.extra10;
+			delete obj.extra11;
+			delete obj.extra12;
+			delete obj.extraFieldNumber1;
+			delete obj.extraFieldNumber2;
+			delete obj.extraFieldNumber3;
+			delete obj.extraFieldNumber4;
+			delete obj.extraFieldNumber5;
+			delete obj.extraFieldNumber6;
+			delete obj.extraFieldNumber7;
+			delete obj.extraFieldNumber8;
+			delete obj.extraFieldNumber9;
+			delete obj.extraFieldNumber10;
+			delete obj.extraFieldNumber11;
+			delete obj.extraFieldNumber12;
+			delete obj.extraFieldNumber13;
+			delete obj.extraFieldNumber14;
+			delete obj.extraFieldNumber15;
+			delete obj.extraFieldNumber16;
+			delete obj.extraFieldNumber17;
+			delete obj.extraFieldNumber18;
+			delete obj.extraFieldNumber19;
+			delete obj.extraFieldNumber20;
+			delete obj.extraFieldNumber21;
+			delete obj.extraFieldNumber22;
+			delete obj.extraFieldNumber23;
+			delete obj.extraFieldNumber24;
+			delete obj.extraFieldText1;
+			delete obj.extraFieldText2;
+			delete obj.extraFieldText3;
+			delete obj.extraFieldText4;
+			delete obj.extraFieldText5;
+			delete obj.extraFieldText6;
+			delete obj.extraFieldText7;
+			delete obj.extraFieldText8;
+			delete obj.extraFieldText9;
+			delete obj.extraFieldText10;
+			delete obj.extraFieldText11;
+			delete obj.extraFieldText12;
+			delete obj.extraFieldText13;
+			delete obj.extraFieldText14;
+			delete obj.extraFieldText15;
+			delete obj.extraFieldText16;
+			delete obj.extraFieldText17;
+			delete obj.extraFieldText18;
+			delete obj.extraFieldText19;
+			delete obj.extraFieldText20;
+			delete obj.extraFieldText21;
+			delete obj.extraFieldText22;
+			delete obj.extraFieldText23;
+			delete obj.extraFieldText24;
 		});
+
+		console.log('newList check', newList);
 
 		//CSV UNPARSE
 		csv = Papa.unparse(newList, {
@@ -223,13 +285,16 @@
 		});
 
 		const res = await response.json();
+		console.log('res table', res);
 		if (response.status == 200) {
-			//console.log('res table', res);
-			// tableList = res.map((obj) => ({
-			// 	...obj,
-			// 	orderDate: obj.orderDate.substring(0, 10)
-			// }));
-			tableList = res;
+			const newTableList = res.map((obj: any) => ({
+				...obj,
+				createdAt: obj.createdAt.substring(0, 10),
+				eventStartDate: obj.eventStartDate.substring(0, 10),
+				timeStartDate: obj.eventStartDate.substring(11, 16),
+				timeEndDate: obj.eventEndDate.substring(11, 16)
+			}));
+			tableList = newTableList;
 			clearTimeout(startTimeout);
 			isModalFilterCourse = false;
 			toastClosed = false;
@@ -312,25 +377,16 @@
 	<div class="flex justify-between items-center w-full">
 		<div class="flex space-x-4">
 			{#if resetActive == true}
-				<button
-					class="btn btn-error rounded-md text-white border-orange-500 hover:bg-red-200 hover:text-red-600 hover:border-red-400"
-					onclick={onFilterReset}
-				>
+				<button class="btn btn-error rounded-md text-white" onclick={onFilterReset}>
 					<XCircle class="mt-1" /> Reset Filtro
 				</button>
 			{:else}
-				<button
-					class="btn bg-orange-500 rounded-md text-white border-orange-500 hover:bg-orange-200 hover:text-orange-600 hover:border-orange-400"
-					onclick={onOpenFilter}
-				>
+				<button class="btn btn-info rounded-md text-white" onclick={onOpenFilter}>
 					<Filter class="mt-1" /> Filtra
 				</button>
 			{/if}
 
-			<button
-				class="btn btn-success rounded-md text-white border-green-500 hover:bg-gray-200 hover:text-success hover:border-success"
-				onclick={onClickNewCourse}
-			>
+			<button class="btn btn-info rounded-md text-white" onclick={onClickNewCourse}>
 				<ListPlus /> Nuovo corso
 			</button>
 		</div>
@@ -339,10 +395,7 @@
 			Lista corsi
 		</header>
 
-		<button
-			class="btn btn-success rounded-md text-white border-green-500 hover:bg-gray-200 hover:text-success hover:border-success"
-			onclick={() => csvCreate()}
-		>
+		<button class="btn btn-info rounded-md text-white" onclick={() => csvCreate()}>
 			<ListPlus /> Scarica CSV
 		</button>
 	</div>
@@ -432,9 +485,9 @@
 					<!-- Data -->
 					<td>{row.eventStartDate}</td>
 					<!-- Ora -->
-					<td
-						>Da {moment(row.eventStartDate).format('HH:mm')}
-						a {moment(row.eventEndDate).format(' HH:mm')}
+					<td>
+						Da {row.timeStartDate}
+						a {row.timeEndDate}
 					</td>
 					<!-- Luogo -->
 					<td>

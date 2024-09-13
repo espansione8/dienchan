@@ -62,8 +62,13 @@
 
 		const res = await response.json();
 		if (response.status == 200) {
-			console.log('res table', res);
-			tableList = res;
+			//console.log('res table', res);
+			const getTable = res.map((obj) => ({
+				...obj,
+				orderDate: obj.orderDate.substring(0, 10),
+				totalCart: obj.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(0)
+			}));
+			tableList = getTable;
 			clearTimeout(startTimeout);
 			isModalFilterOrder = false;
 			toastClosed = false;
@@ -117,9 +122,8 @@
 		let newList: any = $state();
 
 		const flattenedArray = tableList.map((obj: any) => {
-			
 			return {
-				...obj,
+				...obj
 			};
 		});
 		//console.log('flattenedArray', flattenedArray);
@@ -240,10 +244,7 @@
 					<XCircle class="mt-1" /> Reset Filtro
 				</button>
 			{:else}
-				<button
-					class="btn bg-orange-500 rounded-md text-white border-orange-500 hover:bg-orange-200 hover:text-orange-600 hover:border-orange-400"
-					onclick={onOpenFilter}
-				>
+				<button class="btn rounded-md text-white btn-info" onclick={onOpenFilter}>
 					<Filter class="mt-1" /> Filtra
 				</button>
 			{/if}
@@ -253,17 +254,14 @@
 			Ordini
 		</header>
 
-		<button
-			class="btn btn-success rounded-md text-white border-green-500 hover:bg-gray-200 hover:text-success hover:border-success"
-			onclick={() => csvCreate()}
-		>
+		<button class="btn btn-info rounded-md text-white" onclick={() => csvCreate()}>
 			<ListPlus /> Scarica CSV
 		</button>
 	</div>
 
 	<table class="table mt-5 bg-white border-2">
 		<!-- head -->
-		<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">
+		<thead class="text-base italic bg-info text-accent">
 			<tr class="">
 				<th>Data</th>
 				<th>ID ordine</th>
@@ -304,7 +302,7 @@
 						</div>
 					</td>
 					<!-- Totale -->
-					<td>€{row.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(0)}</td>
+					<td>€ {row.totalCart}</td>
 					<!-- Tipo pagamento -->
 					<td>
 						{row.payment.method}
