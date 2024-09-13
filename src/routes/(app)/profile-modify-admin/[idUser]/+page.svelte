@@ -6,8 +6,8 @@
 	import Notification from '$lib/components/Notification.svelte';
 	import { province } from '$lib/stores/arrays.js';
 	import moment from 'moment';
-	import { Camera, Settings, X, Check, UserRound, Eye, EyeOff, Trash2 } from 'lucide-svelte';
-	import { country_list } from '$lib/stores/arrays.js';
+	import { Award, Settings, X, Check, UserRound, Eye, EyeOff, Trash2 } from 'lucide-svelte';
+	import { country_list, coursesInfo } from '$lib/stores/arrays.js';
 	import 'moment/min/locales.js';
 	moment.locale('it');
 
@@ -16,6 +16,8 @@
 	let { data } = $props();
 	let { userData, orderData } = $derived(data);
 
+	let provinceFilterate = $province.filter((p) => p.sigla !== 'ON');
+	
 	let picFilter = $derived(
 		userData.uploadfiles.filter((item: any) => {
 			return item.type == 'avatar';
@@ -149,6 +151,16 @@
 		if (type == 'countryPublic') countryPublic = !value;
 		if (type == 'phonePublic') phonePublic = !value;
 		if (type == 'mobilePhonePublic') mobilePhonePublic = !value;
+	};
+
+	const siglaToProvincia = (provinciaSigla: any) => {
+		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
+		return findProvincia.nome;
+	};
+
+	const imgSrc = (value: string) => {
+		const src = $coursesInfo.filter((item: any) => item.id == value);
+		return src[0].urlPic;
 	};
 
 	// profile pic upload
@@ -492,7 +504,7 @@
 							bind:value={countryState}
 						>
 							<option selected disabled>Scegli</option>
-							{#each $province as provincia, i}
+							{#each provinceFilterate as provincia, i}
 								<option value={provincia.sigla}>
 									{provincia.nome} ({provincia.sigla})
 								</option>
@@ -746,46 +758,61 @@
 				</figure>
 			</form>
 			<hr />
-			<span class=" py-4">
-				<strong>Membership:</strong> <br />
-			</span>
-			{#each membershipArray as membershipSingle}
-				<span class="flex items-center space-x-2">
-					<button class="btn btn-primary btn-md rounded-md">
-						<UserRound />
+			<div class="card-body">
+				<span class=" py-2 text-xl">
+					<strong>Associato:</strong> <br />
+				</span>
+				<span class="flex items-center space-x-2 mb-4">
+					<button class="btn btn-md bg-indigo-200 rounded-full hover:bg-yellow-400">
+						<Award size="30" color="orange" strokeWidth={2.5} />
 					</button>
 					<span class="ml-4">
-						Tipo: <b>{membershipSingle.membershipLevel}</b> | Status:
-						<b>{membershipSingle.membershipStatus ? 'attivo' : 'inattivo'}</b>
-						| Scade il:
-						<b>{moment(membershipSingle.membershipExpiry).format('DD/MM/YYYY HH:mm')}</b>
+						Livello: <b>{userData.membership.membershipLevel}</b> | Status:
+						<b>{userData.membership.membershipStatus ? 'Attivo' : 'Inattivo'}</b>
+						{#if userData.membership.membershipLevel == 'Socio ordinario'}
+							| Scadenza:
+							<b>{userData.membership.membershipExpiry}</b>
+						{/if}
 					</span>
 				</span>
-			{/each}
-			{#each orderData as element}
-				<p>
-					<button type="button" class="btn btn-primary ml-6">
-						<span class="icon">
-							<UserRound />
-						</span>
-					</button>
-					{element.orderDate.substring(0, 10)} | {element.totalPoints} credits | {element.status}
-				</p>
-			{/each}
+			</div>
 			<hr />
-			<span class=" py-4">
-				<strong>Order History:</strong> <br />
-			</span>
-			{#each orderData as element}
-				<p>
-					<button type="button" class="btn btn-primary ml-6">
-						<span class="icon">
-							<UserRound />
-						</span>
-					</button>
-					{element.orderDate.substring(0, 10)} | {element.totalPoints} credits | {element.status}
-				</p>
-			{/each}
+			<div class="card-body">
+				<p class="font-bold text-xl">Storico ordini:</p>
+				{#each orderData as order}
+					<div class="bg-indigo-200 my-4 p-6 rounded-lg shadow-lg">
+						<div class="flex justify-between items-center mb-4">
+							<div class="text-orange-600 text-lg font-bold">
+								<span class="block"
+									>Data: <span class="text-gray-800">{order.createdAt.substring(0, 10)}</span></span
+								>
+							</div>
+							<div class="text-orange-600 text-sm font-medium">
+								<span class="block"
+									>Ordine ID: <span class="text-gray-900">{order.orderId}</span></span
+								>
+							</div>
+						</div>
+						{#each order.cart as course}
+							<div class="flex items-center space-x-4 mb-3">
+								<img
+									src={imgSrc(course.category[0])}
+									alt="Immagine corso"
+									class="w-16 h-16 object-cover rounded-md"
+								/>
+								<div class="font-semibold">
+									<b>{course.title}</b> <br />
+									<span class="text-gray-600 text-sm">
+										{course.eventStartDate.substring(0, 10)} - {siglaToProvincia(course.location)} -
+										{course.name}
+										{course.surname}
+									</span>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/each}
+			</div>
 		</div>
 	</section>
 </div>

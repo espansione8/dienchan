@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
+	import Papa from 'papaparse';
 	import Notification from '$lib/components/Notification.svelte';
 	import {
 		ListPlus,
@@ -10,7 +11,8 @@
 		MapPin,
 		XCircle,
 		CircleAlert,
-		Search
+		Search,
+		ShieldAlert
 	} from 'lucide-svelte';
 	import moment from 'moment';
 	import { coursesInfo, province } from '$lib/stores/arrays';
@@ -57,13 +59,136 @@
 		});
 	};
 
-	let filterProvince = $state('');
+	//CSV file
+	const csvCreate = () => {
+		let csv = $state('');
+		let newList: any = $state();
+
+		const flattenObject = (obj: any, prefix = '') => {
+			return Object.keys(obj).reduce((acc, k) => {
+				const pre = prefix.length ? prefix + '_' : '';
+				if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
+					Object.assign(acc, flattenObject(obj[k], pre + k));
+				} else {
+					acc[pre + k] = obj[k];
+				}
+				return acc;
+			}, {});
+		};
+
+		const flattenedArray = tableList.map((obj: any) => {
+			return flattenObject(obj);
+		});
+
+		newList = flattenedArray.map((obj: any) => ({
+			...obj,
+			createdAt: obj.createdAt?.substring(0, 10),
+			birthdate: obj.birthdate?.substring(0, 10)
+		}));
+		//console.log('flattenedArray', flattenedArray);
+		newList = flattenedArray.map((obj: any) => ({
+			...obj,
+			createdAt: obj.createdAt?.substring(0, 10),
+			birthdate: obj.birthdate?.substring(0, 10)
+		}));
+		newList.forEach((obj: any) => {
+			delete obj.__v;
+			delete obj.attribute1;
+			delete obj.attribute2;
+			delete obj.attribute3;
+			delete obj.attribute4;
+			delete obj.attribute5;
+			delete obj.attribute6;
+			delete obj.attribute7;
+			delete obj.attribute8;
+			delete obj.attribute9;
+			delete obj.brand;
+			delete obj.brandId;
+			delete obj.bundleProduct;
+			delete obj.categoryId;
+			delete obj.cost;
+			delete obj.dateAdd;
+			delete obj.dateUpd;
+			delete obj.depth;
+			delete obj.attribute10;
+			delete obj.condition;
+			delete obj.feature;
+			delete obj.filterPermissionToEdit;
+			delete obj.height;
+			delete obj.image1;
+			delete obj.image2;
+			delete obj.image3;
+			delete obj.image4;
+			delete obj.image5;
+			delete obj.image6;
+			delete obj.image7;
+			delete obj.image8;
+			delete obj.imgFull;
+			delete obj.imgThumb;
+			delete obj.listSubscribers;
+			delete obj.manufacturer;
+			delete obj.manufacturerCod;
+			delete obj.msrp;
+			delete obj.notes;
+			delete obj.points;
+			delete obj.priceSetByBundle;
+			delete obj.promoEndDate;
+			delete obj.promoStartDate;
+			delete obj.promoterProCod;
+			delete obj.rating;
+			delete obj.rewardProgramDetails;
+			delete obj.shippingCost;
+			delete obj.sku;
+			delete obj.state;
+			delete obj.value1;
+			delete obj.value2;
+			delete obj.value3;
+			delete obj.value4;
+			delete obj.value5;
+			delete obj.value6;
+			delete obj.value7;
+			delete obj.value8;
+			delete obj.value9;
+			delete obj.value10;
+			delete obj.vatType;
+			delete obj.vatValue;
+			delete obj.weight;
+			delete obj.video;
+			delete obj.birthdate;
+			delete obj.filterPermissionToSee;
+			delete obj.manufacturerId;
+			delete obj.orderQuantity;
+			delete obj.width;
+		});
+
+		//CSV UNPARSE
+		csv = Papa.unparse(newList, {
+			quotes: false, //or array of booleans
+			quoteChar: '"',
+			escapeChar: '"',
+			delimiter: ';',
+			header: true,
+			//newline: '\r\n',
+			skipEmptyLines: false //other option is 'greedy', meaning skip delimiters, quotes, and whitespace.
+		});
+		//console.log('csv', csv);
+
+		//DOWNLOAD file
+		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+		// create a link element to download the zip archive
+		const link = document.createElement('a');
+		link.href = URL.createObjectURL(blob);
+		link.download = `TableExport_Corsi.csv`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+
+		// Release the URL object
+		URL.revokeObjectURL(link.href);
+	};
+
 	let isModalFilterCourse = $state(false);
-	let isModalDelete = $state(false);
 	let resetActive = $state(false);
-	let errorFilterModal = $state('');
-	let quickSearch = $state('data'); // radio button
-	let quickSearchInput = $state('');
 	//filter
 	let selectedLocation = $state('');
 	let selectedTitle = $state('');
@@ -71,6 +196,7 @@
 
 	const onCloseFilterSearch = () => {
 		isModalFilterCourse = false;
+		resetFieldsModalFilter();
 		onFilterReset();
 	};
 
@@ -99,11 +225,16 @@
 		const res = await response.json();
 		if (response.status == 200) {
 			//console.log('res table', res);
+			// tableList = res.map((obj) => ({
+			// 	...obj,
+			// 	orderDate: obj.orderDate.substring(0, 10)
+			// }));
 			tableList = res;
 			clearTimeout(startTimeout);
 			isModalFilterCourse = false;
 			toastClosed = false;
-			notificationContent = 'corsi filtrati';
+			notificationContent = 'Corsi filtrati';
+			resetFieldsModalFilter();
 			closeNotification();
 		}
 		if (response.status != 200) {
@@ -117,14 +248,19 @@
 
 	const onOpenFilter = () => {
 		isModalFilterCourse = true;
-		quickSearch = 'location';
+	};
+
+	const resetFieldsModalFilter = () => {
+		selectedLocation = '';
+		selectedTitle = '';
+		selectedUserId = '';
 	};
 
 	const onFilterReset = () => {
 		resetActive = false;
 		tableList = getTable;
+
 		invalidateAll();
-		quickSearchInput = '';
 	};
 
 	// filter
@@ -205,6 +341,7 @@
 
 		<button
 			class="btn btn-success rounded-md text-white border-green-500 hover:bg-gray-200 hover:text-success hover:border-success"
+			onclick={() => csvCreate()}
 		>
 			<ListPlus /> Scarica CSV
 		</button>
@@ -278,7 +415,9 @@
 		<tbody>
 			<!-- row -->
 			{#if tableList.length == 0}
-				<tr class="hover:bg-gray-300"><td> no data</td></tr>
+				<tr class="hover:bg-gray-300">
+					<td> </td>
+				</tr>
 			{/if}
 			{#each tableList as row}
 				<tr class="hover:bg-gray-300">
@@ -327,124 +466,94 @@
 			{/each}
 		</tbody>
 	</table>
+	{#if tableList.length == 0}
+		<div
+			class="alert alert-warning shadow-lg flex item-center text-center justify-center rounded-md mt-3 mx-auto w-full max-w-lg"
+		>
+			<div>
+				<ShieldAlert />
+				<br />
+				<span class="mt-2 text-semibold">
+					Nessun corso trovato. Cambia parametri o resetta il filtro.
+				</span>
+			</div>
+		</div>
+	{/if}
 </div>
 <Notification {toastClosed} {notificationContent} {notificationError} />
-<!-- modal filter Province -->
-<!-- <dialog id="my_modal_2" class="modal" class:modal-open={isModalProvincie}>
-	<div class="modal-box flex flex-col text-center rounded-lg">
-		<h3 class="font-bold text-xl">Seleziona il luogo</h3>
-		<div class="mt-4 flex justify-center">
-			<select
-				bind:value={selectedLocation}
-				onchange={filterByLocation}
-				class="select select-bordered w-full max-w-xs"
-			>
-				<option value="">Tutti i luoghi</option>
-				{#each $province as item}
-					<option value={item.nome}>{item.nome}</option>
-				{/each}
-			</select>
-		</div>
-		<button
-			class="mt-5 btn btn-sm w-24 bg-red-500 text-white rounded-md hover:bg-red-600"
-			onclick={() => (isModalProvincie = false)}
-		>
-			Annulla
-		</button>
-	</div>
-</dialog> -->
-<!-- modal filter Province -->
 
-<!-- modal filter jobs -->
+<!-- modal filter  -->
 <dialog id="modal_filter" class="modal" class:modal-open={isModalFilterCourse}>
-	<div class="modal-box">
-		<section class="card col-span-12 md:col-span-3 bg-base-100">
-			<div class="alert bg-accent font-bold flex items-center">
-				<span>Filtri</span>
-				<!-- Location -->
-				<div class="flex items-center">
-					<input
-						type="radio"
-						id="location-radio"
-						name="quickSearch6"
-						class="radio radio-sm mr-2"
-						bind:group={quickSearch}
-						value={'location'}
-					/>
-					<label for="location-radio" class="cursor-pointer">Luogo</label>
-				</div>
-				<!-- category -->
-				<div class="flex items-center">
-					<input
-						type="radio"
-						id="category-radio"
-						name="quickSearch7"
-						class="radio radio-sm mr-2"
-						bind:group={quickSearch}
-						value={'category'}
-					/>
-					<label for="category-radio" class="cursor-pointer">Categoria</label>
-				</div>
-				<!-- riflessologo -->
-				<div class="flex items-center">
-					<input
-						type="radio"
-						id="reflexologist-radio"
-						name="quickSearch7"
-						class="radio radio-sm mr-2"
-						bind:group={quickSearch}
-						value={'reflexologist'}
-					/>
-					<label for="reflexologist-radio" class="cursor-pointer">Riflessologo</label>
-				</div>
-			</div>
-			{#if quickSearch == 'location'}
-				<!-- Location -->
-				<h3 class="font-bold text-center text-xl mt-4">Seleziona il luogo</h3>
-				<div class="mt-4 flex justify-center">
-					<select bind:value={selectedLocation} class="select select-bordered w-full max-w-xs">
-						<option value="">Tutti i luoghi</option>
+	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-2xl">
+		<div class="bg-gradient-to-r from-orange-500 to-red-600 p-5 rounded-t-lg">
+			<h2 class="text-2xl font-bold text-white mb-1">Filtri di Ricerca</h2>
+			<p class="text-blue-100">Personalizza la tua ricerca selezionando i criteri desiderati</p>
+		</div>
+
+		<div class="p-6 space-y-6">
+			<div class="space-y-4">
+				<div>
+					<label for="location" class="block text-sm font-medium text-gray-700 mb-1">Luogo</label>
+					<select
+						id="location"
+						bind:value={selectedLocation}
+						class="select select-bordered w-full bg-orange-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					>
+						<option value="">Scegli un luogo</option>
 						{#each $province as item}
 							<option value={item.sigla}>{item.nome}</option>
 						{/each}
 					</select>
 				</div>
-				<div class="modal-action">
-					<button class="btn btn-error" onclick={() => onCloseFilterSearch()}>Annulla</button>
-					<button class="btn btn-success" onclick={onSubmitFilterSearch}>Cerca</button>
-				</div>
-			{:else if quickSearch == 'category'}
-				<!-- category -->
-				<h3 class="font-bold text-center text-xl mt-4">Seleziona la categoria</h3>
-				<div class="mt-4 flex justify-center">
-					<select bind:value={selectedTitle} class="select select-bordered w-full max-w-xs">
-						<option disabled value="">Scegli</option>
+
+				<div>
+					<label for="category" class="block text-sm font-medium text-gray-700 mb-1"
+						>Categoria</label
+					>
+					<select
+						id="category"
+						bind:value={selectedTitle}
+						class="select select-bordered w-full bg-orange-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					>
+						<option value="">Scegli una categoria</option>
 						{#each $coursesInfo as option}
 							<option value={option.title}>{option.id}</option>
 						{/each}
 					</select>
 				</div>
-				<div class="modal-action">
-					<button class="btn btn-error" onclick={() => onCloseFilterSearch()}>Annulla</button>
-					<button class="btn btn-success" onclick={onSubmitFilterSearch}>Cerca</button>
-				</div>
-			{:else if quickSearch == 'reflexologist'}
-				<!-- reflexologist -->
-				<h3 class="font-bold text-center text-xl mt-4">Seleziona il riflessologo</h3>
-				<div class="mt-4 flex justify-center">
-					<select bind:value={selectedUserId} class="select select-bordered w-full max-w-xs">
-						<option disabled value="">Scegli</option>
+
+				<div>
+					<label for="reflexologist" class="block text-sm font-medium text-gray-700 mb-1"
+						>Riflessologo</label
+					>
+					<select
+						id="reflexologist"
+						bind:value={selectedUserId}
+						class="select select-bordered w-full bg-orange-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					>
+						<option value="">Scegli un riflessologo</option>
 						{#each getTableNames as item}
 							<option value={item.userId}>{item.surname} {item.name}</option>
 						{/each}
 					</select>
 				</div>
-				<div class="modal-action">
-					<button class="btn btn-error" onclick={() => onCloseFilterSearch()}>Annulla</button>
-					<button class="btn btn-success" onclick={onSubmitFilterSearch}>Cerca</button>
-				</div>
-			{/if}
-		</section>
+			</div>
+		</div>
+
+		<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
+			<button
+				class="btn btn-error btn-sm rounded-md hover:bg-red-300"
+				onclick={onCloseFilterSearch}
+			>
+				Annulla
+			</button>
+			<button
+				class="btn btn-success btn-sm rounded-md hover:bg-green-400"
+				onclick={onSubmitFilterSearch}
+			>
+				Applica Filtri
+			</button>
+		</div>
 	</div>
 </dialog>
-<!-- /modal filter jobs -->
+<!-- /modal filter  -->

@@ -6,44 +6,31 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 	if (!locals.auth) {
 		throw redirect(302, '/login');
 	}
-
-	// const res = await fetch(
-	// 	`${import.meta.env.VITE_BASE_URL}/api/document-page/page-content/${params.idUser}/${
-	// 		params.idPage
-	// 	}`
-	// );
-	// const getPage = await res.json();
-
-	// if (getPage.status == 'disabled') throw redirect(302, `/expired?ssn=${params.idPage}`);
-	// const resSessionUser = await fetch(
-	// 	`${import.meta.env.VITE_BASE_URL}/api/orders/findId/${session.user.userId}`
-	// );
-	// const sessionUserData = await resSessionUser.json();
-	// console.log('sessionUserData', sessionUserData.level);
-
+	
 	const resUser = await fetch(
 		`${import.meta.env.VITE_BASE_URL}/api/users/findUserId/${params.idUser}`
 	);
 
 	const userData = await resUser.json();
 
+	// console.log('userData', userData._id);
+
 	const resOrder = await fetch(
-		`${import.meta.env.VITE_BASE_URL}/api/orders/findId/${userData._id}`
+		`${import.meta.env.VITE_BASE_URL}/api/orders/findId/${userData.userId}`
 	);
+
 	const getOrderData = await resOrder.json();
 
-	// const getUserSession = await resUser.json();
-	// const ownerSession = getUserSession[0].cookieId;
-	// /////////////////
-	// // console.log('res.ok', res.ok);
-	// //console.log('server getUserSession', getUserSession[0].cookieId);
-	// if (ownerSession == localSession) {
-	// 	modifyAuth = true;
-	// }
+	const getOrder = getOrderData.map((obj) => ({
+		...obj,
+		createdAt: obj.createdAt.substring(0, 10)
+	}));
+
+	// console.log('getOrder', getOrder);
+
 	return {
 		userData,
-		orderData: getOrderData,
-		sessionUserData: locals.data,
+		orderData: getOrder,
 		auth: locals.auth
 	};
 }

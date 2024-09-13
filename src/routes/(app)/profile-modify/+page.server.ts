@@ -8,6 +8,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	}
 	let getOrderData = [];
 	let getOrder = [];
+	// console.log('locals.data', locals.data.userId);
 	const res = await fetch(
 		`${import.meta.env.VITE_BASE_URL}/api/orders/findId/${locals.data.userId}`
 	);

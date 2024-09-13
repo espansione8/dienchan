@@ -18,9 +18,6 @@
 
 	let provinceFilterate = $province.filter((p) => p.sigla !== 'ON');
 
-	// console.log('orderData', orderData);
-	// console.log('orderData.cart0', orderData[0].cart[0]);
-
 	let picFilter = $derived(
 		userData.uploadfiles.filter((item: any) => {
 			return item.type == 'avatar';

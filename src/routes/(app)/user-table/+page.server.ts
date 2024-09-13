@@ -18,7 +18,8 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		//console.log('res getTableData', resGetTableData)
 		getTableUser = resGetTableUser.map((obj: any) => ({
 			...obj,
-			createdAt: obj.createdAt.substring(0, 10)
+			createdAt: obj.createdAt.substring(0, 10),
+			// membershipExpiry = membership.membershipExpiry.toISOString().substring(0, 10)
 		}));
 	} catch (error) {
 		console.log('fetch error:', error);

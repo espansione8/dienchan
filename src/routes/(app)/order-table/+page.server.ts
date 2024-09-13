@@ -7,6 +7,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		throw redirect(302, '/login');
 	}
 	let getOrders = [];
+	let getTableNames = [];
 	try {
 		//const userData = locals.data
 		//console.log('MY DOCS userData', userData);
@@ -15,17 +16,25 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		);
 		const resGetOrders = await res.json();
 		//console.log('MY DOCS res.ok', res.ok);
-		console.log('res resGetOrders', resGetOrders)
+		// console.log('res resGetOrders', resGetOrders)
 		getOrders = resGetOrders.map((obj) => ({
 			...obj,
 			orderDate: obj.orderDate.substring(0, 10)
 		}));
+
+		// LISTA NOMI RIFLESSOLOGI
+		const resName = await fetch(
+			`${import.meta.env.VITE_BASE_URL}/api/users/all-active-names/0/0`
+		);
+		getTableNames = await resName.json();
+
 	} catch (error) {
 		console.log('orders fetch error:', error);
 	}
 	//console.log('res getTableData', getTableData);
 	return {
 		getOrders,
+		getTableNames,
 		auth: locals.auth
 		//userData
 	};
