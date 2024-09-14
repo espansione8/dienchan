@@ -45,21 +45,22 @@
 			console.log('Error logout', err);
 		}
 	};
-	$effect(() => {
-		sessionAuth = $page?.data?.auth;
-		if (sessionAuth) {
-			logged = true;
-			userLevel = $page?.data?.userData?.level || '';
-		} else {
-			logged = false;
-			userLevel = '';
-		}
-		pointsBalance = $page?.data?.userData?.pointsBalance || 0;
-	});
+	// TO test with STORE
+	// $effect(() => {
+	// 	sessionAuth = $page?.data?.auth;
+	// 	if (sessionAuth) {
+	// 		logged = true;
+	// 		userLevel = $page?.data?.userData?.level || '';
+	// 	} else {
+	// 		logged = false;
+	// 		userLevel = '';
+	// 	}
+	// 	pointsBalance = $page?.data?.userData?.pointsBalance || 0;
+	// });
 </script>
 
 <!-- Navbar -->
-<nav class="navbar bg-gray-300 {logged ? 'justify-between' : 'justify-center'}">
+<nav class="navbar {logged ? 'justify-between' : 'justify-center'}">
 	<!-- Logo e titolo-->
 	<div class="flex flex-col items-center">
 		<span class="">
@@ -70,8 +71,8 @@
 			<span class="text-gray-400 mx-1">
 				<strong>Buongiorno {`${userName} ${userSurname}`}</strong>
 			</span>
-			<span class="text-green-800 mx-1">
-				<strong>Punti: {pointsBalance}</strong>
+			<span class="text-success mx-1">
+				<strong>Crediti: {pointsBalance}</strong>
 			</span>
 		{/if}
 	</div>
@@ -225,7 +226,7 @@
 	<div class="hidden sm:flex gap-2">
 		<ul class="hidden menu sm:menu-horizontal gap-3">
 			<a
-				class="btn btn-sm btn-outline btn-accent rounded-full text-warning"
+				class="btn btn-sm btn-outline btn-accent rounded-full"
 				class:active={$page.url.pathname === '/membership-new/'}
 				href="/membership-new"
 				aria-current="page"
@@ -280,39 +281,37 @@
 				</a>
 				{#if logged && userLevel == 'superadmin'}
 					<div class="dropdown dropdown-end">
-						<button
-							class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"
-						>
+						<button class="btn btn-sm btn-primary btn-outline text-base-100 px-3 py-2">
 							<span class="flex justify-between"
 								><strong>Gestione</strong>
 								<ChevronDown class="-mt-1" /></span
 							>
 						</button>
-						<ul class="dropdown-content menu z-[1] bg-gray-200 p-2 rounded-lg shadow w-max gap-2">
+						<ul class="dropdown-content menu z-[1] bg-base-100 p-2 rounded-lg shadow w-max gap-2">
 							<li>
 								<a
-									class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"
+									class="btn btn-sm btn-primary btn-outline px-3 py-2"
 									href="/course-table"
 									aria-current="page"><strong>Corsi</strong></a
 								>
 							</li>
 							<li>
 								<a
-									class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"
+									class="btn btn-sm btn-primary btn-outline px-3 py-2"
 									href="/product-table"
 									aria-current="page"><strong>Prodotti</strong></a
 								>
 							</li>
 							<li>
 								<a
-									class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"
+									class="btn btn-sm btn-primary btn-outline px-3 py-2"
 									href="/membership-table"
 									aria-current="page"><strong>Membership</strong></a
 								>
 							</li>
 							<li>
 								<a
-									class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"
+									class="btn btn-sm btn-primary btn-outline px-3 py-2"
 									href="/user-table"
 									aria-current="page"><strong>Utenti</strong></a
 								>
@@ -320,7 +319,7 @@
 
 							<li>
 								<a
-									class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"
+									class="btn btn-sm btn-primary btn-outline px-3 py-2"
 									href="/order-table"
 									aria-current="page"><strong>Ordini</strong></a
 								>
@@ -330,9 +329,7 @@
 				{/if}
 				{#if logged && userLevel == 'formatore'}
 					<div class="dropdown dropdown-end">
-						<button
-							class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"
-						>
+						<button class="btn btn-sm btn-primary btn-outline text-base-100 px-3 py-2">
 							<span class="flex justify-between"
 								><strong>Gestione</strong>
 								<ChevronDown class="-mt-1" /></span
@@ -341,7 +338,7 @@
 						<ul class="dropdown-content menu z-[1] bg-gray-200 p-2 rounded-lg shadow w-max gap-2">
 							<li>
 								<a
-									class="btn btn-sm bg-transparent border-green-500 text-green-500 px-3 py-2 hover:border-red-500 hover:text-orange-500"
+									class="btn btn-sm btn-primary btn-outline px-3 py-2"
 									href="/course-table"
 									aria-current="page"><strong>Corsi</strong></a
 								>
@@ -351,20 +348,14 @@
 				{/if}
 			{/if}
 			{#if logged}
-				<button
-					onclick={logOutNow}
-					class="btn btn-sm bg-transparent border-red-900 text-red-900 hover:text-red-900 hover:border-red-900 hover:bg-red-500"
-				>
+				<button onclick={logOutNow} class="btn btn-sm btn-error btn-outline">
 					<span class="flex justify-center gap-1">
 						<LogOut size="16" strokeWidth={2.5} />
 						<strong>Logout</strong>
 					</span>
 				</button>
 			{:else}
-				<a
-					href="/login"
-					class="btn btn-sm bg-transparent border-green-700 text-green-700 hover:text-green-700 hover:border-green-700 hover:bg-green-500"
-				>
+				<a href="/login" class="btn btn-sm btn-success btn-outline">
 					<span class="flex justify-center gap-1">
 						<LogIn size="16" strokeWidth={2.5} />
 						<strong>Login</strong>
@@ -374,6 +365,7 @@
 		</ul>
 	</div>
 </nav>
+<hr />
 
 <style>
 </style>

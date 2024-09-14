@@ -22,12 +22,3 @@ export const load: PageServerLoad = async ({ locals }) => {
 		auth: locals.auth
 	};
 }
-
-primary #f50101
-secondary #1a93dc
-accent #292fa7
-
-info 66d1ff
-success 48c78e
-warning ffb70f
-danger ff6685

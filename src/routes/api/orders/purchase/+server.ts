@@ -86,7 +86,7 @@ export const POST = async ({ request }) => {
 		newOrder.userId = userId;
 		newOrder.cart = cart;
 		newOrder.payment.method = paymentType;
-
+		newOrder.totalValue = cart.reduce((total: number, item: any) => total + item.price, 0);
 
 		const order = await newOrder.save()
 

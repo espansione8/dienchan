@@ -491,37 +491,22 @@
 	<div class="flex justify-between items-center w-full">
 		<div class="flex space-x-4">
 			{#if resetActive == true}
-				<button
-					class="btn btn-error rounded-md text-white border-orange-500 hover:bg-red-200 hover:text-red-600 hover:border-red-400"
-					onclick={onFilterReset}
-				>
+				<button class="btn btn-error rounded-md text-white" onclick={onFilterReset}>
 					<XCircle class="mt-1" /> Reset Filtro
 				</button>
 			{:else}
-				<button
-					class="btn bg-orange-500 rounded-md text-white border-orange-500 hover:bg-orange-200 hover:text-orange-600 hover:border-orange-400"
-					onclick={onOpenFilter}
-				>
+				<button class="btn btn-info rounded-md text-white" onclick={onOpenFilter}>
 					<Filter class="mt-1" /> Filtra
 				</button>
 			{/if}
-
-			<button
-				class="btn btn-success rounded-md text-white border-green-500 hover:bg-gray-200 hover:text-success hover:border-success"
-				onclick={() => onGotoNewUser()}
-			>
+			<button class="btn btn-info rounded-md text-white" onclick={() => onGotoNewUser()}>
 				<ListPlus /> Nuovo utente
 			</button>
 		</div>
-
 		<header class="text-2xl font-bold text-gray-700 absolute left-1/2 transform -translate-x-1/2">
 			Lista utenti
 		</header>
-
-		<button
-			class="btn btn-success rounded-md text-white border-green-500 hover:bg-gray-200 hover:text-success hover:border-success"
-			onclick={() => csvCreate()}
-		>
+		<button class="btn rounded-md text-white btn-info" onclick={() => csvCreate()}>
 			<ListPlus /> Scarica CSV
 		</button>
 	</div>
@@ -669,7 +654,7 @@
 <!-- modal filter  -->
 <dialog id="modal_filter" class="modal" class:modal-open={isModalFilterCourse}>
 	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-2xl">
-		<div class="bg-gradient-to-r from-orange-500 to-red-600 p-5 rounded-t-lg">
+		<div class="bg-gradient-to-r from-orange-500 to-red-600 p-5 rounded-t-lg glass">
 			<h2 class="text-2xl font-bold text-white mb-1">Filtri di Ricerca</h2>
 			<p class="text-blue-100">Personalizza la tua ricerca selezionando i criteri desiderati</p>
 		</div>

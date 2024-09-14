@@ -11,17 +11,17 @@ export const POST = async ({ request }) => {
 		surname,
 		email,
 		address,
+		postalCode,
 		city,
 		countryState,
-		postalCode,
 		country,
 		phone,
 		mobilePhone,
 		password1,
 		membershipLevel,
-		membershipExpiry
 	} = body;
 	const newPass = stringHash(password1);
+	const membershipExpiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
 
 	try {
 		// Connecting to DB

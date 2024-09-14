@@ -165,7 +165,7 @@
 			}
 		});
 		const res = await response.json();
-		console.log('res cart', res);
+		//console.log('res cart', res);
 		if (response.status == 200) {
 			fieldReset();
 			isModalConfirm = false;
@@ -173,7 +173,11 @@
 			notificationContent = res.message;
 			clearTimeout(startTimeout);
 			closeNotification();
-			isModalSuccess = true;
+			if (auth) {
+				isModalSuccess = true;
+			} else {
+				isModalSuccessLogin = true;
+			}
 		}
 		if (response.status != 200) {
 			toastClosed = false;
@@ -181,47 +185,6 @@
 			notificationContent = res.message;
 			clearTimeout(startTimeout);
 		}
-		// } else {
-		// 	const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/orders/purchase`, {
-		// 		method: 'POST',
-		// 		body: JSON.stringify({
-		// 			name,
-		// 			surname,
-		// 			email,
-		// 			password1, // only registration
-		// 			address,
-		// 			city,
-		// 			countryState,
-		// 			postalCode,
-		// 			country,
-		// 			phone,
-		// 			mobilePhone,
-		// 			cart: $cartProducts,
-		// 			paymentType,
-		// 			userId: userData.userId
-		// 		}),
-		// 		headers: {
-		// 			'Content-Type': 'application/json'
-		// 		}
-		// 	});
-
-		// 	const res = await response.json();
-		// 	if (response.status == 200) {
-		// 		fieldReset();
-		// 		isModalConfirm = false;
-		// 		toastClosed = false;
-		// 		notificationContent = res.message;
-		// 		clearTimeout(startTimeout);
-		// 		closeNotification();
-		// 		isModalSuccessLogin = true;
-		// 	}
-		// 	if (response.status != 200) {
-		// 		notificationError = true;
-		// 		toastClosed = false;
-		// 		notificationContent = res.message;
-		// 		clearTimeout(startTimeout);
-		// 	}
-		// }
 	};
 
 	function siglaToProvincia(provinciaSigla: any) {
@@ -803,7 +766,7 @@
 <!-- /modal CART -->
 
 <!-- modal CONFIRM -->
-<dialog id="my_modal_2" class="modal" class:modal-open={isModalSuccess}>
+<dialog id="my_modal_2" class="modal" class:modal-open={isModalSuccessLogin}>
 	<div class="modal-box">
 		<h3 class="font-bold text-lg">ORDINE CONFERMATO</h3>
 		<p class="py-2 font-semibold">Ora puoi fare LOGIN con EMAIL e PASSWORD</p>
@@ -811,7 +774,7 @@
 		<div class="modal-action">
 			<button
 				class="btn btn-sm btn-primary w-24 hover:bg-white hover:blue-red-500 rounded-lg"
-				onclick={() => (isModalSuccess = false)}>Chiudi</button
+				onclick={() => (isModalSuccessLogin = false)}>Chiudi</button
 			>
 		</div>
 	</div>
@@ -819,7 +782,7 @@
 <!-- /modal CONFIRM -->
 
 <!-- modal CONFIRM LOGIN -->
-<dialog id="my_modal_2" class="modal" class:modal-open={isModalSuccessLogin}>
+<dialog id="my_modal_2" class="modal" class:modal-open={isModalSuccess}>
 	<div class="modal-box">
 		<h3 class="font-bold text-lg">CORSO ORDINE CONFERMATO</h3>
 		<p class="py-2 font-semibold">Puoi vedere lo storico ordini nella pagina: Impostazioni.</p>
@@ -827,7 +790,7 @@
 		<div class="modal-action">
 			<button
 				class="btn btn-sm btn-primary w-24 hover:bg-white hover:text-blue-500 rounded-lg"
-				onclick={() => (isModalSuccessLogin = false)}>Chiudi</button
+				onclick={() => (isModalSuccess = false)}>Chiudi</button
 			>
 		</div>
 	</div>

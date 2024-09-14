@@ -208,7 +208,7 @@
 	};
 	const testSecondPass = () => (checkSecondPass = password1 === password2);
 
-	async function submitRegistrationOrdinary() {
+	const submitRegistrationOrdinary = async () => {
 		error = null;
 		if (!checkPass || !checkSecondPass) {
 			error = 'PASSWORD DIFFERENTI';
@@ -229,8 +229,8 @@
 				phone,
 				mobilePhone,
 				password1,
-				membershipLevel: 'Socio ordinario',
-				membershipExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+				membershipLevel: 'Socio ordinario'
+				//membershipExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -243,7 +243,7 @@
 			toastClosed = false;
 			notificationContent = content;
 			closeNotification();
-			fieldReset(); // svuota i campi dopo inserimento
+			fieldReset();
 			isModalRegister = false;
 		}
 		if (response.status != 200) {
@@ -255,9 +255,9 @@
 			closeNotification();
 			isModalRegister = false;
 		}
-	}
+	};
 
-	async function submitRegistrationLifetime() {
+	const submitRegistrationLifetime = async () => {
 		isModalLifetime = false;
 		error = null;
 		if (!checkPass || !checkSecondPass) {
@@ -279,8 +279,8 @@
 				phone,
 				mobilePhone,
 				password1,
-				membershipLevel: 'Socio vitalizio',
-				membershipExpiry: new Date(Date.now() + 36500 * 24 * 60 * 60 * 1000)
+				membershipLevel: 'Socio vitalizio'
+				//membershipExpiry: new Date(Date.now() + 36500 * 24 * 60 * 60 * 1000)
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -305,7 +305,7 @@
 			closeNotification();
 			isModalRegister = false;
 		}
-	}
+	};
 
 	const fieldReset = () => {
 		name = '';
@@ -1011,14 +1011,14 @@
 							</header>
 							<!-- Nome -->
 							<section class="col-span-4 md:col-span-2">
-								<label for="nome" class="form-label">
+								<label for="nome1" class="form-label">
 									<p class="font-bold mb-2">Nome</p>
 								</label>
 								<div class="join join-horizontal rounded-md w-full">
 									<button class="join-item bg-gray-300 px-3"><User /></button>
 									<input
 										class="input input-bordered join-item w-full"
-										id="nome"
+										id="nome1"
 										type="text"
 										placeholder="Nome"
 										aria-label="nome"
@@ -1030,14 +1030,14 @@
 							</section>
 							<!-- Cognome -->
 							<section class="col-span-4 md:col-span-2">
-								<label for="cognome" class="form-label">
+								<label for="cognome1" class="form-label">
 									<p class="font-bold mb-2">Cognome</p>
 								</label>
 								<div class="join join-horizontal rounded-md w-full">
 									<button class="join-item bg-gray-300 px-3"><User /></button>
 									<input
 										class="input input-bordered join-item w-full"
-										id="cognome"
+										id="cognome1"
 										type="text"
 										placeholder="Cognome"
 										aria-label="cognome"
@@ -1049,14 +1049,14 @@
 							</section>
 							<!-- Email -->
 							<section class="col-span-4">
-								<label for="email" class="form-label">
+								<label for="email1" class="form-label">
 									<p class="font-bold mb-2">Email</p>
 								</label>
 								<div class="join join-horizontal rounded-md w-full">
 									<button class="join-item bg-gray-300 px-3"><Mail /></button>
 									<input
 										class="input input-bordered join-item w-full"
-										id="email"
+										id="email1"
 										type="email"
 										placeholder="Tua Email"
 										aria-label="Email"
@@ -1068,14 +1068,14 @@
 							</section>
 							<!-- Indirizzo -->
 							<section class="col-span-4">
-								<label for="indirizzo" class="form-label">
+								<label for="indirizzo1" class="form-label">
 									<p class="font-bold mb-2">Indirizzo</p>
 								</label>
 								<div class="join join-horizontal rounded-md w-full">
 									<button class="join-item bg-gray-300 px-3"><MapPin /></button>
 									<input
 										class="input input-bordered join-item w-full"
-										id="indirizzo"
+										id="indirizzo1"
 										type="text"
 										placeholder="Indirizzo"
 										aria-label="indirizzo"
@@ -1087,14 +1087,14 @@
 							</section>
 							<!-- CAP -->
 							<section class="col-span-4 md:col-span-2">
-								<label for="cap" class="form-label">
+								<label for="cap1" class="form-label">
 									<p class="font-bold mb-2">CAP</p>
 								</label>
 								<div class="join join-horizontal rounded-md w-full">
 									<button class="join-item bg-gray-300 px-3"><MapPin /></button>
 									<input
 										class="input input-bordered join-item w-full"
-										id="cap"
+										id="cap1"
 										type="text"
 										placeholder="CAP"
 										aria-label="cap"
@@ -1106,14 +1106,14 @@
 							</section>
 							<!-- Citta -->
 							<section class="col-span-4 md:col-span-2">
-								<label for="citta" class="form-label">
+								<label for="citta1" class="form-label">
 									<p class="font-bold mb-2">Città</p>
 								</label>
 								<div class="join join-horizontal rounded-md w-full">
 									<button class="join-item bg-gray-300 px-3"><Building2 /></button>
 									<input
 										class="input input-bordered join-item w-full"
-										id="citta"
+										id="citta1"
 										type="text"
 										placeholder="Città"
 										aria-label="citta"
@@ -1125,14 +1125,14 @@
 							</section>
 							<!-- Provincia -->
 							<section class="col-span-4">
-								<label for="provincia" class="form-label">
+								<label for="provincia1" class="form-label">
 									<p class="font-bold mb-2">Provincia</p>
 								</label>
 								<div class="join join-horizontal rounded-md w-full">
 									<button class="join-item bg-gray-300 px-3"><Building2 /></button>
 									<select
 										class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
-										id="provincia"
+										id="provincia1"
 										aria-label="Provincia"
 										aria-describedby="basic-provincia"
 										placeholder="Scegli"
@@ -1150,7 +1150,7 @@
 							</section>
 							<!-- Nazione -->
 							<section class="col-span-4">
-								<label for="nazione" class="form-label">
+								<label for="nazione1" class="form-label">
 									<p class="font-bold mb-2">Nazione</p>
 								</label>
 								<div class="join join-horizontal rounded-md w-full">
@@ -1158,7 +1158,7 @@
 									<select
 										class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
 										aria-label="Default select example"
-										id="nazione"
+										id="nazione1"
 										name="nazione"
 										required
 										bind:value={country}
@@ -1174,14 +1174,14 @@
 							</section>
 							<!-- Telefono -->
 							<section class="col-span-4">
-								<label for="telefono" class="form-label">
+								<label for="telefono1" class="form-label">
 									<p class="font-bold mb-2">Telefono</p>
 								</label>
 								<div class="join join-horizontal rounded-md w-full">
 									<button class="join-item bg-gray-300 px-3"><Phone /></button>
 									<input
 										class="input input-bordered join-item w-full"
-										id="telefono"
+										id="telefono1"
 										type="text"
 										placeholder="Telefono"
 										aria-label="telefono"
@@ -1192,14 +1192,14 @@
 							</section>
 							<!-- Cellulare -->
 							<section class="col-span-4">
-								<label for="cellulare" class="form-label">
+								<label for="cellulare1" class="form-label">
 									<p class="font-bold mb-2">Cellulare</p>
 								</label>
 								<div class="join join-horizontal rounded-md w-full">
 									<button class="join-item bg-gray-300 px-3"><Smartphone /></button>
 									<input
 										class="input input-bordered join-item w-full"
-										id="cellulare"
+										id="cellulare1"
 										type="text"
 										placeholder="Cellulare"
 										aria-label="cellulare"
@@ -1210,7 +1210,7 @@
 							</section>
 							<!-- Password -->
 							<section class="col-span-4">
-								<label for="password" class="form-label">
+								<label for="password1" class="form-label">
 									<p class="font-bold mb-2">
 										Password <br />
 										<span class="text-sm text-gray-600"
@@ -1224,7 +1224,7 @@
 									>
 									<input
 										class="input input-bordered join-item w-full"
-										id="password"
+										id="password1"
 										type="password"
 										placeholder="your password"
 										aria-label="Password"
@@ -1237,7 +1237,7 @@
 							</section>
 							<!-- Conferma password -->
 							<section class="col-span-4">
-								<label for="password2" class="form-label">
+								<label for="password2a" class="form-label">
 									<p class="font-bold mb-2">Conferma password</p>
 								</label>
 								<div class="join join-horizontal rounded-md w-full">
@@ -1246,7 +1246,7 @@
 									>
 									<input
 										class="input input-bordered join-item w-full"
-										id="password2"
+										id="password2a"
 										type="password"
 										placeholder="Repeat password"
 										bind:value={password2}

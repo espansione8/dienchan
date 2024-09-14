@@ -85,6 +85,7 @@ const productSchema = new Schema(
         price: { type: Number, default: 0 }, //PVP: Recommended Price for online channels
         // msrp: { type: Number, default: 0 }, //PRICE: Retail price (off line shops)
         vatValue: { type: Number, default: 0 },
+        discount: { type: Number, default: 0 },
         vatType: { type: String, default: '' },
 
         stockQty: { type: Number, index: true, default: 0 },
@@ -156,6 +157,7 @@ const productSchema = new Schema(
             price: { type: Number, default: 0 }
             // add product category
         }],
+
         /** end addons */
 
     },

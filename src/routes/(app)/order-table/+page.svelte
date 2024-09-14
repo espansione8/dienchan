@@ -17,8 +17,13 @@
 	} from 'lucide-svelte';
 
 	let { data } = $props();
-	let { getOrders, getTableNames } = $derived(data);
-	let tableList = $state(getOrders);
+	let { getOrders, getTableNames, auth } = $derived(data);
+	let tableList = $state(getOrders || []);
+
+	const imgSrc = (value: string) => {
+		const src = $coursesInfo.filter((item: any) => item.id == value);
+		return src[0].urlPic;
+	};
 
 	let isModalFilterOrder = $state(false);
 	let resetActive = $state(false);
@@ -63,7 +68,7 @@
 		const res = await response.json();
 		if (response.status == 200) {
 			//console.log('res table', res);
-			const getTable = res.map((obj) => ({
+			const getTable = res.map((obj: any) => ({
 				...obj,
 				orderDate: obj.orderDate.substring(0, 10),
 				totalCart: obj.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(0)
@@ -102,6 +107,14 @@
 
 		invalidateAll();
 		quickSearchInput = '';
+	};
+
+	//modal detail
+	let isModalDetail = $state(false);
+	let orderDetail = $state(tableList[0]);
+	const onModalDetail = (order: any) => {
+		orderDetail = order;
+		isModalDetail = true;
 	};
 
 	//notification
@@ -314,6 +327,7 @@
 					<!-- Azione -->
 					<td class=" space-4">
 						<button
+							onclick={() => onModalDetail(row)}
 							class="btn btn-sm bg-green-200 btn-success rounded-md text-green-700 hover:bg-green-300 hover:text-green-800"
 							>Dettagli</button
 						>
@@ -433,3 +447,89 @@
 	</div>
 </dialog>
 <!-- /modal filter  -->
+
+<!-- modal DETAIL -->
+<dialog id="my_modal_2" class="modal" class:modal-open={isModalDetail}>
+	<div class="modal-box grid grid-cols-2">
+		<h3 class="col-span-2 font-bold text-xl text-center mb-4">Riepilogo Ordine</h3>
+		<div class="col-span-2 grid grid-cols-2 gap-2 mb-4">
+			<div class="flex flex-col items-center">
+				<p class="text-sm text-gray-600">Nome/Cognome</p>
+				<p class="font-bold text-center mt-1">
+					{orderDetail.userView?.name}
+					{orderDetail.userView?.surname}
+				</p>
+			</div>
+			<div class="flex flex-col items-center">
+				<p class="text-sm text-gray-600">Email</p>
+				<p class="font-bold text-center mt-1">{orderDetail.userView?.email}</p>
+			</div>
+			<div class="flex flex-col items-center">
+				<p class="text-sm text-gray-600">Città</p>
+				<p class="font-bold text-center mt-1">{orderDetail.userView?.city}</p>
+			</div>
+			<div class="flex flex-col items-center">
+				<p class="text-sm text-gray-600">Indirizzo</p>
+				<p class="font-bold text-center mt-1">{orderDetail.userView?.address}</p>
+			</div>
+			<div class="flex flex-col items-center">
+				<p class="text-sm text-gray-600">Codice Postale - Provincia</p>
+				<p class="font-bold text-center mt-1">
+					{orderDetail.userView?.postalCode} - {orderDetail.userView?.countryState}
+				</p>
+			</div>
+			<div class="flex flex-col items-center">
+				<p class="text-sm text-gray-600">Paese</p>
+				<p class="font-bold text-center mt-1">{orderDetail.userView?.country}</p>
+			</div>
+			<div class="flex flex-col items-center">
+				<p class="text-sm text-gray-600">Telefono</p>
+				<p class="font-bold text-center mt-1">{orderDetail.userView?.phone}</p>
+			</div>
+			<div class="flex flex-col items-center">
+				<p class="text-sm text-gray-600">Cellulare</p>
+				<p class="font-bold text-center mt-1">{orderDetail.userView?.mobile}</p>
+			</div>
+			<div class="flex flex-col items-center">
+				<p class="text-sm text-gray-600">metodo di pagamento:</p>
+				<p class="font-bold text-center mt-1">{orderDetail.orderId}</p>
+			</div>
+		</div>
+		<div class="col-span-2 flex flex-col items-center w-full gap-3 my-4">
+			{#each orderDetail?.cart as item}
+				<div
+					class="flex items-center w-full max-w-96 bg-indigo-100 rounded-lg shadow-md overflow-hidden"
+				>
+					<div class="w-1/3 p-3">
+						<img
+							src={imgSrc(item.category[0])}
+							alt="Immagine corso"
+							class="w-full h-full object-cover"
+						/>
+					</div>
+					<div class="w-2/3 p-4 flex items-center justify-center">
+						<h2 class="text-center text-md font-semibold">
+							{item.title} <br /><br />
+							{item.price}€
+						</h2>
+					</div>
+				</div>
+			{/each}
+		</div>
+		<div class="col-span-2 text-center mt-3">
+			<h2 class="text-lg font-bold">Totale Carrello:</h2>
+			<p class="text-xl font-semibold text-black-800">{orderDetail.totalValue} €</p>
+			{#if auth}
+				<p class="text-gray-800 font-semibold">-25 € sconto tesserati</p>
+			{/if}
+		</div>
+
+		<div class="modal-action col-span-2">
+			<button
+				class="btn btn-sm btn-error w-24 hover:bg-white hover:text-error rounded-lg"
+				onclick={() => (isModalDetail = false)}>Chiudi</button
+			>
+		</div>
+	</div>
+</dialog>
+<!-- /modal DETAIL -->

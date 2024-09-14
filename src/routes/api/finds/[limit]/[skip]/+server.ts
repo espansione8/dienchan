@@ -48,7 +48,10 @@ export const POST: RequestHandler = async ({ request, params }) => {
 		const find = await model.find(filter)
 			.limit(queryLimit)
 			.skip(skipResults)
-			.populate('userView')
+			.populate({
+				path: 'userView',
+				options: { strictPopulate: false }
+			})
 			.lean()
 			.exec();
 
