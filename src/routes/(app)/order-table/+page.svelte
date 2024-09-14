@@ -134,17 +134,34 @@
 		let csv = $state('');
 		let newList: any = $state();
 
+		const flattenObject = (obj: any, prefix = '') => {
+			return Object.keys(obj).reduce((acc, k) => {
+				const pre = prefix.length ? prefix + '_' : '';
+				if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
+					Object.assign(acc, flattenObject(obj[k], pre + k));
+				} else {
+					acc[pre + k] = obj[k];
+				}
+				return acc;
+			}, {});
+		};
+
 		const flattenedArray = tableList.map((obj: any) => {
-			return {
-				...obj
-			};
+			return flattenObject(obj);
 		});
+
+		newList = flattenedArray.map((obj: any) => ({
+			...obj,
+			createdAt: obj.createdAt?.substring(0, 10),
+			birthdate: obj.birthdate?.substring(0, 10)
+		}));
 		//console.log('flattenedArray', flattenedArray);
 		newList = flattenedArray.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt?.substring(0, 10),
 			birthdate: obj.birthdate?.substring(0, 10)
 		}));
+		console.log('newList', newList);
 		newList.forEach((obj: any) => {
 			delete obj.__v;
 			delete obj.attribute1;
@@ -213,6 +230,275 @@
 			delete obj.manufacturerId;
 			delete obj.orderQuantity;
 			delete obj.width;
+			delete obj.extra0;
+			delete obj.extra1;
+			delete obj.extra2;
+			delete obj.extra3;
+			delete obj.extra4;
+			delete obj.extra5;
+			delete obj.extra6;
+			delete obj.extra7;
+			delete obj.extra8;
+			delete obj.extra9;
+			delete obj.extra10;
+			delete obj.extra11;
+			delete obj.extra12;
+			delete obj.extraFieldNumber1;
+			delete obj.extraFieldNumber2;
+			delete obj.extraFieldNumber3;
+			delete obj.extraFieldNumber4;
+			delete obj.extraFieldNumber5;
+			delete obj.extraFieldNumber6;
+			delete obj.extraFieldNumber7;
+			delete obj.extraFieldNumber8;
+			delete obj.extraFieldNumber9;
+			delete obj.extraFieldNumber10;
+			delete obj.extraFieldNumber11;
+			delete obj.extraFieldNumber12;
+			delete obj.extraFieldNumber13;
+			delete obj.extraFieldNumber14;
+			delete obj.extraFieldNumber15;
+			delete obj.extraFieldNumber16;
+			delete obj.extraFieldNumber17;
+			delete obj.extraFieldNumber18;
+			delete obj.extraFieldNumber19;
+			delete obj.extraFieldNumber20;
+			delete obj.extraFieldNumber21;
+			delete obj.extraFieldNumber22;
+			delete obj.extraFieldNumber23;
+			delete obj.extraFieldNumber24;
+			delete obj.extraFieldText1;
+			delete obj.extraFieldText2;
+			delete obj.extraFieldText3;
+			delete obj.extraFieldText4;
+			delete obj.extraFieldText5;
+			delete obj.extraFieldText6;
+			delete obj.extraFieldText7;
+			delete obj.extraFieldText8;
+			delete obj.extraFieldText9;
+			delete obj.extraFieldText10;
+			delete obj.extraFieldText11;
+			delete obj.extraFieldText12;
+			delete obj.extraFieldText13;
+			delete obj.extraFieldText14;
+			delete obj.extraFieldText15;
+			delete obj.extraFieldText16;
+			delete obj.extraFieldText17;
+			delete obj.extraFieldText18;
+			delete obj.extraFieldText19;
+			delete obj.extraFieldText20;
+			delete obj.extraFieldText21;
+			delete obj.extraFieldText22;
+			delete obj.extraFieldText23;
+			delete obj.extraFieldText24;
+			delete obj.userView_businessData_businessName;
+			delete obj.userView_businessData_businessAddress;
+			delete obj.userView_businessData_vatNumber;
+			delete obj.userView_businessData_businessPostalCode;
+			delete obj.userView_businessData_businessCategory;
+			delete obj.userView_businessData_businessCity;
+			delete obj.userView_businessData_businessState;
+			delete obj.userView_businessData_businessCountry;
+			delete obj.userView_businessData_businessCounty;
+			delete obj.userView_businessData_numberEmployed;
+			delete obj.userView_businessData_grossIncome;
+			delete obj.userView_businessData_role;
+			delete obj.userView_card_cardId;
+			delete obj.userView_card_cardCode;
+			delete obj.userView_card_cardActivation;
+			delete obj.userView_card_cardExpiry;
+			delete obj.userView_card_cardStatus;
+			delete obj.userView_userId;
+			delete obj.userView_userCode;
+			delete obj.userView_active;
+			delete obj.userView_token;
+			delete obj.userView_cookieId;
+			delete obj.userView_promotions;
+			delete obj.userView_level;
+			delete obj.userView_codeSales;
+			delete obj.userView_codeManager;
+			delete obj.userView_codeSupervisor;
+			delete obj.userView_codeAgency;
+			delete obj.userView_codeSponsor;
+			delete obj.userView_codeAdmin;
+			delete obj.userView_codeSuperAdmin;
+			delete obj.userView_name;
+			delete obj.userView_namePublic;
+			delete obj.userView_surname;
+			delete obj.userView_surnamePublic;
+			delete obj.userView_category;
+			delete obj.userView_address;
+			delete obj.userView_addressPublic;
+			delete obj.userView_city;
+			delete obj.userView_cityPublic;
+			delete obj.userView_postalCode;
+			delete obj.userView_postalCodePublic;
+			delete obj.userView_countryState;
+			delete obj.userView_statePublic;
+			delete obj.userView_region;
+			delete obj.userView_regionPublic;
+			delete obj.userView_country;
+			delete obj.userView_countryPublic;
+			delete obj.userView_language;
+			delete obj.userView_mobilePhone;
+			delete obj.userView_mobilePhonePublic;
+			delete obj.userView_phone;
+			delete obj.userView_phonePublic;
+			delete obj.userView_email;
+			delete obj.userView_emailPublic;
+			delete obj.userView_documentUpload;
+			delete obj.userView_photoUpload;
+			delete obj.userView_gender;
+			delete obj.userView_birthdate;
+			delete obj.userView_socialSecurityNumber;
+			delete obj.userView_username;
+			delete obj.userView_password;
+			delete obj.userView_pointsSpent;
+			delete obj.userView_pointsBalance;
+			delete obj.userView_pointsTotal;
+			delete obj.userView_pointsBalanceDate;
+			delete obj.userView_userAvatar;
+			delete obj.userView_privacyDate;
+			delete obj.userView_privacyAccept;
+			delete obj.userView_revenue;
+			delete obj.userView_target0;
+			delete obj.userView_target1;
+			delete obj.userView_target2;
+			delete obj.userView_target3;
+			delete obj.userView_target4;
+			delete obj.userView_target5;
+			delete obj.userView_target6;
+			delete obj.userView_target7;
+			delete obj.userView_target8;
+			delete obj.userView_target9;
+			delete obj.userView_target10;
+			delete obj.userView_target11;
+			delete obj.userView_target12;
+			delete obj.userView_extra0;
+			delete obj.userView_extra1;
+			delete obj.userView_extra2;
+			delete obj.userView_extra3;
+			delete obj.userView_extra4;
+			delete obj.userView_extra5;
+			delete obj.userView_extra6;
+			delete obj.userView_extra7;
+			delete obj.userView_extra8;
+			delete obj.userView_extra9;
+			delete obj.userView_extra10;
+			delete obj.userView_extra11;
+			delete obj.userView_extra12;
+			delete obj.userView_extraFieldNumber1;
+			delete obj.userView_extraFieldNumber2;
+			delete obj.userView_extraFieldNumber3;
+			delete obj.userView_extraFieldNumber4;
+			delete obj.userView_extraFieldNumber5;
+			delete obj.userView_extraFieldNumber6;
+			delete obj.userView_extraFieldNumber7;
+			delete obj.userView_extraFieldNumber8;
+			delete obj.userView_extraFieldNumber9;
+			delete obj.userView_extraFieldNumber10;
+			delete obj.userView_extraFieldNumber11;
+			delete obj.userView_extraFieldNumber12;
+			delete obj.userView_extraFieldNumber13;
+			delete obj.userView_extraFieldNumber14;
+			delete obj.userView_extraFieldNumber15;
+			delete obj.userView_extraFieldNumber16;
+			delete obj.userView_extraFieldNumber17;
+			delete obj.userView_extraFieldNumber18;
+			delete obj.userView_extraFieldNumber19;
+			delete obj.userView_extraFieldNumber20;
+			delete obj.userView_extraFieldNumber21;
+			delete obj.userView_extraFieldNumber22;
+			delete obj.userView_extraFieldNumber23;
+			delete obj.userView_extraFieldNumber24;
+			delete obj.userView_extraFieldText1;
+			delete obj.userView_extraFieldText2;
+			delete obj.userView_extraFieldText3;
+			delete obj.userView_extraFieldText4;
+			delete obj.userView_extraFieldText5;
+			delete obj.userView_extraFieldText6;
+			delete obj.userView_extraFieldText7;
+			delete obj.userView_extraFieldText8;
+			delete obj.userView_extraFieldText9;
+			delete obj.userView_extraFieldText10;
+			delete obj.userView_extraFieldText11;
+			delete obj.userView_extraFieldText12;
+			delete obj.userView_extraFieldText13;
+			delete obj.userView_extraFieldText14;
+			delete obj.userView_extraFieldText15;
+			delete obj.userView_extraFieldText16;
+			delete obj.userView_extraFieldText17;
+			delete obj.userView_extraFieldText18;
+			delete obj.userView_extraFieldText19;
+			delete obj.userView_extraFieldText20;
+			delete obj.userView_extraFieldText21;
+			delete obj.userView_extraFieldText22;
+			delete obj.userView_extraFieldText23;
+			delete obj.userView_extraFieldText24;
+			delete obj.userView_lastAccess;
+			delete obj.userView_counterAccess;
+			delete obj.userView_remoteIP;
+			delete obj.userView_remoteHost;
+			delete obj.userView_remoteBrowser;
+			delete obj.userView_notesOnUser;
+			delete obj.userView_userCart;
+			delete obj.userView_userWishList;
+			delete obj.userView_documentPageArray;
+			delete obj.userView_storicoCorsiPartecipati;
+			delete obj.userView_storicoCorsiCreati;
+			delete obj.userView_docModifyArray;
+			delete obj.userView_uploadfiles;
+			delete obj.userView_createdAt;
+			delete obj.userView_updatedAt;
+			delete obj.userView___v;
+			delete obj.timeStartDate;
+			delete obj.timeEndDate;
+			delete obj.invoicing_name;
+			delete obj.invoicing_name;
+			delete obj.invoicing_surname;
+			delete obj.invoicing_businessName;
+			delete obj.invoicing_vatNumber;
+			delete obj.invoicing_address;
+			delete obj.invoicing_city;
+			delete obj.invoicing_postalCode;
+			delete obj.invoicing_state;
+			delete obj.invoicing_region;
+			delete obj.invoicing_country;
+			delete obj.invoicing_county;
+			delete obj.invoicing_invoiceNotes;
+			delete obj.invoicing_email;
+			delete obj.invoicing_phone;
+			delete obj.shipping_tracking_company;
+			delete obj.shipping_tracking_trackingNumber;
+			delete obj.shipping_tracking_trackingLink;
+			delete obj.shipping_tracking_status;
+			delete obj.shipping_tracking_estimatedDelivery;
+			delete obj.shipping_name;
+			delete obj.shipping_surname;
+			delete obj.shipping_address;
+			delete obj.shipping_city;
+			delete obj.shipping_postalCode;
+			delete obj.shipping_state;
+			delete obj.shipping_region;
+			delete obj.shipping_country;
+			delete obj.shipping_deliveryNotes;
+			delete obj.shipping_email;
+			delete obj.shipping_phone;
+			delete obj.payment_transactionId;
+			delete obj.payment_points;
+			delete obj.payment_value;
+			delete obj.browser;
+			delete obj.orderIp;
+			delete obj.orderNotes;
+			delete obj.promotionId;
+			delete obj.promotionName;
+			delete obj.promoterId;
+			delete obj.agencyId;
+			delete obj.cardId;
+			delete obj.totalPoints;
+			delete obj.totalValue;
+			delete obj.totalVAT;
+			delete obj.createdAt;
 		});
 
 		//CSV UNPARSE
@@ -353,7 +639,7 @@
 <!-- modal filter  -->
 <dialog id="modal_filter" class="modal" class:modal-open={isModalFilterOrder}>
 	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-2xl">
-		<div class="bg-gradient-to-r from-orange-500 to-red-600 p-5 rounded-t-lg">
+		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg">
 			<h2 class="text-2xl font-bold text-white mb-1">Filtri di Ricerca</h2>
 			<p class="text-blue-100">Personalizza la tua ricerca selezionando i criteri desiderati</p>
 		</div>
@@ -368,12 +654,12 @@
 						id="orderId"
 						bind:value={selectedOrderId}
 						placeholder="Inserisci l'ID dell'ordine"
-						class="w-full bg-orange-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					/>
 					<!-- <select
 						id="location"
 						bind:value={selectedOrderId}
-						class="select select-bordered w-full bg-orange-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
 						<option value="">Scegli un luogo</option>
 						{#each $province as item}
@@ -388,7 +674,7 @@
 					<select
 						id="associate"
 						bind:value={selectedAssociate}
-						class="select select-bordered w-full bg-orange-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
 						<option value="">Scegli un associato</option>
 						{#each getTableNames as item}
@@ -403,7 +689,7 @@
 					<select
 						id="payment"
 						bind:value={selectedPaymentMethod}
-						class="select select-bordered w-full bg-orange-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
 						<option value="">Scegli un metodo</option>
 						<option value="bonifico">Bonifico</option>
@@ -416,7 +702,7 @@
 					<select
 						id="status"
 						bind:value={selectedStatus}
-						class="select select-bordered w-full bg-orange-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
 						<option value="">Scegli uno status</option>
 						<option value="requested">Richiesta in corso</option>
@@ -451,7 +737,9 @@
 <!-- modal DETAIL -->
 <dialog id="my_modal_2" class="modal" class:modal-open={isModalDetail}>
 	<div class="modal-box grid grid-cols-2">
-		<h3 class="col-span-2 font-bold text-xl text-center mb-4">Riepilogo Ordine</h3>
+		<h3 class="col-span-2 font-bold text-xl text-center mb-4">
+			Dettagli ordine (ID: {orderDetail.orderId})
+		</h3>
 		<div class="col-span-2 grid grid-cols-2 gap-2 mb-4">
 			<div class="flex flex-col items-center">
 				<p class="text-sm text-gray-600">Nome/Cognome</p>
@@ -522,6 +810,18 @@
 			{#if auth}
 				<p class="text-gray-800 font-semibold">-25 € sconto tesserati</p>
 			{/if}
+		</div>
+		<div class="col-span-2 text-center mt-5">
+			<div class="flex justify-center space-x-8">
+				<div>
+					<h2 class="text-md font-bold">Metodo pagamento:</h2>
+					<p class="text-md font-semibold text-black-800">{orderDetail.payment.method}</p>
+				</div>
+				<div>
+					<h2 class="text-md font-bold">Status pagamento:</h2>
+					<p class="text-md font-semibold text-black-800">{orderDetail.payment.statusPayment}</p>
+				</div>
+			</div>
 		</div>
 
 		<div class="modal-action col-span-2">

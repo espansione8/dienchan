@@ -111,12 +111,11 @@
 
 		const res = await response.json();
 		if (response.status == 200) {
-			//console.log('res table', res);
-			// tableList = res.map((obj) => ({
-			// 	...obj,
-			// 	orderDate: obj.orderDate.substring(0, 10)
-			// }));
-			tableList = res;
+			const newTableList = res.map((obj: any) => ({
+				...obj,
+				createdAt: obj.createdAt.substring(0, 10)
+			}));
+			tableList = newTableList;
 			clearTimeout(startTimeout);
 			isModalFilterCourse = false;
 			toastClosed = false;
@@ -162,118 +161,6 @@
 	};
 	//clearTimeout(startTimeout); // reset timer
 
-	// //CSV file
-	// const csvCreate = () => {
-	// 	let csv = $state('');
-	// 	let newList: any = $state();
-
-	// 	const flattenedArray = tableList.map((obj: any) => {
-	// 		return {
-	// 			...obj,
-	// 		};
-	// 	});
-	// 	//console.log('flattenedArray', flattenedArray);
-	// 	newList = flattenedArray.map((obj: any) => ({
-	// 		...obj,
-	// 		createdAt: obj.createdAt?.substring(0, 10),
-	// 		birthdate: obj.birthdate?.substring(0, 10)
-	// 	}));
-	// 	newList.forEach((obj: any) => {
-	// 		delete obj.__v;
-	// 		delete obj.attribute1;
-	// 		delete obj.attribute2;
-	// 		delete obj.attribute3;
-	// 		delete obj.attribute4;
-	// 		delete obj.attribute5;
-	// 		delete obj.attribute6;
-	// 		delete obj.attribute7;
-	// 		delete obj.attribute8;
-	// 		delete obj.attribute9;
-	// 		delete obj.brand;
-	// 		delete obj.brandId;
-	// 		delete obj.bundleProduct;
-	// 		delete obj.categoryId;
-	// 		delete obj.cost;
-	// 		delete obj.dateAdd;
-	// 		delete obj.dateUpd;
-	// 		delete obj.depth;
-	// 		delete obj.attribute10;
-	// 		delete obj.condition;
-	// 		delete obj.feature;
-	// 		delete obj.filterPermissionToEdit;
-	// 		delete obj.height;
-	// 		delete obj.image1;
-	// 		delete obj.image2;
-	// 		delete obj.image3;
-	// 		delete obj.image4;
-	// 		delete obj.image5;
-	// 		delete obj.image6;
-	// 		delete obj.image7;
-	// 		delete obj.image8;
-	// 		delete obj.imgFull;
-	// 		delete obj.imgThumb;
-	// 		delete obj.listSubscribers;
-	// 		delete obj.manufacturer;
-	// 		delete obj.manufacturerCod;
-	// 		delete obj.msrp;
-	// 		delete obj.notes;
-	// 		delete obj.points;
-	// 		delete obj.priceSetByBundle;
-	// 		delete obj.promoEndDate;
-	// 		delete obj.promoStartDate;
-	// 		delete obj.promoterProCod;
-	// 		delete obj.rating;
-	// 		delete obj.rewardProgramDetails;
-	// 		delete obj.shippingCost;
-	// 		delete obj.sku;
-	// 		delete obj.state;
-	// 		delete obj.value1;
-	// 		delete obj.value2;
-	// 		delete obj.value3;
-	// 		delete obj.value4;
-	// 		delete obj.value5;
-	// 		delete obj.value6;
-	// 		delete obj.value7;
-	// 		delete obj.value8;
-	// 		delete obj.value9;
-	// 		delete obj.value10;
-	// 		delete obj.vatType;
-	// 		delete obj.vatValue;
-	// 		delete obj.weight;
-	// 		delete obj.video;
-	// 		delete obj.birthdate;
-	// 		delete obj.filterPermissionToSee;
-	// 		delete obj.manufacturerId;
-	// 		delete obj.orderQuantity;
-	// 		delete obj.width;
-	// 	});
-
-	// 	//CSV UNPARSE
-	// 	csv = Papa.unparse(newList, {
-	// 		quotes: false, //or array of booleans
-	// 		quoteChar: '"',
-	// 		escapeChar: '"',
-	// 		delimiter: ';',
-	// 		header: true,
-	// 		//newline: '\r\n',
-	// 		skipEmptyLines: false //other option is 'greedy', meaning skip delimiters, quotes, and whitespace.
-	// 	});
-	// 	//console.log('csv', csv);
-
-	// 	//DOWNLOAD file
-	// 	const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-	// 	// create a link element to download the zip archive
-	// 	const link = document.createElement('a');
-	// 	link.href = URL.createObjectURL(blob);
-	// 	link.download = `TableExport_Utenti.csv`;
-	// 	document.body.appendChild(link);
-	// 	link.click();
-	// 	document.body.removeChild(link);
-
-	// 	// Release the URL object
-	// 	URL.revokeObjectURL(link.href);
-	// };
-
 	const csvCreate = () => {
 		let csv = $state('');
 		let newList: any = $state();
@@ -300,14 +187,6 @@
 			birthdate: obj.birthdate?.substring(0, 10)
 		}));
 
-		// Lista dei campi da rimuovere
-		// const fieldsToRemove = ['__v', 'attribute1', 'attribute2', 'attribute3', 'attribute4', 'attribute5', 'attribute6', 'attribute7', 'attribute8', 'attribute9', 'brand', 'brandId', 'bundleProduct', 'categoryId', 'cost', 'dateAdd', 'dateUpd', 'depth', 'attribute10', 'condition', 'feature', 'filterPermissionToEdit', 'height', 'image1', 'image2', 'image3', 'image4', 'image5', 'image6', 'image7', 'image8', 'imgFull', 'imgThumb', 'listSubscribers', 'manufacturer', 'manufacturerCod', 'msrp', 'notes', 'points', 'priceSetByBundle', 'promoEndDate', 'promoStartDate', 'promoterProCod', 'rating', 'rewardProgramDetails', 'shippingCost', 'sku', 'state', 'value1', 'value2', 'value3', 'value4', 'value5', 'value6', 'value7', 'value8', 'value9', 'value10', 'vatType', 'vatValue', 'weight', 'video', 'birthdate', 'filterPermissionToSee', 'manufacturerId', 'orderQuantity', 'width'];
-
-		// newList.forEach((obj: any) => {
-		//     fieldsToRemove.forEach(field => {
-		//         delete obj[field];
-		//     });
-		// });
 		newList.forEach((obj: any) => {
 			delete obj.__v;
 			delete obj.attribute1;
@@ -386,6 +265,13 @@
 			delete obj.businessData_businessCounty;
 			delete obj.businessData_numberEmployed;
 			delete obj.businessData_grossIncome;
+			delete obj.businessData_businessCity;
+			delete obj.businessData_role;
+			delete obj.businessData_grossIncome;
+			delete obj.businessData_grossIncome;
+			delete obj.businessData_grossIncome;
+			delete obj.businessData_grossIncome;
+			delete obj.businessData_grossIncome;
 			delete obj.extra0;
 			delete obj.extra1;
 			delete obj.extra2;
@@ -447,6 +333,72 @@
 			delete obj.extraFieldText22;
 			delete obj.extraFieldText23;
 			delete obj.extraFieldText24;
+			delete obj.documentUpload;
+			delete obj.photoUpload;
+			delete obj.gender;
+			delete obj.socialSecurityNumber;
+			delete obj.username;
+			delete obj.password;
+			delete obj.pointsSpent;
+			delete obj.pointsBalance;
+			delete obj.pointsTotal;
+			delete obj.pointsBalanceDate;
+			delete obj.userAvatar;
+			delete obj.privacyDate;
+			delete obj.privacyAccept;
+			delete obj.revenue;
+			delete obj.target0;
+			delete obj.target1;
+			delete obj.target2;
+			delete obj.target3;
+			delete obj.target4;
+			delete obj.target5;
+			delete obj.target6;
+			delete obj.target7;
+			delete obj.target8;
+			delete obj.target9;
+			delete obj.target10;
+			delete obj.target11;
+			delete obj.target12;
+			delete obj.lastAccess;
+			delete obj.counterAccess;
+			delete obj.remoteIP;
+			delete obj.remoteHost;
+			delete obj.remoteBrowser;
+			delete obj.notesOnUser;
+			delete obj.userCart;
+			delete obj.userWishList;
+			delete obj.documentPageArray;
+			delete obj.storicoCorsiPartecipati;
+			delete obj.storicoCorsiCreati;
+			delete obj.docModifyArray;
+			delete obj.uploadfiles;
+			delete obj.codeSales;
+			delete obj.codeManager;
+			delete obj.codeSupervisor;
+			delete obj.codeAgency;
+			delete obj.codeSponsor;
+			delete obj.codeAdmin;
+			delete obj.codeSuperAdmin;
+			delete obj.card_cardId;
+			delete obj.card_cardCode;
+			delete obj.card_cardActivation;
+			delete obj.card_cardExpiry;
+			delete obj.card_cardStatus;
+			delete obj.userCode;
+			delete obj.active;
+			delete obj.token;
+			delete obj.cookieId;
+			delete obj.promotions;
+			delete obj.codeSales;
+			delete obj.codeManager;
+			delete obj.codeSupervisor;
+			delete obj.codeAgency;
+			delete obj.codeSponsor;
+			delete obj.codeAdmin;
+			delete obj.codeSuperAdmin;
+			delete obj.category;
+			delete obj.region;
 		});
 		console.log('newList user', newList);
 
@@ -654,7 +606,7 @@
 <!-- modal filter  -->
 <dialog id="modal_filter" class="modal" class:modal-open={isModalFilterCourse}>
 	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-2xl">
-		<div class="bg-gradient-to-r from-orange-500 to-red-600 p-5 rounded-t-lg glass">
+		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
 			<h2 class="text-2xl font-bold text-white mb-1">Filtri di Ricerca</h2>
 			<p class="text-blue-100">Personalizza la tua ricerca selezionando i criteri desiderati</p>
 		</div>
@@ -668,7 +620,7 @@
 					<select
 						id="level"
 						bind:value={selectedLevel}
-						class="select select-bordered w-full bg-orange-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
 						<option value="">Seleziona il livello utente</option>
 						<option value="user">Utente base</option>
@@ -685,7 +637,7 @@
 					<select
 						id="membershipLevel"
 						bind:value={selectedMembershipLevel}
-						class="select select-bordered w-full bg-orange-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
 						<option value="">Seleziona il livello associato</option>
 						<option value="Socio inattivo">Socio inattivo</option>
@@ -704,7 +656,7 @@
 						id="email"
 						bind:value={selectedEmail}
 						placeholder="Scrivi un email"
-						class="w-full bg-orange-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					/>
 				</div>
 			</div>

@@ -303,7 +303,7 @@
 </script>
 
 <svelte:head>
-	<title>Profilo</title>
+	<title>Area personale</title>
 </svelte:head>
 
 <div class="grid grid-cols-12 bg-gray-200 lg:gap-x-12 p-4 lg:p-8">

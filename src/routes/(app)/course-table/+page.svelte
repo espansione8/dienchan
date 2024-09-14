@@ -90,6 +90,7 @@
 			createdAt: obj.createdAt?.substring(0, 10),
 			birthdate: obj.birthdate?.substring(0, 10)
 		}));
+		console.log('newList', newList);
 		newList.forEach((obj: any) => {
 			delete obj.__v;
 			delete obj.attribute1;
@@ -219,6 +220,168 @@
 			delete obj.extraFieldText22;
 			delete obj.extraFieldText23;
 			delete obj.extraFieldText24;
+			delete obj.userView_businessData_businessName;
+			delete obj.userView_businessData_businessAddress;
+			delete obj.userView_businessData_vatNumber;
+			delete obj.userView_businessData_businessPostalCode;
+			delete obj.userView_businessData_businessCategory;
+			delete obj.userView_businessData_businessCity;
+			delete obj.userView_businessData_businessState;
+			delete obj.userView_businessData_businessCountry;
+			delete obj.userView_businessData_businessCounty;
+			delete obj.userView_businessData_numberEmployed;
+			delete obj.userView_businessData_grossIncome;
+			delete obj.userView_businessData_role;
+			delete obj.userView_card_cardId;
+			delete obj.userView_card_cardCode;
+			delete obj.userView_card_cardActivation;
+			delete obj.userView_card_cardExpiry;
+			delete obj.userView_card_cardStatus;
+			delete obj.userView_userId;
+			delete obj.userView_userCode;
+			delete obj.userView_active;
+			delete obj.userView_token;
+			delete obj.userView_cookieId;
+			delete obj.userView_promotions;
+			delete obj.userView_level;
+			delete obj.userView_codeSales;
+			delete obj.userView_codeManager;
+			delete obj.userView_codeSupervisor;
+			delete obj.userView_codeAgency;
+			delete obj.userView_codeSponsor;
+			delete obj.userView_codeAdmin;
+			delete obj.userView_codeSuperAdmin;
+			delete obj.userView_name;
+			delete obj.userView_namePublic;
+			delete obj.userView_surname;
+			delete obj.userView_surnamePublic;
+			delete obj.userView_category;
+			delete obj.userView_address;
+			delete obj.userView_addressPublic;
+			delete obj.userView_city;
+			delete obj.userView_cityPublic;
+			delete obj.userView_postalCode;
+			delete obj.userView_postalCodePublic;
+			delete obj.userView_countryState;
+			delete obj.userView_statePublic;
+			delete obj.userView_region;
+			delete obj.userView_regionPublic;
+			delete obj.userView_country;
+			delete obj.userView_countryPublic;
+			delete obj.userView_language;
+			delete obj.userView_mobilePhone;
+			delete obj.userView_mobilePhonePublic;
+			delete obj.userView_phone;
+			delete obj.userView_phonePublic;
+			delete obj.userView_email;
+			delete obj.userView_emailPublic;
+			delete obj.userView_documentUpload;
+			delete obj.userView_photoUpload;
+			delete obj.userView_gender;
+			delete obj.userView_birthdate;
+			delete obj.userView_socialSecurityNumber;
+			delete obj.userView_username;
+			delete obj.userView_password;
+			delete obj.userView_pointsSpent;
+			delete obj.userView_pointsBalance;
+			delete obj.userView_pointsTotal;
+			delete obj.userView_pointsBalanceDate;
+			delete obj.userView_userAvatar;
+			delete obj.userView_privacyDate;
+			delete obj.userView_privacyAccept;
+			delete obj.userView_revenue;
+			delete obj.userView_target0;
+			delete obj.userView_target1;
+			delete obj.userView_target2;
+			delete obj.userView_target3;
+			delete obj.userView_target4;
+			delete obj.userView_target5;
+			delete obj.userView_target6;
+			delete obj.userView_target7;
+			delete obj.userView_target8;
+			delete obj.userView_target9;
+			delete obj.userView_target10;
+			delete obj.userView_target11;
+			delete obj.userView_target12;
+			delete obj.userView_extra0;
+			delete obj.userView_extra1;
+			delete obj.userView_extra2;
+			delete obj.userView_extra3;
+			delete obj.userView_extra4;
+			delete obj.userView_extra5;
+			delete obj.userView_extra6;
+			delete obj.userView_extra7;
+			delete obj.userView_extra8;
+			delete obj.userView_extra9;
+			delete obj.userView_extra10;
+			delete obj.userView_extra11;
+			delete obj.userView_extra12;
+			delete obj.userView_extraFieldNumber1;
+			delete obj.userView_extraFieldNumber2;
+			delete obj.userView_extraFieldNumber3;
+			delete obj.userView_extraFieldNumber4;
+			delete obj.userView_extraFieldNumber5;
+			delete obj.userView_extraFieldNumber6;
+			delete obj.userView_extraFieldNumber7;
+			delete obj.userView_extraFieldNumber8;
+			delete obj.userView_extraFieldNumber9;
+			delete obj.userView_extraFieldNumber10;
+			delete obj.userView_extraFieldNumber11;
+			delete obj.userView_extraFieldNumber12;
+			delete obj.userView_extraFieldNumber13;
+			delete obj.userView_extraFieldNumber14;
+			delete obj.userView_extraFieldNumber15;
+			delete obj.userView_extraFieldNumber16;
+			delete obj.userView_extraFieldNumber17;
+			delete obj.userView_extraFieldNumber18;
+			delete obj.userView_extraFieldNumber19;
+			delete obj.userView_extraFieldNumber20;
+			delete obj.userView_extraFieldNumber21;
+			delete obj.userView_extraFieldNumber22;
+			delete obj.userView_extraFieldNumber23;
+			delete obj.userView_extraFieldNumber24;
+			delete obj.userView_extraFieldText1;
+			delete obj.userView_extraFieldText2;
+			delete obj.userView_extraFieldText3;
+			delete obj.userView_extraFieldText4;
+			delete obj.userView_extraFieldText5;
+			delete obj.userView_extraFieldText6;
+			delete obj.userView_extraFieldText7;
+			delete obj.userView_extraFieldText8;
+			delete obj.userView_extraFieldText9;
+			delete obj.userView_extraFieldText10;
+			delete obj.userView_extraFieldText11;
+			delete obj.userView_extraFieldText12;
+			delete obj.userView_extraFieldText13;
+			delete obj.userView_extraFieldText14;
+			delete obj.userView_extraFieldText15;
+			delete obj.userView_extraFieldText16;
+			delete obj.userView_extraFieldText17;
+			delete obj.userView_extraFieldText18;
+			delete obj.userView_extraFieldText19;
+			delete obj.userView_extraFieldText20;
+			delete obj.userView_extraFieldText21;
+			delete obj.userView_extraFieldText22;
+			delete obj.userView_extraFieldText23;
+			delete obj.userView_extraFieldText24;
+			delete obj.userView_lastAccess;
+			delete obj.userView_counterAccess;
+			delete obj.userView_remoteIP;
+			delete obj.userView_remoteHost;
+			delete obj.userView_remoteBrowser;
+			delete obj.userView_notesOnUser;
+			delete obj.userView_userCart;
+			delete obj.userView_userWishList;
+			delete obj.userView_documentPageArray;
+			delete obj.userView_storicoCorsiPartecipati;
+			delete obj.userView_storicoCorsiCreati;
+			delete obj.userView_docModifyArray;
+			delete obj.userView_uploadfiles;
+			delete obj.userView_createdAt;
+			delete obj.userView_updatedAt;
+			delete obj.userView___v;
+			delete obj.timeStartDate;
+			delete obj.timeEndDate;
 		});
 
 		console.log('newList check', newList);
@@ -538,7 +701,7 @@
 <!-- modal filter  -->
 <dialog id="modal_filter" class="modal" class:modal-open={isModalFilterCourse}>
 	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-2xl">
-		<div class="bg-gradient-to-r from-orange-500 to-red-600 p-5 rounded-t-lg">
+		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg">
 			<h2 class="text-2xl font-bold text-white mb-1">Filtri di Ricerca</h2>
 			<p class="text-blue-100">Personalizza la tua ricerca selezionando i criteri desiderati</p>
 		</div>
@@ -550,7 +713,7 @@
 					<select
 						id="location"
 						bind:value={selectedLocation}
-						class="select select-bordered w-full bg-orange-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
 						<option value="">Scegli un luogo</option>
 						{#each $province as item}
@@ -566,7 +729,7 @@
 					<select
 						id="category"
 						bind:value={selectedTitle}
-						class="select select-bordered w-full bg-orange-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
 						<option value="">Scegli una categoria</option>
 						{#each $coursesInfo as option}
@@ -582,7 +745,7 @@
 					<select
 						id="reflexologist"
 						bind:value={selectedUserId}
-						class="select select-bordered w-full bg-orange-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
 						<option value="">Scegli un riflessologo</option>
 						{#each getTableNames as item}
