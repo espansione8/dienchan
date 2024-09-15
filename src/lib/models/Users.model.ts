@@ -81,14 +81,14 @@ const UserSchema = new mongoose.Schema(
 		cityPublic: { type: Boolean, default: false },
 		postalCode: { type: String, default: '' },
 		postalCodePublic: { type: Boolean, default: false },
-		countryState: { type: String, default: '' },
+		countryState: { type: String, default: '' }, // Provincia
 		statePublic: { type: Boolean, default: false },
-		region: { type: String, default: '' },
+		region: { type: String, default: '' }, // Regione	
 		regionPublic: { type: Boolean, default: false },
-		country: { type: String, default: '' },
+		country: { type: String, default: '' }, // Nazione
 		countryPublic: { type: Boolean, default: false },
 		language: { type: String, default: '' },
-		mobilePhone: { type: String, default: '' },
+		mobilePhone: { type: String, default: '' }, // Cellulare
 		mobilePhonePublic: { type: Boolean, default: false },
 		phone: { type: String, default: '' },
 		phonePublic: { type: Boolean, default: false },

@@ -60,11 +60,7 @@
 </script>
 
 <!-- Navbar -->
-<nav
-	class="navbar {logged
-		? 'justify-between'
-		: 'justify-center'} bg-[url('/images/bgNavbar.png')] bg-no-repeat bg-white/60 bg-blend-screen bg-cover bg-center"
->
+<nav class="navbar animate-color-fade {logged ? 'justify-between' : 'justify-center'}">
 	<!-- Logo e titolo-->
 	<div class="flex flex-col items-center">
 		<span class="">
@@ -208,7 +204,6 @@
 						</ul>
 					</li>
 				{/if}
-
 			{/if}
 			{#if logged}
 				<button
@@ -238,7 +233,7 @@
 	<div class="hidden sm:flex gap-2">
 		<ul class="hidden menu sm:menu-horizontal gap-3">
 			<a
-				class="btn btn-sm h-12 mt-1 btn-outline btn-accent rounded-full"
+				class="btn btn-sm btn-outline btn-accent"
 				class:active={$page.url.pathname === '/membership-new/'}
 				href="/membership-new"
 				aria-current="page"
@@ -247,7 +242,7 @@
 				<Megaphone /><strong>Tesseramento</strong>
 			</a>
 			<a
-				class="h-14 transform -skew-x-12 rounded-none btn btn-sm bg-transparent border-gray-700 rounded-non text-gray-700 hover:text-blue-900 hover:bg-gray-200"
+				class="btn btn-sm btn-outline btn-accent"
 				class:active={$page.url.pathname === '/course-filter/'}
 				href="/course-filter"
 				aria-current="page"
@@ -257,24 +252,21 @@
 			</a>
 
 			<a
-				class=" h-14 transform -skew-x-12 rounded-none btn btn-sm bg-transparent border-gray-700 text-gray-700 px-3 py-2 hover:text-blue-900 hover:bg-gray-200"
+				class="btn btn-sm btn-outline btn-accent"
 				class:active={$page.url.pathname === '/cart/'}
 				href="/cart"
 				aria-current="page"
 				onclick={onBurgerclick}
 			>
 				{#if $cartProducts.length > 0}
-					<span
-						class="badge badge-sm p-2 indicator-item rounded-full bg-blue-200 text-green-600 border-green-500 hover:bg-yellow-500"
-						><strong>{$cartProducts.length}</strong></span
-					>
+					<span class="badge badge-sm"><strong>{$cartProducts.length}</strong></span>
 				{/if}
 
 				<strong>Carrello</strong>
 			</a>
 			{#if logged}
 				<a
-					class="transform -skew-x-12 rounded-none btn btn-sm h-14 bg-transparent border-gray-700 text-gray-700 px-3 py-2 hover:text-blue-900 hover:bg-gray-200"
+					class="btn btn-sm btn-outline btn-accent"
 					class:active={$page.url.pathname === '/profile-modify/'}
 					href="/profile-modify"
 					aria-current="page"
@@ -283,7 +275,7 @@
 					<strong>Area personale</strong>
 				</a>
 				<a
-					class="transform -skew-x-12 rounded-none btn btn-sm h-14 bg-transparent border-gray-700 text-gray-700 px-3 py-2 hover:text-blue-900 hover:bg-gray-200"
+					class="btn btn-sm btn-outline btn-accent"
 					class:active={$page.url.pathname === `/profile-public/${userId}`}
 					href={`/profile-public/${userId}`}
 					aria-current="page"
@@ -293,9 +285,7 @@
 				</a>
 				{#if logged && userLevel == 'superadmin'}
 					<div class="dropdown dropdown-end">
-						<button
-							class=" transform -skew-x-12 rounded-none btn btn-sm h-14 btn-primary btn-outline text-base-100 px-3 py-2"
-						>
+						<button class="btn btn-sm btn-accent btn-outline py-2">
 							<span class="flex justify-between"
 								><strong>Gestione</strong>
 								<ChevronDown class="-mt-1" /></span
@@ -304,38 +294,34 @@
 						<ul class="dropdown-content menu z-[1] bg-base-100 p-2 rounded-lg shadow w-max gap-2">
 							<li>
 								<a
-									class=" rounded-none btn btn-sm btn-primary btn-outline px-3 py-2"
+									class="btn btn-sm btn-accent btn-outline"
 									href="/course-table"
 									aria-current="page"><strong>Corsi</strong></a
 								>
 							</li>
 							<li>
 								<a
-									class="rounded-none btn btn-sm btn-primary btn-outline px-3 py-2"
+									class="btn btn-sm btn-accent btn-outline"
 									href="/product-table"
 									aria-current="page"><strong>Prodotti</strong></a
 								>
 							</li>
 							<li>
 								<a
-									class="rounded-none btn btn-sm btn-primary btn-outline px-3 py-2"
+									class="btn btn-sm btn-accent btn-outline"
 									href="/membership-table"
 									aria-current="page"><strong>Membership</strong></a
 								>
 							</li>
 							<li>
-								<a
-									class="rounded-none btn btn-sm btn-primary btn-outline px-3 py-2"
-									href="/user-table"
-									aria-current="page"><strong>Utenti</strong></a
+								<a class="btn btn-sm btn-accent btn-outline" href="/user-table" aria-current="page"
+									><strong>Utenti</strong></a
 								>
 							</li>
 
 							<li>
-								<a
-									class="rounded-none btn btn-sm btn-primary btn-outline px-3 py-2"
-									href="/order-table"
-									aria-current="page"><strong>Ordini</strong></a
+								<a class="btn btn-sm btn-accent btn-outline" href="/order-table" aria-current="page"
+									><strong>Ordini</strong></a
 								>
 							</li>
 						</ul>
@@ -343,9 +329,7 @@
 				{/if}
 				{#if logged && userLevel == 'formatore'}
 					<div class="dropdown dropdown-end">
-						<button
-							class="transform -skew-x-12 rounded-none btn btn-sm h-14 btn-primary btn-outline text-base-100 px-3 py-2"
-						>
+						<button class="btn btn-sm btn-accent btn-outline py-2">
 							<span class="flex justify-between"
 								><strong>Gestione</strong>
 								<ChevronDown class="-mt-1" /></span
@@ -354,7 +338,7 @@
 						<ul class="dropdown-content menu z-[1] bg-gray-200 p-2 rounded-lg shadow w-max gap-2">
 							<li>
 								<a
-									class="rounded-none btn btn-sm btn-primary btn-outline px-3 py-2"
+									class="btn btn-sm btn-primary btn-outline"
 									href="/course-table"
 									aria-current="page"><strong>Corsi</strong></a
 								>
@@ -364,21 +348,15 @@
 				{/if}
 			{/if}
 			{#if logged}
-				<button
-					onclick={logOutNow}
-					class="transform -skew-x-12 rounded-none btn btn-sm h-14 btn-error btn-outline"
-				>
+				<button onclick={logOutNow} class="btn btn-sm btn-outline btn-accent">
 					<span class="flex justify-center gap-1">
 						<LogOut size="16" strokeWidth={2.5} />
 						<strong>Logout</strong>
 					</span>
 				</button>
 			{:else}
-				<a
-					href="/login"
-					class="transform -skew-x-12 rounded-none btn btn-sm h-14 btn-success btn-outline"
-				>
-					<span class="flex justify-center gap-1">
+				<a href="/login" class="btn btn-sm btn-outline btn-accent">
+					<span class="flex justify-center gap-1 group-hover:text-white">
 						<LogIn size="16" strokeWidth={2.5} />
 						<strong>Login</strong>
 					</span>

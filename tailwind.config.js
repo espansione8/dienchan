@@ -8,9 +8,21 @@ module.exports = {
     extend: {
       zIndex: {
         '9999': '9999',
-      }
+      },
+      keyframes: {
+        colorFade: {
+          '0%, 100%': { backgroundColor: 'rgba(26, 147, 220, 0.5)' }, // Very light primary
+          '25%': { backgroundColor: 'rgba(41, 47, 167, 0.5)' }, // Very light accent
+          '50%': { backgroundColor: 'rgba(26, 147, 220, 0.5)' }, // Light primary
+          '75%': { backgroundColor: 'rgba(41, 47, 167, 0.5)' }, // Light accent
+        },
+      },
+      animation: {
+        'color-fade': 'colorFade 25s ease-in-out infinite',
+      },
     },
   },
+
   plugins: [
     daisyui,
   ],
@@ -25,10 +37,10 @@ module.exports = {
           "accent": "#292fa7",
           // "neutral": "#1b263a",
           // "base-100": "#fcfcff",
-          "info": "#66d1ff",
-          "success": "#48c78e",
-          "warning": "#ffb70f",
-          "error": "#ff6685",
+          "info": "#0090e0",     // Darker and more brilliant blue
+          "success": "#00b050",  // Darker and more brilliant green
+          "warning": "#ff9900",  // Darker and more brilliant orange
+          "error": "#e81123",    // Darker and more brilliant red
         },
       },
       // "light",

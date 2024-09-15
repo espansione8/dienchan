@@ -32,6 +32,7 @@
 	coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
 	function siglaToProvincia(provinciaSigla: any) {
+		console.log('provinciaSigla', provinciaSigla);
 		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
 		return findProvincia.nome;
 	}
@@ -365,7 +366,7 @@
 				</div>
 				<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100">
 					<ul class="list-none -mx-4">
-						{#each risultato as elemento (elemento)}
+						<!-- {#each risultato as elemento (elemento)}
 							{#each Object.entries(elemento) as [chiave, valore] (chiave)}
 								<li
 									class="p-2 border-b cursor-pointer transition-colors duration-300
@@ -378,7 +379,7 @@
 									{siglaToProvincia(chiave)}: ({valore})
 								</li>
 							{/each}
-						{/each}
+						{/each} -->
 					</ul>
 				</div>
 			</div>

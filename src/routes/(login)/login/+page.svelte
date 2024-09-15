@@ -149,7 +149,8 @@
 	// };
 </script>
 
-<div class="bg-gradient-to-r from-cyan-500 to-blue-500 pt-2 pb-3">
+<!-- <div class="bg-gradient-to-r from-cyan-500 to-blue-500 pt-2 pb-3"> -->
+<div class="animate-color-fade pt-2 pb-3">
 	<!-- Navbar -->
 	<section class="container mx-auto text-center">
 		<!-- Header -->
