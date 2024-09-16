@@ -251,7 +251,6 @@ export const country_list = readable([
     'Kyrgyzstan'
 ])
 
-
 export const coursesInfo = readable([
     {
         id: "Conferenza di presentazione",

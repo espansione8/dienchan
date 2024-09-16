@@ -24,7 +24,9 @@ export const POST: RequestHandler = async ({ request, params }) => {
 	const filter = {}
 
 	for (i = 0; i < arrayField.length; i++) {
-		if (arrayField[i] != '' && arrayValue[i] != '') filter[arrayField[i]] = arrayValue[i]
+		if (arrayField[i] != '' && arrayValue[i] != '' && arrayValue[i] != false && arrayValue[i] != null) {
+			filter[arrayField[i]] = arrayValue[i]
+		}
 	}
 	console.log('filter', filter);
 

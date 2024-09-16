@@ -120,15 +120,15 @@ const productSchema = new Schema(
         uploadfiles: [
             {
                 _id: false,  // This prevents MongoDB from adding _id to array elements
-                type: { type: String, enum: ['product-primary', 'product-gallery'], default: 'none' },
+                type: { type: String, enum: ['product-primary', 'product-gallery', 'membership', 'course'], default: 'none' },
                 filetype: { type: String, default: '' },
                 filename: { type: String, default: '' },
                 fileUrl: { type: String, default: '' }
             }
         ],
-        type: { type: String, default: '' },
-        //types: course product membership
+        type: { type: String, default: '' }, //types: course product membership
         /** new addons */
+        // course
         infoExtra: { type: String, default: '' },
         name: { type: String, default: '' },
         surname: { type: String, default: '' },
@@ -157,7 +157,8 @@ const productSchema = new Schema(
             price: { type: Number, default: 0 }
             // add product category
         }],
-
+        // membership
+        renewalLength: { type: Number, default: 0 }, // in days
         /** end addons */
 
     },

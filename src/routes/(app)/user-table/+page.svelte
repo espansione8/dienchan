@@ -18,8 +18,8 @@
 	import moment from 'moment';
 
 	let { data } = $props();
-	let { getTableUser } = $derived(data);
-	let tableList = $state(getTableUser);
+	let { getTable } = $derived(data);
+	let tableList = $state(getTable);
 
 	const onClickModify = (id: number) => {
 		// console.log('ID', id);
@@ -65,10 +65,10 @@
 		}
 	};
 
-	const toggleStatus = () => {
-		getTableUser.active = !getTableUser.active;
-		// console.log('getTableUser.active', getTableUser.active)
-	};
+	// const toggleStatus = () => {
+	// 	getTableUser.active = !getTableUser.active;
+	// 	// console.log('getTableUser.active', getTableUser.active)
+	// };
 
 	const onGotoNewUser = () => {
 		goto(`/user-new`);
@@ -124,7 +124,7 @@
 			closeNotification();
 		}
 		if (response.status != 200) {
-			console.log('KO', response);
+			//console.log('KO', response);
 			toastClosed = false;
 			notificationContent = 'errore filtro';
 			notificationError = true;
@@ -144,8 +144,7 @@
 
 	const onFilterReset = () => {
 		resetActive = false;
-		tableList = getTableUser;
-
+		tableList = getTable;
 		invalidateAll();
 	};
 
@@ -400,7 +399,7 @@
 			delete obj.category;
 			delete obj.region;
 		});
-		console.log('newList user', newList);
+		//console.log('newList user', newList);
 
 		//CSV UNPARSE
 		csv = Papa.unparse(newList, {
@@ -433,7 +432,7 @@
 <div class="overflow-x-auto mt-5 px-4 mb-5">
 	<!-- <span class="flex justify-between">
 		<button
-			class="btn btn-success rounded-md text-white border-green-500 hover:bg-gray-200 hover:text-success hover:border-success"
+			class="btn btn-success  text-white border-green-500 hover:bg-gray-200 hover:text-success hover:border-success"
 			onclick={() => onGotoNewUser()}><UserPlus /> Nuovo utente</button
 		>
 		<header class="text-center text-2xl font-bold text-gray-700">Lista utenti</header>
@@ -443,22 +442,22 @@
 	<div class="flex justify-between items-center w-full">
 		<div class="flex space-x-4">
 			{#if resetActive == true}
-				<button class="btn btn-error rounded-md text-white" onclick={onFilterReset}>
+				<button class="btn btn-error text-white" onclick={onFilterReset}>
 					<XCircle class="mt-1" /> Reset Filtro
 				</button>
 			{:else}
-				<button class="btn btn-info rounded-md text-white" onclick={onOpenFilter}>
+				<button class="btn btn-info text-white" onclick={onOpenFilter}>
 					<Filter class="mt-1" /> Filtra
 				</button>
 			{/if}
-			<button class="btn btn-info rounded-md text-white" onclick={() => onGotoNewUser()}>
+			<button class="btn btn-info text-white" onclick={() => onGotoNewUser()}>
 				<ListPlus /> Nuovo utente
 			</button>
 		</div>
 		<header class="text-2xl font-bold text-gray-700 absolute left-1/2 transform -translate-x-1/2">
 			Lista utenti
 		</header>
-		<button class="btn rounded-md text-white btn-info" onclick={() => csvCreate()}>
+		<button class="btn text-white btn-info" onclick={() => csvCreate()}>
 			<ListPlus /> Scarica CSV
 		</button>
 	</div>
@@ -493,7 +492,7 @@
 						<span class="flex items-center">
 							<input
 								type="checkbox"
-								class=" mr-2 border-gray-500 bg-gray-500 hover:bg-black rounded-md toggle toggle-md"
+								class=" mr-2 border-gray-500 bg-gray-500 hover:bg-black toggle toggle-md"
 								checked={row.active}
 								onclick={() => {
 									onChangeStatus(row.userId, row.active, row.email);
@@ -509,7 +508,7 @@
 							<span class="text-green-600 font-semibold">ATTIVO</span>
 							<br />
 							<button
-								class="btn btn-outline btn-error btn-sm mt-2 rounded-md"
+								class="btn btn-outline btn-error btn-sm mt-2 "
 								onclick={() => onChangeStatus(row.userId, row.active, row.email)}
 							>
 								Disattiva
@@ -518,7 +517,7 @@
 							<span class="text-red-600 font-semibold">DISATTIVO</span>
 							<br />
 							<button
-								class="btn btn-outline btn-success btn-sm mt-2 rounded-md"
+								class="btn btn-outline btn-success btn-sm mt-2 "
 								onclick={() => onChangeStatus(row.userId, row.active, row.email)}
 							>
 								Attiva
@@ -573,13 +572,13 @@
 					<td class="space-4">
 						<button
 							onclick={() => onClickModify(row.userId)}
-							class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:bg-gray-300 hover:text-gray-800 mt-2"
+							class="btn btn-sm bg-gray-200 btn-neutral text-gray-700 hover:bg-gray-300 hover:text-gray-800 mt-2"
 						>
 							Modifica
 						</button>
 						<button
 							onclick={() => onClickDetail(row.userId)}
-							class="btn btn-sm bg-green-200 btn-success rounded-md text-green-700 hover:bg-green-300 hover:text-green-800 mt-2"
+							class="btn btn-sm bg-green-200 btn-success text-green-700 hover:bg-green-300 hover:text-green-800 mt-2"
 						>
 							Dettagli
 						</button>
@@ -590,7 +589,7 @@
 	</table>
 	{#if tableList.length == 0}
 		<div
-			class="alert alert-warning shadow-lg flex item-center text-center justify-center rounded-md mt-3 mx-auto w-full max-w-lg"
+			class="alert alert-warning shadow-lg flex item-center text-center justify-center mt-3 mx-auto w-full max-w-lg"
 		>
 			<div>
 				<ShieldAlert />
@@ -663,16 +662,10 @@
 		</div>
 
 		<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
-			<button
-				class="btn btn-error btn-sm rounded-md hover:bg-red-300"
-				onclick={onCloseFilterSearch}
-			>
+			<button class="btn btn-error btn-sm hover:bg-red-300" onclick={onCloseFilterSearch}>
 				Annulla
 			</button>
-			<button
-				class="btn btn-success btn-sm rounded-md hover:bg-green-400"
-				onclick={onSubmitFilterSearch}
-			>
+			<button class="btn btn-success btn-sm hover:bg-green-400" onclick={onSubmitFilterSearch}>
 				Applica Filtri
 			</button>
 		</div>

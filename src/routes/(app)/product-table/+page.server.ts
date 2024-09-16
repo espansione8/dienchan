@@ -38,11 +38,15 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	} catch (error) {
 		console.log('products-corso fetch error:', error);
 	}
-
+	const user = locals.data
+	if (locals.auth) {
+		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
+		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
+		user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
+	}
 	return {
 		getTable,
-		auth: locals.auth
-		//getTableUser,
-		//userData
+		auth: locals.auth,
+		userData: user,
 	};
 }

@@ -6,7 +6,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	if (!locals.auth) {
 		throw redirect(302, '/login');
 	}
-	let getTableUser = [];
+	let getTable = [];
 	try {
 		//const userData = session.user;
 		//console.log('MY DOCS userData', userData);
@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		const resGetTableUser = await res.json();
 		//console.log('MY DOCS res.ok', res.ok);
 		//console.log('res getTableData', resGetTableData)
-		getTableUser = resGetTableUser.map((obj: any) => ({
+		getTable = resGetTableUser.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10),
 			// membershipExpiry = membership.membershipExpiry.toISOString().substring(0, 10)
@@ -32,7 +32,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	}
 	//console.log('res getTableData', getTableData);
 	return {
-		getTableUser,
+		getTable,
 		userData: user,
 		auth: locals.auth,
 		//userData

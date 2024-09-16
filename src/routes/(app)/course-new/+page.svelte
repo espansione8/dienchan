@@ -727,8 +727,8 @@
 				<div class="btn btn-primary mx-1 rounded-md">
 					{badgeTag}
 					{' '}
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<span
+					<button
+						type="button"
 						class="badge badge-error felx items-center"
 						onclick={() => {
 							let index = productCorsoElencoTag.indexOf(badgeTag);
@@ -739,7 +739,7 @@
 						}}
 					>
 						X
-					</span>
+					</button>
 				</div>
 			{/each}
 		{/if}
@@ -792,8 +792,8 @@
 				<div class="btn btn-primary mx-1 rounded-md">
 					{badgeEmailNotifica}
 					{' '}
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<span
+					<button
+						type="button"
 						class="badge badge-error felx items-center"
 						onclick={() => {
 							let index = productCorsoElencoEmailNotifica.indexOf(badgeEmailNotifica);
@@ -805,7 +805,7 @@
 						}}
 					>
 						X
-					</span>
+					</button>
 				</div>
 			{/each}
 		{/if}
@@ -843,7 +843,7 @@
 					aria-describedby="basic-descrizione"
 					bind:value={productCorsoDescrizione}
 					readonly
-				/>
+				></textarea>
 			</div>
 		</div>
 	</section>
@@ -863,7 +863,7 @@
 				aria-describedby="basic-descrizione"
 				bind:value={productCorsoInfoExtra}
 				required
-			/>
+			></textarea>
 		</div>
 	</section>
 	<!-- registra corso button -->
