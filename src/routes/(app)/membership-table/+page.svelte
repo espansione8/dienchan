@@ -1,11 +1,23 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
+	import { enhance } from '$app/forms';
+	//import { page } from '$app/stores';
+	//import type { ActionData } from './$types';
 	import Notification from '$lib/components/Notification.svelte';
 	import Papa from 'papaparse';
-	import { ListPlus, XCircle, Filter, Pen, Calendar, Calculator, FileDown } from 'lucide-svelte';
+	import {
+		ListPlus,
+		XCircle,
+		Filter,
+		Pen,
+		Calendar,
+		Calculator,
+		FileDown,
+		RefreshCcw
+	} from 'lucide-svelte';
 
-	let { data } = $props();
-	let { getTable, userData } = $derived(data);
+	let { data, form } = $props();
+	const { getTable } = $derived(data);
 	let tableList = $state(getTable);
 
 	//notification
@@ -25,7 +37,7 @@
 	let title = $state('');
 	let descrShort = $state('');
 	let price: number | boolean = $state(false);
-	let renewalLength: number = $state(0);
+	let renewalLength: number = $state(365);
 	let isModalFilter = $state(false);
 	let isModalNew = $state(false);
 	let resetActive = $state(false);
@@ -74,13 +86,13 @@
 		title = '';
 		descrShort = '';
 		price = false;
-		renewalLength = 0;
+		renewalLength = 365;
 	};
 
 	const onFilterReset = () => {
+		invalidateAll();
 		resetActive = false;
 		tableList = getTable;
-		invalidateAll();
 	};
 
 	const onCloseFilterSearch = () => {
@@ -96,14 +108,7 @@
 
 	const onSubmitFilterSearch = async () => {
 		resetActive = true;
-		// let prodId = '';
-		// let status = '';
-		// let title = '';
-		// let price: number | boolean = false;
 
-		// if (prodId) prodId = prodId;
-		// if (status) status = status;
-		// if (title) title = title;
 		// NOTE: set Field to False/Null? less condition in API
 		if (price != false) price = price;
 		const arrayField = ['prodId', 'status', 'title', 'price'];
@@ -150,39 +155,21 @@
 		isModalNew = true;
 	};
 
-	const submitFormNew = async () => {
-		const response = await fetch(`/api/newProds/`, {
-			method: 'POST',
-			body: JSON.stringify({
-				type: 'membership',
-				title,
-				descrShort,
-				price,
-				renewalLength,
-				userId: userData.userId
-			}),
-			headers: {
-				'Content-Type': 'application/json'
+	$effect(() => {
+		if (form != null) {
+			const { action, success, message } = form;
+			if (success) {
+				closeNotification();
+				resetFieldsModalFilter();
+				// tableList = getTable; //MEMO THIS TRIGGER INFINITE LOOP
+			} else {
+				notificationError = true;
 			}
-		});
-		const res = await response.json();
-		if (response.status == 200) {
-			clearTimeout(startTimeout);
-			closeNotification();
-			resetFieldsModalFilter();
-			invalidateAll();
-			let content = res.message;
 			toastClosed = false;
-			notificationContent = content;
-			isModalNew = false;
-		} else {
-			let error = res.message;
-			toastClosed = false;
-			notificationContent = error;
-			notificationError = true;
-			closeNotification();
+			notificationContent = message;
+			//invalidateAll(); TO REPORT doesn't refresh tableList
 		}
-	};
+	}); // end effect
 </script>
 
 <svelte:head>
@@ -193,6 +180,9 @@
 	<div class="flex flex-col gap-4 mb-4">
 		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Lista Membership</h1>
 		<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
+			<button class="btn btn-info text-white w-full sm:w-auto" onclick={onFilterReset}>
+				<RefreshCcw />
+			</button>
 			{#if resetActive}
 				<button class="btn btn-error text-white w-full sm:w-auto" onclick={onFilterReset}>
 					<XCircle /> Reset Filtro
@@ -350,7 +340,9 @@
 		</div>
 
 		<form
-			onsubmit={submitFormNew}
+			method="POST"
+			action={`?/newMembership`}
+			use:enhance
 			class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 		>
 			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
@@ -365,6 +357,7 @@
 					<input
 						class="input input-bordered join-item w-full"
 						id="titolo"
+						name="title"
 						type="text"
 						placeholder="Titolo"
 						aria-label="Titolo"
@@ -385,6 +378,7 @@
 						class="input input-bordered join-item w-full"
 						id="price"
 						type="number"
+						name="price"
 						placeholder="€"
 						aria-label="price"
 						aria-describedby="basic-price"
@@ -403,9 +397,9 @@
 						class="input input-bordered join-item w-full"
 						id="renewalLength"
 						type="number"
-						placeholder="365"
+						name="renewalLength"
 						aria-label="renewalLength"
-						aria-describedby="basic-priceCorso"
+						aria-describedby="renewalLength"
 						min="1"
 						max="36500"
 						bind:value={renewalLength}
@@ -416,14 +410,15 @@
 
 			<section class="col-span-4">
 				<div class="mt-6">
-					<label for="descrShort" class="form-label">
+					<label for="descrShortN" class="form-label">
 						<p class="font-bold mb-2">Descrizione (opzionale)</p>
 					</label>
 					<div class="join join-horizontal rounded-md w-full">
 						<button class="join-item bg-gray-300 px-3"><Pen /></button>
 						<textarea
 							class="textarea textarea-bordered h-24 join-item w-full"
-							id="descrShort"
+							id="descrShortN"
+							name="descrShort"
 							placeholder="Descrizione"
 							aria-label="descrizione"
 							aria-describedby="basic-descrizione"

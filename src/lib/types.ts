@@ -2,19 +2,18 @@ export type Users = {
     name: string | null;
     surname: string | null;
     email: string | null;
-    shopDay: number | null;
-    shopMont: number | null;
-    shopYear: number | null;
-    shopHour: number | null;
-    shopMinute: number | null;
-    shopEuro: number | null;
-    shopCent: number | null;
-    onlineDay: number | null;
-    onlineMonth: number | null;
-    onlineYear: number | null;
-    onlineEuro: number | null;
-    onlineCents: number | null;
-    win: number | null;
-    status: string | null;
-    dateSubmit: string | null;
+};
+
+export type Locals = {
+    auth: boolean;
+    data: Record<string, unknown>; // any type
+};
+
+export type MembershipProduct = {
+    createdAt: string;
+    title: string;
+    descrShort: string;
+    price: number;
+    renewalLength: number;
+    // Add other membership
 };
