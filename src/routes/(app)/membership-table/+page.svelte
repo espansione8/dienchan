@@ -110,20 +110,20 @@
 		resetActive = true;
 
 		// NOTE: set Field to False/Null? less condition in API
-		if (price != false) price = price;
-		const arrayField = ['prodId', 'status', 'title', 'price'];
-		const arrayValue = [prodId, status, title, price];
-		const response = await fetch(`/api/finds/0/0`, {
-			method: 'POST',
-			body: JSON.stringify({
-				schema: 'user',
-				arrayField,
-				arrayValue
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
+		// if (price != false) price = price;
+		// const arrayField = ['prodId', 'status', 'title', 'price'];
+		// const arrayValue = [prodId, status, title, price];
+		// const response = await fetch(`/api/finds/0/0`, {
+		// 	method: 'POST',
+		// 	body: JSON.stringify({
+		// 		schema: 'user',
+		// 		arrayField,
+		// 		arrayValue
+		// 	}),
+		// 	headers: {
+		// 		'Content-Type': 'application/json'
+		// 	}
+		// });
 
 		const res = await response.json();
 		if (response.status == 200) {

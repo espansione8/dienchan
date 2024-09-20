@@ -76,41 +76,40 @@ export const actions: Actions = {
 		}
 	},
 	//TODO
-	filterSearch: async ({ request, fetch, locals }) => {
+	filterSearch: async ({ request, fetch }) => {
 		const formData = await request.formData();
+		const prodId = formData.get('prodId');
+		const status = formData.get('status');
 		const title = formData.get('title');
-		const descrShort = formData.get('descrShort');
 		const price = formData.get('price');
-		const renewalLength = formData.get('renewalLength');
-		const userId = locals.data.userId
-		if (!title || !price || !renewalLength || !userId) {
-			return fail(400, { action: 'newMembership', success: false, message: 'Dati mancanti' });
+
+		if (!prodId || !status || !title || !price) {
+			return fail(400, { action: 'filterSearch', success: false, message: 'Dati mancanti' });
 		}
-		//console.log('newMembership', title, descrShort, price, renewalLength, userId);
+
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/newProds`, {
+			const arrayField = ['prodId', 'status', 'title', 'price'];
+			const arrayValue = [prodId, status, title, price];
+			const response = await fetch(`/api/finds/0/0`, {
 				method: 'POST',
+				body: JSON.stringify({
+					schema: 'user',
+					arrayField,
+					arrayValue
+				}),
 				headers: {
 					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					type: 'membership',
-					title,
-					descrShort,
-					price,
-					renewalLength,
-					userId
-				})
+				}
 			});
 			const result = await response.json();
 			if (response.ok) {
-				return { action: 'newMembership', success: true, message: result.message };
+				return { action: 'filterSearch', success: true, message: result.message };
 			} else {
-				return { action: 'newMembership', success: false, message: result.message };
+				return { action: 'filterSearch', success: false, message: result.message };
 			}
 		} catch (error) {
-			console.error('Error creating new membership:', error);
-			return { action: 'newMembership', success: false, message: 'Errore creazione membership' };
+			console.error('Error filter membership:', error);
+			return { action: 'filterSearch', success: false, message: 'Errore filtro membership' };
 		}
 	}
 } satisfies Actions;
