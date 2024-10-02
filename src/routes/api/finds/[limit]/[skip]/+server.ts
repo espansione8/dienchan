@@ -3,6 +3,7 @@ import { json } from '@sveltejs/kit';
 import { Product } from '$lib/models/Products.model';
 import { Order } from '$lib/models/Orders.model';
 import { User } from '$lib/models/Users.model';
+import { Layout } from '$lib/models/ProductLayouts.model';
 import dbConnect from '$lib/database';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -18,6 +19,7 @@ export const POST: RequestHandler = async ({ request, params }) => {
 	if (schema == 'product') model = Product;
 	if (schema == 'order') model = Order;
 	if (schema == 'user') model = User;
+	if (schema == 'layout') model = Layout;
 
 	// filter
 	let i = 0
@@ -28,7 +30,7 @@ export const POST: RequestHandler = async ({ request, params }) => {
 			filter[arrayField[i]] = arrayValue[i]
 		}
 	}
-	console.log('filter', filter);
+	//console.log('filter', filter);
 
 	// limit + skip
 	let queryLimit = 1;

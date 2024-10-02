@@ -8,6 +8,7 @@ const productSchema = new Schema(
             unique: true,
             dropDups: true
         },
+        //baseId
         // supplierCod: { type: String, required: true, default: '' }, 
         cod: { type: String, default: '' },
         manufacturerCod: { type: String, default: '' },
@@ -126,7 +127,7 @@ const productSchema = new Schema(
                 fileUrl: { type: String, default: '' }
             }
         ],
-        type: { type: String, default: '' }, //types: course product membership
+        type: { type: String, default: '' }, //types: course / product / membership / event
         /** new addons */
         // course
         infoExtra: { type: String, default: '' },

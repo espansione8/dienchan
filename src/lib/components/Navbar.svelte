@@ -174,6 +174,13 @@
 							</li>
 							<li>
 								<a
+									class="btn btn-sm btn-accent btn-outline"
+									href="/layout-table"
+									aria-current="page"><strong>Modelli</strong></a
+								>
+							</li>
+							<li>
+								<a
 									class="btn btn-sm btn-primary btn-outline mt-2"
 									href="/user-table"
 									aria-current="page"><strong>Utenti</strong></a
@@ -311,6 +318,13 @@
 									class="btn btn-sm btn-accent btn-outline"
 									href="/membership-table"
 									aria-current="page"><strong>Membership</strong></a
+								>
+							</li>
+							<li>
+								<a
+									class="btn btn-sm btn-accent btn-outline"
+									href="/layout-table"
+									aria-current="page"><strong>Modelli</strong></a
 								>
 							</li>
 							<li>

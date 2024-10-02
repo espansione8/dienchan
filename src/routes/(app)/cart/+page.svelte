@@ -202,7 +202,11 @@
 			total = total + element.price;
 		});
 		grandTotal = total;
+		// TODO
+		//if (auth) total -= 25 * $cartProducts.length; IF course
+		// if (!auth) total -= 25 * ($cartProducts.length -1); IF course
 		if (auth) total -= 25;
+
 		return total;
 	};
 

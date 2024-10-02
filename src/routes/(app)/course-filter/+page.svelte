@@ -20,7 +20,7 @@
 	import 'moment/min/locales.js';
 	// moment.locale('it');
 
-	let { data } = $props();
+	let { data, auth } = $props();
 	let { getTableCourses, getTableNames } = $derived(data);
 	let coursesList = $state(getTableCourses);
 	const listaProvince = $province;
@@ -34,7 +34,7 @@
 	function siglaToProvincia(provinciaSigla: any) {
 		console.log('provinciaSigla', provinciaSigla);
 		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
-		return findProvincia.nome;
+		return findProvincia?.nome || '';
 	}
 
 	function findNameRiflessologo(userIdCode) {
@@ -593,6 +593,10 @@
 						</h5>
 						<!-- price -->
 						<p class="card-text">
+							<!-- {#if auth}
+								Prezzo: <b>{auth ? courseData.price - 25 : courseData.price} €</b>
+							{/if} -->
+
 							Prezzo: <b>{courseData.price} €</b>
 						</p>
 

@@ -298,7 +298,7 @@
 
 	const siglaToProvincia = (provinciaSigla: any) => {
 		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
-		return findProvincia.nome;
+		return findProvincia?.nome || '';
 	};
 </script>
 

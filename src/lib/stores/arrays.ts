@@ -1,4 +1,4 @@
-import { readable } from 'svelte/store';
+import { readable, writable } from 'svelte/store';
 
 export const nazioni = readable([
     { value: "S", title: "Select" },
@@ -877,4 +877,19 @@ export const province = readable(
         }
     ]
 
+)
+
+export const discount = writable(
+    [
+        {
+            name: "simone10off",
+            type: "percent",
+            value: "50",
+            userId: "",
+            prodId: "aff",
+            membershipLevel: "Socio ordinario",
+            layoutId: "W12321",
+        },
+
+    ]
 )

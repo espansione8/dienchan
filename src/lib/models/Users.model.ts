@@ -19,7 +19,7 @@ const UserSchema = new mongoose.Schema(
 		active: { type: Boolean, default: true },
 		token: { type: String, default: '' },
 		cookieId: { type: String, default: '' },
-		promotions: [], // virtual
+		promotions: [], // virtual {}
 		level: {
 			type: String,
 			enum: [
@@ -32,6 +32,7 @@ const UserSchema = new mongoose.Schema(
 		},
 		membership:
 		{
+			senior: { type: String, default: '' },
 			membershipLevel: {
 				type: String,
 				enum: [
