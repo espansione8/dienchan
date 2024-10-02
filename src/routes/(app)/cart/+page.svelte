@@ -259,6 +259,31 @@
 		const src = $coursesInfo.filter((item: any) => item.id == value);
 		return src[0].bgColor;
 	};
+
+	let discountCode = $state('');
+	let discountAmount = $state(0);
+	let discountApplied = $state(false);
+	let discountError = $state(false);
+	let discountMessage = $state('');
+
+	const applyDiscount = (discountCode: any) => {
+		if (!discountCode) {
+			discountApplied = true;
+			discountError = true;
+			discountMessage = 'CODICE NON VALIDO';
+			return;
+		}
+		discountError = false;
+		discountMessage = '';
+		discountApplied = true;
+		discountAmount = discountCode;
+	};
+
+	const removeDiscount = () => {
+		discountApplied = false;
+		discountCode = '';
+		discountAmount = 0;
+	};
 </script>
 
 <svelte:head>
@@ -715,6 +740,36 @@
 				<p class="text-xl font-semibold text-black-800">{total} €</p>
 				{#if auth}
 					<p class="text-gray-800">-25 € sconto tesserati</p>
+				{/if}
+			{/if}
+		</div>
+		<!-- DISCOUNT -->
+		<div class="col-span-2 mt-4 text-center">
+			<div class="form-control">
+				<label class="label">
+					<span class="label-text text-md sm:text-xl font-semibold">Codice Sconto</span>
+				</label>
+				<div class="flex space-x-2">
+					<input
+						type="text"
+						placeholder="Inserisci il codice"
+						class="input input-bordered w-full"
+						bind:value={discountCode}
+					/>
+					{#if discountApplied}
+						<button class="btn btn-secondary" onclick={removeDiscount}> Rimuovi </button>
+					{:else}
+						<button class="btn btn-primary" onclick={applyDiscount(discountCode)}> Applica </button>
+					{/if}
+				</div>
+			</div>
+			{#if discountApplied}
+				{#if discountError}
+					<p class="text-secondary mt-2 text-left">{discountMessage}</p>
+				{:else}
+					<p class="text-green-600 mt-2 text-left">Sconto applicato: -{discountAmount}€</p>
+					<h2 class="text-lg font-bold mt-2">Totale Carrello (con sconto):</h2>
+					<p class="text-xl font-semibold text-black-800">{total - discountAmount} €</p>
 				{/if}
 			{/if}
 		</div>

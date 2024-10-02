@@ -4,6 +4,7 @@ import { Product } from '$lib/models/Products.model';
 import { Order } from '$lib/models/Orders.model';
 import { User } from '$lib/models/Users.model';
 import { Layout } from '$lib/models/ProductLayouts.model';
+import { Discount } from '$lib/models/Discounts.model';
 import dbConnect from '$lib/database';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -20,6 +21,7 @@ export const POST: RequestHandler = async ({ request, params }) => {
 	if (schema == 'order') model = Order;
 	if (schema == 'user') model = User;
 	if (schema == 'layout') model = Layout;
+	if (schema == 'discount') model = Discount;
 
 	// filter
 	let i = 0
