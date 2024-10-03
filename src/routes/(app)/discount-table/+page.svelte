@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { CopyPlus } from 'lucide-svelte';
+	import Notification from '$lib/components/Notification.svelte';
 	import {
-		ListPlus,
-		StretchHorizontal ,
+		CopyPlus,
+		StretchHorizontal,
 		Filter,
 		Pen,
 		Calendar,
@@ -13,7 +13,7 @@
 	} from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 
-	let { data } = $props();
+	let { data, form } = $props();
 	let { getTable } = $derived(data);
 	let tableList = $state(getTable);
 
@@ -40,6 +40,33 @@
 		isModalNew = false;
 	};
 
+	//	notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+		}, 5000); // 1000 milliseconds = 1 second
+	};
+	clearTimeout(startTimeout); // reset timer
+
+	$effect(() => {
+		if (form != null) {
+			const { action, success, message } = form;
+			if (success) {
+				closeNotification();
+				//resetFieldsModalFilter();
+				// tableList = getTable; //DO NOT USE!!  THIS TRIGGER INFINITE LOOP
+			} else {
+				notificationError = true;
+			}
+			toastClosed = false;
+			notificationContent = message;
+			//invalidateAll(); TO REPORT doesn't refresh tableList
+		}
+	}); // end effect
 </script>
 
 <svelte:head>
@@ -57,9 +84,8 @@
 
 <div class="overflow-x-auto mt-5 px-4 mb-5">
 	<span class="flex justify-between">
-		<button
-			class="btn btn-info text-white w-full sm:w-auto"
-			onclick={() => onOpenNew()}><CopyPlus /> Nuovo</button
+		<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => onOpenNew()}
+			><CopyPlus /> Nuovo</button
 		>
 		<header class="text-center text-2xl font-bold text-gray-700">Lista Codici Sconto</header>
 		<button class="btn btn-info text-white w-full sm:w-auto"><FileDown /> Scarica CSV</button>
@@ -117,6 +143,8 @@
 	</table>
 </div>
 
+<Notification {toastClosed} {notificationContent} {notificationError} />
+
 <!-- modal New  -->
 <dialog id="modal_filter" class="modal" class:modal-open={isModalNew}>
 	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-2xl">
@@ -134,7 +162,7 @@
 				Nuovo Codice Sconto
 			</header> -->
 			<section class="col-span-4">
-				<label for="titolo" class="form-label">
+				<label for="code" class="form-label">
 					<p class="font-bold mb-2">Codice</p>
 				</label>
 				<div class="join join-horizontal w-full">
@@ -142,7 +170,7 @@
 					<input
 						class="input input-bordered join-item w-full"
 						id="titolo"
-						name="title"
+						name="code"
 						type="text"
 						placeholder="Codice"
 						aria-label="Titolo"
@@ -154,14 +182,15 @@
 			</section>
 
 			<section class="col-span-2 md:col-span-2">
-				<label for="price" class="form-label">
+				<label for="type" class="form-label">
 					<p class="font-bold mb-2">Tipologia</p>
 				</label>
 				<div class="join join-horizontal w-full">
-					<button class="join-item bg-gray-300 px-3"><StretchHorizontal  /></button>
+					<button class="join-item bg-gray-300 px-3"><StretchHorizontal /></button>
 					<select
 						class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
 						id="categoria"
+						name="type"
 						aria-label="Categoria"
 						aria-describedby="basic-categoria"
 						bind:value={type}
@@ -175,7 +204,7 @@
 			</section>
 			<!-- Value -->
 			<section class="col-span-2 md:col-span-2">
-				<label for="renewalLength" class="form-label">
+				<label for="value" class="form-label">
 					<p class="font-bold mb-2">Valore</p>
 				</label>
 				<div class="join join-horizontal w-full">
@@ -184,12 +213,10 @@
 						class="input input-bordered join-item w-full"
 						id="renewalLength"
 						type="number"
-						name="renewalLength"
-						aria-label="renewalLength"
-						aria-describedby="renewalLength"
-						min="1"
-						max="36500"
-						bind:value={value}
+						name="value"
+						aria-label="value"
+						aria-describedby="value"
+						bind:value
 						required
 					/>
 				</div>
@@ -198,10 +225,9 @@
 			<!-- Radio buttons and input text -->
 			<section class="col-span-4">
 				<label class="form-label">
-					<p class="font-bold mb-2"><Filter  /> Uso</p>
+					<p class="font-bold mb-2"><Filter /> Uso</p>
 				</label>
 				<div class="flex flex-wrap gap-4">
-                    
 					<label class="flex items-center">
 						<input
 							type="radio"
@@ -216,11 +242,11 @@
 						<input
 							type="radio"
 							name="applicability"
-							value="membership"
+							value="membershipLevel"
 							class="radio radio-primary mr-2"
 							bind:group={selectedApplicability}
 						/>
-						<span>Membership</span>
+						<span>Membership level</span>
 					</label>
 					<label class="flex items-center">
 						<input
@@ -247,28 +273,31 @@
 					{#if selectedApplicability === 'userId'}
 						<input
 							type="text"
+							name="userId"
 							class="input input-bordered w-full"
 							placeholder="Inserisci il valore corrispondente"
 							bind:value={userId}
 						/>
-
-                     {:else if selectedApplicability === 'membership'}
+					{:else if selectedApplicability === 'membershipLevel'}
 						<input
 							type="text"
+							name="membershipLevel"
 							class="input input-bordered w-full"
 							placeholder="Inserisci il valore corrispondente"
 							bind:value={membershipLevel}
 						/>
-                     {:else if selectedApplicability === 'product'}
+					{:else if selectedApplicability === 'product'}
 						<input
 							type="text"
+							name="productId"
 							class="input input-bordered w-full"
 							placeholder="Inserisci il valore corrispondente"
 							bind:value={productId}
 						/>
-                     {:else if selectedApplicability === 'course'}
+					{:else if selectedApplicability === 'course'}
 						<input
 							type="text"
+							name="layoutId"
 							class="input input-bordered w-full"
 							placeholder="Inserisci il valore corrispondente"
 							bind:value={layoutId}
@@ -282,11 +311,13 @@
 				<label for="descrizione" class="form-label">
 					<p class="font-bold mb-2">Note</p>
 				</label>
+
 				<div class="join join-horizontal rounded-md w-full">
 					<button class="join-item bg-gray-300 px-3"><Pen /></button>
 					<textarea
 						class="textarea textarea-bordered h-24 join-item w-full"
 						id="descrizione"
+						name="notes"
 						placeholder="Descrizione"
 						aria-label="descrizione"
 						aria-describedby="basic-descrizione"

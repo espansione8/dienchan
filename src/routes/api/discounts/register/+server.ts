@@ -3,14 +3,9 @@ import { json } from '@sveltejs/kit';
 import dbConnect from '$lib/database';
 import { Discount } from '$lib/models/Discounts.model';
 
-//import { File } from 'nft.storage';
-
 export const POST = async ({ request }) => {
 	const body = await request.json();
 	const { code, type, value, userId, productId, layoutId, membershipLevel, notes } = body;
-	// const productElencoEmailNotifica = body.productElencoEmailNotifica;
-	// const productCorsoElencoTag = body.productCorsoElencoTag;
-
 
 	try {
 		// Connecting to DB
@@ -67,7 +62,7 @@ export const POST = async ({ request }) => {
 		);
 
 	} catch (err) {
-		console.log('Layout ERROR:', err);
+		console.log('newDiscount ERROR:', err);
 		return json(
 			{
 				message: 'Codice Sconto registrazione fallita (2)'
