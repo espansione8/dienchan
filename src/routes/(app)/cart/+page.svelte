@@ -264,26 +264,8 @@
 	let discountAmount = $state(0);
 	let discountApplied = $state(false);
 	let discountError = $state(false);
-	let discountMessage = $state('');
 
-	const applyDiscount = (discountCode: any) => {
-		if (!discountCode) {
-			discountApplied = true;
-			discountError = true;
-			discountMessage = 'CODICE NON VALIDO';
-			return;
-		}
-		discountError = false;
-		discountMessage = '';
-		discountApplied = true;
-		discountAmount = discountCode;
-	};
-
-	const removeDiscount = () => {
-		discountApplied = false;
-		discountCode = '';
-		discountAmount = 0;
-	};
+	let discountList: any[] = $state([]);
 </script>
 
 <svelte:head>
@@ -752,28 +734,69 @@
 				<div class="flex space-x-2">
 					<input
 						type="text"
+						id="discountCode"
 						placeholder="Inserisci il codice"
 						class="input input-bordered w-full"
 						bind:value={discountCode}
 					/>
-					{#if discountApplied}
-						<button class="btn btn-secondary" onclick={removeDiscount}> Rimuovi </button>
-					{:else}
-						<button class="btn btn-primary" onclick={applyDiscount(discountCode)}> Applica </button>
-					{/if}
+					<button
+						class="btn btn-primary"
+						onclick={() => {
+							discountApplied = true;
+							if (!discountCode) {
+								discountApplied = true;
+								discountError = true;
+								return;
+							}
+							discountList.push(discountCode);
+							discountList = discountList;
+							discountCode = '';
+							discountError = false;
+						}}
+					>
+						Aggiungi
+					</button>
 				</div>
 			</div>
-			{#if discountApplied}
-				{#if discountError}
-					<p class="text-secondary mt-2 text-left">{discountMessage}</p>
-				{:else}
-					<p class="text-green-600 mt-2 text-left">Sconto applicato: -{discountAmount}€</p>
-					<h2 class="text-lg font-bold mt-2">Totale Carrello (con sconto):</h2>
-					<p class="text-xl font-semibold text-black-800">{total - discountAmount} €</p>
-				{/if}
+			{#if discountList.length !== 0}
+				{#each discountList as badgeCode}
+					<div class="btn btn-primary mx-1 rounded-md mt-4">
+						Sconto di: {badgeCode}
+						{' '}
+						<button
+							type="button"
+							class="badge badge-error felx items-center"
+							onclick={() => {
+								if (discountList.length == 0) {
+									discountApplied = false;
+								}
+								let index = discountList.indexOf(badgeCode);
+								if (index !== -1) {
+									discountList.splice(index, 1);
+									discountList = discountList;
+								}
+							}}
+						>
+							X
+						</button>
+					</div>
+				{/each}
+			{/if}
+
+			{#if discountError}
+				<p class="text-secondary mt-2 text-left italic">CODICE NON VALIDO</p>
+			{/if}
+
+			{#if discountList.length !== 0}
+				<h2 class="text-lg font-bold mt-4">Totale Carrello (con sconto):</h2>
+
+				<p class="text-xl font-semibold text-black-800">{total}  €</p>
+				{#each discountList as amount}
+					<p class="text-gray-800">Sconto {amount}: -{amount} €</p>
+				{/each}
 			{/if}
 		</div>
-		<p class=" col-span-2 font-bold text-lg text-center mt-4">Scegli il metodo di pagamento:</p>
+		<p class=" col-span-2 font-bold text-lg text-center mt-6">Scegli il metodo di pagamento:</p>
 		<div class="form-control col-span-2 mx-2">
 			<label class="label cursor-pointer">
 				<span class="label-text font-semibold">Bonifico (IBAN: 1548416800005462)</span>

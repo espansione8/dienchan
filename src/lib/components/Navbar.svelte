@@ -194,6 +194,13 @@
 									aria-current="page"><strong>Ordini</strong></a
 								>
 							</li>
+							<li>
+								<a
+									class="btn btn-sm btn-primary btn-outline mt-2"
+									href="/discount-table"
+									aria-current="page"><strong>Sconti</strong></a
+								>
+							</li>
 						</ul>
 					</li>
 				{/if}
@@ -336,6 +343,11 @@
 							<li>
 								<a class="btn btn-sm btn-accent btn-outline" href="/order-table" aria-current="page"
 									><strong>Ordini</strong></a
+								>
+							</li>
+							<li>
+								<a class="btn btn-sm btn-accent btn-outline" href="/discount-table" aria-current="page"
+									><strong>Sconti</strong></a
 								>
 							</li>
 						</ul>
