@@ -198,7 +198,7 @@
 					>
 						<option disabled value="">Scegli</option>
 						<option value="percent">Percentuale %</option>
-						<option value="value">Valore fisso €</option>
+						<option value="amount">Valore fisso €</option>
 					</select>
 				</div>
 			</section>
