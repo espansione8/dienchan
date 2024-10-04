@@ -361,7 +361,7 @@
 						aria-label="descrizione"
 						aria-describedby="basic-descrizione"
 						bind:value={notes}
-					/>
+					></textarea>
 				</div>
 			</section>
 
@@ -576,7 +576,7 @@
 						aria-label="descrizione"
 						aria-describedby="basic-descrizione"
 						bind:value={notes}
-					/>
+					></textarea>
 				</div>
 			</section>
 
