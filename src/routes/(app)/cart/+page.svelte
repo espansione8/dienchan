@@ -608,6 +608,77 @@
 							/>
 						</div>
 					</fieldset>
+					<div class="col-span-2 mt-4 text-center">
+						<div class="form-control">
+							<label class="label">
+								<span class="label-text text-md sm:text-xl font-semibold">Codice Sconto</span>
+							</label>
+							<div class="flex space-x-2">
+								<input
+									type="text"
+									id="discountCode"
+									placeholder="Inserisci il codice"
+									class="input input-bordered w-full"
+									bind:value={discountCode}
+								/>
+								<button
+									class="btn btn-primary"
+									type="button"
+									onclick={() => {
+										discountApplied = true;
+										if (!discountCode) {
+											discountApplied = true;
+											discountError = true;
+											return;
+										}
+										discountList.push(discountCode);
+										discountList = discountList;
+										discountCode = '';
+										discountError = false;
+									}}
+								>
+									Applica
+								</button>
+							</div>
+						</div>
+						{#if discountList.length !== 0}
+							{#each discountList as badgeCode}
+								<div class="badge">
+									{badgeCode}
+									{' '}
+									<button
+										type="button"
+										class="badge badge-error felx items-center"
+										onclick={() => {
+											if (discountList.length == 0) {
+												discountApplied = false;
+											}
+											let index = discountList.indexOf(badgeCode);
+											if (index !== -1) {
+												discountList.splice(index, 1);
+												discountList = discountList;
+											}
+										}}
+									>
+										X
+									</button>
+								</div>
+							{/each}
+						{/if}
+
+						{#if discountError}
+							<p class="text-secondary mt-2 text-left italic">CODICE NON VALIDO</p>
+						{/if}
+
+						{#if discountList.length !== 0}
+							<h2 class="text-lg font-bold mt-4">Totale Carrello (con sconto):</h2>
+
+							<p class="text-xl font-semibold text-black-800">{total} €</p>
+							{#each discountList as amount}
+								<p class="text-gray-800">{amount}: -{amount} €</p>
+							{/each}
+						{/if}
+					</div>
 					<section class=" ">
 						<div class="text-center mt-6">
 							<h2 class="text-2xl font-semibold">Totale Carrello:</h2>
@@ -726,7 +797,7 @@
 			{/if}
 		</div>
 		<!-- DISCOUNT -->
-		<div class="col-span-2 mt-4 text-center">
+		<!-- <div class="col-span-2 mt-4 text-center">
 			<div class="form-control">
 				<label class="label">
 					<span class="label-text text-md sm:text-xl font-semibold">Codice Sconto</span>
@@ -795,7 +866,7 @@
 					<p class="text-gray-800">Sconto {amount}: -{amount} €</p>
 				{/each}
 			{/if}
-		</div>
+		</div> -->
 		<p class=" col-span-2 font-bold text-lg text-center mt-6">Scegli il metodo di pagamento:</p>
 		<div class="form-control col-span-2 mx-2">
 			<label class="label cursor-pointer">

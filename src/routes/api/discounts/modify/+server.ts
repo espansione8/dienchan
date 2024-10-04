@@ -7,7 +7,8 @@ import { Discount } from '$lib/models/Discounts.model';
 
 export const POST = async ({ request }) => {
     const body = await request.json();
-    const { discountId,
+    const {
+        discountId,
         code,
         type,
         value,
@@ -26,16 +27,16 @@ export const POST = async ({ request }) => {
         // All database code can only run inside async functions as it uses await
         await dbConnect();
         // Is there a user with such an email?
-        const filter = { discountId: discountId, type: 'discount' };
+        const filter = { discountId };
 
         const update = {
             code: code,
             type: type,
             value: value,
             userId: userId,
+            membershipLevel: membershipLevel,
             productId: productId,
             layoutId: layoutId,
-            membershipLevel: membershipLevel,
             notes: notes
         };
 
@@ -58,7 +59,7 @@ export const POST = async ({ request }) => {
         console.error('Errore durante l\'aggiornamento dello sconto:', err);
         return json(
             {
-                error: `Errore del server: ${err.message}`
+                error: `Errore Sconto server: ${err.message}`
             },
             {
                 status: 500

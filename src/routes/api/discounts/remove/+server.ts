@@ -13,9 +13,9 @@ export const DELETE = async ({ request }) => {
         await dbConnect();
 
         // Find and delete the discount with the specified discountId
-        const result = await Discount.deleteOne({ discountId: discountId, type: 'discount' });
+        const result = await Discount.deleteOne({ discountId });
 
-        if (result.deletedCount === 1) {
+        if (result.deletedCount == 1) {
             return json({
                 message: 'Sconto eliminato con successo',
                 status: 200

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
 	import {
 		CopyPlus,
@@ -19,25 +19,60 @@
 
 	let code = $state('');
 	let type = $state('');
-	let value = $state('');
+	let value = $state(0);
 	let userId = $state('');
 	let productId = $state('');
 	let layoutId = $state('');
 	let membershipLevel = $state('');
 	let notes = $state('');
-	let status = $state('');
+	let discountId = $state('');
+	//let status = $state('');
 	let selectedApplicability = $state('userId');
 
 	const onClickModify = (id: number) => {
 		goto(`/discount-modify/${id}`);
 	};
-
+	let currentItem: any = {};
 	let isModalNew = $state(false);
+	let isModalModify = $state(false);
 	const onOpenNew = () => {
 		isModalNew = true;
 	};
-	const onClosenew = () => {
+
+	const onOpenModify = (item: any) => {
+		//currentItem = item;
+		discountId = item.discountId;
+		code = item.code;
+		type = item.type;
+		value = item.value;
+		userId = item.userId;
+		productId = item.productId;
+		layoutId = item.layoutId;
+		membershipLevel = item.membershipLevel;
+		notes = item.notes;
+		isModalModify = true;
+	};
+
+	const resetFields = () => {
+		invalidateAll();
+		code = '';
+		type = '';
+		value = 0;
+		userId = '';
+		productId = '';
+		layoutId = '';
+		membershipLevel = '';
+		notes = '';
+		selectedApplicability = 'userId';
+		tableList = getTable;
+	};
+	const onCloseNew = () => {
 		isModalNew = false;
+		resetFields();
+	};
+	const onCloseModify = () => {
+		isModalModify = false;
+		resetFields();
 	};
 
 	//	notification
@@ -54,17 +89,19 @@
 
 	$effect(() => {
 		if (form != null) {
+			async () => await invalidateAll();
 			const { action, success, message } = form;
 			if (success) {
 				closeNotification();
 				//resetFieldsModalFilter();
-				// tableList = getTable; //DO NOT USE!!  THIS TRIGGER INFINITE LOOP
+				isModalNew = false;
+				isModalModify = false;
+				tableList = getTable; //WARNING THIS CAN TRIGGER INFINITE LOOP
 			} else {
 				notificationError = true;
 			}
 			toastClosed = false;
 			notificationContent = message;
-			//invalidateAll(); TO REPORT doesn't refresh tableList
 		}
 	}); // end effect
 </script>
@@ -132,7 +169,7 @@
 					<!-- Azione -->
 					<td class="flex items-center space-x-4">
 						<button
-							onclick={() => onClickModify(row.discountId)}
+							onclick={() => onOpenModify(row)}
 							class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:bg-gray-300 hover:text-gray-800"
 							>Modifica</button
 						>
@@ -161,6 +198,223 @@
 			<!-- <header class="col-span-4 text-center text-2xl font-bold text-green-800">
 				Nuovo Codice Sconto
 			</header> -->
+
+			<section class="col-span-4">
+				<label for="code" class="form-label">
+					<p class="font-bold mb-2">Codice sconto</p>
+				</label>
+
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="titolo"
+						name="code"
+						type="text"
+						placeholder="Codice"
+						aria-label="Titolo"
+						aria-describedby="basic-titolo"
+						bind:value={code}
+						required
+					/>
+				</div>
+			</section>
+
+			<section class="col-span-2 md:col-span-2">
+				<label for="type" class="form-label">
+					<p class="font-bold mb-2">Tipologia</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-gray-300 px-3"><StretchHorizontal /></button>
+					<select
+						class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
+						id="categoria"
+						name="type"
+						aria-label="Categoria"
+						aria-describedby="basic-categoria"
+						bind:value={type}
+						required
+					>
+						<option disabled value="">Scegli</option>
+						<option value="percent">Percentuale %</option>
+						<option value="amount">Valore fisso €</option>
+					</select>
+				</div>
+			</section>
+			<!-- Value -->
+			<section class="col-span-2 md:col-span-2">
+				<label for="value" class="form-label">
+					<p class="font-bold mb-2">Valore</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-gray-300 px-3"><Calculator /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="renewalLength"
+						type="number"
+						name="value"
+						aria-label="value"
+						aria-describedby="value"
+						bind:value
+						required
+					/>
+				</div>
+			</section>
+
+			<!-- Radio buttons and input text -->
+			<section class="col-span-4">
+				<label class="form-label">
+					<p class="font-bold mb-2"><Filter /> Uso</p>
+				</label>
+				<div class="flex flex-wrap gap-4">
+					<label class="flex items-center">
+						<input
+							type="radio"
+							name="applicability"
+							value="userId"
+							class="radio radio-primary mr-2"
+							bind:group={selectedApplicability}
+						/>
+						<span>User ID</span>
+					</label>
+					<label class="flex items-center">
+						<input
+							type="radio"
+							name="applicability"
+							value="membershipLevel"
+							class="radio radio-primary mr-2"
+							bind:group={selectedApplicability}
+						/>
+						<span>Membership level</span>
+					</label>
+					<label class="flex items-center">
+						<input
+							type="radio"
+							name="applicability"
+							value="product"
+							class="radio radio-primary mr-2"
+							bind:group={selectedApplicability}
+						/>
+						<span>Prodotto</span>
+					</label>
+					<label class="flex items-center">
+						<input
+							type="radio"
+							name="applicability"
+							value="course"
+							class="radio radio-primary mr-2"
+							bind:group={selectedApplicability}
+						/>
+						<span>Corso</span>
+					</label>
+				</div>
+				<div class="mt-4">
+					{#if selectedApplicability === 'userId'}
+						<input
+							type="text"
+							name="userId"
+							class="input input-bordered w-full"
+							placeholder="Inserisci il valore corrispondente"
+							bind:value={userId}
+						/>
+					{:else if selectedApplicability === 'membershipLevel'}
+						<input
+							type="text"
+							name="membershipLevel"
+							class="input input-bordered w-full"
+							placeholder="Inserisci il valore corrispondente"
+							bind:value={membershipLevel}
+						/>
+					{:else if selectedApplicability === 'product'}
+						<input
+							type="text"
+							name="productId"
+							class="input input-bordered w-full"
+							placeholder="Inserisci il valore corrispondente"
+							bind:value={productId}
+						/>
+					{:else if selectedApplicability === 'course'}
+						<input
+							type="text"
+							name="layoutId"
+							class="input input-bordered w-full"
+							placeholder="Inserisci il valore corrispondente"
+							bind:value={layoutId}
+						/>
+					{/if}
+				</div>
+			</section>
+
+			<!-- Note -->
+			<section class="col-span-4">
+				<label for="descrizione" class="form-label">
+					<p class="font-bold mb-2">Note</p>
+				</label>
+
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<textarea
+						class="textarea textarea-bordered h-24 join-item w-full"
+						id="descrizione"
+						name="notes"
+						placeholder="Descrizione"
+						aria-label="descrizione"
+						aria-describedby="basic-descrizione"
+						bind:value={notes}
+					/>
+				</div>
+			</section>
+
+			<!-- ALtre informazione -->
+
+			<!-- registra corso button -->
+			<div class="col-span-4 mt-5 flex justify-center">
+				<div class="bg-gray-50 flex justify-center">
+					<button class="btn btn-error btn-sm mx-2" onclick={onCloseNew}> Annulla </button>
+					<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
+				</div>
+			</div>
+		</form>
+	</div>
+</dialog>
+<!-- /modal New  -->
+
+<!-- modal Modify  -->
+<dialog id="modal_filter" class="modal" class:modal-open={isModalModify}>
+	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-2xl">
+		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
+			<h2 class="text-2xl font-bold text-white mb-1">Modifica codice sconto</h2>
+		</div>
+
+		<form
+			method="POST"
+			action={`?/modifyDiscount`}
+			use:enhance
+			class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+		>
+			<!-- <header class="col-span-4 text-center text-2xl font-bold text-green-800">
+				Nuovo Codice Sconto
+			</header> -->
+			<section class="col-span-4">
+				<label for="discountId" class="form-label">
+					<p class="font-bold mb-2">ID codice</p>
+				</label>
+
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="discountId"
+						name="discountId"
+						type="text"
+						placeholder="discountId"
+						aria-label="discountId"
+						aria-describedby="basic-discountId"
+						bind:value={discountId}
+						readonly
+					/>
+				</div>
+			</section>
 			<section class="col-span-4">
 				<label for="code" class="form-label">
 					<p class="font-bold mb-2">Codice</p>
@@ -322,7 +576,6 @@
 						aria-label="descrizione"
 						aria-describedby="basic-descrizione"
 						bind:value={notes}
-						required
 					/>
 				</div>
 			</section>
@@ -332,19 +585,11 @@
 			<!-- registra corso button -->
 			<div class="col-span-4 mt-5 flex justify-center">
 				<div class="bg-gray-50 flex justify-center">
-					<button class="btn btn-error btn-sm mx-2" onclick={onClosenew}> Annulla </button>
-					<button
-						type="submit"
-						class="btn btn-success btn-sm mx-2 text-white"
-						onclick={() => {
-							isModalNew = false;
-						}}
-					>
-						Registra
-					</button>
+					<button class="btn btn-error btn-sm mx-2" onclick={onCloseModify}> Annulla </button>
+					<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
 				</div>
 			</div>
 		</form>
 	</div>
 </dialog>
-<!-- /modal New  -->
+<!-- /modal Modify  -->

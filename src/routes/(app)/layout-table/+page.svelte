@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import {
 		CopyPlus,
 		FileDown,
@@ -54,17 +54,18 @@
 
 	$effect(() => {
 		if (form != null) {
+			async () => await invalidateAll();
 			const { action, success, message } = form;
 			if (success) {
 				closeNotification();
 				//resetFieldsModalFilter();
-				// tableList = getTable; //DO NOT USE!!  THIS TRIGGER INFINITE LOOP
+				isModalNew = false;
+				tableList = getTable; //WARNING THIS CAN TRIGGER INFINITE LOOP
 			} else {
 				notificationError = true;
 			}
 			toastClosed = false;
 			notificationContent = message;
-			//invalidateAll(); TO REPORT doesn't refresh tableList
 		}
 	}); // end effect
 </script>
