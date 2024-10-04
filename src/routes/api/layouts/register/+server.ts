@@ -1,15 +1,11 @@
+// src/routes/api/layouts/register
 import { json } from '@sveltejs/kit';
-// src/routes/api/auth/sign-up.js
 import dbConnect from '$lib/database';
 import { Layout } from '$lib/models/ProductLayouts.model';
-//import { File } from 'nft.storage';
 
 export const POST = async ({ request }) => {
 	const body = await request.json();
-	const { title, descr, urlPic, bgColor, price, bundleProduct } = body;
-	// const productElencoEmailNotifica = body.productElencoEmailNotifica;
-	// const productCorsoElencoTag = body.productCorsoElencoTag;
-
+	const { title, descr, urlPic, bgColor, price } = body;
 
 	try {
 		// Connecting to DB
@@ -32,17 +28,18 @@ export const POST = async ({ request }) => {
 		// Add user to DB
 		// All database code can only run inside async functions as it uses await
 		const newLayout = new Layout();
-		const layoutId = crypto.randomUUID();
-		newLayout.layoutId = layoutId
+		const id = crypto.randomUUID();
+		newLayout.layoutId = id
+		newLayout.title = title;
 		newLayout.descr = descr;
 		newLayout.urlPic = urlPic;
 		newLayout.bgColor = bgColor;
 		newLayout.price = price;
-		newLayout.bundleProduct = bundleProduct;
+		// newLayout.bundleProduct = bundleProduct;
 
 		const layoutSave = await newLayout.save();
 
-		if (layoutSave.layoutId == layoutId) {
+		if (layoutSave.layoutId == id) {
 			return json(
 				{
 					message: 'Nuovo Modello registrato'

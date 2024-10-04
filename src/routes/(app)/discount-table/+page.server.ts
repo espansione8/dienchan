@@ -80,7 +80,7 @@ export const actions: Actions = {
 		if (!code || !type || !value) {
 			return fail(400, { action: 'newDiscount', success: false, message: 'Dati mancanti' });
 		}
-		console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
+		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
 		try {
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/register`, {
 				method: 'POST',

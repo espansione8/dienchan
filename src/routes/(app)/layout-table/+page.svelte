@@ -1,9 +1,18 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { CopyPlus, FileDown, Pen, StretchHorizontal, ImagePlus, Calculator } from 'lucide-svelte';
+	import {
+		CopyPlus,
+		FileDown,
+		Pen,
+		StretchHorizontal,
+		ImagePlus,
+		Calculator,
+		Palette
+	} from 'lucide-svelte';
 	import { enhance } from '$app/forms';
+	import Notification from '$lib/components/Notification.svelte';
 
-	let { data } = $props();
+	let { data, form } = $props();
 	let { getTable } = $derived(data);
 	let tableList = $state(getTable);
 
@@ -23,7 +32,6 @@
 		goto(`/product-detail/${id}`);
 	};
 
-
 	let isModalNew = $state(false);
 	const onOpenNew = () => {
 		isModalNew = true;
@@ -31,10 +39,38 @@
 	const onClosenew = () => {
 		isModalNew = false;
 	};
+
+	//	notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+		}, 5000); // 1000 milliseconds = 1 second
+	};
+	clearTimeout(startTimeout); // reset timer
+
+	$effect(() => {
+		if (form != null) {
+			const { action, success, message } = form;
+			if (success) {
+				closeNotification();
+				//resetFieldsModalFilter();
+				// tableList = getTable; //DO NOT USE!!  THIS TRIGGER INFINITE LOOP
+			} else {
+				notificationError = true;
+			}
+			toastClosed = false;
+			notificationContent = message;
+			//invalidateAll(); TO REPORT doesn't refresh tableList
+		}
+	}); // end effect
 </script>
 
 <svelte:head>
-	<title>Lista Prodotti</title>
+	<title>Lista Modelli</title>
 </svelte:head>
 
 <noscript>
@@ -59,13 +95,11 @@
 		<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">
 			<tr>
 				<th>Data inserimento</th>
-				<th>Foto</th>
 				<th>Titolo</th>
 				<th>Descrizione</th>
 				<th>Colore tema</th>
-				<th>Quantità</th>
+				<th>Foto</th>
 				<th>Prezzo</th>
-				<th>BundleProdotti</th>
 				<th>Azione</th>
 			</tr>
 		</thead>
@@ -74,20 +108,18 @@
 			<!-- row 1 -->
 			{#each tableList as row}
 				<tr class="hover:bg-gray-100">
-					<!-- ID -->
-					<td><img alt="layout" src={row.urlPic} class="w-16" /></td>
+					<!-- Date created -->
+					<td>{row.createdAt}</td>
+					<!-- title -->
 					<td>{row.title}</td>
-					<!-- Categoria -->
+					<!-- descr -->
 					<td>{row.descr}</td>
-					<!-- Descrizione breve -->
-					<!-- Prezzo -->
+					<!-- Color -->
 					<td>{row.bgColor}</td>
-					<!-- Quantità -->
+					<!-- url foto -->
+					<td>{row.urlPic}</td>
+					<!-- Prezzo -->
 					<td>{row.price}</td>
-					<!-- Status -->
-					<td>{row.status}</td>
-					<!-- Data inserimento -->
-					<td>{row.bundleProduct}</td>
 					<!-- Azione -->
 					<td class="flex items-center space-x-4">
 						<button
@@ -95,17 +127,14 @@
 							class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:bg-gray-300 hover:text-gray-800"
 							>Modifica</button
 						>
-						<button
-							onclick={() => onClickDetail(row.userId)}
-							class="btn btn-sm bg-green-200 btn-success rounded-md text-green-700 hover:bg-green-300 hover:text-green-800"
-							>Dettagli</button
-						>
 					</td>
 				</tr>
 			{/each}
 		</tbody>
 	</table>
 </div>
+
+<Notification {toastClosed} {notificationContent} {notificationError} />
 
 <!-- modal New  -->
 <dialog id="modal_filter" class="modal" class:modal-open={isModalNew}>
@@ -129,31 +158,31 @@
 					<textarea
 						class="textarea textarea-bordered h-24 join-item w-full"
 						id="title"
+						name="title"
 						placeholder="Titolo"
 						bind:value={title}
-						required
 					/>
 				</div>
 			</section>
 
 			<section class="col-span-4 md:col-span-4">
-				<label for="description" class="form-label">
+				<label for="descr" class="form-label">
 					<p class="font-bold mb-2">Descrizione</p>
 				</label>
 				<div class="join join-horizontal w-full">
 					<button class="join-item bg-gray-300 px-3"><StretchHorizontal /></button>
 					<textarea
 						class="textarea textarea-bordered h-24 join-item w-full"
-						id="titolo"
+						id="descr"
+						name="descr"
 						placeholder="Descrizione"
 						bind:value={descr}
-						required
 					/>
 				</div>
 			</section>
 			<!-- URL image -->
-			<section class="col-span-2 md:col-span-2">
-				<label for="renewalLength" class="form-label">
+			<section class="col-span-4 md:col-span-4">
+				<label for="urlPic" class="form-label">
 					<p class="font-bold mb-2">URL immagine</p>
 				</label>
 				<div class="join join-horizontal w-full">
@@ -161,36 +190,48 @@
 					<input
 						type="text"
 						class="input input-bordered w-full join-item"
-						placeholder="Inserisci il valore corrispondente"
+						name="urlPic"
+						placeholder="Inserisci il percorso dell'immagine"
 						bind:value={urlPic}
+					/>
+				</div>
+			</section>
+			<!-- Color -->
+			<section class="col-span-2 md:col-span-2">
+				<label for="bgColor" class="form-label">
+					<p class="font-bold mb-2">Colore</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-gray-300 px-3"><Palette /></button>
+					<input
+						type="text"
+						class="input input-bordered w-full join-item"
+						name="bgColor"
+						placeholder="Inserisci il percorso dell'immagine"
+						bind:value={bgColor}
 					/>
 				</div>
 			</section>
 			<!-- Value -->
 			<section class="col-span-2 md:col-span-2">
-				<label for="renewalLength" class="form-label">
+				<label for="price" class="form-label">
 					<p class="font-bold mb-2">Prezzo</p>
 				</label>
 				<div class="join join-horizontal w-full">
 					<button class="join-item bg-gray-300 px-3"><Calculator /></button>
 					<input
 						class="input input-bordered join-item w-full"
-						id="renewalLength"
+						id="price"
 						type="number"
-						name="renewalLength"
-						aria-label="renewalLength"
-						aria-describedby="renewalLength"
-						min="1"
-						max="36500"
+						name="price"
 						bind:value={price}
-						required
 					/>
 				</div>
 			</section>
 
 			<!-- Bundle product -->
 			<section class="col-span-4">
-				<label for="correlati" class="form-label">
+				<label for="bundleProduct" class="form-label">
 					<p class="font-bold mb-2">Correlati</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
@@ -198,9 +239,9 @@
 					<textarea
 						class="textarea textarea-bordered h-24 join-item w-full"
 						id="correlati"
+						name="bundleProduct"
 						placeholder="Correlati"
 						bind:value={bundleProduct}
-						required
 					/>
 				</div>
 			</section>
@@ -211,7 +252,15 @@
 			<div class="col-span-4 mt-5 flex justify-center">
 				<div class="bg-gray-50 flex justify-center">
 					<button class="btn btn-error btn-sm mx-2" onclick={onClosenew}> Annulla </button>
-					<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
+					<button
+						type="submit"
+						class="btn btn-success btn-sm mx-2 text-white"
+						onclick={() => {
+							isModalNew = false;
+						}}
+					>
+						Registra
+					</button>
 				</div>
 			</div>
 		</form>

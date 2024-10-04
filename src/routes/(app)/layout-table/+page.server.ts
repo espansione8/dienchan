@@ -1,5 +1,5 @@
-import { redirect } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types'
+import { redirect, fail } from '@sveltejs/kit';
+import type { PageServerLoad, Actions } from './$types'
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
 	//console.log('locals', locals);
@@ -60,3 +60,48 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		userData: user,
 	};
 }
+
+
+export const actions: Actions = {
+	newLayout: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const title = formData.get('title');
+		const descr = formData.get('descr');
+		const urlPic = formData.get('urlPic');
+		const bgColor = formData.get('bgColor');
+		const price = formData.get('price') || '';
+		// const bundleProduct = formData.get('bundleProduct') || '';
+
+
+		if (!title || !descr || !price) {
+			return fail(400, { action: 'newLayout', success: false, message: 'Dati mancanti' });
+		}
+
+		// console.log({ title, descr, urlPic, price, bundleProduct });
+		try {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/layouts/register`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					title,
+					descr,
+					urlPic,
+					bgColor,
+					price
+				})
+			});
+			const result = await response.json();
+			if (response.ok) {
+				return { action: 'newLayout', success: true, message: result.message };
+			} else {
+				return { action: 'newLayout', success: false, message: result.message };
+			}
+		} catch (error) {
+			console.error('Error creating new newLayout:', error);
+			return { action: 'newLayout', success: false, message: 'Errore creazione newLayout' };
+		}
+	},
+
+} satisfies Actions;

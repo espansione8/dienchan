@@ -333,17 +333,16 @@
 			<div class="col-span-4 mt-5 flex justify-center">
 				<div class="bg-gray-50 flex justify-center">
 					<button class="btn btn-error btn-sm mx-2" onclick={onClosenew}> Annulla </button>
-					<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
+					<button
+						type="submit"
+						class="btn btn-success btn-sm mx-2 text-white"
+						onclick={() => {
+							isModalNew = false;
+						}}
+					>
+						Registra
+					</button>
 				</div>
-				<!-- <button
-					class="btn btn-success rounded-lg hover:bg-accent hover:text-green-800hover:bg-accent hover:text-green-900"
-					type="submit"
-				>
-					<span class="flex items-center justify-center">
-						<FileDown class="mr-2" />
-						Regista Membro
-					</span>
-				</button> -->
 			</div>
 		</form>
 	</div>
