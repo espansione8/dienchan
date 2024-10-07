@@ -103,4 +103,105 @@ export const actions: Actions = {
 			return { action: 'newLayout', success: false, message: 'Errore creazione newLayout' };
 		}
 	},
+
+	modifyLayout: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const layoutId = formData.get('layoutId');
+		const title = formData.get('title') || '';
+		const descr = formData.get('descr') || '';
+		const urlPic = formData.get('urlPic') || '';
+		const bgColor = formData.get('bgColor') || '';
+		const price = formData.get('price') || '';
+
+
+		console.log('layoutId', layoutId);
+		if (!layoutId || !title ) {
+			return fail(400, { action: 'modifyLayout', success: false, message: 'Dati mancanti' });
+		}
+
+		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
+		try {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/layouts/modify`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					layoutId,
+					title,
+					descr,
+					urlPic,
+					bgColor,
+					price
+				})
+			});
+			const result = await response.json();
+			if (response.ok) {
+				return { action: 'modifyLayout', success: true, message: result.message };
+			} else {
+				return { action: 'modifyLayout', success: false, message: result.message };
+			}
+		} catch (error) {
+			console.error('Error creating new modifyLayout:', error);
+			return { action: 'modifyLayout', success: false, message: 'Errore creazione modifyLayout' };
+		}
+	},
+
+	// disableLayout: async ({ request, fetch }) => {
+	// 	const formData = await request.formData();
+	// 	const layoutId = formData.get('layoutId');
+	// 	const status = formData.get('status');
+
+
+	// 	if (!discountId) {
+	// 		return fail(400, { action: 'modifyLayout', success: false, message: 'Dati mancanti' });
+	// 	}
+
+	// 	// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
+	// 	try {
+	// 		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/modify`, {
+	// 			method: 'POST',
+	// 			headers: {
+	// 				'Content-Type': 'application/json'
+	// 			},
+	// 			body: JSON.stringify({
+	// 				discountId,
+	// 				status
+	// 			})
+	// 		});
+	// 		const result = await response.json();
+	// 		if (response.ok) {
+	// 			return { action: 'modifyLayout', success: true, message: result.message };
+	// 		} else {
+	// 			return { action: 'modifyLayout', success: false, message: result.message };
+	// 		}
+	// 	} catch (error) {
+	// 		console.error('Error changing discount status:', error);
+	// 		return { action: 'modifyLayout', success: false, message: 'Errore creazione modifyLayout' };
+	// 	}
+	// },
+
+	deleteLayout: async ({ request, fetch }) => {
+		try {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/layouts/remove`, {
+				method: 'DELETE',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					layoutId
+				})
+			});
+			const result = await response.json();
+			if (response.ok) {
+				return { action: 'modifyLayout', success: true, message: result.message };
+			} else {
+				return { action: 'modifyLayout', success: false, message: result.message };
+			}
+		} catch (error) {
+			console.error('Error creating new modifyLayout:', error);
+			return { action: 'modifyLayout', success: false, message: 'Errore creazione modifyLayout' };
+		}
+	}
+
 } satisfies Actions;

@@ -12,7 +12,7 @@ export const DELETE = async ({ request }) => {
         await dbConnect();
 
         // Find and delete the discount with the specified discountId
-        const result = await Layout.deleteOne({ layoutId: layoutId, type: 'layout' });
+        const result = await Layout.deleteOne({ layoutId: layoutId });
 
         if (result.deletedCount === 1) {
             return json({

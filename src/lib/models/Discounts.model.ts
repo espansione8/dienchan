@@ -25,6 +25,11 @@ const discountSchema = new Schema(
 			type: Number,
 			default: 0
 		},
+		selectedApplicability: {
+			type: String,
+			enum: ['userId', 'membershipLevel', 'product', 'course'],
+			default: 'userId'
+		},
 		userId: { type: String, default: '' },
 		productId: { type: String, default: '' },
 		layoutId: { type: String, default: '' },

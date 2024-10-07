@@ -12,14 +12,13 @@ export const POST = async ({ request }) => {
         code,
         type,
         value,
+        selectedApplicability,
         userId,
         productId,
         layoutId,
         membershipLevel,
         notes
     } = body;
-    // const productElencoEmailNotifica = body.productElencoEmailNotifica;
-    // const productCorsoElencoTag = body.productCorsoElencoTag;
 
 
     try {
@@ -33,6 +32,7 @@ export const POST = async ({ request }) => {
             code: code,
             type: type,
             value: value,
+            selectedApplicability: selectedApplicability,
             userId: userId,
             membershipLevel: membershipLevel,
             productId: productId,

@@ -14,6 +14,7 @@ const layoutSchema = new Schema(
         urlPic: { type: String, default: '' },
         bgColor: { type: String, default: '' },
         price: { type: Number, default: 0 }, // in days
+        
         bundleProduct: [{
             _id: false,  // This prevents MongoDB from adding _id to array elements
             prodId: { type: String, default: '' },

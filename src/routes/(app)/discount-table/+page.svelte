@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { discount } from './../../../lib/stores/arrays.ts';
 	import { goto, invalidateAll } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
 	import {
 		CopyPlus,
+		Trash2,
 		StretchHorizontal,
 		Filter,
 		Pen,
@@ -35,6 +37,7 @@
 	let currentItem: any = {};
 	let isModalNew = $state(false);
 	let isModalModify = $state(false);
+	let isModalConfirmDelete = $state(false);
 	const onOpenNew = () => {
 		isModalNew = true;
 	};
@@ -49,8 +52,14 @@
 		productId = item.productId;
 		layoutId = item.layoutId;
 		membershipLevel = item.membershipLevel;
+		selectedApplicability = item.selectedApplicability;
 		notes = item.notes;
 		isModalModify = true;
+	};
+
+	const onOpenConfirmDelete = () => {
+		isModalConfirmDelete = true;
+		isModalModify = false;
 	};
 
 	const resetFields = () => {
@@ -72,6 +81,10 @@
 	};
 	const onCloseModify = () => {
 		isModalModify = false;
+		resetFields();
+	};
+	const onCloseConfirmDelete = () => {
+		isModalConfirmDelete = false;
 		resetFields();
 	};
 
@@ -104,6 +117,70 @@
 			notificationContent = message;
 		}
 	}); // end effect
+
+	const onChangeStatus = async (discountId: string, status: string) => {
+		const data = {
+			discountId,
+			status
+		};
+		try {
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/status`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(data)
+			});
+			const response = await res.json();
+			if (response.status == 200) {
+				invalidateAll();
+				clearTimeout(startTimeout);
+				toastClosed = false;
+				notificationContent = 'Status cambiato';
+				closeNotification();
+			} else {
+				toastClosed = false;
+				notificationContent = 'errore status';
+				notificationError = true;
+				closeNotification();
+			}
+		} catch (err) {
+			console.log('Error:', err);
+		}
+	};
+	const onRemove = async (discountId: string) => {
+		const data = {
+			discountId
+		};
+		try {
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/remove`, {
+				method: 'DELETE',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(data)
+			});
+			const response = await res.json();
+			if (response.status == 200) {
+				invalidateAll();
+				clearTimeout(startTimeout);
+				toastClosed = false;
+				isModalConfirmDelete = false;
+				notificationContent = 'Sconto eliminato';
+				resetFields();
+				closeNotification();
+			} else {
+				toastClosed = false;
+				notificationContent = 'errore delete ';
+				notificationError = true;
+				isModalConfirmDelete = false;
+				resetFields();
+				closeNotification();
+			}
+		} catch (err) {
+			console.log('Error:', err);
+		}
+	};
 </script>
 
 <svelte:head>
@@ -131,6 +208,7 @@
 		<!-- head -->
 		<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">
 			<tr>
+				<th>Status</th>
 				<th>Data inserimento</th>
 				<th>ID</th>
 				<th>Codice</th>
@@ -148,6 +226,24 @@
 			<!-- row 1 -->
 			{#each tableList as row}
 				<tr class="hover:bg-gray-100">
+					<td class="">
+						<span class="flex items-center">
+							<input
+								type="checkbox"
+								name="status"
+								class=" mr-2 border-gray-500 bg-gray-500 hover:bg-black toggle toggle-md"
+								checked={row.status == 'enabled'}
+								onclick={() => {
+									onChangeStatus(row.discountId, row.status);
+								}}
+							/>
+							{#if row.status == 'enabled'}
+								<span class="text-green-600 font-semibold">ATTIVO</span>
+							{:else}
+								<span class="text-red-600 font-semibold">INATTIVO</span>
+							{/if}
+						</span>
+					</td>
 					<!-- Data inserimento -->
 					<td>{row.createdAt}</td>
 					<!-- ID -->
@@ -382,8 +478,13 @@
 <!-- modal Modify  -->
 <dialog id="modal_filter" class="modal" class:modal-open={isModalModify}>
 	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-2xl">
-		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
+		<div
+			class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass flex flex-row justify-between"
+		>
 			<h2 class="text-2xl font-bold text-white mb-1">Modifica codice sconto</h2>
+			<button class="btn btn-error btn-md" onclick={onOpenConfirmDelete}
+				><Trash2 />Elimina</button
+			>
 		</div>
 
 		<form
@@ -586,10 +687,25 @@
 			<div class="col-span-4 mt-5 flex justify-center">
 				<div class="bg-gray-50 flex justify-center">
 					<button class="btn btn-error btn-sm mx-2" onclick={onCloseModify}> Annulla </button>
-					<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
+					<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Modifica </button>
 				</div>
 			</div>
 		</form>
 	</div>
 </dialog>
 <!-- /modal Modify  -->
+
+<!-- Modal confirm delete -->
+<dialog id="modal_confirm_delete" class="modal" class:modal-open={isModalConfirmDelete}>
+	<div
+		class="modal-box bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass flex flex-row justify-between max-w-2xl"
+	>
+		<h2 class="text-2xl font-bold text-black flex items-center">Conferma l'eliminazione?</h2>
+		<div class="flex flex-row justify-between space-x-4">
+			<button class="btn btn-error btn-md" onclick={onCloseConfirmDelete}>Annulla</button>
+			<button class="btn btn-success btn-md text-white" onclick={onRemove(discountId)}
+				><Trash2 />Conferma</button
+			>
+		</div>
+	</div>
+</dialog>
