@@ -162,15 +162,13 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const discountId = formData.get('discountId');
 		const status = formData.get('status');
-
-
 		if (!discountId) {
-			return fail(400, { action: 'modifyDiscount', success: false, message: 'Dati mancanti' });
+			return fail(400, { action: 'disableDiscount', success: false, message: 'Dati mancanti' });
 		}
 
 		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/modify`, {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/status`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -181,18 +179,22 @@ export const actions: Actions = {
 				})
 			});
 			const result = await response.json();
-			if (response.ok) {
-				return { action: 'modifyDiscount', success: true, message: result.message };
+			if (response.status == 200) {
+				return { action: 'disableDiscount', success: true, message: result.message };
 			} else {
-				return { action: 'modifyDiscount', success: false, message: result.message };
+				return { action: 'disableDiscount', success: false, message: result.message };
 			}
 		} catch (error) {
 			console.error('Error changing discount status:', error);
-			return { action: 'modifyDiscount', success: false, message: 'Errore creazione modifyDiscount' };
+			return { action: 'disableDiscount', success: false, message: 'Errore modifica Discount' };
 		}
 	},
 
 	deleteDiscount: async ({ request, fetch }) => {
+		console.log('deleteDiscount');
+
+		const formData = await request.formData();
+		const discountId = formData.get('discountId');
 		try {
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/remove`, {
 				method: 'DELETE',
@@ -205,13 +207,13 @@ export const actions: Actions = {
 			});
 			const result = await response.json();
 			if (response.ok) {
-				return { action: 'modifyDiscount', success: true, message: result.message };
+				return { action: 'deleteDiscount', success: true, message: result.message };
 			} else {
-				return { action: 'modifyDiscount', success: false, message: result.message };
+				return { action: 'deleteDiscount', success: false, message: result.message };
 			}
 		} catch (error) {
-			console.error('Error creating new modifyDiscount:', error);
-			return { action: 'modifyDiscount', success: false, message: 'Errore creazione modifyDiscount' };
+			console.error('Error deleteDiscount:', error);
+			return { action: 'deleteDiscount', success: false, message: 'Errore deleteDiscount' };
 		}
 	}
 

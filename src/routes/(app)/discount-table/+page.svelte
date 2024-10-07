@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { discount } from './../../../lib/stores/arrays.ts';
+	//import { discount } from './../../../lib/stores/arrays.ts';
 	import { goto, invalidateAll } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
 	import {
@@ -8,10 +8,11 @@
 		StretchHorizontal,
 		Filter,
 		Pen,
-		Calendar,
+		Settings,
 		Calculator,
 		FileDown,
-		RefreshCcw
+		EyeOff,
+		Eye
 	} from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 
@@ -57,9 +58,11 @@
 		isModalModify = true;
 	};
 
-	const onOpenConfirmDelete = () => {
+	let deleteId = $state('');
+	const onOpenConfirmDelete = (id: string) => {
 		isModalConfirmDelete = true;
 		isModalModify = false;
+		deleteId = id;
 	};
 
 	const resetFields = () => {
@@ -88,66 +91,6 @@
 		resetFields();
 	};
 
-	//	notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-		}, 5000); // 1000 milliseconds = 1 second
-	};
-	clearTimeout(startTimeout); // reset timer
-
-	$effect(() => {
-		if (form != null) {
-			async () => await invalidateAll();
-			const { action, success, message } = form;
-			if (success) {
-				closeNotification();
-				//resetFieldsModalFilter();
-				isModalNew = false;
-				isModalModify = false;
-				tableList = getTable; //WARNING THIS CAN TRIGGER INFINITE LOOP
-			} else {
-				notificationError = true;
-			}
-			toastClosed = false;
-			notificationContent = message;
-		}
-	}); // end effect
-
-	const onChangeStatus = async (discountId: string, status: string) => {
-		const data = {
-			discountId,
-			status
-		};
-		try {
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/status`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(data)
-			});
-			const response = await res.json();
-			if (response.status == 200) {
-				invalidateAll();
-				clearTimeout(startTimeout);
-				toastClosed = false;
-				notificationContent = 'Status cambiato';
-				closeNotification();
-			} else {
-				toastClosed = false;
-				notificationContent = 'errore status';
-				notificationError = true;
-				closeNotification();
-			}
-		} catch (err) {
-			console.log('Error:', err);
-		}
-	};
 	const onRemove = async (discountId: string) => {
 		const data = {
 			discountId
@@ -181,6 +124,39 @@
 			console.log('Error:', err);
 		}
 	};
+
+	//	notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+		}, 5000); // 1000 milliseconds = 1 second
+	};
+	clearTimeout(startTimeout); // reset timer
+
+	$effect(() => {
+		console.log({ form });
+
+		if (form != null) {
+			async () => await invalidateAll();
+			const { action, success, message } = form;
+			if (success) {
+				closeNotification();
+				//resetFieldsModalFilter();
+				isModalNew = false;
+				isModalModify = false;
+				tableList = getTable;
+			} else {
+				notificationError = true;
+			}
+			toastClosed = false;
+			notificationContent = message;
+			form = null;
+		}
+	}); // end effect
 </script>
 
 <svelte:head>
@@ -227,22 +203,36 @@
 			{#each tableList as row}
 				<tr class="hover:bg-gray-100">
 					<td class="">
-						<span class="flex items-center">
-							<input
-								type="checkbox"
-								name="status"
-								class=" mr-2 border-gray-500 bg-gray-500 hover:bg-black toggle toggle-md"
-								checked={row.status == 'enabled'}
-								onclick={() => {
-									onChangeStatus(row.discountId, row.status);
-								}}
-							/>
-							{#if row.status == 'enabled'}
-								<span class="text-green-600 font-semibold">ATTIVO</span>
-							{:else}
-								<span class="text-red-600 font-semibold">INATTIVO</span>
-							{/if}
-						</span>
+						<!-- <form method="POST" action={`?/disableDiscount`} use:enhance>
+							<span class="flex items-center">
+								<input
+									type="checkbox"
+									name="status"
+									class=" mr-2 border-gray-500 bg-gray-500 hover:bg-black toggle toggle-md"
+									checked={row.status == 'enabled'}
+									onclick={() => onChangeStatus(row.status, row.discountId)}
+								/>
+								{#if row.status == 'enabled'}
+									<span class="text-green-600 font-semibold">ATTIVO</span>
+								{:else}
+									<span class="text-red-600 font-semibold">INATTIVO</span>
+								{/if}
+							</span>
+						</form> -->
+						<form method="POST" action={`?/disableDiscount`} use:enhance>
+							<input type="hidden" name="discountId" value={row.discountId} />
+							<input type="hidden" name="status" value={row.status} />
+							<span class="flex items-center">
+								{#if row.status == 'enabled'}
+									<button type="submit" class="btn btn-success btn-sm font-semibold"><Eye /></button
+									>
+								{:else}
+									<button type="submit" class="btn btn-error btn-sm font-semibold"
+										><EyeOff /></button
+									>
+								{/if}
+							</span>
+						</form>
 					</td>
 					<!-- Data inserimento -->
 					<td>{row.createdAt}</td>
@@ -267,7 +257,10 @@
 						<button
 							onclick={() => onOpenModify(row)}
 							class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:bg-gray-300 hover:text-gray-800"
-							>Modifica</button
+							><Settings />
+						</button>
+						<button class="btn btn-error btn-sm" onclick={() => onOpenConfirmDelete(row.discountId)}
+							><Trash2 /></button
 						>
 					</td>
 				</tr>
@@ -482,7 +475,7 @@
 			class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass flex flex-row justify-between"
 		>
 			<h2 class="text-2xl font-bold text-white mb-1">Modifica codice sconto</h2>
-			<button class="btn btn-error btn-md" onclick={onOpenConfirmDelete}
+			<button class="btn btn-error btn-md" onclick={() => onOpenConfirmDelete('DELETE')}
 				><Trash2 />Elimina</button
 			>
 		</div>
@@ -702,10 +695,11 @@
 	>
 		<h2 class="text-2xl font-bold text-black flex items-center">Conferma l'eliminazione?</h2>
 		<div class="flex flex-row justify-between space-x-4">
-			<button class="btn btn-error btn-md" onclick={onCloseConfirmDelete}>Annulla</button>
-			<button class="btn btn-success btn-md text-white" onclick={onRemove(discountId)}
-				><Trash2 />Conferma</button
-			>
+			<form action="?/deleteDiscount" method="POST" use:enhance>
+				<input type="hidden" name="discountId" value={deleteId} />
+				<button class="btn btn-error btn-md" onclick={onCloseConfirmDelete}>Annulla</button>
+				<button class="btn btn-success btn-md text-white" type="submit"><Trash2 />Conferma</button>
+			</form>
 		</div>
 	</div>
 </dialog>
