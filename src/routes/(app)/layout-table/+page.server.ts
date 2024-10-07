@@ -103,5 +103,4 @@ export const actions: Actions = {
 			return { action: 'newLayout', success: false, message: 'Errore creazione newLayout' };
 		}
 	},
-
 } satisfies Actions;

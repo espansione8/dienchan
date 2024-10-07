@@ -157,17 +157,18 @@
 
 	$effect(() => {
 		if (form != null) {
+			async () => await invalidateAll(); // MUST be async/await or tableList = getTable will trigger infinite loop
 			const { action, success, message } = form;
 			if (success) {
 				closeNotification();
-				resetFieldsModalFilter();
-				// tableList = getTable; //MEMO THIS TRIGGER INFINITE LOOP
+				//resetFieldsModalFilter();
+				isModalNew = false;
+				tableList = getTable; //WARNING THIS CAN TRIGGER INFINITE LOOP
 			} else {
 				notificationError = true;
 			}
 			toastClosed = false;
 			notificationContent = message;
-			//invalidateAll(); TO REPORT doesn't refresh tableList
 		}
 	}); // end effect
 </script>

@@ -1,10 +1,10 @@
+// src/routes/api/orders/purchase-first
 import { json } from '@sveltejs/kit';
 import stringHash from 'string-hash';
 //import { serialize } from 'cookie';
 import dbConnect from '$lib/database';
 import { Order } from '$lib/models/Orders.model';
 import { User } from '$lib/models/Users.model';
-// src/routes/api/orders/purchase-first
 //import nodemailer from 'nodemailer';
 
 export const POST = async ({ request }) => {
@@ -87,7 +87,7 @@ export const POST = async ({ request }) => {
 		}
 		// REGISTRARE membership
 		if (userId) {
-			const responseMembership = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/new-course`, {
+			const responseMembership = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/new`, {
 				method: 'POST',
 				body: JSON.stringify({
 					userId,
@@ -152,7 +152,7 @@ export const POST = async ({ request }) => {
 				// };
 				return json(
 					{
-						message: 'Corso ordinato con successo',
+						message: 'Ordine inviato con successo',
 					},
 					{
 						status: 200,

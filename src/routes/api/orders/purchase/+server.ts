@@ -93,7 +93,7 @@ export const POST = async ({ request }) => {
 		if (order.orderId == orderId) {
 			return json(
 				{
-					message: 'Corso ordinato con successo',
+					message: 'Ordine inviato con successo',
 				},
 				{
 					status: 200,

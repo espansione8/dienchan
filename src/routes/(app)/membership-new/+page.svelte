@@ -1,12 +1,22 @@
 <script lang="ts">
-	import { CircleCheckBig } from 'lucide-svelte';
+	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
 	import { province } from '$lib/stores/arrays';
-	import { invalidateAll } from '$app/navigation';
-	import { Mail, User, Building2, MapPin, Globe, Phone, Smartphone, Lock } from 'lucide-svelte';
+	import {
+		Mail,
+		User,
+		Building2,
+		MapPin,
+		Globe,
+		Phone,
+		Smartphone,
+		Lock,
+		CircleCheckBig
+	} from 'lucide-svelte';
 	import { country_list } from '$lib/stores/arrays.js';
 
-	let { data } = $props();
+	let { data, form } = $props();
 	let { userData, auth } = $derived(data);
 
 	let provinceFilterate = $province.filter((p) => p.sigla !== 'ON');
@@ -321,6 +331,23 @@
 		password1 = '';
 		password2 = '';
 	};
+
+	$effect(() => {
+		if (form != null) {
+			async () => await invalidateAll(); // MUST be async/await or tableList = getTable will trigger infinite loop
+			const { action, success, message } = form;
+			if (success) {
+				closeNotification();
+				//resetFieldsModalFilter();
+				isModalNew = false;
+				tableList = getTable; //WARNING THIS CAN TRIGGER INFINITE LOOP
+			} else {
+				notificationError = true;
+			}
+			toastClosed = false;
+			notificationContent = message;
+		}
+	}); // end effect
 </script>
 
 <svelte:head>
@@ -681,7 +708,9 @@
 			<div class="flex justify-center">
 				<div class="w-full">
 					<form
-						action=""
+						method="POST"
+						action={`?/newMembership`}
+						use:enhance
 						class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 					>
 						<header class="col-span-4 text-center text-2xl font-bold text-green-800">
@@ -697,6 +726,7 @@
 								<input
 									class="input input-bordered join-item w-full"
 									id="nome"
+									name="name"
 									type="text"
 									placeholder="Nome"
 									aria-label="nome"
@@ -716,6 +746,7 @@
 								<input
 									class="input input-bordered join-item w-full"
 									id="cognome"
+									name="surname"
 									type="text"
 									placeholder="Cognome"
 									aria-label="cognome"
@@ -735,6 +766,7 @@
 								<input
 									class="input input-bordered join-item w-full"
 									id="email"
+									name="email"
 									type="email"
 									placeholder="Tua Email"
 									aria-label="Email"
@@ -754,6 +786,7 @@
 								<input
 									class="input input-bordered join-item w-full"
 									id="indirizzo"
+									name="address"
 									type="text"
 									placeholder="Indirizzo"
 									aria-label="indirizzo"
@@ -773,6 +806,7 @@
 								<input
 									class="input input-bordered join-item w-full"
 									id="cap"
+									name="postalCode"
 									type="text"
 									placeholder="CAP"
 									aria-label="cap"
@@ -792,6 +826,7 @@
 								<input
 									class="input input-bordered join-item w-full"
 									id="citta"
+									name="city"
 									type="text"
 									placeholder="Città"
 									aria-label="citta"
@@ -811,6 +846,7 @@
 								<select
 									class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
 									id="provincia"
+									name="countryState"
 									aria-label="Provincia"
 									aria-describedby="basic-provincia"
 									placeholder="Scegli"
@@ -837,7 +873,7 @@
 									class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
 									aria-label="Default select example"
 									id="nazione"
-									name="nazione"
+									name="country"
 									required
 									bind:value={country}
 								>
@@ -860,6 +896,7 @@
 								<input
 									class="input input-bordered join-item w-full"
 									id="telefono"
+									name="phone"
 									type="text"
 									placeholder="Telefono"
 									aria-label="telefono"
@@ -878,6 +915,7 @@
 								<input
 									class="input input-bordered join-item w-full"
 									id="cellulare"
+									name="mobilePhone"
 									type="text"
 									placeholder="Cellulare"
 									aria-label="cellulare"
@@ -901,6 +939,7 @@
 								<input
 									class="input input-bordered join-item w-full"
 									id="password"
+									name="password1"
 									type="password"
 									placeholder="your password"
 									aria-label="Password"
@@ -931,65 +970,70 @@
 									required
 								/>
 							</div>
+							<hr class="bg-black h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
+							<p class="  font-bold text-lg text-center mt-4">Totale: 25€</p>
+							<hr class="bg-black h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
+							<p class="  font-bold text-lg text-center mt-4">Scegli il metodo di pagamento:</p>
+							<div class="form-control col-span-2 mx-2">
+								<label class="label cursor-pointer">
+									<span class="label-text font-semibold">Bonifico (IBAN: 1548416800005462)</span>
+									<input
+										type="radio"
+										name="radio-paymentType"
+										class="radio checked:bg-blue-500"
+										bind:group={paymentType}
+										value={'bonifico'}
+									/>
+								</label>
+							</div>
+							<div class="form-control col-span-2 mx-2">
+								<label class="label cursor-pointer">
+									<span class="label-text font-semibold">Paypal</span>
+									<input
+										type="radio"
+										name="radio-paymentType"
+										class="radio checked:bg-blue-500"
+										bind:group={paymentType}
+										value={'paypal'}
+									/>
+								</label>
+							</div>
+							<div class="form-control col-span-2 mx-2">
+								<label class="label cursor-pointer">
+									<span class="label-text font-semibold">Contanti (all'inizio corso)</span>
+									<input
+										type="radio"
+										name="radio-paymentType"
+										class="radio checked:bg-blue-500"
+										bind:group={paymentType}
+										value={'contanti'}
+									/>
+								</label>
+							</div>
+
+							<!-- button -->
+							<div class="modal-action">
+								<button
+									type="button"
+									class="btn btn-sm btn-error w-24 hover:bg-white hover:text-red-500 rounded-lg"
+									onclick={() => (isModalRegister = false)}>Chiudi</button
+								>
+								<!-- <button
+									class="btn btn-sm btn-success w-24 hover:bg-white hover:text-green-500 rounded-lg"
+									onclick={submitRegistrationOrdinary}>Conferma</button
+								> -->
+								<button
+									type="submit"
+									class="btn btn-sm btn-success w-24 hover:bg-white hover:text-green-500 rounded-lg"
+									>Conferma</button
+								>
+							</div>
 						</section>
 					</form>
 				</div>
 			</div>
 		</div>
 		<!-- metodo di pagamento -->
-		<div class=" ">
-			<hr class="bg-black h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
-			<p class="  font-bold text-lg text-center mt-4">Totale: 25€</p>
-			<hr class="bg-black h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
-			<p class="  font-bold text-lg text-center mt-4">Scegli il metodo di pagamento:</p>
-			<div class="form-control col-span-2 mx-2">
-				<label class="label cursor-pointer">
-					<span class="label-text font-semibold">Bonifico (IBAN: 1548416800005462)</span>
-					<input
-						type="radio"
-						name="radio-paymentType"
-						class="radio checked:bg-blue-500"
-						bind:group={paymentType}
-						value={'bonifico'}
-					/>
-				</label>
-			</div>
-			<div class="form-control col-span-2 mx-2">
-				<label class="label cursor-pointer">
-					<span class="label-text font-semibold">Paypal</span>
-					<input
-						type="radio"
-						name="radio-paymentType"
-						class="radio checked:bg-blue-500"
-						bind:group={paymentType}
-						value={'paypal'}
-					/>
-				</label>
-			</div>
-			<div class="form-control col-span-2 mx-2">
-				<label class="label cursor-pointer">
-					<span class="label-text font-semibold">Contanti (all'inizio corso)</span>
-					<input
-						type="radio"
-						name="radio-paymentType"
-						class="radio checked:bg-blue-500"
-						bind:group={paymentType}
-						value={'contanti'}
-					/>
-				</label>
-			</div>
-		</div>
-		<!-- button -->
-		<div class="modal-action">
-			<button
-				class="btn btn-sm btn-error w-24 hover:bg-white hover:text-red-500 rounded-lg"
-				onclick={() => (isModalRegister = false)}>Chiudi</button
-			>
-			<button
-				class="btn btn-sm btn-success w-24 hover:bg-white hover:text-green-500 rounded-lg"
-				onclick={submitRegistrationOrdinary}>Conferma</button
-			>
-		</div>
 	</div>
 </dialog>
 <!-- modal END CONFIRM REGISTER -->

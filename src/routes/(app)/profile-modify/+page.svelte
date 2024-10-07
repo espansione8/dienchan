@@ -293,7 +293,7 @@
 
 	const imgSrc = (value: string) => {
 		const src = $coursesInfo.filter((item: any) => item.id == value);
-		return src[0].urlPic;
+		return src[0]?.urlPic || '/images/picture.png';
 	};
 
 	const siglaToProvincia = (provinciaSigla: any) => {

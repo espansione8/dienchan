@@ -1,4 +1,4 @@
-// api/membership/new
+// api/membership/renew
 import { json } from '@sveltejs/kit';
 import { User } from '$lib/models/Users.model';
 import dbConnect from '$lib/database';

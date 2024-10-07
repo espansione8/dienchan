@@ -1,5 +1,6 @@
-//import { redirect } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types'
+import { redirect, fail } from '@sveltejs/kit';
+import type { PageServerLoad, Actions } from './$types'
+import { Product } from '$lib/models/Products.model';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	//console.log('locals', locals);
@@ -22,3 +23,64 @@ export const load: PageServerLoad = async ({ locals }) => {
 		auth: locals.auth
 	};
 }
+
+export const actions: Actions = {
+	newMembership: async ({ request, fetch, locals }) => {
+		const formData = await request.formData();
+		const name = formData.get('name');
+		const surname = formData.get('surname');
+		const email = formData.get('email');
+		const address = formData.get('address');
+		const postalCode = formData.get('postalCode');
+		const city = formData.get('city');
+		const countryState = formData.get('countryState');
+		const country = formData.get('country');
+		const phone = formData.get('phone');
+		const mobilePhone = formData.get('mobilePhone');
+		const password1 = formData.get('password1');
+		const membershipLevel = 'Socio ordinario';
+		const paymentType = formData.get('radio-paymentType');
+
+		if (!name || !surname || !email || !address || !postalCode || !city || !countryState || !country || !password1 || !paymentType) {
+			console.log('newMembership', name, surname, email, address, postalCode, city, countryState, country, password1, paymentType);
+			return fail(400, { action: 'newMembership', success: false, message: 'Dati mancanti' });
+		}
+		try {
+			const findProduct = await Product.findOne({ title: membershipLevel });
+			const product = findProduct?.prodId ? findProduct : () => { return { action: 'newMembership', success: false, message: 'errore iscrizione (1)' } }
+
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/orders/purchase-first`, {
+				method: 'POST',
+				body: JSON.stringify({
+					name,
+					surname,
+					email,
+					password1, // only registration
+					address,
+					city,
+					countryState,
+					postalCode,
+					country,
+					phone,
+					mobilePhone,
+					cart: product,
+					paymentType,
+					userId: ''
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const res = await response.json();
+			if (res.status == 200) {
+				return { action: 'newMembership', success: true, message: res.message };
+			} else {
+				return { action: 'newMembership', success: false, message: res.message };
+			}
+		} catch (error) {
+			console.error('Error creating new membership:', error);
+			return { action: 'newMembership', success: false, message: 'Errore creazione membership' };
+		}
+	},
+
+} satisfies Actions;
