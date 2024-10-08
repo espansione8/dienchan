@@ -43,156 +43,75 @@
 				'Associazione ben organizzata che insegna egregiamente e con passione tecniche utili per il benessere psicofisico.'
 		}
 	];
-	const onClickAssociateOrdinary = () => {
-		isModalRegister = true;
-	};
-
-	const onClickRenew = () => {
-		isModalRenew = true;
-		newExpire = new Date(
-			new Date(userData?.membership?.membershipExpiry).setFullYear(
-				new Date(userData?.membership?.membershipExpiry).getFullYear() + 1
+	let currentDialog = $state('');
+	let postAction = $state('');
+	const onClickDialog = (type: string) => {
+		currentDialog = type;
+		isModal = true;
+		if (type == 'associate') {
+			postAction = `?/newMembership`;
+		}
+		if (type == 'lifetime') {
+			postAction = `?/newLifetime`;
+		}
+		if (type == 'renew') {
+			postAction = `?/renewMembership`;
+			newExpire = new Date(
+				new Date(userData?.membership?.membershipExpiry).setFullYear(
+					new Date(userData?.membership?.membershipExpiry).getFullYear() + 1
+				)
 			)
-		)
-			.toISOString()
-			.substring(0, 10);
-	};
-
-	const onConfirmRegister = async () => {
-		//alert('save data');
-		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/new`, {
-			method: 'POST',
-			body: JSON.stringify({
-				id: userData._id,
-				userId: userData.userId,
-				membershipLevel: 'Socio ordinario',
-				membershipSignUp: new Date(),
-				membershipActivation: new Date(),
-				membershipExpiry: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-				membershipStatus: true
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		if (response.status == 200) {
-			clearTimeout(startTimeout);
-			console.log('OK', response);
-			let content = (await response.json()).message;
-			toastClosed = false;
-			notificationContent = content;
-			if (content == 'Utente già socio!') {
-				notificationError = true;
-			}
-			closeNotification();
-		}
-		if (response.status != 200) {
-			console.log('KO', response);
-			let error = (await response.json()).message;
-			toastClosed = false;
-			notificationContent = error;
-			notificationError = true;
-			closeNotification();
+				.toISOString()
+				.substring(0, 10);
 		}
 	};
 
-	const onClickAssociateLifetime = async () => {
-		//alert('save data');
-		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/new`, {
-			method: 'POST',
-			body: JSON.stringify({
-				id: userData._id,
-				userId: userData.userId,
-				membershipLevel: 'Socio vitalizio',
-				membershipSignUp: new Date(),
-				membershipActivation: new Date(),
-				membershipExpiry: new Date(new Date().setFullYear(new Date().getFullYear() + 100)),
-				membershipStatus: true
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		if (response.status == 200) {
-			clearTimeout(startTimeout);
-			console.log('OK', response);
-			let content = (await response.json()).message;
-			toastClosed = false;
-			notificationContent = content;
-			if (content == 'Utente già socio!') {
-				notificationError = true;
-			}
-			closeNotification();
-		}
-		if (response.status != 200) {
-			console.log('KO', response);
-			let error = (await response.json()).message;
-			toastClosed = false;
-			notificationContent = error;
-			notificationError = true;
-			closeNotification();
-		}
-	};
-
-	// const addOneYear = date => new Date(date.setFullYear(date.getFullYear() + 1));
-
-	const onClickConfirmRenew = async () => {
-		//alert('save data');
-		isModalRenew = false;
-		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/renew`, {
-			method: 'POST',
-			body: JSON.stringify({
-				userId: userData.userId,
-				membershipActivation: userData.membership.membershipExpiry,
-				membershipExpiry: new Date(
-					new Date(userData.membership.membershipExpiry).setFullYear(
-						new Date(userData.membership.membershipExpiry).getFullYear() + 1
-					)
-				),
-				membershipStatus: true
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		if (response.status == 200) {
-			clearTimeout(startTimeout);
-			console.log('OK', response);
-			let content = (await response.json()).message;
-			toastClosed = false;
-			notificationContent = content;
-			if (content == 'Rinnovo NON effettuato!') {
-				notificationError = true;
-			}
-			invalidateAll();
-			closeNotification();
-		}
-		if (response.status != 200) {
-			console.log('KO', response);
-			let error = (await response.json()).message;
-			toastClosed = false;
-			notificationContent = error;
-			notificationError = true;
-			invalidateAll();
-			closeNotification();
-		}
-	};
-
-	// notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-		}, 3000); // 1000 milliseconds = 1 second
-	};
-	//clearTimeout(startTimeout); // reset timer
+	// TODO make ACTION POST
+	// const onClickConfirmRenew = async () => {
+	// 	//alert('save data');
+	// 	isModalRenew = false;
+	// 	const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/renew`, {
+	// 		method: 'POST',
+	// 		body: JSON.stringify({
+	// 			userId: userData.userId,
+	// 			membershipActivation: userData.membership.membershipExpiry,
+	// 			membershipExpiry: new Date(
+	// 				new Date(userData.membership.membershipExpiry).setFullYear(
+	// 					new Date(userData.membership.membershipExpiry).getFullYear() + 1
+	// 				)
+	// 			),
+	// 			membershipStatus: true
+	// 		}),
+	// 		headers: {
+	// 			'Content-Type': 'application/json'
+	// 		}
+	// 	});
+	// 	if (response.status == 200) {
+	// 		clearTimeout(startTimeout);
+	// 		console.log('OK', response);
+	// 		let content = (await response.json()).message;
+	// 		toastClosed = false;
+	// 		notificationContent = content;
+	// 		if (content == 'Rinnovo NON effettuato!') {
+	// 			notificationError = true;
+	// 		}
+	// 		invalidateAll();
+	// 		closeNotification();
+	// 	}
+	// 	if (response.status != 200) {
+	// 		console.log('KO', response);
+	// 		let error = (await response.json()).message;
+	// 		toastClosed = false;
+	// 		notificationContent = error;
+	// 		notificationError = true;
+	// 		invalidateAll();
+	// 		closeNotification();
+	// 	}
+	// };
 
 	let paymentType = $state('bonifico');
+	let isModal = $state(false);
 	let isModalRenew = $state(false);
-	let isModalRegister = $state(false);
 	let isModalLifetime = $state(false);
 
 	const countryList = $country_list;
@@ -210,112 +129,13 @@
 	let mobilePhone = $state('');
 	let checkPass = $state(false);
 	let checkSecondPass = $state(false);
-	let error = $state();
+	//let error = $state();
 	let inputRef = $state();
 	const testPass = () => {
 		checkPass = password1.length >= 8;
 		checkSecondPass = password1 === password2;
 	};
 	const testSecondPass = () => (checkSecondPass = password1 === password2);
-
-	const submitRegistrationOrdinary = async () => {
-		error = null;
-		if (!checkPass || !checkSecondPass) {
-			error = 'PASSWORD DIFFERENTI';
-			inputRef.focus();
-			return;
-		}
-		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-up-admin`, {
-			method: 'POST',
-			body: JSON.stringify({
-				name,
-				surname,
-				email,
-				address,
-				postalCode,
-				city,
-				countryState,
-				country,
-				phone,
-				mobilePhone,
-				password1,
-				membershipLevel: 'Socio ordinario'
-				//membershipExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		if (response.status == 200) {
-			clearTimeout(startTimeout);
-			console.log('OK', response);
-			let content = (await response.json()).message;
-			toastClosed = false;
-			notificationContent = content;
-			closeNotification();
-			fieldReset();
-			isModalRegister = false;
-		}
-		if (response.status != 200) {
-			console.log('KO', response);
-			let error = (await response.json()).message;
-			toastClosed = false;
-			notificationContent = error;
-			notificationError = true;
-			closeNotification();
-			isModalRegister = false;
-		}
-	};
-
-	const submitRegistrationLifetime = async () => {
-		isModalLifetime = false;
-		error = null;
-		if (!checkPass || !checkSecondPass) {
-			error = 'PASSWORD DIFFERENTI';
-			inputRef.focus();
-			return;
-		}
-		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-up-admin`, {
-			method: 'POST',
-			body: JSON.stringify({
-				name,
-				surname,
-				email,
-				address,
-				postalCode,
-				city,
-				countryState,
-				country,
-				phone,
-				mobilePhone,
-				password1,
-				membershipLevel: 'Socio vitalizio'
-				//membershipExpiry: new Date(Date.now() + 36500 * 24 * 60 * 60 * 1000)
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		if (response.status == 200) {
-			clearTimeout(startTimeout);
-			console.log('OK', response);
-			let content = (await response.json()).message;
-			toastClosed = false;
-			notificationContent = content;
-			closeNotification();
-			fieldReset(); // svuota i campi dopo inserimento
-			isModalRegister = false;
-		}
-		if (response.status != 200) {
-			console.log('KO', response);
-			let error = (await response.json()).message;
-			toastClosed = false;
-			notificationContent = error;
-			notificationError = true;
-			closeNotification();
-			isModalRegister = false;
-		}
-	};
 
 	const fieldReset = () => {
 		name = '';
@@ -332,15 +152,28 @@
 		password2 = '';
 	};
 
+	// notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+		}, 3000); // 1000 milliseconds = 1 second
+	};
+	//clearTimeout(startTimeout); // reset timer
+
 	$effect(() => {
 		if (form != null) {
 			async () => await invalidateAll(); // MUST be async/await or tableList = getTable will trigger infinite loop
 			const { action, success, message } = form;
 			if (success) {
 				closeNotification();
-				//resetFieldsModalFilter();
-				isModalNew = false;
-				tableList = getTable; //WARNING THIS CAN TRIGGER INFINITE LOOP
+				fieldReset();
+				isModal = false;
+				isModalRenew = false;
+				isModalLifetime = false;
 			} else {
 				notificationError = true;
 			}
@@ -459,14 +292,14 @@
 						{#if !auth}
 							<button
 								class="btn bg-red-500 text-white w-full rounded-xl mt-2"
-								onclick={onClickAssociateOrdinary}
+								onclick={() => onClickDialog('associate')}
 							>
 								Associati</button
 							>
 						{:else}
 							<button
 								class="btn bg-transparent border-2 border-white text-white w-full rounded-xl mt-2"
-								onclick={onClickRenew}>Rinnova</button
+								onclick={() => onClickDialog('renew')}>Rinnova</button
 							>
 						{/if}
 					</div>
@@ -497,9 +330,7 @@
 				</div>
 				<button
 					class="btn bg-red-500 text-white w-full rounded-xl mt-2"
-					onclick={() => {
-						isModalLifetime = true;
-					}}>Associati</button
+					onclick={() => onClickDialog('lifetime')}>Associati</button
 				>
 			</div>
 		</div>
@@ -630,348 +461,319 @@
 </div>
 <Notification {toastClosed} {notificationContent} {notificationError} />
 
-<!-- modal CONFIRM RENEW -->
-<dialog id="my_modal_2" class="modal" class:modal-open={isModalRenew}>
-	<div class="modal-box flex flex-col text-center">
-		<h3 class="font-bold text-xl">Confermi rinnovo annuale</h3>
-		<p class="py-2 font-semibold mt-2">
-			Attuale data di scadenza:
-			{#if auth}
-				<strong class="text-red-500">{userData.membership.membershipExpiry}</strong>
-			{/if}
-		</p>
-		<p class=" font-semibold">
-			Futura data di scadenza:
-			{#if auth}
-				<b class="text-green-500">{newExpire}</b>
-			{/if}
-		</p>
-		<hr class="bg-black h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
-		<p class=" col-span-2 font-bold text-lg text-center mt-4">Scegli il metodo di pagamento:</p>
-		<div class="form-control col-span-2 mx-2">
-			<label class="label cursor-pointer">
-				<span class="label-text font-semibold">Bonifico (IBAN: 1548416800005462)</span>
-				<input
-					type="radio"
-					id="radio-bonifico"
-					name="radio-bonifico"
-					class="radio checked:bg-blue-500"
-					bind:group={paymentType}
-					value={'bonifico'}
-				/>
-			</label>
-		</div>
-		<div class="form-control col-span-2 mx-2">
-			<label class="label cursor-pointer">
-				<span class="label-text font-semibold">Paypal</span>
-				<input
-					type="radio"
-					id="radio-paypal"
-					name="radio-paypal"
-					class="radio checked:bg-blue-500"
-					bind:group={paymentType}
-					value={'paypal'}
-				/>
-			</label>
-		</div>
-		<div class="form-control col-span-2 mx-2">
-			<label class="label cursor-pointer">
-				<span class="label-text font-semibold">Contanti (all'inizio corso)</span>
-				<input
-					type="radio"
-					id="radio-contanti"
-					name="radio-contanti"
-					class="radio checked:bg-blue-500"
-					bind:group={paymentType}
-					value={'contanti'}
-				/>
-			</label>
-		</div>
-		<div class="modal-action">
-			<button
-				class="btn btn-sm btn-error w-24 hover:bg-white hover:text-red-500 rounded-lg"
-				onclick={() => (isModalRenew = false)}>Chiudi</button
-			>
-			<button
-				class="btn btn-sm btn-success w-24 hover:bg-white hover:text-green-500 rounded-lg"
-				onclick={onClickConfirmRenew}>Conferma</button
-			>
-		</div>
-	</div>
-</dialog>
-<!-- modal END CONFIRM RENEW -->
-
-<!-- modal CONFIRM REGISTER -->
-<dialog id="my_modal_2" class="modal" class:modal-open={isModalRegister}>
+<!-- modal CONFIRM -->
+<dialog id="my_modal_2" class="modal" class:modal-open={isModal}>
 	<div class="modal-box flex flex-col text-center">
 		<div class="container mx-auto">
 			<div class="flex justify-center">
 				<div class="w-full">
 					<form
 						method="POST"
-						action={`?/newMembership`}
+						action={postAction}
 						use:enhance
 						class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 					>
 						<header class="col-span-4 text-center text-2xl font-bold text-green-800">
-							Nuova iscrizione socio ordinario
+							{#if currentDialog == 'associate'}
+								Nuova iscrizione socio ordinario
+							{:else if currentDialog == 'lifetime'}
+								Nuova iscrizione socio vitalizio
+							{:else if currentDialog == 'renew'}
+								Rinnovo iscrizione
+								<!-- pass userID in POST ACTION -->
+								<input type="hidden" name="userId" value={userData.userId} />
+								<input
+									type="hidden"
+									name="membershipActivation"
+									value={userData.membership.membershipExpiry}
+								/>
+								<input type="hidden" name="membershipExpiry" value={newExpire} />
+								<input type="hidden" name="membershipStatus" value={true} />
+							{/if}
 						</header>
-						<!-- Nome -->
-						<section class="col-span-4 md:col-span-2">
-							<label for="nome" class="form-label">
-								<p class="font-bold mb-2">Nome</p>
-							</label>
-							<div class="join join-horizontal rounded-md w-full">
-								<button class="join-item bg-gray-300 px-3"><User /></button>
-								<input
-									class="input input-bordered join-item w-full"
-									id="nome"
-									name="name"
-									type="text"
-									placeholder="Nome"
-									aria-label="nome"
-									aria-describedby="basic-nome"
-									bind:value={name}
-									required
-								/>
-							</div>
-						</section>
-						<!-- Cognome -->
-						<section class="col-span-4 md:col-span-2">
-							<label for="cognome" class="form-label">
-								<p class="font-bold mb-2">Cognome</p>
-							</label>
-							<div class="join join-horizontal rounded-md w-full">
-								<button class="join-item bg-gray-300 px-3"><User /></button>
-								<input
-									class="input input-bordered join-item w-full"
-									id="cognome"
-									name="surname"
-									type="text"
-									placeholder="Cognome"
-									aria-label="cognome"
-									aria-describedby="basic-cognome"
-									bind:value={surname}
-									required
-								/>
-							</div>
-						</section>
-						<!-- Email -->
+						{#if !auth}
+							<!-- Nome -->
+							<section class="col-span-4 md:col-span-2">
+								<label for="nome" class="form-label">
+									<p class="font-bold mb-2">Nome</p>
+								</label>
+								<div class="join join-horizontal rounded-md w-full">
+									<button class="join-item bg-gray-300 px-3"><User /></button>
+									<input
+										class="input input-bordered join-item w-full"
+										id="nome"
+										name="name"
+										type="text"
+										placeholder="Nome"
+										aria-label="nome"
+										aria-describedby="basic-nome"
+										bind:value={name}
+										required
+									/>
+								</div>
+							</section>
+							<!-- Cognome -->
+							<section class="col-span-4 md:col-span-2">
+								<label for="cognome" class="form-label">
+									<p class="font-bold mb-2">Cognome</p>
+								</label>
+								<div class="join join-horizontal rounded-md w-full">
+									<button class="join-item bg-gray-300 px-3"><User /></button>
+									<input
+										class="input input-bordered join-item w-full"
+										id="cognome"
+										name="surname"
+										type="text"
+										placeholder="Cognome"
+										aria-label="cognome"
+										aria-describedby="basic-cognome"
+										bind:value={surname}
+										required
+									/>
+								</div>
+							</section>
+							<!-- Email -->
+							<section class="col-span-4">
+								<label for="email" class="form-label">
+									<p class="font-bold mb-2">Email</p>
+								</label>
+								<div class="join join-horizontal rounded-md w-full">
+									<button class="join-item bg-gray-300 px-3"><Mail /></button>
+									<input
+										class="input input-bordered join-item w-full"
+										id="email"
+										name="email"
+										type="email"
+										placeholder="Tua Email"
+										aria-label="Email"
+										aria-describedby="basic-email"
+										bind:value={email}
+										required
+									/>
+								</div>
+							</section>
+							<!-- Indirizzo -->
+							<section class="col-span-4">
+								<label for="indirizzo" class="form-label">
+									<p class="font-bold mb-2">Indirizzo</p>
+								</label>
+								<div class="join join-horizontal rounded-md w-full">
+									<button class="join-item bg-gray-300 px-3"><MapPin /></button>
+									<input
+										class="input input-bordered join-item w-full"
+										id="indirizzo"
+										name="address"
+										type="text"
+										placeholder="Indirizzo"
+										aria-label="indirizzo"
+										aria-describedby="basic-indirizzo"
+										bind:value={address}
+										required
+									/>
+								</div>
+							</section>
+							<!-- CAP -->
+							<section class="col-span-4 md:col-span-2">
+								<label for="cap" class="form-label">
+									<p class="font-bold mb-2">CAP</p>
+								</label>
+								<div class="join join-horizontal rounded-md w-full">
+									<button class="join-item bg-gray-300 px-3"><MapPin /></button>
+									<input
+										class="input input-bordered join-item w-full"
+										id="cap"
+										name="postalCode"
+										type="text"
+										placeholder="CAP"
+										aria-label="cap"
+										aria-describedby="basic-cap"
+										bind:value={postalCode}
+										required
+									/>
+								</div>
+							</section>
+							<!-- Citta -->
+							<section class="col-span-4 md:col-span-2">
+								<label for="citta" class="form-label">
+									<p class="font-bold mb-2">Città</p>
+								</label>
+								<div class="join join-horizontal rounded-md w-full">
+									<button class="join-item bg-gray-300 px-3"><Building2 /></button>
+									<input
+										class="input input-bordered join-item w-full"
+										id="citta"
+										name="city"
+										type="text"
+										placeholder="Città"
+										aria-label="citta"
+										aria-describedby="basic-citta"
+										bind:value={city}
+										required
+									/>
+								</div>
+							</section>
+							<!-- Provincia -->
+							<section class="col-span-4">
+								<label for="provincia" class="form-label">
+									<p class="font-bold mb-2">Provincia</p>
+								</label>
+								<div class="join join-horizontal rounded-md w-full">
+									<button class="join-item bg-gray-300 px-3"><Building2 /></button>
+									<select
+										class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
+										id="provincia"
+										name="countryState"
+										aria-label="Provincia"
+										aria-describedby="basic-provincia"
+										placeholder="Scegli"
+										bind:value={countryState}
+										required
+									>
+										<option selected disabled>Scegli</option>
+										{#each provinceFilterate as provincia, i}
+											<option value={provincia.sigla}>
+												{provincia.nome} ({provincia.sigla})
+											</option>
+										{/each}
+									</select>
+								</div>
+							</section>
+							<!-- Nazione -->
+							<section class="col-span-4">
+								<label for="nazione" class="form-label">
+									<p class="font-bold mb-2">Nazione</p>
+								</label>
+								<div class="join join-horizontal rounded-md w-full">
+									<button class="join-item bg-gray-300 px-3"><Globe /></button>
+									<select
+										class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
+										aria-label="Default select example"
+										id="nazione"
+										name="country"
+										required
+										bind:value={country}
+									>
+										<option selected disabled>Scegli</option>
+										{#each countryList as country}
+											<option value={country}>
+												{country}
+											</option>
+										{/each}
+									</select>
+								</div>
+							</section>
+							<!-- Telefono -->
+							<section class="col-span-4">
+								<label for="telefono" class="form-label">
+									<p class="font-bold mb-2">Telefono</p>
+								</label>
+								<div class="join join-horizontal rounded-md w-full">
+									<button class="join-item bg-gray-300 px-3"><Phone /></button>
+									<input
+										class="input input-bordered join-item w-full"
+										id="telefono"
+										name="phone"
+										type="text"
+										placeholder="Telefono"
+										aria-label="telefono"
+										aria-describedby="basic-telefono"
+										bind:value={phone}
+									/>
+								</div>
+							</section>
+							<!-- Cellulare -->
+							<section class="col-span-4">
+								<label for="cellulare" class="form-label">
+									<p class="font-bold mb-2">Cellulare</p>
+								</label>
+								<div class="join join-horizontal rounded-md w-full">
+									<button class="join-item bg-gray-300 px-3"><Smartphone /></button>
+									<input
+										class="input input-bordered join-item w-full"
+										id="cellulare"
+										name="mobilePhone"
+										type="text"
+										placeholder="Cellulare"
+										aria-label="cellulare"
+										aria-describedby="basic-cellulare"
+										bind:value={mobilePhone}
+									/>
+								</div>
+							</section>
+							<!-- Password -->
+							<section class="col-span-4">
+								<label for="password" class="form-label">
+									<p class="font-bold mb-2">
+										Password <br />
+										<span class="text-sm text-gray-600"
+											>( Almeno 8 caratteri numeri e lettere )</span
+										>
+									</p>
+								</label>
+								<div class="join join-horizontal rounded-md w-full">
+									<button class="join-item bg-gray-300 px-3"
+										><Lock color={checkPass ? 'green' : 'black'} /></button
+									>
+									<input
+										class="input input-bordered join-item w-full"
+										id="password"
+										name="password1"
+										type="password"
+										placeholder="your password"
+										aria-label="Password"
+										aria-describedby="basic-password"
+										bind:value={password1}
+										oninput={testPass}
+										required
+									/>
+								</div>
+							</section>
+							<!-- Conferma password -->
+							<section class="col-span-4">
+								<label for="password2" class="form-label">
+									<p class="font-bold mb-2">Conferma password</p>
+								</label>
+								<div class="join join-horizontal rounded-md w-full">
+									<button class="join-item bg-gray-300 px-3"
+										><Lock color={checkSecondPass && checkPass ? 'green' : 'black'} /></button
+									>
+									<input
+										class="input input-bordered join-item w-full"
+										id="password2"
+										type="password"
+										placeholder="Repeat password"
+										bind:value={password2}
+										oninput={testSecondPass}
+										bind:this={inputRef}
+										required
+									/>
+								</div>
+							</section>
+						{/if}
 						<section class="col-span-4">
-							<label for="email" class="form-label">
-								<p class="font-bold mb-2">Email</p>
-							</label>
-							<div class="join join-horizontal rounded-md w-full">
-								<button class="join-item bg-gray-300 px-3"><Mail /></button>
-								<input
-									class="input input-bordered join-item w-full"
-									id="email"
-									name="email"
-									type="email"
-									placeholder="Tua Email"
-									aria-label="Email"
-									aria-describedby="basic-email"
-									bind:value={email}
-									required
-								/>
-							</div>
-						</section>
-						<!-- Indirizzo -->
-						<section class="col-span-4">
-							<label for="indirizzo" class="form-label">
-								<p class="font-bold mb-2">Indirizzo</p>
-							</label>
-							<div class="join join-horizontal rounded-md w-full">
-								<button class="join-item bg-gray-300 px-3"><MapPin /></button>
-								<input
-									class="input input-bordered join-item w-full"
-									id="indirizzo"
-									name="address"
-									type="text"
-									placeholder="Indirizzo"
-									aria-label="indirizzo"
-									aria-describedby="basic-indirizzo"
-									bind:value={address}
-									required
-								/>
-							</div>
-						</section>
-						<!-- CAP -->
-						<section class="col-span-4 md:col-span-2">
-							<label for="cap" class="form-label">
-								<p class="font-bold mb-2">CAP</p>
-							</label>
-							<div class="join join-horizontal rounded-md w-full">
-								<button class="join-item bg-gray-300 px-3"><MapPin /></button>
-								<input
-									class="input input-bordered join-item w-full"
-									id="cap"
-									name="postalCode"
-									type="text"
-									placeholder="CAP"
-									aria-label="cap"
-									aria-describedby="basic-cap"
-									bind:value={postalCode}
-									required
-								/>
-							</div>
-						</section>
-						<!-- Citta -->
-						<section class="col-span-4 md:col-span-2">
-							<label for="citta" class="form-label">
-								<p class="font-bold mb-2">Città</p>
-							</label>
-							<div class="join join-horizontal rounded-md w-full">
-								<button class="join-item bg-gray-300 px-3"><Building2 /></button>
-								<input
-									class="input input-bordered join-item w-full"
-									id="citta"
-									name="city"
-									type="text"
-									placeholder="Città"
-									aria-label="citta"
-									aria-describedby="basic-citta"
-									bind:value={city}
-									required
-								/>
-							</div>
-						</section>
-						<!-- Provincia -->
-						<section class="col-span-4">
-							<label for="provincia" class="form-label">
-								<p class="font-bold mb-2">Provincia</p>
-							</label>
-							<div class="join join-horizontal rounded-md w-full">
-								<button class="join-item bg-gray-300 px-3"><Building2 /></button>
-								<select
-									class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
-									id="provincia"
-									name="countryState"
-									aria-label="Provincia"
-									aria-describedby="basic-provincia"
-									placeholder="Scegli"
-									bind:value={countryState}
-									required
-								>
-									<option selected disabled>Scegli</option>
-									{#each provinceFilterate as provincia, i}
-										<option value={provincia.sigla}>
-											{provincia.nome} ({provincia.sigla})
-										</option>
-									{/each}
-								</select>
-							</div>
-						</section>
-						<!-- Nazione -->
-						<section class="col-span-4">
-							<label for="nazione" class="form-label">
-								<p class="font-bold mb-2">Nazione</p>
-							</label>
-							<div class="join join-horizontal rounded-md w-full">
-								<button class="join-item bg-gray-300 px-3"><Globe /></button>
-								<select
-									class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
-									aria-label="Default select example"
-									id="nazione"
-									name="country"
-									required
-									bind:value={country}
-								>
-									<option selected disabled>Scegli</option>
-									{#each countryList as country}
-										<option value={country}>
-											{country}
-										</option>
-									{/each}
-								</select>
-							</div>
-						</section>
-						<!-- Telefono -->
-						<section class="col-span-4">
-							<label for="telefono" class="form-label">
-								<p class="font-bold mb-2">Telefono</p>
-							</label>
-							<div class="join join-horizontal rounded-md w-full">
-								<button class="join-item bg-gray-300 px-3"><Phone /></button>
-								<input
-									class="input input-bordered join-item w-full"
-									id="telefono"
-									name="phone"
-									type="text"
-									placeholder="Telefono"
-									aria-label="telefono"
-									aria-describedby="basic-telefono"
-									bind:value={phone}
-								/>
-							</div>
-						</section>
-						<!-- Cellulare -->
-						<section class="col-span-4">
-							<label for="cellulare" class="form-label">
-								<p class="font-bold mb-2">Cellulare</p>
-							</label>
-							<div class="join join-horizontal rounded-md w-full">
-								<button class="join-item bg-gray-300 px-3"><Smartphone /></button>
-								<input
-									class="input input-bordered join-item w-full"
-									id="cellulare"
-									name="mobilePhone"
-									type="text"
-									placeholder="Cellulare"
-									aria-label="cellulare"
-									aria-describedby="basic-cellulare"
-									bind:value={mobilePhone}
-								/>
-							</div>
-						</section>
-						<!-- Password -->
-						<section class="col-span-4">
-							<label for="password" class="form-label">
-								<p class="font-bold mb-2">
-									Password <br />
-									<span class="text-sm text-gray-600">( Almeno 8 caratteri numeri e lettere )</span>
-								</p>
-							</label>
-							<div class="join join-horizontal rounded-md w-full">
-								<button class="join-item bg-gray-300 px-3"
-									><Lock color={checkPass ? 'green' : 'black'} /></button
-								>
-								<input
-									class="input input-bordered join-item w-full"
-									id="password"
-									name="password1"
-									type="password"
-									placeholder="your password"
-									aria-label="Password"
-									aria-describedby="basic-password"
-									bind:value={password1}
-									oninput={testPass}
-									required
-								/>
-							</div>
-						</section>
-						<!-- Conferma password -->
-						<section class="col-span-4">
-							<label for="password2" class="form-label">
-								<p class="font-bold mb-2">Conferma password</p>
-							</label>
-							<div class="join join-horizontal rounded-md w-full">
-								<button class="join-item bg-gray-300 px-3"
-									><Lock color={checkSecondPass && checkPass ? 'green' : 'black'} /></button
-								>
-								<input
-									class="input input-bordered join-item w-full"
-									id="password2"
-									type="password"
-									placeholder="Repeat password"
-									bind:value={password2}
-									oninput={testSecondPass}
-									bind:this={inputRef}
-									required
-								/>
-							</div>
 							<hr class="bg-black h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
-							<p class="  font-bold text-lg text-center mt-4">Totale: 25€</p>
+							{#if auth}
+								<p class="py-2 font-semibold mt-2">
+									Attuale livello associazione: {userData?.membership?.membershipLevel}
+								</p>
+							{/if}
+							{#if auth && currentDialog == 'renew'}
+								<p class="py-2 font-semibold mt-2">
+									Attuale data di scadenza:
+									<strong class="text-red-500">{userData.membership.membershipExpiry}</strong>
+								</p>
+								<p class=" font-semibold">
+									Futura data di scadenza:
+									<b class="text-green-500">{newExpire}</b>
+								</p>
+							{/if}
+							<p class="  font-bold text-lg text-center mt-4">
+								{#if currentDialog == 'associate' || currentDialog == 'renew'}
+									Totale: 25€
+								{:else if currentDialog == 'lifetime'}
+									Totale: 390€
+								{/if}
+							</p>
 							<hr class="bg-black h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
 							<p class="  font-bold text-lg text-center mt-4">Scegli il metodo di pagamento:</p>
 							<div class="form-control col-span-2 mx-2">
@@ -1016,12 +818,8 @@
 								<button
 									type="button"
 									class="btn btn-sm btn-error w-24 hover:bg-white hover:text-red-500 rounded-lg"
-									onclick={() => (isModalRegister = false)}>Chiudi</button
+									onclick={() => (isModal = false)}>Chiudi</button
 								>
-								<!-- <button
-									class="btn btn-sm btn-success w-24 hover:bg-white hover:text-green-500 rounded-lg"
-									onclick={submitRegistrationOrdinary}>Conferma</button
-								> -->
 								<button
 									type="submit"
 									class="btn btn-sm btn-success w-24 hover:bg-white hover:text-green-500 rounded-lg"
@@ -1036,334 +834,4 @@
 		<!-- metodo di pagamento -->
 	</div>
 </dialog>
-<!-- modal END CONFIRM REGISTER -->
-
-<!-- modal CONFIRM LIFETIME -->
-<dialog id="my_modal_2" class="modal" class:modal-open={isModalLifetime}>
-	<div class="modal-box flex flex-col text-center">
-		<!-- <h3 class="font-bold text-xl">Iscrizione socio vitaliazio</h3> -->
-		{#if !auth}
-			<div class="container mx-auto">
-				<div class="flex justify-center">
-					<div class="w-full">
-						<form
-							action=""
-							class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-						>
-							<header class="col-span-4 text-center text-2xl font-bold text-green-800">
-								Nuova iscrizione socio vitalizio
-							</header>
-							<!-- Nome -->
-							<section class="col-span-4 md:col-span-2">
-								<label for="nome1" class="form-label">
-									<p class="font-bold mb-2">Nome</p>
-								</label>
-								<div class="join join-horizontal rounded-md w-full">
-									<button class="join-item bg-gray-300 px-3"><User /></button>
-									<input
-										class="input input-bordered join-item w-full"
-										id="nome1"
-										type="text"
-										placeholder="Nome"
-										aria-label="nome"
-										aria-describedby="basic-nome"
-										bind:value={name}
-										required
-									/>
-								</div>
-							</section>
-							<!-- Cognome -->
-							<section class="col-span-4 md:col-span-2">
-								<label for="cognome1" class="form-label">
-									<p class="font-bold mb-2">Cognome</p>
-								</label>
-								<div class="join join-horizontal rounded-md w-full">
-									<button class="join-item bg-gray-300 px-3"><User /></button>
-									<input
-										class="input input-bordered join-item w-full"
-										id="cognome1"
-										type="text"
-										placeholder="Cognome"
-										aria-label="cognome"
-										aria-describedby="basic-cognome"
-										bind:value={surname}
-										required
-									/>
-								</div>
-							</section>
-							<!-- Email -->
-							<section class="col-span-4">
-								<label for="email1" class="form-label">
-									<p class="font-bold mb-2">Email</p>
-								</label>
-								<div class="join join-horizontal rounded-md w-full">
-									<button class="join-item bg-gray-300 px-3"><Mail /></button>
-									<input
-										class="input input-bordered join-item w-full"
-										id="email1"
-										type="email"
-										placeholder="Tua Email"
-										aria-label="Email"
-										aria-describedby="basic-email"
-										bind:value={email}
-										required
-									/>
-								</div>
-							</section>
-							<!-- Indirizzo -->
-							<section class="col-span-4">
-								<label for="indirizzo1" class="form-label">
-									<p class="font-bold mb-2">Indirizzo</p>
-								</label>
-								<div class="join join-horizontal rounded-md w-full">
-									<button class="join-item bg-gray-300 px-3"><MapPin /></button>
-									<input
-										class="input input-bordered join-item w-full"
-										id="indirizzo1"
-										type="text"
-										placeholder="Indirizzo"
-										aria-label="indirizzo"
-										aria-describedby="basic-indirizzo"
-										bind:value={address}
-										required
-									/>
-								</div>
-							</section>
-							<!-- CAP -->
-							<section class="col-span-4 md:col-span-2">
-								<label for="cap1" class="form-label">
-									<p class="font-bold mb-2">CAP</p>
-								</label>
-								<div class="join join-horizontal rounded-md w-full">
-									<button class="join-item bg-gray-300 px-3"><MapPin /></button>
-									<input
-										class="input input-bordered join-item w-full"
-										id="cap1"
-										type="text"
-										placeholder="CAP"
-										aria-label="cap"
-										aria-describedby="basic-cap"
-										bind:value={postalCode}
-										required
-									/>
-								</div>
-							</section>
-							<!-- Citta -->
-							<section class="col-span-4 md:col-span-2">
-								<label for="citta1" class="form-label">
-									<p class="font-bold mb-2">Città</p>
-								</label>
-								<div class="join join-horizontal rounded-md w-full">
-									<button class="join-item bg-gray-300 px-3"><Building2 /></button>
-									<input
-										class="input input-bordered join-item w-full"
-										id="citta1"
-										type="text"
-										placeholder="Città"
-										aria-label="citta"
-										aria-describedby="basic-citta"
-										bind:value={city}
-										required
-									/>
-								</div>
-							</section>
-							<!-- Provincia -->
-							<section class="col-span-4">
-								<label for="provincia1" class="form-label">
-									<p class="font-bold mb-2">Provincia</p>
-								</label>
-								<div class="join join-horizontal rounded-md w-full">
-									<button class="join-item bg-gray-300 px-3"><Building2 /></button>
-									<select
-										class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
-										id="provincia1"
-										aria-label="Provincia"
-										aria-describedby="basic-provincia"
-										placeholder="Scegli"
-										bind:value={countryState}
-										required
-									>
-										<option selected disabled>Scegli</option>
-										{#each provinceFilterate as provincia, i}
-											<option value={provincia.sigla}>
-												{provincia.nome} ({provincia.sigla})
-											</option>
-										{/each}
-									</select>
-								</div>
-							</section>
-							<!-- Nazione -->
-							<section class="col-span-4">
-								<label for="nazione1" class="form-label">
-									<p class="font-bold mb-2">Nazione</p>
-								</label>
-								<div class="join join-horizontal rounded-md w-full">
-									<button class="join-item bg-gray-300 px-3"><Globe /></button>
-									<select
-										class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
-										aria-label="Default select example"
-										id="nazione1"
-										name="nazione"
-										required
-										bind:value={country}
-									>
-										<option selected disabled>Scegli</option>
-										{#each countryList as country}
-											<option value={country}>
-												{country}
-											</option>
-										{/each}
-									</select>
-								</div>
-							</section>
-							<!-- Telefono -->
-							<section class="col-span-4">
-								<label for="telefono1" class="form-label">
-									<p class="font-bold mb-2">Telefono</p>
-								</label>
-								<div class="join join-horizontal rounded-md w-full">
-									<button class="join-item bg-gray-300 px-3"><Phone /></button>
-									<input
-										class="input input-bordered join-item w-full"
-										id="telefono1"
-										type="text"
-										placeholder="Telefono"
-										aria-label="telefono"
-										aria-describedby="basic-telefono"
-										bind:value={phone}
-									/>
-								</div>
-							</section>
-							<!-- Cellulare -->
-							<section class="col-span-4">
-								<label for="cellulare1" class="form-label">
-									<p class="font-bold mb-2">Cellulare</p>
-								</label>
-								<div class="join join-horizontal rounded-md w-full">
-									<button class="join-item bg-gray-300 px-3"><Smartphone /></button>
-									<input
-										class="input input-bordered join-item w-full"
-										id="cellulare1"
-										type="text"
-										placeholder="Cellulare"
-										aria-label="cellulare"
-										aria-describedby="basic-cellulare"
-										bind:value={mobilePhone}
-									/>
-								</div>
-							</section>
-							<!-- Password -->
-							<section class="col-span-4">
-								<label for="password1" class="form-label">
-									<p class="font-bold mb-2">
-										Password <br />
-										<span class="text-sm text-gray-600"
-											>( Almeno 8 caratteri numeri e lettere )</span
-										>
-									</p>
-								</label>
-								<div class="join join-horizontal rounded-md w-full">
-									<button class="join-item bg-gray-300 px-3"
-										><Lock color={checkPass ? 'green' : 'black'} /></button
-									>
-									<input
-										class="input input-bordered join-item w-full"
-										id="password1"
-										type="password"
-										placeholder="your password"
-										aria-label="Password"
-										aria-describedby="basic-password"
-										bind:value={password1}
-										oninput={testPass}
-										required
-									/>
-								</div>
-							</section>
-							<!-- Conferma password -->
-							<section class="col-span-4">
-								<label for="password2a" class="form-label">
-									<p class="font-bold mb-2">Conferma password</p>
-								</label>
-								<div class="join join-horizontal rounded-md w-full">
-									<button class="join-item bg-gray-300 px-3"
-										><Lock color={checkSecondPass && checkPass ? 'green' : 'black'} /></button
-									>
-									<input
-										class="input input-bordered join-item w-full"
-										id="password2a"
-										type="password"
-										placeholder="Repeat password"
-										bind:value={password2}
-										oninput={testSecondPass}
-										bind:this={inputRef}
-										required
-									/>
-								</div>
-							</section>
-						</form>
-					</div>
-				</div>
-			</div>
-		{/if}
-		{#if auth}
-			<p class="py-2 font-semibold mt-2">
-				Attuale livello associazione: {userData?.membership?.membershipLevel}
-			</p>
-		{/if}
-
-		<hr class="bg-black h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
-		<p class="  font-bold text-lg text-center mt-4">Totale: 390€</p>
-		<hr class="bg-black h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
-		<p class=" col-span-2 font-bold text-lg text-center mt-4">Scegli il metodo di pagamento:</p>
-		<div class="form-control col-span-2 mx-2">
-			<label class="label cursor-pointer">
-				<span class="label-text font-semibold">Bonifico (IBAN: 1548416800005462)</span>
-				<input
-					type="radio"
-					id="radio-bonifico"
-					name="radio-bonifico"
-					class="radio checked:bg-blue-500"
-					bind:group={paymentType}
-					value={'bonifico'}
-				/>
-			</label>
-		</div>
-		<div class="form-control col-span-2 mx-2">
-			<label class="label cursor-pointer">
-				<span class="label-text font-semibold">Paypal</span>
-				<input
-					type="radio"
-					id="radio-paypal"
-					name="radio-paypal"
-					class="radio checked:bg-blue-500"
-					bind:group={paymentType}
-					value={'paypal'}
-				/>
-			</label>
-		</div>
-		<div class="form-control col-span-2 mx-2">
-			<label class="label cursor-pointer">
-				<span class="label-text font-semibold">Contanti (all'inizio corso)</span>
-				<input
-					type="radio"
-					id="radio-contanti"
-					name="radio-contanti"
-					class="radio checked:bg-blue-500"
-					bind:group={paymentType}
-					value={'contanti'}
-				/>
-			</label>
-		</div>
-		<div class="modal-action">
-			<button
-				class="btn btn-sm btn-error w-24 hover:bg-white hover:text-red-500 rounded-lg"
-				onclick={() => (isModalLifetime = false)}>Chiudi</button
-			>
-			<button
-				class="btn btn-sm btn-success w-24 hover:bg-white hover:text-green-500 rounded-lg"
-				onclick={submitRegistrationLifetime}>Conferma</button
-			>
-		</div>
-	</div>
-</dialog>
-<!-- modal END CONFIRM LIFETIME -->
+<!-- modal END CONFIRM -->
