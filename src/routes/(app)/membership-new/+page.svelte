@@ -21,7 +21,7 @@
 
 	let provinceFilterate = $province.filter((p) => p.sigla !== 'ON');
 
-	let newExpire = $state();
+	let newExpire: any = $state();
 
 	const testimonials = [
 		{
@@ -480,15 +480,6 @@
 								Nuova iscrizione socio vitalizio
 							{:else if currentDialog == 'renew'}
 								Rinnovo iscrizione
-								<!-- pass userID in POST ACTION -->
-								<input type="hidden" name="userId" value={userData.userId} />
-								<input
-									type="hidden"
-									name="membershipActivation"
-									value={userData.membership.membershipExpiry}
-								/>
-								<input type="hidden" name="membershipExpiry" value={newExpire} />
-								<input type="hidden" name="membershipStatus" value={true} />
 							{/if}
 						</header>
 						{#if !auth}
@@ -766,6 +757,7 @@
 									Futura data di scadenza:
 									<b class="text-green-500">{newExpire}</b>
 								</p>
+								<input type="hidden" name="membershipExpiry" value={newExpire} />
 							{/if}
 							<p class="  font-bold text-lg text-center mt-4">
 								{#if currentDialog == 'associate' || currentDialog == 'renew'}

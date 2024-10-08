@@ -140,11 +140,12 @@ export const actions: Actions = {
 		}
 	},
 	renewMembership: async ({ request, fetch, locals }) => {
-		const userId = locals.data.userId;
-		const membershipActivation = locals.data.membershipActivation;
-		const membershipExpiry = locals.data.membershipExpiry;
-		const membershipStatus = locals.data.membershipStatus;
+		const userData = locals.data;
 		const formData = await request.formData();
+		const userId = userData.userId;
+		const membershipActivation = userData.membership.membershipExpiry;
+		const membershipStatus = true;
+		const membershipExpiry = formData.get('membershipExpiry');
 		const paymentType = formData.get('radio-paymentType');
 
 		if (!paymentType) {
