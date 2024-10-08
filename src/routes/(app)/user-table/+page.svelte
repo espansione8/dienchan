@@ -1014,7 +1014,7 @@
 <dialog id="modal_modify" class="modal" class:modal-open={isModalModify}>
 	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-3xl">
 		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
-			<h2 class="text-2xl font-bold text-white mb-1">Nuovo utente</h2>
+			<h2 class="text-2xl font-bold text-white mb-1">Modifica utente</h2>
 		</div>
 		<form
 			method="POST"

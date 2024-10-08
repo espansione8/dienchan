@@ -152,7 +152,7 @@
 </script>
 
 <svelte:head>
-	<title>Lista Modelli</title>
+	<title>Lista Modello Corso</title>
 </svelte:head>
 
 <noscript>
