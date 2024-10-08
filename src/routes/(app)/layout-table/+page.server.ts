@@ -115,7 +115,7 @@ export const actions: Actions = {
 
 
 		console.log('layoutId', layoutId);
-		if (!layoutId || !title ) {
+		if (!layoutId || !title) {
 			return fail(400, { action: 'modifyLayout', success: false, message: 'Dati mancanti' });
 		}
 
@@ -147,41 +147,9 @@ export const actions: Actions = {
 		}
 	},
 
-	// disableLayout: async ({ request, fetch }) => {
-	// 	const formData = await request.formData();
-	// 	const layoutId = formData.get('layoutId');
-	// 	const status = formData.get('status');
-
-
-	// 	if (!discountId) {
-	// 		return fail(400, { action: 'modifyLayout', success: false, message: 'Dati mancanti' });
-	// 	}
-
-	// 	// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
-	// 	try {
-	// 		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/modify`, {
-	// 			method: 'POST',
-	// 			headers: {
-	// 				'Content-Type': 'application/json'
-	// 			},
-	// 			body: JSON.stringify({
-	// 				discountId,
-	// 				status
-	// 			})
-	// 		});
-	// 		const result = await response.json();
-	// 		if (response.ok) {
-	// 			return { action: 'modifyLayout', success: true, message: result.message };
-	// 		} else {
-	// 			return { action: 'modifyLayout', success: false, message: result.message };
-	// 		}
-	// 	} catch (error) {
-	// 		console.error('Error changing discount status:', error);
-	// 		return { action: 'modifyLayout', success: false, message: 'Errore creazione modifyLayout' };
-	// 	}
-	// },
-
 	deleteLayout: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const layoutId = formData.get('layoutId');
 		try {
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/layouts/remove`, {
 				method: 'DELETE',
@@ -194,13 +162,13 @@ export const actions: Actions = {
 			});
 			const result = await response.json();
 			if (response.ok) {
-				return { action: 'modifyLayout', success: true, message: result.message };
+				return { action: 'deleteLayout', success: true, message: result.message };
 			} else {
-				return { action: 'modifyLayout', success: false, message: result.message };
+				return { action: 'deleteLayout', success: false, message: result.message };
 			}
 		} catch (error) {
-			console.error('Error creating new modifyLayout:', error);
-			return { action: 'modifyLayout', success: false, message: 'Errore creazione modifyLayout' };
+			console.error('Error creating new deleteLayout:', error);
+			return { action: 'deleteLayout', success: false, message: 'Errore creazione deleteLayout' };
 		}
 	}
 

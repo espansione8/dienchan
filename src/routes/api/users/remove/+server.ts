@@ -1,33 +1,32 @@
-// src/routes/api/layouts/remove
+
+// src/routes/api/users/remove
 import { json } from '@sveltejs/kit';
 import dbConnect from '$lib/database';
-import { Layout } from '$lib/models/ProductLayouts.model';
+import { User } from '$lib/models/Users.model';
 
 export const DELETE = async ({ request }) => {
     const body = await request.json();
-    const { layoutId } = body;
-
+    const { userId } = body;
     try {
         // Connecting to DB
         await dbConnect();
-console.log('layoutId', layoutId);
-        // Find and delete the discount with the specified discountId
-        const result = await Layout.deleteOne({ layoutId: layoutId });
+        // Find and delete the discount with the specified userId
+        const result = await User.deleteOne({ userId });
 
         if (result.deletedCount == 1) {
             return json({
-                message: 'Layout eliminato con successo',
+                message: 'Utente eliminato con successo',
                 status: 200
             });
         }
 
         return json({
-            message: 'Nessun Layout trovato con l\'ID specificato',
+            message: 'Nessun utente trovato con l\'ID specificato',
             status: 404
         });
 
     } catch (err) {
-        console.error('Errore durante l\'eliminazione del Layout:', err);
+        console.error('Errore durante l\'eliminazione dell utente:', err);
         return json(
             {
                 error: `Errore del server: ${err.message}`

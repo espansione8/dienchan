@@ -35,7 +35,7 @@ export const POST = async ({ request }) => {
 
         const result = await Layout.updateOne(filter, update);
 
-        if (result.matchedCount === 1) {
+        if (result.matchedCount == 1) {
             return json({
                 message: 'Layout aggiornato',
                 status: 200

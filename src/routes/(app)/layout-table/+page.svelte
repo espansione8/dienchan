@@ -2,6 +2,7 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import {
 		CopyPlus,
+		Settings,
 		Trash2,
 		FileDown,
 		Pen,
@@ -53,24 +54,6 @@
 	};
 	clearTimeout(startTimeout); // reset timer
 
-	$effect(() => {
-		if (form != null) {
-			async () => await invalidateAll();
-			const { action, success, message } = form;
-			if (success) {
-				closeNotification();
-				//resetFieldsModalFilter();
-				isModalNew = false;
-				isModalModify = false;
-				tableList = getTable; //WARNING THIS CAN TRIGGER INFINITE LOOP
-			} else {
-				notificationError = true;
-			}
-			toastClosed = false;
-			notificationContent = message;
-		}
-	}); // end effect
-
 	const onRemove = async (layoutId: string) => {
 		const data = {
 			layoutId
@@ -108,9 +91,11 @@
 	let isModalModify = $state(false);
 	let isModalConfirmDelete = $state(false);
 
-	const onOpenConfirmDelete = () => {
+	let deleteId = $state('');
+	const onOpenConfirmDelete = (id: string) => {
 		isModalConfirmDelete = true;
 		isModalModify = false;
+		deleteId = id;
 	};
 
 	const resetFields = () => {
@@ -142,6 +127,28 @@
 		price = item.price;
 		isModalModify = true;
 	};
+
+	$effect(() => {
+		// console.log({ form });
+
+		if (form != null) {
+			async () => await invalidateAll();
+			const { action, success, message } = form;
+			if (success) {
+				closeNotification();
+				//resetFieldsModalFilter();
+				isModalNew = false;
+				isModalModify = false;
+				isModalConfirmDelete = false;
+				tableList = getTable;
+			} else {
+				notificationError = true;
+			}
+			toastClosed = false;
+			notificationContent = message;
+			form = null;
+		}
+	}); // end effect
 </script>
 
 <svelte:head>
@@ -200,7 +207,10 @@
 						<button
 							onclick={() => onOpenModify(row)}
 							class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:bg-gray-300 hover:text-gray-800"
-							>Modifica</button
+							><Settings />
+						</button>
+						<button class="btn btn-error btn-sm" onclick={() => onOpenConfirmDelete(row.layoutId)}
+							><Trash2 /></button
 						>
 					</td>
 				</tr>
@@ -494,11 +504,12 @@
 		class="modal-box bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass flex flex-row justify-between max-w-2xl"
 	>
 		<h2 class="text-2xl font-bold text-black flex items-center">Conferma l'eliminazione?</h2>
-		<div class="flex flex-row justify-between space-x-4">
-			<button class="btn btn-error btn-md" onclick={onCloseConfirmDelete}>Annulla</button>
-			<button class="btn btn-success btn-md text-white" onclick={onRemove(layoutId)}
-				><Trash2 />Conferma</button
-			>
-		</div>
+		<form action="?/deleteLayout" method="POST" use:enhance>
+			<input type="hidden" name="layoutId" value={deleteId} />
+			<div class="flex flex-row justify-between space-x-4">
+				<button class="btn btn-error btn-md" type='button' onclick={onCloseConfirmDelete}>Annulla</button>
+				<button class="btn btn-success btn-md text-white" type="submit"><Trash2 />Conferma</button>
+			</div>
+		</form>
 	</div>
 </dialog>

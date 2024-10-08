@@ -1,5 +1,4 @@
 <script lang="ts">
-	//import { discount } from './../../../lib/stores/arrays.ts';
 	import { goto, invalidateAll } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
 	import {
@@ -138,7 +137,7 @@
 	clearTimeout(startTimeout); // reset timer
 
 	$effect(() => {
-		console.log({ form });
+		// console.log({ form });
 
 		if (form != null) {
 			async () => await invalidateAll();
@@ -148,6 +147,7 @@
 				//resetFieldsModalFilter();
 				isModalNew = false;
 				isModalModify = false;
+				isModalConfirmDelete = false;
 				tableList = getTable;
 			} else {
 				notificationError = true;
@@ -475,9 +475,6 @@
 			class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass flex flex-row justify-between"
 		>
 			<h2 class="text-2xl font-bold text-white mb-1">Modifica codice sconto</h2>
-			<button class="btn btn-error btn-md" onclick={() => onOpenConfirmDelete('DELETE')}
-				><Trash2 />Elimina</button
-			>
 		</div>
 
 		<form
@@ -694,12 +691,13 @@
 		class="modal-box bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass flex flex-row justify-between max-w-2xl"
 	>
 		<h2 class="text-2xl font-bold text-black flex items-center">Conferma l'eliminazione?</h2>
-		<div class="flex flex-row justify-between space-x-4">
-			<form action="?/deleteDiscount" method="POST" use:enhance>
-				<input type="hidden" name="discountId" value={deleteId} />
-				<button class="btn btn-error btn-md" onclick={onCloseConfirmDelete}>Annulla</button>
+
+		<form action="?/deleteDiscount" method="POST" use:enhance>
+			<input type="hidden" name="discountId" value={deleteId} />
+			<div class="flex flex-row justify-between space-x-4">
+				<button class="btn btn-error btn-md" type='button' onclick={onCloseConfirmDelete}>Annulla</button>
 				<button class="btn btn-success btn-md text-white" type="submit"><Trash2 />Conferma</button>
-			</form>
-		</div>
+			</div>
+		</form>
 	</div>
 </dialog>
