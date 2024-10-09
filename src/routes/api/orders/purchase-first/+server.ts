@@ -50,7 +50,7 @@ export const POST = async ({ request }) => {
 				}
 			);
 		}
-		// REGISTRARE UTENTE
+		// REGISTER USER
 		const responseUser = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-up-admin`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -85,7 +85,7 @@ export const POST = async ({ request }) => {
 					status: 500
 				})
 		}
-		// REGISTRARE membership
+		// REGISTER MEMBERSHIP
 		if (userId) {
 			const responseMembership = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/new`, {
 				method: 'POST',
@@ -126,7 +126,7 @@ export const POST = async ({ request }) => {
 				})
 		}
 
-		// REGISTRARE order
+		// REGISTER ORDER
 		if (membershipOK) {
 			const id = crypto.randomUUID();
 			const orderId = stringHash(id);

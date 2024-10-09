@@ -63,7 +63,7 @@ export const actions: Actions = {
 					country,
 					phone,
 					mobilePhone,
-					cart: product,
+					cart: [product],
 					paymentType,
 					userId: ''
 				}),
@@ -120,7 +120,7 @@ export const actions: Actions = {
 					country,
 					phone,
 					mobilePhone,
-					cart: product,
+					cart: [product],
 					paymentType,
 					userId: ''
 				}),
@@ -153,7 +153,10 @@ export const actions: Actions = {
 			return fail(400, { action: 'renewMembership', success: false, message: 'Dati mancanti' });
 		}
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/renew`, {
+			const findProduct = await Product.findOne({ title: 'Socio ordinario' });
+			const product = findProduct?.prodId ? findProduct : () => { return { action: 'newMembership', success: false, message: 'errore rinnovo (1)' } }
+
+			const response1 = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/renew`, {
 				method: 'POST',
 				body: JSON.stringify({
 					userId,
@@ -166,11 +169,28 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				}
 			});
-			const res = await response.json();
-			if (res.status == 200) {
-				return { action: 'renewMembership', success: true, message: res.message };
+
+			const response2 = await fetch(`${import.meta.env.VITE_BASE_URL}/api/orders/purchase`, {
+				method: 'POST',
+				body: JSON.stringify({
+					userId: userData.userId,
+					cart: [product],
+					paymentType,
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			const resMembership = await response1.json();
+			const resOrder = await response2.json();
+			//console.log(response1, response2)
+
+			if (response1.status == 200 && response2.status == 200) {
+				return { action: 'renewMembership', success: true, message: "tessera rinnovata con successo" };
 			} else {
-				return { action: 'renewMembership', success: false, message: res.message };
+				console.log(resMembership.message, resOrder.message);
+				return { action: 'renewMembership', success: false, message: "errore rinnovo tessera" };
 			}
 		} catch (error) {
 			console.error('Error creating new membership:', error);

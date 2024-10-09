@@ -16,16 +16,22 @@ export const DELETE = async ({ request }) => {
         const result = await Discount.deleteOne({ discountId });
 
         if (result.deletedCount == 1) {
-            return json({
-                message: 'Sconto eliminato con successo',
-                status: 200
-            });
+            return json(
+                {
+                    message: 'Sconto eliminato con successo'
+                },
+                {
+                    status: 200
+                });
         }
 
-        return json({
-            message: 'Nessun sconto trovato con l\'ID specificato',
-            status: 404
-        });
+        return json(
+            {
+                message: 'Nessun sconto trovato con l\'ID specificato'
+            },
+            {
+                status: 400
+            });
 
     } catch (err) {
         console.error('Errore durante l\'eliminazione dello sconto:', err);

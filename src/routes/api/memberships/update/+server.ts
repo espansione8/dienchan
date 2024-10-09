@@ -27,7 +27,7 @@ export const POST = async ({ request }) => {
                 message: 'Utente non trovato!',
                 ok: false,
             }, {
-                status: 404
+                status: 400
             });
         }
 
@@ -60,7 +60,7 @@ export const POST = async ({ request }) => {
                 message: 'Errore durante l\'aggiornamento. Utente non trovato!',
                 ok: false,
             }, {
-                status: 404
+                status: 400
             });
         }
 

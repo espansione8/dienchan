@@ -37,22 +37,32 @@ export const POST = async ({ request }) => {
         if (newData.matchedCount == 0) {
 
             return json({
-                message: 'Rinnovo NON effettuato!',
-                status: 200
-            });
+                message: 'Rinnovo NON effettuato!'
+            },
+                {
+                    status: 400,
+                });
         }
 
         if (newData.matchedCount == 1) {
-            return json({
-                message: 'Rinnovo evvenuto con successo',
-                status: 200
-            });
+            return json(
+                {
+                    message: 'Rinnovo evvenuto con successo'
+                },
+                {
+                    status: 200,
+                }
+            );
         }
 
-        return json({
-            message: 'POST Rinnovo update ERR',
-            status: 500
-        });
+        return json(
+            {
+                message: 'POST Rinnovo update ERR'
+            },
+            {
+                status: 400,
+            }
+        );
     } catch (err) {
         console.log('POST User update ERROR:', err);
         return json(

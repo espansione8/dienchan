@@ -15,16 +15,23 @@ export const DELETE = async ({ request }) => {
         const result = await Layout.deleteOne({ layoutId: layoutId });
 
         if (result.deletedCount === 1) {
-            return json({
-                message: 'Layout eliminato con successo',
-                status: 200
-            });
+            return json(
+                {
+                    message: 'Layout eliminato con successo'
+                },
+                {
+                    status: 200
+                });
         }
 
-        return json({
-            message: 'Nessun Layout trovato con l\'ID specificato',
-            status: 404
-        });
+        return json(
+            {
+                message: 'Nessun Layout trovato con l\'ID specificato'
+            },
+            {
+                status: 500
+            }
+        );
 
     } catch (err) {
         console.error('Errore durante l\'eliminazione del Layout:', err);

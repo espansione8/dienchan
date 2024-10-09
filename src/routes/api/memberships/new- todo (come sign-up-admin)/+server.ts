@@ -40,15 +40,19 @@ export const POST = async ({ request }) => {
         if (newData.matchedCount == 0) {
             return json({
                 message: 'Utente già socio!',
-                status: 200
+                status: 500
             });
         }
 
         if (newData.matchedCount == 1) {
-            return json({
-                message: 'Assocciazione evvenuta con successo',
-                status: 200
-            });
+            return json(
+                {
+                    message: 'Assocciazione evvenuta con successo'
+                },
+                {
+                    status: 200
+                }
+            );
         }
 
         return json({

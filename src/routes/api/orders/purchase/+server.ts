@@ -1,7 +1,6 @@
+// src/routes/api/orders/purchase
 import { json } from '@sveltejs/kit';
-
 import dbConnect from '$lib/database';
-// src/routes/api/mailer/sign-up.
 //import nodemailer from 'nodemailer';
 // const Stripe = require('stripe');
 import stringHash from 'string-hash';
@@ -19,9 +18,9 @@ import { Order } from '$lib/models/Orders.model';
 export const POST = async ({ request }) => {
 	const body = await request.json();
 	const {
-		cart,
+		userId,
 		paymentType,
-		userId
+		cart,
 	} = body
 	try {
 		await dbConnect();

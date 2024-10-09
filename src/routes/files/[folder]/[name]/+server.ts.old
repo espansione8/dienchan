@@ -12,7 +12,7 @@ export async function GET({ params, request }) {
     const file_path = path.normalize(path.join(FILES_DIR, params.folder, params.name));
 
     if (!fs.existsSync(file_path)) {
-        return new Response('not found', { status: 404 });
+        return new Response('not found', { status: 400 });
     }
 
     const stats = fs.statSync(file_path);

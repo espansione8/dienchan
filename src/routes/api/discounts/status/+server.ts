@@ -36,16 +36,24 @@ export const POST = async ({ request }) => {
         const result = await Discount.updateOne(filter, update);
 
         if (result.matchedCount === 1) {
-            return json({
-                message: 'Status Sconto aggiornato',
-                status: 200
-            });
+            return json(
+                {
+                    message: 'Status Sconto aggiornato'
+                },
+                {
+                    status: 200
+                }
+            );
         }
 
-        return json({
-            message: 'Nessun sconto trovato con l\'ID specificato',
-            status: 404
-        });
+        return json(
+            {
+                message: 'Nessun sconto trovato con l\'ID specificato'
+            },
+            {
+                status: 400
+            }
+        );
 
     } catch (err) {
         console.error('Errore durante l\'aggiornamento dello status sconto:', err);

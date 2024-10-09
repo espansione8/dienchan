@@ -45,14 +45,16 @@ export const POST = async ({ request }) => {
 
         if (result.matchedCount === 1) {
             return json({
-                message: 'Sconto aggiornato',
-                status: 200
-            });
+                message: 'Sconto aggiornato'
+            },
+                {
+                    status: 200
+                });
         }
 
         return json({
             message: 'Nessun sconto trovato con l\'ID specificato',
-            status: 404
+            status: 400
         });
 
     } catch (err) {

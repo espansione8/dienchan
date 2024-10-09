@@ -36,16 +36,24 @@ export const POST = async ({ request }) => {
         const result = await Layout.updateOne(filter, update);
 
         if (result.matchedCount === 1) {
-            return json({
-                message: 'Layout aggiornato',
-                status: 200
-            });
+            return json(
+                {
+                    message: 'Layout aggiornato'
+                },
+                {
+                    status: 200
+                }
+            );
         }
 
-        return json({
-            message: 'Nessun Layout trovato con l\'ID specificato',
-            status: 404
-        });
+        return json(
+            {
+                message: 'Nessun Layout trovato con l\'ID specificato'
+            },
+            {
+                status: 500
+            }
+        );
 
     } catch (err) {
         console.error('Errore durante l\'aggiornamento del Layout:', err);

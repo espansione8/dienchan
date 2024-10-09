@@ -21,8 +21,6 @@
 
 	let provinceFilterate = $province.filter((p) => p.sigla !== 'ON');
 
-	let newExpire: any = $state();
-
 	const testimonials = [
 		{
 			name: 'Stefania Sica',
@@ -43,6 +41,8 @@
 				'Associazione ben organizzata che insegna egregiamente e con passione tecniche utili per il benessere psicofisico.'
 		}
 	];
+
+	let newExpire: any = $state();
 	let currentDialog = $state('');
 	let postAction = $state('');
 	const onClickDialog = (type: string) => {
@@ -66,53 +66,8 @@
 		}
 	};
 
-	// TODO make ACTION POST
-	// const onClickConfirmRenew = async () => {
-	// 	//alert('save data');
-	// 	isModalRenew = false;
-	// 	const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/renew`, {
-	// 		method: 'POST',
-	// 		body: JSON.stringify({
-	// 			userId: userData.userId,
-	// 			membershipActivation: userData.membership.membershipExpiry,
-	// 			membershipExpiry: new Date(
-	// 				new Date(userData.membership.membershipExpiry).setFullYear(
-	// 					new Date(userData.membership.membershipExpiry).getFullYear() + 1
-	// 				)
-	// 			),
-	// 			membershipStatus: true
-	// 		}),
-	// 		headers: {
-	// 			'Content-Type': 'application/json'
-	// 		}
-	// 	});
-	// 	if (response.status == 200) {
-	// 		clearTimeout(startTimeout);
-	// 		console.log('OK', response);
-	// 		let content = (await response.json()).message;
-	// 		toastClosed = false;
-	// 		notificationContent = content;
-	// 		if (content == 'Rinnovo NON effettuato!') {
-	// 			notificationError = true;
-	// 		}
-	// 		invalidateAll();
-	// 		closeNotification();
-	// 	}
-	// 	if (response.status != 200) {
-	// 		console.log('KO', response);
-	// 		let error = (await response.json()).message;
-	// 		toastClosed = false;
-	// 		notificationContent = error;
-	// 		notificationError = true;
-	// 		invalidateAll();
-	// 		closeNotification();
-	// 	}
-	// };
-
 	let paymentType = $state('bonifico');
 	let isModal = $state(false);
-	let isModalRenew = $state(false);
-	let isModalLifetime = $state(false);
 
 	const countryList = $country_list;
 	let password1 = $state('');
@@ -172,8 +127,6 @@
 				closeNotification();
 				fieldReset();
 				isModal = false;
-				isModalRenew = false;
-				isModalLifetime = false;
 			} else {
 				notificationError = true;
 			}

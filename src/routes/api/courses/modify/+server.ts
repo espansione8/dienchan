@@ -61,15 +61,19 @@ export const POST = async ({ request }) => {
 
         if (result.matchedCount === 1) {
             return json({
-                message: 'Corso aggiornato',
-                status: 200
-            });
+                message: 'Corso aggiornato'
+            },
+                {
+                    status: 200
+                });
         }
 
         return json({
-            message: 'Nessun corso trovato con l\'ID specificato',
-            status: 404
-        });
+            message: 'Nessun corso trovato con l\'ID specificato'
+        },
+            {
+                status: 400
+            });
 
     } catch (err) {
         console.error('Errore durante l\'aggiornamento del corso:', err);
