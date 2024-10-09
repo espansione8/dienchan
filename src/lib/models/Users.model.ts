@@ -16,7 +16,11 @@ const UserSchema = new mongoose.Schema(
 			unique: false,
 			dropDups: true
 		},
-		active: { type: Boolean, default: true },
+		status: {
+			type: String,
+			enum: ['enabled', 'disabled'],
+			default: 'enabled'
+		},
 		token: { type: String, default: '' },
 		cookieId: { type: String, default: '' },
 		promotions: [], // virtual {}

@@ -5,76 +5,43 @@
 	import { UserPlus } from 'lucide-svelte';
 	import {
 		ListPlus,
+		Pen,
+		Mail,
 		Filter,
-		ArrowUp,
-		ArrowDown,
-		FilterX,
-		MapPin,
+		Trash2,
+		Settings,
+		View,
+		Eye,
 		XCircle,
-		CircleAlert,
-		Search,
-		ShieldAlert
+		EyeOff,
+		User,
+		MapPin,
+		Lock,
+		ShieldAlert,
+		Phone,
+		Building2,
+		Smartphone,
+		Globe
 	} from 'lucide-svelte';
 	import moment from 'moment';
+	import { enhance } from '$app/forms';
+	import { country_list } from '$lib/stores/arrays.js';
+	import { province } from '$lib/stores/arrays';
 
-	let { data } = $props();
+	let { data, form } = $props();
 	let { getTable } = $derived(data);
 	let tableList = $state(getTable);
 
-	const onClickModify = (id: number) => {
-		// console.log('ID', id);
-		goto(`/profile-modify-admin/${id}`);
-	};
+	let userId = $state('');
 
 	const onClickDetail = (id: number) => {
 		// console.log('ID', id);
 		goto(`/profile-public/${id}`);
 	};
 
-	const onChangeStatus = async (userId: number, active: boolean, email: string) => {
-		let status: boolean;
-		active ? (status = false) : (status = true);
-		const data = {
-			userId,
-			status,
-			email
-		};
-		try {
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/setactive`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-					//'Content-Type': 'application/pdf'
-					//Accept: 'application/pdf'
-				},
-				body: JSON.stringify(data)
-			});
-			const response = await res.json();
-			if (response.status == 200) {
-				invalidateAll();
-				//console.log('res.ok', response);
-				//titleContent = 'Certification Launched';
-				// alert('User status changed');
-			} else {
-				//console.log('Errore res 1', res);
-				// alert(res.message);
-				alert(`Error Status change, ${response.message}`);
-			}
-		} catch (err) {
-			console.log('Error:', err);
-		}
-	};
-
-	// const toggleStatus = () => {
-	// 	getTableUser.active = !getTableUser.active;
-	// 	// console.log('getTableUser.active', getTableUser.active)
-	// };
-
-	const onGotoNewUser = () => {
-		goto(`/user-new`);
-	};
-
 	let isModalFilterCourse = $state(false);
+	let isModalConfirmDelete = $state(false);
+	let isModalModify = $state(false);
 	let resetActive = $state(false);
 	//filter
 	let selectedLevel = $state('');
@@ -423,6 +390,117 @@
 		// Release the URL object
 		URL.revokeObjectURL(link.href);
 	};
+
+	let provinceFilterate = $province.filter((p) => p.sigla !== 'ON');
+	const countryList = $country_list;
+	let level = $state('');
+	let password1 = $state('');
+	let password2 = $state('');
+	let name = $state('');
+	let surname = $state('');
+	let email = $state('');
+	let address = $state('');
+	let postalCode = $state('');
+	let city = $state('');
+	let countryState = $state('');
+	let country = $state('');
+	let phone = $state('');
+	let mobilePhone = $state('');
+	let checkPass = $state(false);
+	let checkSecondPass = $state(false);
+	let error = $state();
+	let inputRef = $state();
+	const testPass = () => {
+		checkPass = password1.length >= 8;
+		checkSecondPass = password1 === password2;
+	};
+	const testSecondPass = () => (checkSecondPass = password1 === password2);
+
+	let isModalNew = $state(false);
+
+	const onOpenNew = () => {
+		isModalNew = true;
+	};
+
+	const onCloseNew = () => {
+		isModalNew = false;
+		resetFields();
+	};
+
+	let deleteId = $state('');
+	const onOpenConfirmDelete = (id: string) => {
+		isModalConfirmDelete = true;
+		isModalModify = false;
+		deleteId = id;
+	};
+
+	const onCloseConfirmDelete = () => {
+		isModalConfirmDelete = false;
+		resetFields();
+	};
+
+	const onOpenModify = (item: any) => {
+		//currentItem = item;
+		userId = item.userId;
+		name = item.name;
+		surname = item.surname;
+		email = item.email;
+		address = item.address;
+		postalCode = item.postalCode;
+		city = item.city;
+		countryState = item.countryState;
+		country = item.country;
+		phone = item.phone;
+		mobilePhone = item.mobilePhone;
+		password1 = item.password1;
+		level = item.level;
+		isModalModify = true;
+	};
+
+	const onCloseModify = () => {
+		isModalModify = false;
+		resetFields();
+	};
+
+	const resetFields = () => {
+		invalidateAll();
+		name = '';
+		surname = '';
+		email = '';
+		address = '';
+		postalCode = '';
+		city = '';
+		countryState = '';
+		country = '';
+		phone = '';
+		mobilePhone = '';
+		password1 = '';
+		password2 = '';
+		level = '';
+		tableList = getTable;
+	};
+
+	$effect(() => {
+		// console.log({ form });
+
+		if (form != null) {
+			async () => await invalidateAll();
+			const { action, success, message } = form;
+			if (success) {
+				closeNotification();
+				//resetFieldsModalFilter();
+				isModalNew = false;
+				isModalConfirmDelete = false;
+				isModalModify = false;
+				tableList = getTable;
+			} else {
+				notificationError = true;
+			}
+			toastClosed = false;
+			notificationContent = message;
+			form = null;
+		}
+	}); // end effect
 </script>
 
 <svelte:head>
@@ -450,7 +528,7 @@
 					<Filter class="mt-1" /> Filtra
 				</button>
 			{/if}
-			<button class="btn btn-info text-white" onclick={() => onGotoNewUser()}>
+			<button class="btn btn-info text-white" onclick={() => onOpenNew()}>
 				<ListPlus /> Nuovo utente
 			</button>
 		</div>
@@ -489,7 +567,7 @@
 					<td>{row.email}</td>
 					<!-- Status -->
 					<td class="">
-						<span class="flex items-center">
+						<!-- <span class="flex items-center">
 							<input
 								type="checkbox"
 								class=" mr-2 border-gray-500 bg-gray-500 hover:bg-black toggle toggle-md"
@@ -503,26 +581,21 @@
 							{:else}
 								<span class="text-red-600 font-semibold">DISATTIVO</span>
 							{/if}
-						</span>
-						<!-- {#if row.active == true}
-							<span class="text-green-600 font-semibold">ATTIVO</span>
-							<br />
-							<button
-								class="btn btn-outline btn-error btn-sm mt-2 "
-								onclick={() => onChangeStatus(row.userId, row.active, row.email)}
-							>
-								Disattiva
-							</button>
-						{:else}
-							<span class="text-red-600 font-semibold">DISATTIVO</span>
-							<br />
-							<button
-								class="btn btn-outline btn-success btn-sm mt-2 "
-								onclick={() => onChangeStatus(row.userId, row.active, row.email)}
-							>
-								Attiva
-							</button>
-						{/if} -->
+						</span> -->
+						<form method="POST" action={`?/disableUser`} use:enhance>
+							<input type="hidden" name="userId" value={row.userId} />
+							<input type="hidden" name="status" value={row.status} />
+							<span class="flex items-center">
+								{#if row.status == 'enabled'}
+									<button type="submit" class="btn btn-success btn-sm font-semibold"><Eye /></button
+									>
+								{:else}
+									<button type="submit" class="btn btn-error btn-sm font-semibold"
+										><EyeOff /></button
+									>
+								{/if}
+							</span>
+						</form>
 					</td>
 					<!-- Nome Cognome -->
 					<td>{row.name} {row.surname}</td>
@@ -569,19 +642,20 @@
 						</ul>
 					</td>
 					<!-- Azione -->
-					<td class="space-4">
+					<td class="flex items-center justify-center space-x-4">
 						<button
-							onclick={() => onClickModify(row.userId)}
-							class="btn btn-sm bg-gray-200 btn-neutral text-gray-700 hover:bg-gray-300 hover:text-gray-800 mt-2"
-						>
-							Modifica
+							onclick={() => onOpenModify(row)}
+							class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:bg-gray-300 hover:text-gray-800"
+							><Settings />
 						</button>
 						<button
 							onclick={() => onClickDetail(row.userId)}
-							class="btn btn-sm bg-green-200 btn-success text-green-700 hover:bg-green-300 hover:text-green-800 mt-2"
-						>
-							Dettagli
+							class="btn btn-sm bg-green-200 btn-green-400 rounded-md text-green-800 hover:bg-green-300 hover:text-green-800"
+							><View />
 						</button>
+						<button class="btn btn-error btn-sm" onclick={() => onOpenConfirmDelete(row.userId)}
+							><Trash2 /></button
+						>
 					</td>
 				</tr>
 			{/each}
@@ -602,6 +676,7 @@
 	{/if}
 </div>
 <Notification {toastClosed} {notificationContent} {notificationError} />
+
 <!-- modal filter  -->
 <dialog id="modal_filter" class="modal" class:modal-open={isModalFilterCourse}>
 	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-2xl">
@@ -672,3 +747,538 @@
 	</div>
 </dialog>
 <!-- /modal filter  -->
+
+<!-- modal New  -->
+<dialog id="modal_new" class="modal" class:modal-open={isModalNew}>
+	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-3xl">
+		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
+			<h2 class="text-2xl font-bold text-white mb-1">Nuovo utente</h2>
+		</div>
+		<form
+			method="POST"
+			action={`?/newUser`}
+			use:enhance
+			class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+		>
+			<!-- Nome -->
+			<section class="col-span-4 md:col-span-2">
+				<label for="name" class="form-label">
+					<p class="font-bold mb-2">Nome</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><User /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="name"
+						name="name"
+						type="text"
+						placeholder="Nome"
+						bind:value={name}
+						required
+					/>
+				</div>
+			</section>
+			<!-- Cognome -->
+			<section class="col-span-4 md:col-span-2">
+				<label for="surname" class="form-label">
+					<p class="font-bold mb-2">Cognome</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><User /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="surname"
+						name="surname"
+						type="text"
+						placeholder="Cognome"
+						bind:value={surname}
+						required
+					/>
+				</div>
+			</section>
+			<!-- Email -->
+			<section class="col-span-4">
+				<label for="email" class="form-label">
+					<p class="font-bold mb-2">Email</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Mail /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="email"
+						type="email"
+						name="email"
+						placeholder="Inserisci E-mail"
+						bind:value={email}
+						required
+					/>
+				</div>
+			</section>
+			<!-- Indirizzo -->
+			<section class="col-span-4">
+				<label for="address" class="form-label">
+					<p class="font-bold mb-2">Indirizzo</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><MapPin /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="address"
+						name="address"
+						type="text"
+						placeholder="Indirizzo"
+						bind:value={address}
+						required
+					/>
+				</div>
+			</section>
+			<!-- Trio -->
+			<div class="col-span-4 gap-10 flex justify-between md:col-span-4">
+				<!-- CAP -->
+				<section class="">
+					<label for="postalCode" class="form-label">
+						<p class="font-bold mb-2">CAP</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button class="join-item bg-gray-300 px-3"><MapPin /></button>
+						<input
+							class="input input-bordered join-item w-full"
+							id="postalCode"
+							type="text"
+							name="postalCode"
+							placeholder="CAP"
+							bind:value={postalCode}
+							required
+						/>
+					</div>
+				</section>
+				<!-- Citta -->
+				<section class="">
+					<label for="city" class="form-label">
+						<p class="font-bold mb-2">Città</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button class="join-item bg-gray-300 px-3"><Building2 /></button>
+						<input
+							class="input input-bordered join-item w-full"
+							id="city"
+							type="text"
+							name="city"
+							placeholder="Città"
+							bind:value={city}
+							required
+						/>
+					</div>
+				</section>
+				<!-- Provincia -->
+				<section class="">
+					<label for="countryState" class="form-label">
+						<p class="font-bold mb-2">Provincia</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button class="join-item bg-gray-300 px-3"><Building2 /></button>
+						<select
+							class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
+							id="countryState"
+							name="countryState"
+							placeholder="Scegli"
+							bind:value={countryState}
+							required
+						>
+							<option selected disabled>Scegli</option>
+							{#each provinceFilterate as provincia, i}
+								<option value={provincia.sigla}>
+									{provincia.nome} ({provincia.sigla})
+								</option>
+							{/each}
+						</select>
+					</div>
+				</section>
+			</div>
+			<!-- Nazione -->
+			<section class="col-span-4">
+				<label for="country" class="form-label">
+					<p class="font-bold mb-2">Nazione</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Globe /></button>
+					<select
+						class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
+						aria-label="Default select example"
+						id="country"
+						name="country"
+						required
+						bind:value={country}
+					>
+						<option selected disabled>Scegli</option>
+						{#each countryList as country}
+							<option value={country}>
+								{country}
+							</option>
+						{/each}
+					</select>
+				</div>
+			</section>
+			<!-- Telefono -->
+			<section class="col-span-4">
+				<label for="phone" class="form-label">
+					<p class="font-bold mb-2">Telefono</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Phone /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="phone"
+						type="text"
+						name="phone"
+						placeholder="Telefono"
+						bind:value={phone}
+					/>
+				</div>
+			</section>
+			<!-- Cellulare -->
+			<section class="col-span-4">
+				<label for="mobilePhone" class="form-label">
+					<p class="font-bold mb-2">Cellulare</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Smartphone /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="mobilePhone"
+						name="mobilePhone"
+						type="text"
+						placeholder="Cellulare"
+						bind:value={mobilePhone}
+					/>
+				</div>
+			</section>
+			<!-- Password -->
+			<section class="col-span-4">
+				<label for="password1" class="form-label">
+					<p class="font-bold mb-2">
+						Password <br />
+						<span class="text-sm text-gray-600">( Almeno 8 caratteri numeri e lettere )</span>
+					</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"
+						><Lock color={checkPass ? 'green' : 'black'} /></button
+					>
+					<input
+						class="input input-bordered join-item w-full"
+						id="password1"
+						type="password"
+						name="password1"
+						placeholder="Inserisci password"
+						bind:value={password1}
+						oninput={testPass}
+						required
+					/>
+				</div>
+			</section>
+			<!-- Conferma password -->
+			<section class="col-span-4">
+				<label for="password2" class="form-label">
+					<p class="font-bold mb-2">Conferma password</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"
+						><Lock color={checkSecondPass && checkPass ? 'green' : 'black'} /></button
+					>
+					<input
+						class="input input-bordered join-item w-full"
+						id="password2"
+						type="password"
+						placeholder="Repeat password"
+						bind:value={password2}
+						oninput={testSecondPass}
+						bind:this={inputRef}
+						required
+					/>
+				</div>
+			</section>
+			<!-- registra corso button -->
+			<div class="col-span-4 mt-5 flex justify-center">
+				<div class="bg-gray-50 flex justify-center">
+					<button class="btn btn-error btn-sm mx-2" onclick={onCloseNew}> Annulla </button>
+					<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
+				</div>
+			</div>
+		</form>
+	</div>
+</dialog>
+<!-- /modal New  -->
+
+<!-- modal Modify  -->
+<dialog id="modal_modify" class="modal" class:modal-open={isModalModify}>
+	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-3xl">
+		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
+			<h2 class="text-2xl font-bold text-white mb-1">Modifica utente</h2>
+		</div>
+		<form
+			method="POST"
+			action={`?/modifyUser`}
+			use:enhance
+			class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+		>
+			<section class="col-span-4">
+				<label for="userId" class="form-label">
+					<p class="font-bold mb-2">ID utente</p>
+				</label>
+
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="userId"
+						name="userId"
+						type="text"
+						bind:value={userId}
+						readonly
+					/>
+				</div>
+			</section>
+			<!-- Nome -->
+			<section class="col-span-4 md:col-span-2">
+				<label for="name" class="form-label">
+					<p class="font-bold mb-2">Nome</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><User /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="name"
+						name="name"
+						type="text"
+						placeholder="Nome"
+						bind:value={name}
+						required
+					/>
+				</div>
+			</section>
+			<!-- Cognome -->
+			<section class="col-span-4 md:col-span-2">
+				<label for="surname" class="form-label">
+					<p class="font-bold mb-2">Cognome</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><User /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="surname"
+						name="surname"
+						type="text"
+						placeholder="Cognome"
+						bind:value={surname}
+						required
+					/>
+				</div>
+			</section>
+			<!-- Email -->
+			<section class="col-span-4">
+				<label for="email" class="form-label">
+					<p class="font-bold mb-2">Email</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Mail /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="email"
+						type="email"
+						name="email"
+						placeholder="Inserisci E-mail"
+						bind:value={email}
+						required
+					/>
+				</div>
+			</section>
+			<!-- Indirizzo -->
+			<section class="col-span-4">
+				<label for="address" class="form-label">
+					<p class="font-bold mb-2">Indirizzo</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><MapPin /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="address"
+						name="address"
+						type="text"
+						placeholder="Indirizzo"
+						bind:value={address}
+						required
+					/>
+				</div>
+			</section>
+			<!-- Trio -->
+			<div class="col-span-4 gap-10 flex justify-between md:col-span-4">
+				<!-- CAP -->
+				<section class="">
+					<label for="postalCode" class="form-label">
+						<p class="font-bold mb-2">CAP</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button class="join-item bg-gray-300 px-3"><MapPin /></button>
+						<input
+							class="input input-bordered join-item w-full"
+							id="postalCode"
+							type="text"
+							name="postalCode"
+							placeholder="CAP"
+							bind:value={postalCode}
+							required
+						/>
+					</div>
+				</section>
+				<!-- Citta -->
+				<section class="">
+					<label for="city" class="form-label">
+						<p class="font-bold mb-2">Città</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button class="join-item bg-gray-300 px-3"><Building2 /></button>
+						<input
+							class="input input-bordered join-item w-full"
+							id="city"
+							type="text"
+							name="city"
+							placeholder="Città"
+							bind:value={city}
+							required
+						/>
+					</div>
+				</section>
+				<!-- Provincia -->
+				<section class="">
+					<label for="countryState" class="form-label">
+						<p class="font-bold mb-2">Provincia</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button class="join-item bg-gray-300 px-3"><Building2 /></button>
+						<select
+							class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
+							id="countryState"
+							name="countryState"
+							placeholder="Scegli"
+							bind:value={countryState}
+							required
+						>
+							<option selected disabled>Scegli</option>
+							{#each provinceFilterate as provincia, i}
+								<option value={provincia.sigla}>
+									{provincia.nome} ({provincia.sigla})
+								</option>
+							{/each}
+						</select>
+					</div>
+				</section>
+			</div>
+			<!-- Nazione -->
+			<section class="col-span-4">
+				<label for="country" class="form-label">
+					<p class="font-bold mb-2">Nazione</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Globe /></button>
+					<select
+						class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
+						aria-label="Default select example"
+						id="country"
+						name="country"
+						required
+						bind:value={country}
+					>
+						<option selected disabled>Scegli</option>
+						{#each countryList as country}
+							<option value={country}>
+								{country}
+							</option>
+						{/each}
+					</select>
+				</div>
+			</section>
+			<!-- Telefono -->
+			<section class="col-span-4">
+				<label for="phone" class="form-label">
+					<p class="font-bold mb-2">Telefono</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Phone /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="phone"
+						type="text"
+						name="phone"
+						placeholder="Telefono"
+						bind:value={phone}
+					/>
+				</div>
+			</section>
+			<!-- Cellulare -->
+			<section class="col-span-4">
+				<label for="mobilePhone" class="form-label">
+					<p class="font-bold mb-2">Cellulare</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Smartphone /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="mobilePhone"
+						name="mobilePhone"
+						type="text"
+						placeholder="Cellulare"
+						bind:value={mobilePhone}
+					/>
+				</div>
+			</section>
+			<!-- Level -->
+			<section class="col-span-4">
+				<label for="level" class="form-label">
+					<p class="font-bold mb-2">Livello di permesso (solo per SuperAdmin)</p>
+				</label>
+				<select
+					id="level"
+					class="select select-bordered w-full rounded-md mt-2"
+					name="level"
+					placeholder="Scegli"
+					required
+					bind:value={level}
+				>
+					<option value="user">Utente base</option>
+					<option value="formatore">Formatore</option>
+					<option value="admin">Admin</option>
+				</select>
+			</section>
+			<!-- modify user button -->
+			<div class="col-span-4 mt-5 flex justify-center">
+				<div class="bg-gray-50 flex justify-center">
+					<button class="btn btn-error btn-sm mx-2" type="button" onclick={onCloseModify}>
+						Annulla
+					</button>
+					<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Modifica </button>
+				</div>
+			</div>
+		</form>
+	</div>
+</dialog>
+<!-- /modal Modify  -->
+
+<!-- Modal confirm delete -->
+<dialog id="modal_confirm_delete" class="modal" class:modal-open={isModalConfirmDelete}>
+	<div
+		class="modal-box bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass flex flex-row justify-between max-w-2xl"
+	>
+		<h2 class="text-2xl font-bold text-black flex items-center">Conferma l'eliminazione?</h2>
+
+		<form action="?/deleteUser" method="POST" use:enhance>
+			<input type="hidden" name="userId" value={deleteId} />
+			<div class="flex flex-row justify-between space-x-4">
+				<button class="btn btn-error btn-md" type="button" onclick={onCloseConfirmDelete}
+					>Annulla</button
+				>
+				<button class="btn btn-success btn-md text-white" type="submit"><Trash2 />Conferma</button>
+			</div>
+		</form>
+	</div>
+</dialog>

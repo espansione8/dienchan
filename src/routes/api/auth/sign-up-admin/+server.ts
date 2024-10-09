@@ -66,16 +66,9 @@ export const POST = async ({ request }) => {
 		newUser.cookieId = cookieId;
 		newUser.membership.membershipLevel = membershipLevel;
 		newUser.membership.membershipExpiry = membershipExpiry;
-		const user = await newUser.save()
+		const userSave = await newUser.save()
 
-		if (user.userId == id) {
-			// const mail = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mailer/sign-up-confirm`, {
-			// 	method: 'POST',
-			// 	body: JSON.stringify({ email }),
-			// 	headers: {
-			// 		'Content-Type': 'application/json'
-			// 	}
-			// });
+		if (userSave.userId == id) {
 			await fetch(`${import.meta.env.VITE_BASE_URL}/api/mailer/sign-up-confirm`, {
 				method: 'POST',
 				body: JSON.stringify({ email }),

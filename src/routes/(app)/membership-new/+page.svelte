@@ -489,8 +489,6 @@
 										name="email"
 										type="email"
 										placeholder="Tua Email"
-										aria-label="Email"
-										aria-describedby="basic-email"
 										bind:value={email}
 										required
 									/>

@@ -10,7 +10,7 @@ export const DELETE = async ({ request }) => {
     try {
         // Connecting to DB
         await dbConnect();
-
+        console.log('layoutId', layoutId);
         // Find and delete the discount with the specified discountId
         const result = await Layout.deleteOne({ layoutId: layoutId });
 

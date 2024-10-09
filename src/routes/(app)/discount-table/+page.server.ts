@@ -191,7 +191,6 @@ export const actions: Actions = {
 	},
 
 	deleteDiscount: async ({ request, fetch }) => {
-		console.log('deleteDiscount');
 
 		const formData = await request.formData();
 		const discountId = formData.get('discountId');
