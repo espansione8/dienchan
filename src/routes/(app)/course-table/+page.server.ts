@@ -1,5 +1,5 @@
-import { redirect } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types'
+import { redirect, fail } from '@sveltejs/kit';
+import type { PageServerLoad, Actions } from './$types'
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
 	//console.log('locals', locals);
@@ -49,3 +49,163 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		userData: user,
 	};
 }
+
+
+export const actions: Actions = {
+	newCourse: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const productCorsoCategoria = formData.get('productCorsoCategoria');
+		const productPriceCorso = formData.get('productPriceCorso');
+		const productCorsoDataInizioGiorno = formData.get('productCorsoDataInizioGiorno');
+		const productCorsoDataInizioMese = formData.get('productCorsoDataInizioMese');
+		const productCorsoDataInizioOra = formData.get('productCorsoDataInizioOra') || '';
+		const productCorsoDataInizioAnno = formData.get('productCorsoDataInizioAnno') || '';
+		const productCorsoDataInizioMinuto = formData.get('productCorsoDataInizioMinuto') || '';
+		const productCorsoDataFineGiorno = formData.get('productCorsoDataFineGiorno');
+		const productCorsoDataFineMese = formData.get('productCorsoDataFineMese');
+		const productCorsoDataFineOra = formData.get('productCorsoDataFineOra') || '';
+		const productCorsoDataFineAnno = formData.get('productCorsoDataFineAnno') || '';
+		const productCorsoDataFineMinuto = formData.get('productCorsoDataFineMinuto') || '';
+		const productCorsoQuantitaPartecipanti = formData.get('productCorsoQuantitaPartecipanti') || '';
+		const productCorsoProvincia = formData.get('productCorsoProvincia') || '';
+		const productCorsoTitolo = formData.get('productCorsoTitolo') || '';
+		const productCorsoDescrizione = formData.get('productCorsoDescrizione') || '';
+		const productCorsoInfoExtra = formData.get('productCorsoInfoExtra') || '';
+		console.log({ productCorsoCategoria, productCorsoProvincia, productCorsoTitolo, productCorsoInfoExtra, productCorsoDescrizione, productPriceCorso, productCorsoDataInizioGiorno, productCorsoDataInizioOra, productCorsoDataInizioAnno, productCorsoDataInizioMinuto, productCorsoDataFineGiorno, productCorsoDataFineMese, productCorsoDataFineOra, productCorsoDataFineAnno, productCorsoDataFineMinuto, productCorsoQuantitaPartecipanti });
+
+		if (!productCorsoCategoria || !productPriceCorso || !productCorsoDataInizioGiorno || !productCorsoDataInizioOra || !productCorsoDataInizioAnno || !productCorsoDataFineGiorno || !productCorsoDataFineOra || !productCorsoDataFineAnno || !productCorsoQuantitaPartecipanti || !productCorsoProvincia || !productCorsoTitolo || !productCorsoDescrizione || !productCorsoInfoExtra) {
+			return fail(400, { action: 'newCourse', success: false, message: 'Dati mancanti' });
+		}
+
+		try {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/courses/register`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+
+					productCorsoCategoria,
+					productPriceCorso,
+					productCorsoDataInizioGiorno,
+					productCorsoDataInizioMese,
+					productCorsoDataInizioOra,
+					productCorsoDataInizioAnno,
+					productCorsoDataInizioMinuto,
+					productCorsoDataFineGiorno,
+					productCorsoDataFineMese,
+					productCorsoDataFineOra,
+					productCorsoDataFineAnno,
+					productCorsoDataFineMinuto,
+					productCorsoQuantitaPartecipanti,
+					productCorsoProvincia,
+					productCorsoTitolo,
+					productCorsoDescrizione,
+					productCorsoInfoExtra
+				})
+			});
+			const result = await response.json();
+			if (response.ok) {
+				return { action: 'newCourse', success: true, message: result.message };
+			} else {
+				return { action: 'newCourse', success: false, message: result.message };
+			}
+		} catch (error) {
+			console.error('Error creating new newCourse:', error);
+			return { action: 'newCourse', success: false, message: 'Errore creazione newCourse' };
+		}
+	},
+
+	modifyCourse: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const productCorsoId = formData.get('productCorsoId');
+		const productCorsoCategoria = formData.get('productCorsoCategoria');
+		const productPriceCorso = formData.get('productPriceCorso');
+		const productCorsoDataInizioGiorno = formData.get('productCorsoDataInizioGiorno');
+		const productCorsoDataInizioMese = formData.get('productCorsoDataInizioMese');
+		const productCorsoDataInizioOra = formData.get('productCorsoDataInizioOra') || '';
+		const productCorsoDataInizioAnno = formData.get('productCorsoDataInizioAnno') || '';
+		const productCorsoDataInizioMinuto = formData.get('productCorsoDataInizioMinuto') || '';
+		const productCorsoDataFineGiorno = formData.get('productCorsoDataFineGiorno');
+		const productCorsoDataFineMese = formData.get('productCorsoDataFineMese');
+		const productCorsoDataFineOra = formData.get('productCorsoDataFineOra') || '';
+		const productCorsoDataFineAnno = formData.get('productCorsoDataFineAnno') || '';
+		const productCorsoDataFineMinuto = formData.get('productCorsoDataFineMinuto') || '';
+		const productCorsoQuantitaPartecipanti = formData.get('productCorsoQuantitaPartecipanti') || '';
+		const productCorsoProvincia = formData.get('productCorsoProvincia') || '';
+		const productCorsoTitolo = formData.get('productCorsoTitolo') || '';
+		const productCorsoDescrizione = formData.get('productCorsoDescrizione') || '';
+		const productCorsoInfoExtra = formData.get('productCorsoInfoExtra') || '';
+
+		if (!productCorsoCategoria || !productPriceCorso || !productCorsoDataInizioGiorno || !productCorsoDataInizioOra || !productCorsoDataInizioAnno || !productCorsoDataFineGiorno || !productCorsoDataFineOra || !productCorsoDataFineAnno || !productCorsoQuantitaPartecipanti || !productCorsoProvincia || !productCorsoTitolo || !productCorsoDescrizione || !productCorsoInfoExtra) {
+			return fail(400, { action: 'newCourse', success: false, message: 'Dati mancanti' });
+		}
+
+		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
+		try {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/courses/modify`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					productCorsoId,
+					productCorsoCategoria,
+					productPriceCorso,
+					productCorsoDataInizioGiorno,
+					productCorsoDataInizioMese,
+					productCorsoDataInizioOra,
+					productCorsoDataInizioAnno,
+					productCorsoDataInizioMinuto,
+					productCorsoDataFineGiorno,
+					productCorsoDataFineMese,
+					productCorsoDataFineOra,
+					productCorsoDataFineAnno,
+					productCorsoDataFineMinuto,
+					productCorsoQuantitaPartecipanti,
+					productCorsoProvincia,
+					productCorsoTitolo,
+					productCorsoDescrizione,
+					productCorsoInfoExtra
+				})
+			});
+			const result = await response.json();
+			if (response.ok) {
+				return { action: 'modifyDiscount', success: true, message: result.message };
+			} else {
+				return { action: 'modifyDiscount', success: false, message: result.message };
+			}
+		} catch (error) {
+			console.error('Error creating new modifyDiscount:', error);
+			return { action: 'modifyDiscount', success: false, message: 'Errore creazione modifyDiscount' };
+		}
+	},
+
+
+	deleteCourse: async ({ request, fetch }) => {
+
+		const formData = await request.formData();
+		const discountId = formData.get('discountId');
+		try {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/remove`, {
+				method: 'DELETE',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					discountId
+				})
+			});
+			const result = await response.json();
+			if (response.ok) {
+				return { action: 'deleteDiscount', success: true, message: result.message };
+			} else {
+				return { action: 'deleteDiscount', success: false, message: result.message };
+			}
+		} catch (error) {
+			console.error('Error deleteDiscount:', error);
+			return { action: 'deleteDiscount', success: false, message: 'Errore deleteDiscount' };
+		}
+	}
+
+} satisfies Actions;

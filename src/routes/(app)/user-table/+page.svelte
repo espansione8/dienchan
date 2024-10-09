@@ -480,6 +480,33 @@
 		tableList = getTable;
 	};
 
+	let currentDialog = $state('');
+	let isModal = $state(false);
+	let postAction = $state('');
+	const onClickDialog = (type: string, item: any) => {
+		currentDialog = type;
+		isModal = true;
+		if (type == 'new') {
+			postAction = `?/newUser`;
+		}
+		if (type == 'modify') {
+			userId = item.userId;
+			name = item.name;
+			surname = item.surname;
+			email = item.email;
+			address = item.address;
+			postalCode = item.postalCode;
+			city = item.city;
+			countryState = item.countryState;
+			country = item.country;
+			phone = item.phone;
+			mobilePhone = item.mobilePhone;
+			password1 = item.password1;
+			level = item.level;
+			postAction = `?/modifyUser`;
+		}
+	};
+
 	$effect(() => {
 		// console.log({ form });
 
@@ -489,9 +516,8 @@
 			if (success) {
 				closeNotification();
 				//resetFieldsModalFilter();
-				isModalNew = false;
+				isModal = false;
 				isModalConfirmDelete = false;
-				isModalModify = false;
 				tableList = getTable;
 			} else {
 				notificationError = true;
@@ -508,15 +534,6 @@
 </svelte:head>
 
 <div class="overflow-x-auto mt-5 px-4 mb-5">
-	<!-- <span class="flex justify-between">
-		<button
-			class="btn btn-success  text-white border-green-500 hover:bg-gray-200 hover:text-success hover:border-success"
-			onclick={() => onGotoNewUser()}><UserPlus /> Nuovo utente</button
-		>
-		<header class="text-center text-2xl font-bold text-gray-700">Lista utenti</header>
-		<button class="btn btn-success invisible"><UserPlus /> Scarica CSV</button>
-	</span> -->
-
 	<div class="flex justify-between items-center w-full">
 		<div class="flex space-x-4">
 			{#if resetActive == true}
@@ -528,8 +545,8 @@
 					<Filter class="mt-1" /> Filtra
 				</button>
 			{/if}
-			<button class="btn btn-info text-white" onclick={() => onOpenNew()}>
-				<ListPlus /> Nuovo utente
+			<button class="btn btn-info text-white" onclick={() => onClickDialog('new', null)}>
+				<ListPlus /> Nuovo
 			</button>
 		</div>
 		<header class="text-2xl font-bold text-gray-700 absolute left-1/2 transform -translate-x-1/2">
@@ -644,7 +661,7 @@
 					<!-- Azione -->
 					<td class="flex items-center justify-center space-x-4">
 						<button
-							onclick={() => onOpenModify(row)}
+							onclick={() => onClickDialog('modify', row)}
 							class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:bg-gray-300 hover:text-gray-800"
 							><Settings />
 						</button>
@@ -749,17 +766,43 @@
 <!-- /modal filter  -->
 
 <!-- modal New  -->
-<dialog id="modal_new" class="modal" class:modal-open={isModalNew}>
+<dialog id="modal_new-modify" class="modal" class:modal-open={isModal}>
 	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-3xl">
 		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
-			<h2 class="text-2xl font-bold text-white mb-1">Nuovo utente</h2>
+			<h2 class="text-2xl font-bold text-white mb-1">
+				{#if currentDialog == 'new'}
+					Nuovo utente
+				{:else if currentDialog == 'modify'}
+					Modifica utente
+				{/if}
+			</h2>
 		</div>
 		<form
 			method="POST"
-			action={`?/newUser`}
+			action={postAction}
 			use:enhance
 			class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 		>
+			{#if currentDialog == 'modify'}
+				<section class="col-span-4">
+					<label for="userId" class="form-label">
+						<p class="font-bold mb-2">ID utente</p>
+					</label>
+
+					<div class="join join-horizontal w-full">
+						<button class="join-item bg-gray-300 px-3"><Pen /></button>
+						<input
+							class="input input-bordered join-item w-full"
+							id="userId"
+							name="userId"
+							type="text"
+							bind:value={userId}
+							readonly
+						/>
+					</div>
+				</section>
+			{/if}
+
 			<!-- Nome -->
 			<section class="col-span-4 md:col-span-2">
 				<label for="name" class="form-label">
@@ -953,56 +996,90 @@
 					/>
 				</div>
 			</section>
-			<!-- Password -->
+			{#if currentDialog == 'new'}
+				<!-- Password -->
+				<section class="col-span-4">
+					<label for="password1" class="form-label">
+						<p class="font-bold mb-2">
+							Password <br />
+							<span class="text-sm text-gray-600">( Almeno 8 caratteri numeri e lettere )</span>
+						</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button class="join-item bg-gray-300 px-3"
+							><Lock color={checkPass ? 'green' : 'black'} /></button
+						>
+						<input
+							class="input input-bordered join-item w-full"
+							id="password1"
+							type="password"
+							name="password1"
+							placeholder="Inserisci password"
+							bind:value={password1}
+							oninput={testPass}
+							required
+						/>
+					</div>
+				</section>
+				<!-- Conferma password -->
+				<section class="col-span-4">
+					<label for="password2" class="form-label">
+						<p class="font-bold mb-2">Conferma password</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button class="join-item bg-gray-300 px-3"
+							><Lock color={checkSecondPass && checkPass ? 'green' : 'black'} /></button
+						>
+						<input
+							class="input input-bordered join-item w-full"
+							id="password2"
+							type="password"
+							placeholder="Repeat password"
+							bind:value={password2}
+							oninput={testSecondPass}
+							bind:this={inputRef}
+							required
+						/>
+					</div>
+				</section>
+			{/if}
+			<!-- Level -->
 			<section class="col-span-4">
-				<label for="password1" class="form-label">
-					<p class="font-bold mb-2">
-						Password <br />
-						<span class="text-sm text-gray-600">( Almeno 8 caratteri numeri e lettere )</span>
-					</p>
+				<label for="level" class="form-label">
+					<p class="font-bold mb-2">Livello di permesso (solo per SuperAdmin)</p>
 				</label>
-				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"
-						><Lock color={checkPass ? 'green' : 'black'} /></button
-					>
-					<input
-						class="input input-bordered join-item w-full"
-						id="password1"
-						type="password"
-						name="password1"
-						placeholder="Inserisci password"
-						bind:value={password1}
-						oninput={testPass}
-						required
-					/>
-				</div>
+				<select
+					id="level"
+					class="select select-bordered w-full rounded-md mt-2"
+					name="level"
+					placeholder="Scegli"
+					required
+					bind:value={level}
+				>
+					<option value="user">Utente base</option>
+					<option value="formatore">Formatore</option>
+					<option value="admin">Admin</option>
+				</select>
 			</section>
-			<!-- Conferma password -->
-			<section class="col-span-4">
-				<label for="password2" class="form-label">
-					<p class="font-bold mb-2">Conferma password</p>
-				</label>
-				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"
-						><Lock color={checkSecondPass && checkPass ? 'green' : 'black'} /></button
-					>
-					<input
-						class="input input-bordered join-item w-full"
-						id="password2"
-						type="password"
-						placeholder="Repeat password"
-						bind:value={password2}
-						oninput={testSecondPass}
-						bind:this={inputRef}
-						required
-					/>
-				</div>
-			</section>
-			<!-- registra corso button -->
+
+			<!-- button -->
 			<div class="col-span-4 mt-5 flex justify-center">
 				<div class="bg-gray-50 flex justify-center">
-					<button class="btn btn-error btn-sm mx-2" onclick={onCloseNew}> Annulla </button>
-					<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
+					<button
+						class="btn btn-error btn-sm mx-2"
+						onclick={() => {
+							(isModal = false), resetFields();
+						}}
+					>
+						Annulla
+					</button>
+					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">
+						{#if currentDialog == 'new'}
+							Registra
+						{:else if currentDialog == 'modify'}
+							Modifica
+						{/if}
+					</button>
 				</div>
 			</div>
 		</form>
