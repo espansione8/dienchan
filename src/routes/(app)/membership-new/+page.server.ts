@@ -72,9 +72,10 @@ export const actions: Actions = {
 				}
 			});
 			const res = await response.json();
-			if (res.status == 200) {
-				return { action: 'newMembership', success: true, message: res.message };
+			if (response.status == 200) {
+				return { action: 'newMembership', success: true, message: "Iscrizione avvenuta con successo, ora puoi effettuare il LOGIN" };
 			} else {
+				//console.log(res)
 				return { action: 'newMembership', success: false, message: res.message };
 			}
 		} catch (error) {
@@ -129,8 +130,8 @@ export const actions: Actions = {
 				}
 			});
 			const res = await response.json();
-			if (res.status == 200) {
-				return { action: 'newMembership', success: true, message: res.message };
+			if (response.status == 200) {
+				return { action: 'newMembership', success: true, message: "tessera Vitalizia ordinata successo" };
 			} else {
 				return { action: 'newMembership', success: false, message: res.message };
 			}
