@@ -2,7 +2,7 @@
 	import moment from 'moment';
 	import { coursesInfo } from '$lib/stores/arrays.js';
 	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
-	import { province } from '$lib/stores/arrays.js';
+	//import { province } from '$lib/stores/arrays.js';
 
 	let { data } = $props();
 	let { getCourse, userData } = $derived(data);
@@ -20,27 +20,6 @@
 			return item.type == 'avatar';
 		})
 	);
-
-	function siglaToProvincia(provinciaSigla: any) {
-		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
-		return findProvincia.nome;
-	}
-
-	// // cart store
-	// const addToCart = (course) => {
-	// 	cart.update((n) => {
-	// 		// console.log('n', n);
-	// 		n.push(course);
-	// 		return n;
-	// 	});
-	// };
-
-	// const removeFromCart = (prodId) => {
-	// 	cart.update((n) => {
-	// 		// Filtra il carrello per rimuovere il corso con l'ID specificato
-	// 		return n.filter((item) => item.prodId !== prodId.prodId);
-	// 	});
-	// };
 
 	const course = $coursesInfo.filter((item: any) => item.id == getCourse.category);
 </script>
@@ -71,7 +50,7 @@
 				<div class="text-4xl font-semibold text-gray-800">{getCourse.title}</div>
 				<div class=" text-3xl text-blue-900">
 					<p>
-						<b>{siglaToProvincia(getCourse.location)}</b>
+						<b>{getCourse.countryState}</b>
 					</p>
 				</div>
 			</div>
@@ -171,7 +150,7 @@
 				</div>
 				<!-- Luogo -->
 				<div class="text-2xl font-semibold text-gray-700">
-					Luogo: <b>{siglaToProvincia(getCourse.location)} </b>
+					Luogo: <b>{getCourse.countryState} </b>
 				</div>
 				<!-- Data -->
 				<div class="text-2xl font-semibold text-gray-700">

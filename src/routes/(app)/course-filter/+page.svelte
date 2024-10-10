@@ -33,13 +33,13 @@
 
 	function siglaToProvincia(provinciaSigla: any) {
 		console.log('provinciaSigla', provinciaSigla);
-		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
+		const findProvincia = $province.find((prov) => prov.sigla == provinciaSigla);
 		return findProvincia?.nome || '';
 	}
 
 	function findNameRiflessologo(userIdCode) {
 		//console.log('userIdCode', userIdCode);
-		const findRiflessologo = getTableCourses.find((user) => user.userId === userIdCode);
+		const findRiflessologo = getTableCourses.find((user) => user.userId == userIdCode);
 		return `${findRiflessologo.name} ${findRiflessologo.surname}`;
 	}
 
@@ -48,14 +48,14 @@
 
 	// Iteriamo sull'array e contiamo le occorrenze delle province
 	coursesList.forEach((item) => {
-		const provincia = item.location;
-		conteggioProvince[provincia] = (conteggioProvince[provincia] || 0) + 1;
+		const countryState = item.countryState;
+		conteggioProvince[countryState] = (conteggioProvince[countryState] || 0) + 1;
 	});
 
 	// Creiamo un nuovo array con gli oggetti richiesti
-	const risultato = Object.entries(conteggioProvince).map(([provincia, conteggio]) => {
+	const risultato = Object.entries(conteggioProvince).map(([countryState, conteggio]) => {
 		const risultatoParziale = {};
-		risultatoParziale[provincia] = conteggio;
+		risultatoParziale[countryState] = conteggio;
 		return risultatoParziale;
 	});
 
@@ -152,18 +152,18 @@
 		coursesList = getTableCourses;
 		// provincia
 		if (filtriAttivi.provincia) {
-			coursesList = coursesList.filter((item) => item.location === filtriAttivi.provincia);
+			coursesList = coursesList.filter((item) => item.countryState == filtriAttivi.provincia);
 		}
 		// riflessologo
 		if (filtriAttivi.riflessologo) {
-			coursesList = coursesList.filter((item) => item.userId === filtriAttivi.userId);
+			coursesList = coursesList.filter((item) => item.userId == filtriAttivi.userId);
 		}
 		// mese
 		if (filtriAttivi.mese) {
 			const monthNumber = nomiMesi.indexOf(filtriAttivi.mese) + 1;
 			coursesList = coursesList.filter((item) => {
 				const eventMonth = new Date(item.eventStartDate).getMonth() + 1;
-				return eventMonth === monthNumber;
+				return eventMonth == monthNumber;
 			});
 		}
 		// Evento
@@ -305,7 +305,7 @@
 						{#each $coursesInfo as option}
 							<li
 								class="p-2 border-b cursor-pointer transition-colors duration-300
-							{filtriAttivi.evento === option.id
+							{filtriAttivi.evento == option.id
 									? 'bg-orange-200 text-red-900 font-bold'
 									: 'hover:bg-blue-200 hover:text-blue-900'}"
 								onclick={() => onClickFilterEvent(option.id)}
@@ -335,10 +335,10 @@
 						{#each informazioniMesi as { mese, conteggio }}
 							<li
 								class="p-2 border-b cursor-pointer transition-colors duration-300
-								{filtriAttivi.mese === mese
+								{filtriAttivi.mese == mese
 									? 'bg-orange-200 text-red-900 font-bold'
 									: 'hover:bg-blue-200 hover:text-blue-900'}
-									{conteggio === 0 ? 'text-gray-400 pointer-events-none' : ''}"
+									{conteggio == 0 ? 'text-gray-400 pointer-events-none' : ''}"
 								onclick={() => onClickFilterMonth(mese)}
 							>
 								{'>'}
@@ -366,11 +366,12 @@
 				</div>
 				<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100">
 					<ul class="list-none -mx-4">
+						<!-- fatto con IA? fai refactor e vedi anche riga 56 -->
 						<!-- {#each risultato as elemento (elemento)}
 							{#each Object.entries(elemento) as [chiave, valore] (chiave)}
 								<li
 									class="p-2 border-b cursor-pointer transition-colors duration-300
-								{filtriAttivi.provincia === chiave
+								{filtriAttivi.provincia == chiave
 										? 'bg-orange-200 text-red-900 font-bold'
 										: 'hover:bg-blue-200 hover:text-blue-900'}"
 									onclick={() => onClickFilterProvincia(chiave)}
@@ -401,7 +402,7 @@
 						{#each getTableNames as item}
 							<li
 								class="p-2 border-b cursor-pointer transition-colors duration-300
-							{filtriAttivi.riflessologo === `${item.name} ${item.surname}`
+							{filtriAttivi.riflessologo == `${item.name} ${item.surname}`
 									? 'bg-orange-200 text-red-900 font-bold'
 									: 'hover:bg-blue-200 hover:text-blue-900'}"
 								onclick={() => onClickFilterRiflessologo(item.userId, item.name, item.surname)}
@@ -522,7 +523,7 @@
 					{/if}
 					{#if filtriAttivi.provincia.length > 0}
 						<div class="badge badge-accent rounded-md">
-							Provincia: <strong class="pl-1">{siglaToProvincia(filtriAttivi.provincia)}</strong>
+							Provincia: <strong class="pl-1">{filtriAttivi.countryState}</strong>
 						</div>
 					{/if}
 					{#if filtriAttivi.riflessologo.length > 0}
@@ -536,7 +537,7 @@
 		<!-- end ORDINA BUTTON -->
 		<!-- CARD -->
 		<div class="flex flex-wrap justify-center gap-3 pl-3 pb-4">
-			{#if coursesList.length === 0}
+			{#if coursesList.length == 0}
 				<div
 					class="alert alert-warning shadow-lg text-center rounded-md mt-6 mx-auto w-full max-w-md"
 				>
@@ -566,15 +567,9 @@
 							{moment(courseData.eventStartDate).format('DD/MM/YYYY')}
 						</h2>
 						<!-- luogo -->
-						{#if courseData.location !== 'Online'}
-							<p class="card-text text-xl">
-								<b>{siglaToProvincia(courseData.location)}</b>
-							</p>
-						{:else if courseData.location === 'Online'}
-							<p class="card-text text-xl">
-								<b>{courseData.location}</b>
-							</p>
-						{/if}
+						<p class="card-text text-xl">
+							<b>{courseData.countryState}</b>
+						</p>
 						<!-- title -->
 						<h5
 							class="card-text text-xl bg-base-200 border rounded-md shadow-sm font-semibold p-2

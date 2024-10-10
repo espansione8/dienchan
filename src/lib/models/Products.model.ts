@@ -29,7 +29,7 @@ const productSchema = new Schema(
         status: {
             type: String,
             enum: ['enabled', 'disabled'],
-            default: 'disabled'
+            default: 'enabled'
         },
         condition: { type: String, default: '' },
         feature: { type: String, default: '' },
@@ -134,9 +134,11 @@ const productSchema = new Schema(
         name: { type: String, default: '' },
         surname: { type: String, default: '' },
         eventStartDate: { type: Date, default: Date.now },
-        eventEndDate: { type: Date, default: Date.now },
+        // eventStartTime: { type: Date, default: Date.now }, //deprecated
+        //eventEndDate: { type: Date, default: Date.now }, // deprecated
         state: { type: String, default: '' },
-        place: { type: String, default: '' },
+        countryState: { type: String, default: '' },
+        location: { type: String, default: '' },
         notificationEmail: [{ type: String, default: '' }],
         listSubscribers: [
             {

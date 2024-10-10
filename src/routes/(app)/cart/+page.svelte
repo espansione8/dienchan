@@ -187,11 +187,6 @@
 		}
 	};
 
-	function siglaToProvincia(provinciaSigla: any) {
-		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
-		return findProvincia.nome;
-	}
-
 	let total = $state(0);
 	let grandTotal = $state(0);
 
@@ -291,18 +286,9 @@
 						<h2 class="card-title text-2xl">
 							{moment(item.eventStartDate).format('DD/MM/YYYY')}
 						</h2>
-						<!-- luogo -->
-						<!-- {#if item.location !== 'Online'}
-							<p class="card-text text-xl">
-								<b>{siglaToProvincia(item.location)}</b>
-							</p>
-						{:else if item.location === 'Online'}
-							<p class="card-text text-xl">
-								<b>{item.location}</b>
-							</p>
-						{/if} -->
+						<!-- provincia -->
 						<p class="card-text text-xl">
-							<b>{siglaToProvincia(item.location)}</b>
+							<b>(item.countryState)</b>
 						</p>
 						<!-- title -->
 						<h5

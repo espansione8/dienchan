@@ -321,559 +321,559 @@ export const coursesInfo = readable([
 export const province = readable(
     [
         {
-            "nome": "Online",
-            "sigla": "ON",
-            "regione": "Online"
+            "title": "Online",
+            "code": "ON",
+            "region": "Online"
         },
         {
-            "nome": "Agrigento",
-            "sigla": "AG",
-            "regione": "Sicilia"
+            "title": "Agrigento",
+            "code": "AG",
+            "region": "Sicilia"
         },
         {
-            "nome": "Alessandria",
-            "sigla": "AL",
-            "regione": "Piemonte"
+            "title": "Alessandria",
+            "code": "AL",
+            "region": "Piemonte"
         },
         {
-            "nome": "Ancona",
-            "sigla": "AN",
-            "regione": "Marche"
+            "title": "Ancona",
+            "code": "AN",
+            "region": "Marche"
         },
         {
-            "nome": "Arezzo",
-            "sigla": "AR",
-            "regione": "Toscana"
+            "title": "Arezzo",
+            "code": "AR",
+            "region": "Toscana"
         },
         {
-            "nome": "Ascoli Piceno",
-            "sigla": "AP",
-            "regione": "Marche"
+            "title": "Ascoli Piceno",
+            "code": "AP",
+            "region": "Marche"
         },
         {
-            "nome": "Asti",
-            "sigla": "AT",
-            "regione": "Piemonte"
+            "title": "Asti",
+            "code": "AT",
+            "region": "Piemonte"
         },
         {
-            "nome": "Avellino",
-            "sigla": "AV",
-            "regione": "Campania"
+            "title": "Avellino",
+            "code": "AV",
+            "region": "Campania"
         },
         {
-            "nome": "Bari",
-            "sigla": "BA",
-            "regione": "Puglia"
+            "title": "Bari",
+            "code": "BA",
+            "region": "Puglia"
         },
         {
-            "nome": "Barletta-Andria-Trani",
-            "sigla": "BT",
-            "regione": "Puglia"
+            "title": "Barletta-Andria-Trani",
+            "code": "BT",
+            "region": "Puglia"
         },
         {
-            "nome": "Belluno",
-            "sigla": "BL",
-            "regione": "Veneto"
+            "title": "Belluno",
+            "code": "BL",
+            "region": "Veneto"
         },
         {
-            "nome": "Benevento",
-            "sigla": "BN",
-            "regione": "Campania"
+            "title": "Benevento",
+            "code": "BN",
+            "region": "Campania"
         },
         {
-            "nome": "Bergamo",
-            "sigla": "BG",
-            "regione": "Lombardia"
+            "title": "Bergamo",
+            "code": "BG",
+            "region": "Lombardia"
         },
         {
-            "nome": "Biella",
-            "sigla": "BI",
-            "regione": "Piemonte"
+            "title": "Biella",
+            "code": "BI",
+            "region": "Piemonte"
         },
         {
-            "nome": "Bologna",
-            "sigla": "BO",
-            "regione": "Emilia-Romagna"
+            "title": "Bologna",
+            "code": "BO",
+            "region": "Emilia-Romagna"
         },
         {
-            "nome": "Bolzano/Bozen",
-            "sigla": "BZ",
-            "regione": "Trentino-Alto Adige/Südtirol"
+            "title": "Bolzano/Bozen",
+            "code": "BZ",
+            "region": "Trentino-Alto Adige/Südtirol"
         },
         {
-            "nome": "Brescia",
-            "sigla": "BS",
-            "regione": "Lombardia"
+            "title": "Brescia",
+            "code": "BS",
+            "region": "Lombardia"
         },
         {
-            "nome": "Brindisi",
-            "sigla": "BR",
-            "regione": "Puglia"
+            "title": "Brindisi",
+            "code": "BR",
+            "region": "Puglia"
         },
         {
-            "nome": "Cagliari",
-            "sigla": "CA",
-            "regione": "Sardegna"
+            "title": "Cagliari",
+            "code": "CA",
+            "region": "Sardegna"
         },
         {
-            "nome": "Caltanissetta",
-            "sigla": "CL",
-            "regione": "Sicilia"
+            "title": "Caltanissetta",
+            "code": "CL",
+            "region": "Sicilia"
         },
         {
-            "nome": "Campobasso",
-            "sigla": "CB",
-            "regione": "Molise"
+            "title": "Campobasso",
+            "code": "CB",
+            "region": "Molise"
         },
         {
-            "nome": "Carbonia-Iglesias",
-            "sigla": "CI",
-            "regione": "Sardegna"
+            "title": "Carbonia-Iglesias",
+            "code": "CI",
+            "region": "Sardegna"
         },
         {
-            "nome": "Caserta",
-            "sigla": "CE",
-            "regione": "Campania"
+            "title": "Caserta",
+            "code": "CE",
+            "region": "Campania"
         },
         {
-            "nome": "Catania",
-            "sigla": "CT",
-            "regione": "Sicilia"
+            "title": "Catania",
+            "code": "CT",
+            "region": "Sicilia"
         },
         {
-            "nome": "Catanzaro",
-            "sigla": "CZ",
-            "regione": "Calabria"
+            "title": "Catanzaro",
+            "code": "CZ",
+            "region": "Calabria"
         },
         {
-            "nome": "Chieti",
-            "sigla": "CH",
-            "regione": "Abruzzo"
+            "title": "Chieti",
+            "code": "CH",
+            "region": "Abruzzo"
         },
         {
-            "nome": "Como",
-            "sigla": "CO",
-            "regione": "Lombardia"
+            "title": "Como",
+            "code": "CO",
+            "region": "Lombardia"
         },
         {
-            "nome": "Cosenza",
-            "sigla": "CS",
-            "regione": "Calabria"
+            "title": "Cosenza",
+            "code": "CS",
+            "region": "Calabria"
         },
         {
-            "nome": "Cremona",
-            "sigla": "CR",
-            "regione": "Lombardia"
+            "title": "Cremona",
+            "code": "CR",
+            "region": "Lombardia"
         },
         {
-            "nome": "Crotone",
-            "sigla": "KR",
-            "regione": "Calabria"
+            "title": "Crotone",
+            "code": "KR",
+            "region": "Calabria"
         },
         {
-            "nome": "Cuneo",
-            "sigla": "CN",
-            "regione": "Piemonte"
+            "title": "Cuneo",
+            "code": "CN",
+            "region": "Piemonte"
         },
         {
-            "nome": "Enna",
-            "sigla": "EN",
-            "regione": "Sicilia"
+            "title": "Enna",
+            "code": "EN",
+            "region": "Sicilia"
         },
         {
-            "nome": "Fermo",
-            "sigla": "FM",
-            "regione": "Marche"
+            "title": "Fermo",
+            "code": "FM",
+            "region": "Marche"
         },
         {
-            "nome": "Ferrara",
-            "sigla": "FE",
-            "regione": "Emilia-Romagna"
+            "title": "Ferrara",
+            "code": "FE",
+            "region": "Emilia-Romagna"
         },
         {
-            "nome": "Firenze",
-            "sigla": "FI",
-            "regione": "Toscana"
+            "title": "Firenze",
+            "code": "FI",
+            "region": "Toscana"
         },
         {
-            "nome": "Foggia",
-            "sigla": "FG",
-            "regione": "Puglia"
+            "title": "Foggia",
+            "code": "FG",
+            "region": "Puglia"
         },
         {
-            "nome": "Forlì-Cesena",
-            "sigla": "FC",
-            "regione": "Emilia-Romagna"
+            "title": "Forlì-Cesena",
+            "code": "FC",
+            "region": "Emilia-Romagna"
         },
         {
-            "nome": "Frosinone",
-            "sigla": "FR",
-            "regione": "Lazio"
+            "title": "Frosinone",
+            "code": "FR",
+            "region": "Lazio"
         },
         {
-            "nome": "Genova",
-            "sigla": "GE",
-            "regione": "Liguria"
+            "title": "Genova",
+            "code": "GE",
+            "region": "Liguria"
         },
         {
-            "nome": "Gorizia",
-            "sigla": "GO",
-            "regione": "Friuli-Venezia Giulia"
+            "title": "Gorizia",
+            "code": "GO",
+            "region": "Friuli-Venezia Giulia"
         },
         {
-            "nome": "Grosseto",
-            "sigla": "GR",
-            "regione": "Toscana"
+            "title": "Grosseto",
+            "code": "GR",
+            "region": "Toscana"
         },
         {
-            "nome": "Imperia",
-            "sigla": "IM",
-            "regione": "Liguria"
+            "title": "Imperia",
+            "code": "IM",
+            "region": "Liguria"
         },
         {
-            "nome": "Isernia",
-            "sigla": "IS",
-            "regione": "Molise"
+            "title": "Isernia",
+            "code": "IS",
+            "region": "Molise"
         },
         {
-            "nome": "L'Aquila",
-            "sigla": "AQ",
-            "regione": "Abruzzo"
+            "title": "L'Aquila",
+            "code": "AQ",
+            "region": "Abruzzo"
         },
         {
-            "nome": "La Spezia",
-            "sigla": "SP",
-            "regione": "Liguria"
+            "title": "La Spezia",
+            "code": "SP",
+            "region": "Liguria"
         },
         {
-            "nome": "Latina",
-            "sigla": "LT",
-            "regione": "Lazio"
+            "title": "Latina",
+            "code": "LT",
+            "region": "Lazio"
         },
         {
-            "nome": "Lecce",
-            "sigla": "LE",
-            "regione": "Puglia"
+            "title": "Lecce",
+            "code": "LE",
+            "region": "Puglia"
         },
         {
-            "nome": "Lecco",
-            "sigla": "LC",
-            "regione": "Lombardia"
+            "title": "Lecco",
+            "code": "LC",
+            "region": "Lombardia"
         },
         {
-            "nome": "Livorno",
-            "sigla": "LI",
-            "regione": "Toscana"
+            "title": "Livorno",
+            "code": "LI",
+            "region": "Toscana"
         },
         {
-            "nome": "Lodi",
-            "sigla": "LO",
-            "regione": "Lombardia"
+            "title": "Lodi",
+            "code": "LO",
+            "region": "Lombardia"
         },
         {
-            "nome": "Lucca",
-            "sigla": "LU",
-            "regione": "Toscana"
+            "title": "Lucca",
+            "code": "LU",
+            "region": "Toscana"
         },
         {
-            "nome": "Macerata",
-            "sigla": "MC",
-            "regione": "Marche"
+            "title": "Macerata",
+            "code": "MC",
+            "region": "Marche"
         },
         {
-            "nome": "Mantova",
-            "sigla": "MN",
-            "regione": "Lombardia"
+            "title": "Mantova",
+            "code": "MN",
+            "region": "Lombardia"
         },
         {
-            "nome": "Massa-Carrara",
-            "sigla": "MS",
-            "regione": "Toscana"
+            "title": "Massa-Carrara",
+            "code": "MS",
+            "region": "Toscana"
         },
         {
-            "nome": "Matera",
-            "sigla": "MT",
-            "regione": "Basilicata"
+            "title": "Matera",
+            "code": "MT",
+            "region": "Basilicata"
         },
         {
-            "nome": "Medio Campidano",
-            "sigla": "VS",
-            "regione": "Sardegna"
+            "title": "Medio Campidano",
+            "code": "VS",
+            "region": "Sardegna"
         },
         {
-            "nome": "Messina",
-            "sigla": "ME",
-            "regione": "Sicilia"
+            "title": "Messina",
+            "code": "ME",
+            "region": "Sicilia"
         },
         {
-            "nome": "Milano",
-            "sigla": "MI",
-            "regione": "Lombardia"
+            "title": "Milano",
+            "code": "MI",
+            "region": "Lombardia"
         },
         {
-            "nome": "Modena",
-            "sigla": "MO",
-            "regione": "Emilia-Romagna"
+            "title": "Modena",
+            "code": "MO",
+            "region": "Emilia-Romagna"
         },
         {
-            "nome": "Monza e della Brianza",
-            "sigla": "MB",
-            "regione": "Lombardia"
+            "title": "Monza e della Brianza",
+            "code": "MB",
+            "region": "Lombardia"
         },
         {
-            "nome": "Napoli",
-            "sigla": "NA",
-            "regione": "Campania"
+            "title": "Napoli",
+            "code": "NA",
+            "region": "Campania"
         },
         {
-            "nome": "Novara",
-            "sigla": "NO",
-            "regione": "Piemonte"
+            "title": "Novara",
+            "code": "NO",
+            "region": "Piemonte"
         },
         {
-            "nome": "Nuoro",
-            "sigla": "NU",
-            "regione": "Sardegna"
+            "title": "Nuoro",
+            "code": "NU",
+            "region": "Sardegna"
         },
         {
-            "nome": "Ogliastra",
-            "sigla": "OG",
-            "regione": "Sardegna"
+            "title": "Ogliastra",
+            "code": "OG",
+            "region": "Sardegna"
         },
         {
-            "nome": "Olbia-Tempio",
-            "sigla": "OT",
-            "regione": "Sardegna"
+            "title": "Olbia-Tempio",
+            "code": "OT",
+            "region": "Sardegna"
         },
         {
-            "nome": "Oristano",
-            "sigla": "OR",
-            "regione": "Sardegna"
+            "title": "Oristano",
+            "code": "OR",
+            "region": "Sardegna"
         },
         {
-            "nome": "Padova",
-            "sigla": "PD",
-            "regione": "Veneto"
+            "title": "Padova",
+            "code": "PD",
+            "region": "Veneto"
         },
         {
-            "nome": "Palermo",
-            "sigla": "PA",
-            "regione": "Sicilia"
+            "title": "Palermo",
+            "code": "PA",
+            "region": "Sicilia"
         },
         {
-            "nome": "Parma",
-            "sigla": "PR",
-            "regione": "Emilia-Romagna"
+            "title": "Parma",
+            "code": "PR",
+            "region": "Emilia-Romagna"
         },
         {
-            "nome": "Pavia",
-            "sigla": "PV",
-            "regione": "Lombardia"
+            "title": "Pavia",
+            "code": "PV",
+            "region": "Lombardia"
         },
         {
-            "nome": "Perugia",
-            "sigla": "PG",
-            "regione": "Umbria"
+            "title": "Perugia",
+            "code": "PG",
+            "region": "Umbria"
         },
         {
-            "nome": "Pesaro e Urbino",
-            "sigla": "PU",
-            "regione": "Marche"
+            "title": "Pesaro e Urbino",
+            "code": "PU",
+            "region": "Marche"
         },
         {
-            "nome": "Pescara",
-            "sigla": "PE",
-            "regione": "Abruzzo"
+            "title": "Pescara",
+            "code": "PE",
+            "region": "Abruzzo"
         },
         {
-            "nome": "Piacenza",
-            "sigla": "PC",
-            "regione": "Emilia-Romagna"
+            "title": "Piacenza",
+            "code": "PC",
+            "region": "Emilia-Romagna"
         },
         {
-            "nome": "Pisa",
-            "sigla": "PI",
-            "regione": "Toscana"
+            "title": "Pisa",
+            "code": "PI",
+            "region": "Toscana"
         },
         {
-            "nome": "Pistoia",
-            "sigla": "PT",
-            "regione": "Toscana"
+            "title": "Pistoia",
+            "code": "PT",
+            "region": "Toscana"
         },
         {
-            "nome": "Pordenone",
-            "sigla": "PN",
-            "regione": "Friuli-Venezia Giulia"
+            "title": "Pordenone",
+            "code": "PN",
+            "region": "Friuli-Venezia Giulia"
         },
         {
-            "nome": "Potenza",
-            "sigla": "PZ",
-            "regione": "Basilicata"
+            "title": "Potenza",
+            "code": "PZ",
+            "region": "Basilicata"
         },
         {
-            "nome": "Prato",
-            "sigla": "PO",
-            "regione": "Toscana"
+            "title": "Prato",
+            "code": "PO",
+            "region": "Toscana"
         },
         {
-            "nome": "Ragusa",
-            "sigla": "RG",
-            "regione": "Sicilia"
+            "title": "Ragusa",
+            "code": "RG",
+            "region": "Sicilia"
         },
         {
-            "nome": "Ravenna",
-            "sigla": "RA",
-            "regione": "Emilia-Romagna"
+            "title": "Ravenna",
+            "code": "RA",
+            "region": "Emilia-Romagna"
         },
         {
-            "nome": "Reggio di Calabria",
-            "sigla": "RC",
-            "regione": "Calabria"
+            "title": "Reggio di Calabria",
+            "code": "RC",
+            "region": "Calabria"
         },
         {
-            "nome": "Reggio nell'Emilia",
-            "sigla": "RE",
-            "regione": "Emilia-Romagna"
+            "title": "Reggio nell'Emilia",
+            "code": "RE",
+            "region": "Emilia-Romagna"
         },
         {
-            "nome": "Rieti",
-            "sigla": "RI",
-            "regione": "Lazio"
+            "title": "Rieti",
+            "code": "RI",
+            "region": "Lazio"
         },
         {
-            "nome": "Rimini",
-            "sigla": "RN",
-            "regione": "Emilia-Romagna"
+            "title": "Rimini",
+            "code": "RN",
+            "region": "Emilia-Romagna"
         },
         {
-            "nome": "Roma",
-            "sigla": "RM",
-            "regione": "Lazio"
+            "title": "Roma",
+            "code": "RM",
+            "region": "Lazio"
         },
         {
-            "nome": "Rovigo",
-            "sigla": "RO",
-            "regione": "Veneto"
+            "title": "Rovigo",
+            "code": "RO",
+            "region": "Veneto"
         },
         {
-            "nome": "Salerno",
-            "sigla": "SA",
-            "regione": "Campania"
+            "title": "Salerno",
+            "code": "SA",
+            "region": "Campania"
         },
         {
-            "nome": "Sassari",
-            "sigla": "SS",
-            "regione": "Sardegna"
+            "title": "Sassari",
+            "code": "SS",
+            "region": "Sardegna"
         },
         {
-            "nome": "Savona",
-            "sigla": "SV",
-            "regione": "Liguria"
+            "title": "Savona",
+            "code": "SV",
+            "region": "Liguria"
         },
         {
-            "nome": "Siena",
-            "sigla": "SI",
-            "regione": "Toscana"
+            "title": "Siena",
+            "code": "SI",
+            "region": "Toscana"
         },
         {
-            "nome": "Siracusa",
-            "sigla": "SR",
-            "regione": "Sicilia"
+            "title": "Siracusa",
+            "code": "SR",
+            "region": "Sicilia"
         },
         {
-            "nome": "Sondrio",
-            "sigla": "SO",
-            "regione": "Lombardia"
+            "title": "Sondrio",
+            "code": "SO",
+            "region": "Lombardia"
         },
         {
-            "nome": "Taranto",
-            "sigla": "TA",
-            "regione": "Puglia"
+            "title": "Taranto",
+            "code": "TA",
+            "region": "Puglia"
         },
         {
-            "nome": "Teramo",
-            "sigla": "TE",
-            "regione": "Abruzzo"
+            "title": "Teramo",
+            "code": "TE",
+            "region": "Abruzzo"
         },
         {
-            "nome": "Terni",
-            "sigla": "TR",
-            "regione": "Umbria"
+            "title": "Terni",
+            "code": "TR",
+            "region": "Umbria"
         },
         {
-            "nome": "Torino",
-            "sigla": "TO",
-            "regione": "Piemonte"
+            "title": "Torino",
+            "code": "TO",
+            "region": "Piemonte"
         },
         {
-            "nome": "Trapani",
-            "sigla": "TP",
-            "regione": "Sicilia"
+            "title": "Trapani",
+            "code": "TP",
+            "region": "Sicilia"
         },
         {
-            "nome": "Trento",
-            "sigla": "TN",
-            "regione": "Trentino-Alto Adige/Südtirol"
+            "title": "Trento",
+            "code": "TN",
+            "region": "Trentino-Alto Adige/Südtirol"
         },
         {
-            "nome": "Treviso",
-            "sigla": "TV",
-            "regione": "Veneto"
+            "title": "Treviso",
+            "code": "TV",
+            "region": "Veneto"
         },
         {
-            "nome": "Trieste",
-            "sigla": "TS",
-            "regione": "Friuli-Venezia Giulia"
+            "title": "Trieste",
+            "code": "TS",
+            "region": "Friuli-Venezia Giulia"
         },
         {
-            "nome": "Udine",
-            "sigla": "UD",
-            "regione": "Friuli-Venezia Giulia"
+            "title": "Udine",
+            "code": "UD",
+            "region": "Friuli-Venezia Giulia"
         },
         {
-            "nome": "Valle d'Aosta/Vallée d'Aoste",
-            "sigla": "AO",
-            "regione": "Valle d'Aosta/Vallée d'Aoste"
+            "title": "Valle d'Aosta/Vallée d'Aoste",
+            "code": "AO",
+            "region": "Valle d'Aosta/Vallée d'Aoste"
         },
         {
-            "nome": "Varese",
-            "sigla": "VA",
-            "regione": "Lombardia"
+            "title": "Varese",
+            "code": "VA",
+            "region": "Lombardia"
         },
         {
-            "nome": "Venezia",
-            "sigla": "VE",
-            "regione": "Veneto"
+            "title": "Venezia",
+            "code": "VE",
+            "region": "Veneto"
         },
         {
-            "nome": "Verbano-Cusio-Ossola",
-            "sigla": "VB",
-            "regione": "Piemonte"
+            "title": "Verbano-Cusio-Ossola",
+            "code": "VB",
+            "region": "Piemonte"
         },
         {
-            "nome": "Vercelli",
-            "sigla": "VC",
-            "regione": "Piemonte"
+            "title": "Vercelli",
+            "code": "VC",
+            "region": "Piemonte"
         },
         {
-            "nome": "Verona",
-            "sigla": "VR",
-            "regione": "Veneto"
+            "title": "Verona",
+            "code": "VR",
+            "region": "Veneto"
         },
         {
-            "nome": "Vibo Valentia",
-            "sigla": "VV",
-            "regione": "Calabria"
+            "title": "Vibo Valentia",
+            "code": "VV",
+            "region": "Calabria"
         },
         {
-            "nome": "Vicenza",
-            "sigla": "VI",
-            "regione": "Veneto"
+            "title": "Vicenza",
+            "code": "VI",
+            "region": "Veneto"
         },
         {
-            "nome": "Viterbo",
-            "sigla": "VT",
-            "regione": "Lazio"
+            "title": "Viterbo",
+            "code": "VT",
+            "region": "Lazio"
         }
     ]
 
@@ -893,3 +893,44 @@ export const discount = writable(
 
     ]
 )
+export const hours = [
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
+]
+
+export const minutes = [
+    0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55
+]
+
+export const days = [
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31
+]
+
+export const months = [
+    { title: 'Gennaio', value: 1 },
+    { title: 'Febbraio', value: 2 },
+    { title: 'Marzo', value: 3 },
+    { title: 'Aprile', value: 4 },
+    { title: 'Maggio', value: 5 },
+    { title: 'Giugno', value: 6 },
+    { title: 'Luglio', value: 7 },
+    { title: 'Agosto', value: 8 },
+    { title: 'Settembre', value: 9 },
+    { title: 'Ottobre', value: 10 },
+    { title: 'Novembre', value: 11 },
+    { title: 'Dicembre', value: 12 }
+]
+
+export const monthsShort = [
+    'Gennaio',
+    'Febbraio',
+    'Marzo',
+    'Aprile',
+    'Maggio',
+    'Giugno',
+    'Luglio',
+    'Agosto',
+    'Settembre',
+    'Ottobre',
+    'Novembre',
+    'Dicembre'
+]

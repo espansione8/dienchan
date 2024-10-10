@@ -295,11 +295,6 @@
 		const src = $coursesInfo.filter((item: any) => item.id == value);
 		return src[0]?.urlPic || '/images/picture.png';
 	};
-
-	const siglaToProvincia = (provinciaSigla: any) => {
-		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla);
-		return findProvincia?.nome || '';
-	};
 </script>
 
 <svelte:head>
@@ -854,7 +849,7 @@
 								<div class="font-semibold">
 									<b>{course.title}</b> <br />
 									<span class="text-gray-600 text-sm">
-										{course.eventStartDate.substring(0, 10)} - {siglaToProvincia(course.location)} -
+										{course.eventStartDate.substring(0, 10)} - {course.countryState} -
 										{course.name}
 										{course.surname}
 									</span>

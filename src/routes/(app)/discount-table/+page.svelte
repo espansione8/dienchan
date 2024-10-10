@@ -30,7 +30,7 @@
 	let discountId = $state('');
 	let selectedApplicability = $state('userId');
 	let isModalConfirmDelete = $state(false);
-	
+
 	let deleteId = $state('');
 	const onOpenConfirmDelete = (id: string) => {
 		isModalConfirmDelete = true;
@@ -432,9 +432,6 @@
 					></textarea>
 				</div>
 			</section>
-
-			<!-- ALtre informazione -->
-
 			<!-- button -->
 			<div class="col-span-4 mt-5 flex justify-center">
 				<div class="bg-gray-50 flex justify-center">
@@ -460,7 +457,6 @@
 	</div>
 </dialog>
 <!-- /modal New  -->
-
 
 <!-- Modal confirm delete -->
 <dialog id="modal_confirm_delete" class="modal" class:modal-open={isModalConfirmDelete}>

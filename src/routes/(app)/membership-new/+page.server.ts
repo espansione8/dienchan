@@ -146,8 +146,11 @@ export const actions: Actions = {
 		const userId = userData.userId;
 		const membershipActivation = userData.membership.membershipExpiry;
 		const membershipStatus = true;
-		const membershipExpiry = formData.get('membershipExpiry');
 		const paymentType = formData.get('radio-paymentType');
+		// add 1 year
+		const newExpire = new Date();
+		newExpire.setFullYear(newExpire.getFullYear() + 1);
+		const membershipExpiry = newExpire.toISOString().substring(0, 10);
 
 		if (!paymentType) {
 			//console.log('renewMembership', name, surname, email, address, postalCode, city, countryState, country, password1, paymentType);

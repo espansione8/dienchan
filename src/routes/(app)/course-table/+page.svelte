@@ -19,76 +19,48 @@
 		Settings,
 		ShieldAlert
 	} from 'lucide-svelte';
-	import { coursesInfo, province } from '$lib/stores/arrays';
+	import { coursesInfo, province, months, days, hours, minutes } from '$lib/stores/arrays';
 
 	let { data, form } = $props();
 	let { getTable, getTableNames, userData } = $derived(data);
 	let tableList = $state(getTable);
 
-	const pad = (num: any) => {
-		const newNum = Number(num);
-		const norm = Math.floor(Math.abs(newNum));
-		let text = '';
-		if (norm < 10) text = '0';
-		const outpupt = `${text}${norm}`;
-		return outpupt;
-	};
-
-	const date = new Date();
-	let productCorsoTitolo = $state('');
+	let title = $state('');
 	let productCorsoID = $state('');
-	let productCorsoDescrizione = $state('');
-	let productCorsoInfoExtra = $state('');
+	let descrLong = $state('');
+	let infoExtra = $state('');
 	let productCorsoUserId = $state(userData.userId);
 	let productCorsoStatus = $state('enabled');
-	let productCorsoProvincia = $state('');
-	let productCorsoCategoria = $state('');
-	let productCorsoElencoTag: any[] = $state([]);
-	let productCorsoInputTag = $state('');
-	let productCorsoQuantitaPartecipanti = $state(1);
-	let productCorsoElencoEmailNotifica = $state([userData.email]);
-	let productCorsoInputEmailNotifica = $state('');
-	let productPriceCorso = $state(1);
-	let productCorsoDataInizioGiorno = $state(pad(date.getDate()));
-	let productCorsoDataInizioMese = $state(pad(date.getMonth() + 1));
-	let productCorsoDataInizioAnno = $state(date.getFullYear());
-	let productCorsoDataInizioOra = $state(pad(date.getHours()));
-	let productCorsoDataInizioMinuto = $state(pad(date.getMinutes()));
-	let productCorsoDataFineGiorno = $state(pad(date.getDate()));
-	let productCorsoDataFineMese = $state(pad(date.getMonth() + 1));
-	let productCorsoDataFineAnno = $state(pad(date.getFullYear()));
-	let productCorsoDataFineOra = $state(pad(date.getHours() + 1));
-	let productCorsoDataFineMinuto = $state(pad(date.getMinutes()));
-	let error = $state();
-	let productCorsoDataInizioCompleto = $derived(
-		`${productCorsoDataInizioAnno}-${productCorsoDataInizioMese}-${productCorsoDataInizioGiorno} ${productCorsoDataInizioOra}:${productCorsoDataInizioMinuto}`
-	);
-	let productCorsoDataFineCompleto = $derived(
-		`${productCorsoDataFineAnno}-${productCorsoDataFineMese}-${productCorsoDataFineGiorno} ${productCorsoDataFineOra}:${productCorsoDataFineMinuto}`
+	let countryState = $state('');
+	let location = $state('');
+	let category = $state('');
+	let tagArray: any[] = $state([]);
+	let tag = $state('');
+	let stockQty = $state(1);
+	let notificationEmail = $state([userData.email]);
+	let currentEmail = $state('');
+	let price = $state(1);
+	let startYear = $state(0);
+	let startMonth = $state(0);
+	let startDay = $state(0);
+	let startHour = $state(0);
+	let startMinute = $state(0);
+
+	// year input
+	let max = new Date().getFullYear() + 2;
+	let min = max - 3;
+	let years = [];
+	for (let i = max; i >= min; i--) {
+		years.push(i);
+	}
+	let eventStartDate = $derived(
+		new Date(`${startYear} ${startMonth} ${startDay} ${startHour}:${startMinute}:00`)
 	);
 
 	let deleteId = $state('');
 	const onOpenConfirmDelete = (id: string) => {
 		isModalConfirmDelete = true;
 		deleteId = id;
-	};
-
-	const onClickModify = (idCourse: any) => {
-		//console.log('idCourse', idCourse);
-		goto(`/course-modify/${idCourse}`);
-	};
-
-	function siglaToProvincia(provinciaSigla: any) {
-		const findProvincia = $province.find((prov) => prov.sigla === provinciaSigla) || '';
-		return findProvincia.nome;
-	}
-
-	const containsOnlyNumbers = (str: any) => {
-		return str.replace(/[^\d]+/g, '');
-	};
-
-	const onClickNewCourse = () => {
-		goto(`/course-new`);
 	};
 
 	// filter Data
@@ -441,7 +413,7 @@
 			delete obj.timeEndDate;
 		});
 
-		console.log('newList check', newList);
+		//console.log('newList check', newList);
 
 		//CSV UNPARSE
 		csv = Papa.unparse(newList, {
@@ -472,7 +444,6 @@
 	let isModalFilterCourse = $state(false);
 	let resetActive = $state(false);
 	//filter
-	let selectedLocation = $state('');
 	let selectedTitle = $state('');
 	let selectedUserId = $state('');
 
@@ -484,14 +455,14 @@
 
 	const onSubmitFilterSearch = async () => {
 		resetActive = true;
-		let location = '';
+		//let countryState = '';
 		let title = '';
 		let userId = '';
-		if (selectedLocation) location = selectedLocation;
+		//if (countryState) countryState = countryState;
 		if (selectedTitle) title = selectedTitle;
 		if (selectedUserId) userId = selectedUserId;
-		const arrayField = ['location', 'title', 'userId', 'type'];
-		const arrayValue = [location, title, userId, 'course'];
+		const arrayField = ['countryState', 'title', 'userId', 'type'];
+		const arrayValue = [countryState, title, userId, 'course'];
 		const response = await fetch(`/api/finds/0/0`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -536,7 +507,7 @@
 	};
 
 	const resetFieldsModalFilter = () => {
-		selectedLocation = '';
+		countryState = '';
 		selectedTitle = '';
 		selectedUserId = '';
 	};
@@ -548,33 +519,69 @@
 		invalidateAll();
 	};
 
-	// filter
-	// let isModalProvincie = $state(false);
-	// let filteredCoursesList = $state(tableList);
+	let currentDialog = $state('');
+	let isModalConfirmDelete = $state(false);
+	let isModal = $state(false);
+	let postAction = $state('');
+	const onClickDialog = (type: string, item: any) => {
+		//console.log('item', item);
+		currentDialog = type;
+		isModal = true;
+		if (type == 'new') {
+			postAction = `?/newCourse`;
+		}
+		if (type == 'modify') {
+			console.log('okkk', item);
+			productCorsoID = item.prodId;
+			category = item.category;
+			price = item.price;
+			stockQty = item.stockQty;
+			countryState = item.countryState;
+			notificationEmail = item.notificationEmail;
+			title = item.title;
+			descrLong = item.descrLong;
+			infoExtra = item.infoExtra;
+			postAction = `?/modifyCourse`;
+		}
+	};
 
-	// const toggleLocationFilter = () => {
-	// 	isModalProvincie = !isModalProvincie;
-	// };
+	const resetFields = () => {
+		invalidateAll();
+		category = '';
+		price = 1;
+		startYear = 0;
+		startMonth = 0;
+		startDay = 0;
+		startHour = 0;
+		startMinute = 0;
+		stockQty = 1;
+		countryState = '';
+		currentEmail = '';
+		title = '';
+		descrLong = '';
+		infoExtra = '';
 
-	// const filterByLocation = () => {
-	// 	if (selectedLocation === '') {
-	// 		filteredCoursesList = tableList;
-	// 	} else {
-	// 		filteredCoursesList = tableList.filter(
-	// 			(course) => siglaToProvincia(course.location) === selectedLocation
-	// 		);
-	// 	}
-	// 	isModalProvincie = false;
-	// };
+		productCorsoUserId = userData.userId;
+		productCorsoStatus = 'enabled';
+		tag = '';
 
-	// $effect(() => {
-	// 	filterByLocation();
-	// });
+		notificationEmail = [userData.email];
+		tagArray = [];
+		tableList = getTable;
+	};
 
-	// const resetLocationFilter = () => {
-	// 	selectedLocation = '';
-	// 	filteredCoursesList = tableList;
-	// };
+	const selectCategory = () => {
+		const course = $coursesInfo.filter((item: any) => item.id == category);
+		//console.log('course', course);
+		title = course[0].title;
+		descrLong = course[0].descr;
+		price = course[0].totalPrice;
+	};
+
+	const onCloseConfirmDelete = () => {
+		isModalConfirmDelete = false;
+		resetFields();
+	};
 
 	//notification
 	let toastClosed: boolean = $state(true);
@@ -587,84 +594,6 @@
 		}, 5000); // 1000 milliseconds = 1 second
 	};
 	//clearTimeout(startTimeout); // reset timer
-
-	let currentDialog = $state('');
-	let isModalConfirmDelete = $state(false);
-	let isModal = $state(false);
-	let postAction = $state('');
-	const onClickDialog = (type: string, item: any) => {
-		currentDialog = type;
-		isModal = true;
-		if (type == 'new') {
-			postAction = `?/newCourse`;
-		}
-		if (type == 'modify') {
-			console.log('okkk', item);
-			productCorsoID = item.prodId
-			productCorsoCategoria = item.category;
-			productPriceCorso = item.price;
-			productCorsoDataInizioGiorno = item.productCorsoDataInizioGiorno;
-			productCorsoDataInizioMese = item.productCorsoDataInizioMese;
-			productCorsoDataInizioAnno = item.productCorsoDataInizioAnno;
-			productCorsoDataInizioOra = item.productCorsoDataInizioOra;
-			productCorsoDataInizioMinuto = item.productCorsoDataInizioMinuto;
-			productCorsoDataFineGiorno = item.productCorsoDataFineGiorno;
-			productCorsoDataFineMese = item.productCorsoDataFineMese;
-			productCorsoDataFineAnno = item.productCorsoDataFineAnno;
-			productCorsoDataFineOra = item.productCorsoDataFineOra;
-			productCorsoDataFineMinuto = item.productCorsoDataFineMinuto;
-			productCorsoQuantitaPartecipanti = item.stockQty;
-			productCorsoProvincia = item.place;
-			productCorsoInputEmailNotifica = item.productCorsoInputEmailNotifica;
-			productCorsoTitolo = item.title;
-			productCorsoDescrizione = item.descrLong;
-			productCorsoInfoExtra = item.infoExtra;
-			postAction = `?/modifyCourse`;
-		}
-	};
-
-	const resetFields = () => {
-		invalidateAll();
-		productCorsoCategoria = '';
-		productPriceCorso = 1;
-		productCorsoDataInizioGiorno = pad(date.getDate());
-		productCorsoDataInizioAnno = date.getFullYear();
-		productCorsoDataInizioMese = pad(date.getMonth() + 1);
-		productCorsoDataInizioOra = pad(date.getHours());
-		productCorsoDataInizioMinuto = pad(date.getMinutes());
-		productCorsoDataFineGiorno = pad(date.getDate());
-		productCorsoDataFineMese = pad(date.getMonth() + 1);
-		productCorsoDataFineAnno = pad(date.getFullYear());
-		productCorsoDataFineOra = pad(date.getHours() + 1);
-		productCorsoDataFineMinuto = pad(date.getMinutes());
-		productCorsoQuantitaPartecipanti = 1;
-		productCorsoProvincia = '';
-		productCorsoInputEmailNotifica = '';
-		productCorsoTitolo = '';
-		productCorsoDescrizione = '';
-		productCorsoInfoExtra = '';
-
-		productCorsoUserId = userData.userId;
-		productCorsoStatus = 'enabled';
-		productCorsoInputTag = '';
-
-		productCorsoElencoEmailNotifica = [userData.email];
-		productCorsoElencoTag = [];
-		tableList = getTable;
-	};
-
-	const selectCategory = () => {
-		const course = $coursesInfo.filter((item: any) => item.id == productCorsoCategoria);
-		//console.log('course', course);
-		productCorsoTitolo = course[0].title;
-		productCorsoDescrizione = course[0].descr;
-		productPriceCorso = course[0].totalPrice;
-	};
-
-	const onCloseConfirmDelete = () => {
-		isModalConfirmDelete = false;
-		resetFields();
-	};
 
 	$effect(() => {
 		if (form != null) {
@@ -759,17 +688,8 @@
 					</td>
 					<!-- Luogo -->
 					<td>
-						<!-- {#if row.location !== 'Online'}
-							<p class="card-text">
-								{siglaToProvincia(row.location)}
-							</p>
-						{:else if row.location === 'Online'}
-							<p class="card-text">
-								{row.location}
-							</p>
-						{/if} -->
 						<p class="card-text">
-							{siglaToProvincia(row.location)}
+							{row.countryState}
 						</p>
 					</td>
 					<!-- Prezzo -->
@@ -816,15 +736,18 @@
 		<div class="p-6 space-y-6">
 			<div class="space-y-4">
 				<div>
-					<label for="location" class="block text-sm font-medium text-gray-700 mb-1">Luogo</label>
+					<label for="countryState" class="block text-sm font-medium text-gray-700 mb-1"
+						>Provincia</label
+					>
 					<select
-						id="location"
-						bind:value={selectedLocation}
+						id="countryState"
+						name="countryState"
+						bind:value={countryState}
 						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
-						<option value="">Scegli un luogo</option>
+						<option value="">Scegli una Provincia</option>
 						{#each $province as item}
-							<option value={item.sigla}>{item.nome}</option>
+							<option value={item.title}>{item.title}</option>
 						{/each}
 					</select>
 				</div>
@@ -923,16 +846,16 @@
 
 			<!-- Categoria  -->
 			<section class="col-span-4 md:col-span-2">
-				<label for="productCorsoCategoria" class="form-label">
+				<label for="category" class="form-label">
 					<p class="font-bold mb-2">Categoria</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
 					<button class="join-item bg-gray-300 px-3"><Pen /></button>
 					<select
 						class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
-						id="productCorsoCategoria"
-						name="productCorsoCategoria"
-						bind:value={productCorsoCategoria}
+						id="category"
+						name="category"
+						bind:value={category}
 						onchange={() => selectCategory()}
 						required
 					>
@@ -945,18 +868,18 @@
 			</section>
 			<!-- Prezzo corso -->
 			<section class="col-span-4 md:col-span-2">
-				<label for="productPriceCorso" class="form-label">
+				<label for="price" class="form-label">
 					<p class="font-bold mb-2">Prezzo corso</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
 					<button class="join-item bg-gray-300 px-3"><Calculator /></button>
 					<input
 						class="input input-bordered join-item w-full"
-						id="productPriceCorso"
-						name="productPriceCorso"
+						id="price"
+						name="price"
 						type="number"
 						placeholder="Prezzo €"
-						bind:value={productPriceCorso}
+						bind:value={price}
 						readonly
 					/>
 				</div>
@@ -974,17 +897,12 @@
 						name="productCorsoDataInizioGiorno"
 						class="join-item select select-bordered w-20"
 						aria-label="Seleziona Giorno"
-						bind:value={productCorsoDataInizioGiorno}
-						onchange={() => {
-							productCorsoDataInizioGiorno = pad(productCorsoDataInizioGiorno);
-						}}
+						bind:value={startDay}
 						required
 					>
 						<option value="" disabled selected>Giorno</option>
-						{#each Array(31)
-							.fill()
-							.map((_, i) => i + 1) as day}
-							<option value={String(day).padStart(2, '0')}>{day}</option>
+						{#each days as day}
+							<option value={day}>{day}</option>
 						{/each}
 					</select>
 					<button class="join-item bg-gray-300 px-3"> - </button>
@@ -994,15 +912,12 @@
 						name="productCorsoDataInizioMese"
 						class="join-item select select-bordered w-20"
 						aria-label="Seleziona Mese"
-						bind:value={productCorsoDataInizioMese}
-						onchange={() => {
-							productCorsoDataInizioMese = pad(productCorsoDataInizioMese);
-						}}
+						bind:value={startMonth}
 						required
 					>
 						<option value="" disabled selected>Mese</option>
-						{#each ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'] as month}
-							<option value={month}>{month}</option>
+						{#each months as month}
+							<option value={month.value}>{month.title}</option>
 						{/each}
 					</select>
 					<button class="join-item bg-gray-300 px-3"> - </button>
@@ -1012,16 +927,11 @@
 						name="productCorsoDataInizioAnno"
 						class="join-item select select-bordered w-26 rounded-r-md"
 						aria-label="Seleziona Anno"
-						bind:value={productCorsoDataInizioAnno}
-						onchange={() => {
-							productCorsoDataInizioAnno = containsOnlyNumbers(productCorsoDataInizioAnno);
-						}}
+						bind:value={startYear}
 						required
 					>
 						<option value="" disabled selected>Anno</option>
-						{#each Array(20)
-							.fill()
-							.map((_, i) => 2024 - i) as year}
+						{#each years as year}
 							<option value={year}>{year}</option>
 						{/each}
 					</select>
@@ -1039,17 +949,12 @@
 						name="productCorsoDataInizioOra"
 						class="join-item select select-bordered w-20 rounded-l-md"
 						aria-label="Seleziona Ora"
-						bind:value={productCorsoDataInizioOra}
-						onchange={() => {
-							productCorsoDataInizioOra = pad(productCorsoDataInizioOra);
-						}}
+						bind:value={startHour}
 						required
 					>
 						<option value="" disabled selected>Ore</option>
-						{#each Array(24)
-							.fill()
-							.map((_, i) => i) as hour}
-							<option value={String(hour).padStart(2, '0')}>{hour}</option>
+						{#each hours as hour}
+							<option value={hour}>{hour}</option>
 						{/each}
 					</select>
 					<button class="join-item bg-gray-300 px-3"> : </button>
@@ -1059,133 +964,12 @@
 						name="productCorsoDataInizioMinuto"
 						class="join-item select select-bordered w-20 rounded-r-md"
 						aria-label="Seleziona Minuti"
-						bind:value={productCorsoDataInizioMinuto}
-						onchange={() => {
-							productCorsoDataInizioMinuto = pad(productCorsoDataInizioMinuto);
-						}}
+						bind:value={startMinute}
 						required
 					>
 						<option value="" disabled selected>Minuti</option>
-						{#each Array(60)
-							.fill()
-							.map((_, i) => i) as minute}
-							<option value={String(minute).padStart(2, '0')}>{minute}</option>
-						{/each}
-					</select>
-				</div>
-				<div id="data-inizio-orario-Help" class="text-gray-600 mt-2 text-sm">
-					Esempio orario: 23:59
-				</div>
-			</section>
-			<!-- Data Fine -->
-			<section class="col-span-4 md:col-span-2">
-				<label for="data-fine" class="form-label">
-					<p class="font-bold mb-2">Data fine</p>
-				</label>
-				<div class=" join join-horizontal rounded-md">
-					<button class="join-item bg-gray-300 px-3"><Calendar /></button>
-					<!-- Giorno Dropdown -->
-					<select
-						id="productCorsoDataFineGiorno"
-						name="productCorsoDataFineGiorno"
-						class="join-item select select-bordered w-20"
-						aria-label="Seleziona Giorno"
-						bind:value={productCorsoDataFineGiorno}
-						onchange={() => {
-							productCorsoDataFineGiorno = pad(productCorsoDataFineGiorno);
-						}}
-						required
-					>
-						<option value="" disabled selected>Giorno</option>
-						{#each Array(31)
-							.fill()
-							.map((_, i) => i + 1) as day}
-							<option value={String(day).padStart(2, '0')}>{day}</option>
-						{/each}
-					</select>
-					<button class="join-item bg-gray-300 px-3"> - </button>
-					<!-- Mese Dropdown -->
-					<select
-						id="productCorsoDataFineMese"
-						name="productCorsoDataFineMese"
-						class="join-item select select-bordered w-20"
-						aria-label="Seleziona Mese"
-						bind:value={productCorsoDataFineMese}
-						onchange={() => {
-							productCorsoDataFineMese = pad(productCorsoDataFineMese);
-						}}
-						required
-					>
-						<option value="" disabled selected>Mese</option>
-						{#each ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'] as month}
-							<option value={month}>{month}</option>
-						{/each}
-					</select>
-					<button class="join-item bg-gray-300 px-3"> - </button>
-					<!-- Anno Dropdown -->
-					<select
-						id="productCorsoDataFineAnno"
-						name="productCorsoDataFineAnno"
-						class="join-item select select-bordered w-26 rounded-r-md"
-						aria-label="Seleziona Anno"
-						bind:value={productCorsoDataFineAnno}
-						onchange={() => {
-							productCorsoDataFineAnno = containsOnlyNumbers(productCorsoDataFineAnno);
-						}}
-						required
-					>
-						<option value="" disabled selected>Anno</option>
-						{#each Array(20)
-							.fill()
-							.map((_, i) => 2024 - i) as year}
-							<option value={year}>{year}</option>
-						{/each}
-					</select>
-				</div>
-			</section>
-			<!-- Orario Fine -->
-			<section class="col-span-4 md:col-span-2">
-				<label for="orario-fine" class="form-label">
-					<p class="font-bold mb-2">Orario inizio</p>
-				</label>
-				<div class="join join-horizontal rounded-md">
-					<!-- Ore Dropdown -->
-					<select
-						id="productCorsoDataFineOra"
-						name="productCorsoDataFineOra"
-						class="join-item select select-bordered w-20 rounded-l-md"
-						aria-label="Seleziona Ora"
-						bind:value={productCorsoDataFineOra}
-						onchange={() => {
-							productCorsoDataFineOra = pad(productCorsoDataFineOra);
-						}}
-						required
-					>
-						<option value="" disabled selected>Ore</option>
-						{#each Array(24)
-							.fill()
-							.map((_, i) => i) as hour}
-							<option value={String(hour).padStart(2, '0')}>{hour}</option>
-						{/each}
-					</select>
-					<button class="join-item bg-gray-300 px-3"> : </button>
-					<!-- Minuti Dropdown -->
-					<select
-						id="productCorsoDataFineMinuto"
-						name="productCorsoDataFineMinuto"
-						class="join-item select select-bordered w-20 rounded-r-md"
-						aria-label="Seleziona Minuti"
-						bind:value={productCorsoDataFineMinuto}
-						onchange={() => {
-							productCorsoDataFineMinuto = pad(productCorsoDataFineMinuto);
-						}}
-						required
-					>
-						<option value="" disabled selected>Minuti</option>
-						{#each Array(60)
-							.fill()
-							.map((_, i) => i) as minute}
-							<option value={String(minute).padStart(2, '0')}>{minute}</option>
+						{#each minutes as minute}
+							<option value={minute}>{minute}</option>
 						{/each}
 					</select>
 				</div>
@@ -1195,90 +979,106 @@
 			</section>
 			<!-- Numero partecipanti -->
 			<section class="col-span-4 md:col-span-2">
-				<label for="productCorsoQuantitaPartecipanti" class="form-label">
+				<label for="stockQty" class="form-label">
 					<p class="font-bold mb-2">Numero partecipanti</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
 					<button class="join-item bg-gray-300 px-3"><Users /></button>
 					<input
 						class="input input-bordered join-item w-full"
-						id="productCorsoQuantitaPartecipanti"
-						name="productCorsoQuantitaPartecipanti"
+						id="stockQty"
+						name="stockQty"
 						type="number"
 						placeholder="N."
 						step="1"
 						min="0"
-						bind:value={productCorsoQuantitaPartecipanti}
+						bind:value={stockQty}
 						required
 					/>
 				</div>
 			</section>
 			<!-- Provincia -->
 			<section class="col-span-4 md:col-span-2">
-				<label for="productCorsoProvincia" class="form-label">
+				<label for="countryState" class="form-label">
 					<p class="font-bold mb-2">Provincia</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
 					<button class="join-item bg-gray-300 px-3"><Building2 /></button>
 					<select
 						class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
-						id="productCorsoProvincia"
-						name="productCorsoProvincia"
+						id="countryState"
+						name="countryState"
 						placeholder="Scegli"
-						bind:value={productCorsoProvincia}
+						bind:value={countryState}
 						required
 					>
 						<option disabled value="">Scegli</option>
 						{#each $province as provincia, i}
-							<option value={provincia.sigla}>
-								{provincia.nome} ({provincia.sigla})
+							<option value={provincia.title}>
+								{provincia.title} ({provincia.region})
 							</option>
 						{/each}
 					</select>
 				</div>
 			</section>
+			<!-- place -->
+			<section class="col-span-4 md:col-span-2">
+				<label for="location" class="form-label">
+					<p class="font-bold mb-2">Luogo (indirizzo, citta, CAP)</p></label
+				>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="location"
+						name="location"
+						type="text"
+						placeholder="location"
+						bind:value={location}
+						required
+					/>
+				</div>
+			</section>
 			<!-- Tag -->
 			<section class="col-span-4 md:col-span-2">
-				<label for="productCorsoInputTag" class="form-label">
+				<label for="tag" class="form-label">
 					<p class="font-bold mb-2">Tag</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full mb-2">
 					<button class="join-item bg-gray-300 px-3"><List /></button>
 					<input
 						class="input input-bordered join-item w-full"
-						id="productCorsoInputTag"
-						name="productCorsoInputTag"
+						id="tag"
+						name="tag"
 						type="text"
 						placeholder="Aggiungi Tag"
-						bind:value={productCorsoInputTag}
+						bind:value={tag}
 					/>
 					<button
 						type="button"
 						class="join-item btn btn-primary"
 						onclick={() => {
-							if (productCorsoInputTag !== '') {
-								productCorsoElencoTag.push(productCorsoInputTag);
-								productCorsoElencoTag = productCorsoElencoTag;
-								productCorsoInputTag = '';
+							if (tag !== '') {
+								tagArray.push(tag);
+								tag = '';
 							}
 						}}
 					>
 						Aggiungi
 					</button>
 				</div>
-				{#if productCorsoElencoTag.length !== 0}
-					{#each productCorsoElencoTag as badgeTag}
-						<div class="btn btn-primary mx-1 rounded-md">
+				{#if tagArray.length !== 0}
+					{#each tagArray as badgeTag}
+						<div class="btn btn-primary btn-sm m-1 rounded-md">
 							{badgeTag}
 							{' '}
 							<button
 								type="button"
 								class="badge badge-error felx items-center"
 								onclick={() => {
-									let index = productCorsoElencoTag.indexOf(badgeTag);
+									let index = tagArray.indexOf(badgeTag);
 									if (index !== -1) {
-										productCorsoElencoTag.splice(index, 1);
-										productCorsoElencoTag = productCorsoElencoTag;
+										tagArray.splice(index, 1);
 									}
 								}}
 							>
@@ -1290,62 +1090,56 @@
 			</section>
 			<!-- Notifica email -->
 			<section class="col-span-4 md:col-span-2">
-				<label for="productCorsoInputEmailNotifica" class="form-label">
+				<label for="notificationEmail" class="form-label">
 					<p class="font-bold mb-2">Notifica Email</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full mb-2">
-					<button class="join-item bg-gray-300 px-3"><Send /></button>
+					<div class="join-item bg-gray-300 px-3"><Send /></div>
+					<input type="hidden" name="notificationEmail" bind:value={notificationEmail} />
 					<input
 						class="input input-bordered join-item w-full"
-						id="productCorsoInputEmailNotifica"
-						name="productCorsoInputEmailNotifica"
+						id="currentEmail"
+						name="currentEmail"
 						type="email"
 						placeholder="Aggiungi Email"
 						aria-label="InputEmailNotifica"
 						aria-describedby="basic-InputEmailNotifica"
-						bind:value={productCorsoInputEmailNotifica}
+						bind:value={currentEmail}
 					/>
 					<button
 						type="button"
 						class="join-item btn btn-primary"
 						onclick={() => {
+							// REFACTOR: porta fuori la funzione e usa <Notication> al posto degli alert
 							function validateEmail(emailId: any) {
 								var mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,6})$/;
 								if (emailId.match(mailformat)) {
-									alert('ok email address.');
-									productCorsoElencoEmailNotifica.push(productCorsoInputEmailNotifica);
-									productCorsoElencoEmailNotifica = productCorsoElencoEmailNotifica;
-									// productCorsoElencoEmailNotifica = [
-									// 	...productCorsoElencoEmailNotifica,
-									// 	productCorsoInputEmailNotifica
-									// ];
+									alert('email address OK.');
+									notificationEmail.push(currentEmail);
 								} else {
-									alert('Invalid email address.');
+									alert('email non valida.');
 								}
 							}
-							validateEmail(productCorsoInputEmailNotifica);
-							// productCorsoElencoEmailNotifica.push(productCorsoInputEmailNotifica);
-							// productCorsoElencoEmailNotifica = productCorsoElencoEmailNotifica;
-							productCorsoInputEmailNotifica = '';
+							validateEmail(currentEmail);
+							currentEmail = '';
 						}}
 					>
 						Aggiungi
 					</button>
 				</div>
-				{#if productCorsoElencoEmailNotifica.length !== 0}
-					{#each productCorsoElencoEmailNotifica as badgeEmailNotifica}
-						<div class="btn btn-primary mx-1 rounded-md">
+				{#if notificationEmail.length !== 0}
+					{#each notificationEmail as badgeEmailNotifica}
+						<div class="btn btn-primary btn-sm m-1 rounded-md">
 							{badgeEmailNotifica}
 							{' '}
 							<button
 								type="button"
 								class="badge badge-error felx items-center"
 								onclick={() => {
-									let index = productCorsoElencoEmailNotifica.indexOf(badgeEmailNotifica);
+									let index = notificationEmail.indexOf(badgeEmailNotifica);
 
 									if (index !== -1) {
-										productCorsoElencoEmailNotifica.splice(index, 1);
-										productCorsoElencoEmailNotifica = productCorsoElencoEmailNotifica;
+										notificationEmail.splice(index, 1);
 									}
 								}}
 							>
@@ -1357,34 +1151,34 @@
 			</section>
 			<!-- Titolo -->
 			<section class="col-span-2">
-				<label for="productCorsoTitolo" class="form-label">
+				<label for="title" class="form-label">
 					<p class="font-bold mb-2">Titolo</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
 					<button class="join-item bg-gray-300 px-3"><Pen /></button>
 					<input
 						class="input input-bordered join-item w-full"
-						id="productCorsoTitolo"
-						name="productCorsoTitolo"
+						id="title"
+						name="title"
 						type="text"
 						placeholder="Titolo"
-						bind:value={productCorsoTitolo}
+						bind:value={title}
 						readonly
 					/>
 				</div>
 				<!-- Descrizione -->
 				<div class="mt-6">
-					<label for="productCorsoDescrizione" class="form-label">
+					<label for="descrLong" class="form-label">
 						<p class="font-bold mb-2">Descrizione</p>
 					</label>
 					<div class="join join-horizontal rounded-md w-full">
 						<button class="join-item bg-gray-300 px-3"><Pen /></button>
 						<textarea
 							class="textarea textarea-bordered h-24 join-item w-full"
-							id="productCorsoDescrizione"
-							name="productCorsoDescrizione"
+							id="descrLong"
+							name="descrLong"
 							placeholder="Descrizione"
-							bind:value={productCorsoDescrizione}
+							bind:value={descrLong}
 							readonly
 						></textarea>
 					</div>
@@ -1392,19 +1186,18 @@
 			</section>
 			<!-- ALtre informazione -->
 			<section class="col-span-2">
-				<label for="productCorsoInfoExtra" class="form-label">
+				<label for="infoExtra" class="form-label">
 					<p class="font-bold mb-2">Altre informazioni</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
 					<button class="join-item bg-gray-300 px-3"><Pen /></button>
 					<textarea
 						class="textarea textarea-bordered join-item w-full"
-						id="productCorsoInfoExtra"
-						name="productCorsoInfoExtra"
+						id="infoExtra"
+						name="infoExtra"
 						rows="7"
 						placeholder="Altre informazioni"
-						bind:value={productCorsoInfoExtra}
-						required
+						bind:value={infoExtra}
 					></textarea>
 				</div>
 			</section>
@@ -1430,6 +1223,7 @@
 					</button>
 				</div>
 			</div>
+			<input type="hidden" name="eventStartDate" value={eventStartDate} />
 		</form>
 	</div>
 </dialog>

@@ -5,21 +5,22 @@ import { Product } from '$lib/models/Products.model';
 
 export const POST = async ({ request }) => {
 	const body = await request.json();
-	const productCorsoUserId = body.productCorsoUserId;
-	const productCorsoTitle = body.productCorsoTitolo;
-	const productCorsoDescrLong = body.productCorsoDescrizione;
-	const productCorsoInfoExtra = body.productCorsoInfoExtra;
-	const productCorsoEventStartDate = body.productCorsoDataInizioCompleto;
-	const productCorsoEventEndDate = body.productCorsoDataFineCompleto;
-	const productCorsoStatus = body.productCorsoStatus;
-	const productCorsoQuantitaPartecipanti = body.productCorsoQuantitaPartecipanti;
-	const productCorsoPlace = body.productCorsoProvincia;
-	const productCorsoCategory = body.productCorsoCategoria;
-	const productCorsoElencoEmailNotifica = body.productCorsoElencoEmailNotifica;
-	const productCorsoElencoTag = body.productCorsoElencoTag;
-	const productPriceCorso = body.productPriceCorso;
-	const name = body.name;
-	const surname = body.surname;
+	const {
+		userId,
+		name,
+		surname,
+		title,
+		descrLong,
+		eventStartDate,
+		stockQty,
+		countryState,
+		location,
+		category,
+		notificationEmail,
+		tag,
+		price,
+		infoExtra,
+	} = body;
 
 	try {
 		// Connecting to DB
@@ -32,26 +33,25 @@ export const POST = async ({ request }) => {
 		// const cookieId = crypto.randomUUID();
 		const newEvent = new Product();
 		newEvent.prodId = crypto.randomUUID();
-		newEvent.userId = productCorsoUserId;
+		newEvent.userId = userId;
 		newEvent.name = name;
 		newEvent.surname = surname;
-		newEvent.title = productCorsoTitle;
-		newEvent.descrLong = productCorsoDescrLong;
-		newEvent.eventStartDate = productCorsoEventStartDate;
-		newEvent.eventEndDate = productCorsoEventEndDate;
-		newEvent.status = productCorsoStatus;
-		newEvent.stockQty = productCorsoQuantitaPartecipanti;
-		newEvent.location = productCorsoPlace;
-		newEvent.category = productCorsoCategory;
-		newEvent.notificationEmail = productCorsoElencoEmailNotifica;
-		newEvent.tag = productCorsoElencoTag;
-		newEvent.price = productPriceCorso;
-		newEvent.infoExtra = productCorsoInfoExtra;
+		newEvent.title = title;
+		newEvent.descrLong = descrLong;
+		newEvent.eventStartDate = eventStartDate;
+		newEvent.stockQty = stockQty;
+		newEvent.countryState = countryState;
+		newEvent.location = location;
+		newEvent.category = category;
+		newEvent.notificationEmail = notificationEmail;
+		newEvent.tag = tag;
+		newEvent.price = price;
+		newEvent.infoExtra = infoExtra;
 		newEvent.type = 'course';
 
 		const saveCourse = await newEvent.save();
 
-		if (saveCourse.userId == productCorsoUserId) {
+		if (saveCourse.userId == userId) {
 
 			// console.log('surname', surname)
 			return json(

@@ -42,7 +42,7 @@
 		}
 	];
 
-	let newExpire: any = $state();
+	let newExpire: any = $state(new Date());
 	let currentDialog = $state('');
 	let postAction = $state('');
 	const onClickDialog = (type: string) => {
@@ -56,13 +56,8 @@
 		}
 		if (type == 'renew') {
 			postAction = `?/renewMembership`;
-			newExpire = new Date(
-				new Date(userData?.membership?.membershipExpiry).setFullYear(
-					new Date(userData?.membership?.membershipExpiry).getFullYear() + 1
-				)
-			)
-				.toISOString()
-				.substring(0, 10);
+			const newDate = newExpire.setFullYear(newExpire.getFullYear() + 1);
+			newExpire = newDate.toISOString().substring(0, 10);
 		}
 	};
 
@@ -708,7 +703,6 @@
 									Futura data di scadenza:
 									<b class="text-green-500">{newExpire}</b>
 								</p>
-								<input type="hidden" name="membershipExpiry" value={newExpire} />
 							{/if}
 							<p class="  font-bold text-lg text-center mt-4">
 								{#if currentDialog == 'associate' || currentDialog == 'renew'}
