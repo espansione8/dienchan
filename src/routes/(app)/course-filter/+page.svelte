@@ -23,7 +23,7 @@
 	let { data, auth } = $props();
 	let { getTableCourses, getTableNames } = $derived(data);
 	let coursesList = $state(getTableCourses);
-	const listaProvince = $province;
+
 	const checkCart = (id) => {
 		const check = $cartProducts.some((item) => item.prodId == id);
 		return check;
@@ -43,21 +43,18 @@
 		return `${findRiflessologo.name} ${findRiflessologo.surname}`;
 	}
 
-	// function risultatoConteggioProvince() {
-	const conteggioProvince = {};
 
-	// Iteriamo sull'array e contiamo le occorrenze delle province
+
+	// cycle to count the number of courses in each province 
+	const numCoursesInProvince = {};
 	coursesList.forEach((item) => {
 		const countryState = item.countryState;
-		conteggioProvince[countryState] = (conteggioProvince[countryState] || 0) + 1;
+		numCoursesInProvince[countryState] = (numCoursesInProvince[countryState] || 0) + 1;
+		console.log('numCoursesInProvince',numCoursesInProvince)
+		// key : value ---> es: numCoursesInProvince = {"Bologna": "1", "Firenze": "2", "Roma": "3"}
 	});
 
-	// Creiamo un nuovo array con gli oggetti richiesti
-	const risultato = Object.entries(conteggioProvince).map(([countryState, conteggio]) => {
-		const risultatoParziale = {};
-		risultatoParziale[countryState] = conteggio;
-		return risultatoParziale;
-	});
+
 
 	const sortAZconOnlineInCima = (a, b) => {
 		if ('Online' in a) {
@@ -71,10 +68,6 @@
 			return chiaveA.localeCompare(chiaveB);
 		}
 	};
-
-	risultato.sort(sortAZconOnlineInCima);
-	// }
-	// Usiamo un oggetto per tenere traccia del conteggio delle province
 
 	const nomiMesi = [
 		'Gennaio',
@@ -366,9 +359,7 @@
 				</div>
 				<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100">
 					<ul class="list-none -mx-4">
-						<!-- fatto con IA? fai refactor e vedi anche riga 56 -->
-						<!-- {#each risultato as elemento (elemento)}
-							{#each Object.entries(elemento) as [chiave, valore] (chiave)}
+						{#each Object.entries(numCoursesInProvince) as [chiave, valore]}
 								<li
 									class="p-2 border-b cursor-pointer transition-colors duration-300
 								{filtriAttivi.provincia == chiave
@@ -377,10 +368,9 @@
 									onclick={() => onClickFilterProvincia(chiave)}
 								>
 									{'>'}
-									{siglaToProvincia(chiave)}: ({valore})
+									{chiave}: ({valore})
 								</li>
 							{/each}
-						{/each} -->
 					</ul>
 				</div>
 			</div>

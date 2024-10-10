@@ -591,9 +591,27 @@
 	const closeNotification = () => {
 		startTimeout = setTimeout(() => {
 			toastClosed = true;
-		}, 5000); // 1000 milliseconds = 1 second
+		}, 3000); // 1000 milliseconds = 1 second
 	};
 	//clearTimeout(startTimeout); // reset timer
+
+	const addEmail = (emailId: any) => {
+		var mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,6})$/;
+		if (emailId.match(mailformat)) {
+			notificationError = false;
+			notificationContent = 'Email valida';
+			toastClosed = false;
+			notificationEmail.push(currentEmail);
+			closeNotification();
+		} else {
+			notificationError = true;
+			notificationContent = 'Email NON valida';
+			toastClosed = false;
+			closeNotification();
+		}
+
+		currentEmail = '';
+	};
 
 	$effect(() => {
 		if (form != null) {
@@ -1109,20 +1127,7 @@
 					<button
 						type="button"
 						class="join-item btn btn-primary"
-						onclick={() => {
-							// REFACTOR: porta fuori la funzione e usa <Notication> al posto degli alert
-							function validateEmail(emailId: any) {
-								var mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,6})$/;
-								if (emailId.match(mailformat)) {
-									alert('email address OK.');
-									notificationEmail.push(currentEmail);
-								} else {
-									alert('email non valida.');
-								}
-							}
-							validateEmail(currentEmail);
-							currentEmail = '';
-						}}
+						onclick={() => addEmail(currentEmail)}
 					>
 						Aggiungi
 					</button>
