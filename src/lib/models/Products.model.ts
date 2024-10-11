@@ -151,7 +151,6 @@ const productSchema = new Schema(
         ],
         filterPermissionToSee: [],
         filterPermissionToEdit: [],
-        userId: { type: String, default: '', index: true }, // make index
         tag: [{ type: String, default: '' }],
         priceSetByBundle: { type: Boolean, default: false },
         bundleProduct: [{
@@ -163,6 +162,9 @@ const productSchema = new Schema(
         // membership
         renewalLength: { type: Number, default: 0 }, // in days
         /** end addons */
+        // joind
+        userId: { type: String, default: '', index: true }, // make index
+        layoutId: { type: String, default: '', index: true }, // make index
 
     },
     {
@@ -176,6 +178,14 @@ productSchema.virtual('userView', {
     ref: 'Users', // The model to use
     localField: 'userId', // FIND WHERE `localField` 
     foreignField: 'userId', // IS EQUAL TO `foreignField` 
+    justOne: true,
+    //match: { isActive: true },
+    //count: true // And only get the number of docs
+});
+productSchema.virtual('layoutView', {
+    ref: 'ProductLayouts', // The model to use
+    localField: 'layoutId', // FIND WHERE `localField` 
+    foreignField: 'layoutId', // IS EQUAL TO `foreignField` 
     justOne: true,
     //match: { isActive: true },
     //count: true // And only get the number of docs

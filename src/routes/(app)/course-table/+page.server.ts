@@ -9,6 +9,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 	let getTable = [];
 	let getTableNames = [];
+	let getLayout = [];
 	const userId = locals.data.userId || ''
 
 	try {
@@ -33,6 +34,22 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		);
 		getTableNames = await resName.json();
 
+		// Layout list
+		const arrayField = [];
+		const arrayValue = [];
+		const resLayout = await fetch(`/api/finds/0/0`, {
+			method: 'POST',
+			body: JSON.stringify({
+				schema: 'layout',
+				arrayField,
+				arrayValue
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		getLayout = await resLayout.json();
+
 	} catch (error) {
 		console.log('products-corso fetch error:', error);
 	}
@@ -43,6 +60,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
 	}
 	return {
+		getLayout,
 		getTable,
 		getTableNames,
 		auth: locals.auth,
@@ -63,11 +81,15 @@ export const actions: Actions = {
 		const countryState = formData.get('countryState') || '';
 		const location = formData.get('location');
 		const category = formData.get('category');
+		const layoutId = formData.get('layoutId'); // TODO aggiungere input nel fronte-end + API
 		const price = formData.get('price');
-		const tag = formData.get('tag');
-		const notificationEmail = formData.get('notificationEmail');
+		const tagArray = formData.get('tagArray') || [];
+		const tag = tagArray.split(",");
+		const arrayEmail = formData.get('notificationEmail') || [];
+		const notificationEmail = arrayEmail.split(",");
+		//console.log("tag", typeof tag, tag);
 		const infoExtra = formData.get('infoExtra');
-		console.log({ name }, { surname }, { title }, { descrLong }, { eventStartDate }, { stockQty }, { countryState }, { location }, { category }, { price }, { notificationEmail }, { tag }, { infoExtra });
+		//console.log({ name }, { surname }, { title }, { descrLong }, { eventStartDate }, { stockQty }, { countryState }, { location }, { category }, { price }, { notificationEmail }, { tag }, { infoExtra });
 
 		if (!name || !surname || !title || !descrLong || !eventStartDate || !stockQty || !countryState || !location || !category || !price) {
 			return fail(400, { action: 'newCourse', success: false, message: 'Dati mancanti' });
@@ -108,7 +130,7 @@ export const actions: Actions = {
 		}
 	},
 
-	modifyCourse: async ({ request, fetch, locals  }) => {
+	modifyCourse: async ({ request, fetch, locals }) => {
 		const formData = await request.formData();
 		const userId = locals.data.userId;
 		const name = locals.data.name;
@@ -121,8 +143,10 @@ export const actions: Actions = {
 		const location = formData.get('location');
 		const category = formData.get('category');
 		const price = formData.get('price');
-		const tag = formData.get('tag');
-		const notificationEmail = formData.get('notificationEmail');
+		const tagArray = formData.get('tagArray') || [];
+		const tag = tagArray.split(",");
+		const arrayEmail = formData.get('notificationEmail') || [];
+		const notificationEmail = arrayEmail.split(",");
 		const infoExtra = formData.get('infoExtra');
 		const prodId = formData.get('prodId');
 

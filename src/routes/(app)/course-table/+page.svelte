@@ -21,10 +21,8 @@
 	} from 'lucide-svelte';
 	import { coursesInfo, province, months, days, hours, minutes } from '$lib/stores/arrays';
 
-
-
 	let { data, form } = $props();
-	let { getTable, getTableNames, userData } = $derived(data);
+	let { getTable, getTableNames, userData, getLayout } = $derived(data);
 	let tableList = $state(getTable);
 
 	const now = new Date();
@@ -43,11 +41,12 @@
 	let countryState = $state('');
 	let location = $state('');
 	let category = $state('');
+	let layoutId = $state('');
 	let tagArray: any[] = $state([]);
 	let tag = $state('');
 	let stockQty = $state(1);
 	let notificationEmail = $state([userData.email]);
-	let currentEmail = $state('');
+	let inputEmail = $state('');
 	let price = $state(1);
 	let startYear = $state(currentYear);
 	let startMonth = $state(currentMonth);
@@ -453,7 +452,7 @@
 	let isModalFilterCourse = $state(false);
 	let resetActive = $state(false);
 	//filter
-	let selectedTitle = $state('');
+	let selectedLayout = $state('');
 	let selectedUserId = $state('');
 
 	const onCloseFilterSearch = () => {
@@ -468,7 +467,7 @@
 		let title = '';
 		let userId = '';
 		//if (countryState) countryState = countryState;
-		if (selectedTitle) title = selectedTitle;
+		if (selectedLayout) title = selectedLayout;
 		if (selectedUserId) userId = selectedUserId;
 		const arrayField = ['countryState', 'title', 'userId', 'type'];
 		const arrayValue = [countryState, title, userId, 'course'];
@@ -522,7 +521,7 @@
 
 	const resetFieldsModalFilter = () => {
 		countryState = '';
-		selectedTitle = '';
+		selectedLayout = '';
 		selectedUserId = '';
 	};
 
@@ -537,6 +536,7 @@
 	let isModalConfirmDelete = $state(false);
 	let isModal = $state(false);
 	let postAction = $state('');
+
 	const onClickDialog = (type: string, item: any) => {
 		//console.log('item', item);
 		currentDialog = type;
@@ -548,21 +548,22 @@
 			console.log('okkk', item);
 			prodId = item.prodId;
 			category = item.category[0];
+			layoutId = item.layoutId;
 			price = item.price;
 			stockQty = item.stockQty;
 			countryState = item.countryState;
 			notificationEmail = item.notificationEmail;
+			tagArray = item.tag;
 			title = item.title;
 			descrLong = item.descrLong;
 			infoExtra = item.infoExtra;
 			location = item.location;
-			startYear = item.eventStartDate.substring(0, 4);
-			startMonth = item.eventStartDate.substring(5, 7);
-			startDay = item.eventStartDate.substring(8, 10);
-			startHour = item.eventStartDate.substring(11, 13);
-			startMinute = item.eventStartDate.substring(14, 16);
+			startYear = Number(item.eventStartDate.substring(0, 4));
+			startMonth = Number(item.eventStartDate.substring(5, 7));
+			startDay = Number(item.eventStartDate.substring(8, 10));
+			startHour = Number(item.eventStartDate.substring(11, 13));
+			startMinute = Number(item.eventStartDate.substring(14, 16));
 
-			// startDay= item.eventStartDate.substring(0, 2);
 			console.log(
 				'Day',
 				item.eventStartDate,
@@ -580,6 +581,7 @@
 	const resetFields = () => {
 		invalidateAll();
 		category = '';
+		layoutId = '';
 		price = 1;
 		startYear = currentYear;
 		startMonth = currentMonth;
@@ -588,32 +590,58 @@
 		startMinute = 0;
 		stockQty = 0;
 		countryState = '';
-		currentEmail = '';
+		inputEmail = '';
 		title = '';
 		descrLong = '';
 		infoExtra = '';
 		location = '';
-		notificationEmail =  userData.email;
 		productCorsoUserId = userData.userId;
 		productCorsoStatus = 'enabled';
-		tag = '';
-
 		notificationEmail = [userData.email];
+		tag = '';
 		tagArray = [];
 		tableList = getTable;
 	};
 
-	const selectCategory = () => {
-		const course = $coursesInfo.filter((item: any) => item.id == category);
+	const selectLayout = () => {
+		const course = getLayout.filter((item: any) => item.id == category);
 		//console.log('course', course);
 		title = course[0].title;
 		descrLong = course[0].descr;
-		price = course[0].totalPrice;
+		price = course[0].price;
 	};
 
 	const onCloseConfirmDelete = () => {
 		isModalConfirmDelete = false;
 		resetFields();
+	};
+
+	const addItem = (item: any, type: string) => {
+		if (type == 'email') {
+			var mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,6})$/;
+			if (item.match(mailformat)) {
+				notificationError = false;
+				notificationContent = 'Email valida';
+				toastClosed = false;
+				notificationEmail.push(item);
+				closeNotification();
+			} else {
+				notificationError = true;
+				notificationContent = 'Email NON valida';
+				toastClosed = false;
+				closeNotification();
+			}
+		}
+		if (type == 'tag') tagArray.push(item);
+		inputEmail = '';
+		tag = '';
+	};
+
+	const removeItem = (index: number, type: string) => {
+		if (index !== -1) {
+			if (type == 'email') notificationEmail.splice(index, 1);
+			if (type == 'tag') tagArray.splice(index, 1); /// TAG
+		}
 	};
 
 	//notification
@@ -627,24 +655,6 @@
 		}, 3000); // 1000 milliseconds = 1 second
 	};
 	//clearTimeout(startTimeout); // reset timer
-
-	const addEmail = (emailId: any) => {
-		var mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,6})$/;
-		if (emailId.match(mailformat)) {
-			notificationError = false;
-			notificationContent = 'Email valida';
-			toastClosed = false;
-			notificationEmail.push(currentEmail);
-			closeNotification();
-		} else {
-			notificationError = true;
-			notificationContent = 'Email NON valida';
-			toastClosed = false;
-			closeNotification();
-		}
-
-		currentEmail = '';
-	};
 
 	$effect(() => {
 		if (form != null) {
@@ -805,16 +815,16 @@
 
 				<div>
 					<label for="category" class="block text-sm font-medium text-gray-700 mb-1"
-						>Categoria</label
+						>Layout corso</label
 					>
 					<select
 						id="category"
-						bind:value={selectedTitle}
+						bind:value={selectedLayout}
 						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
-						<option value="">Scegli una categoria</option>
-						{#each $coursesInfo as option}
-							<option value={option.title}>{option.id}</option>
+						<option value="">Scegli un tipo</option>
+						{#each getLayout as option}
+							<option value={option.layoutId}>{option.title}</option>
 						{/each}
 					</select>
 				</div>
@@ -898,7 +908,7 @@
 			<!-- Categoria  -->
 			<section class="col-span-4 md:col-span-2">
 				<label for="category" class="form-label">
-					<p class="font-bold mb-2">Categoria</p>
+					<p class="font-bold mb-2">Layout corso</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
 					<button class="join-item bg-gray-300 px-3"><Pen /></button>
@@ -907,12 +917,12 @@
 						id="category"
 						name="category"
 						bind:value={category}
-						onchange={() => selectCategory()}
+						onchange={() => selectLayout()}
 						required
 					>
 						<option disabled value="">Scegli</option>
-						{#each $coursesInfo as option}
-							<option value={option.id}>{option.id}</option>
+						{#each getLayout as option}
+							<option value={option.layoutId}>{option.title}</option>
 						{/each}
 					</select>
 				</div>
@@ -981,8 +991,12 @@
 						bind:value={startYear}
 						required
 					>
-						<option value="" disabled selected>Anno</option>
-						<option value="">{startYear}</option>
+						{#if currentDialog == 'modify'}
+							<option value={startYear}>{startYear}</option>
+						{:else}
+							<option value="" disabled>Anno</option>
+						{/if}
+
 						{#each years as year}
 							<option value={year}>{year}</option>
 						{/each}
@@ -990,9 +1004,9 @@
 				</div>
 			</section>
 			<!-- Orario Inizio -->
-			<section class="ml-10 col-span-4 md:col-span-2 ">
+			<section class="ml-10 col-span-4 md:col-span-2">
 				<label for="orario-inizio" class="form-label">
-					<p class="font-bold mb-2 ">Orario inizio</p>
+					<p class="font-bold mb-2">Orario inizio</p>
 				</label>
 				<div class="join join-horizontal rounded-md">
 					<!-- Ore Dropdown -->
@@ -1098,6 +1112,7 @@
 				</label>
 				<div class="join join-horizontal rounded-md w-full mb-2">
 					<button class="join-item bg-gray-300 px-3"><List /></button>
+					<input type="hidden" name="tagArray" bind:value={tagArray} />
 					<input
 						class="input input-bordered join-item w-full"
 						id="tag"
@@ -1109,30 +1124,21 @@
 					<button
 						type="button"
 						class="join-item btn btn-primary"
-						onclick={() => {
-							if (tag !== '') {
-								tagArray.push(tag);
-								tag = '';
-							}
-						}}
+						onclick={() => addItem(tag, 'tag')}
+						disabled={tag == ''}
 					>
 						Aggiungi
 					</button>
 				</div>
 				{#if tagArray.length !== 0}
-					{#each tagArray as badgeTag}
+					{#each tagArray as badgeTag, i}
 						<div class="btn btn-primary btn-sm m-1 rounded-md">
 							{badgeTag}
 							{' '}
 							<button
 								type="button"
 								class="badge badge-error felx items-center"
-								onclick={() => {
-									let index = tagArray.indexOf(badgeTag);
-									if (index !== -1) {
-										tagArray.splice(index, 1);
-									}
-								}}
+								onclick={() => removeItem(i, 'tag')}
 							>
 								X
 							</button>
@@ -1150,37 +1156,30 @@
 					<input type="hidden" name="notificationEmail" bind:value={notificationEmail} />
 					<input
 						class="input input-bordered join-item w-full"
-						id="currentEmail"
-						name="currentEmail"
+						id="inputEmail"
+						name="inputEmail"
 						type="email"
 						placeholder="Aggiungi Email"
 						aria-label="InputEmailNotifica"
 						aria-describedby="basic-InputEmailNotifica"
-						bind:value={currentEmail}
+						bind:value={inputEmail}
 					/>
 					<button
 						type="button"
 						class="join-item btn btn-primary"
-						onclick={() => addEmail(currentEmail)}
+						onclick={() => addItem(inputEmail, 'email')}
 					>
 						Aggiungi
 					</button>
 				</div>
-				{#if notificationEmail.length !== 0}
-					{#each notificationEmail as badgeEmailNotifica}
+				{#if notificationEmail.length > 0}
+					{#each notificationEmail as badgeEmailNotifica, i}
 						<div class="btn btn-primary btn-sm m-1 rounded-md">
-							{badgeEmailNotifica}
-							{' '}
+							{badgeEmailNotifica} &nbsp;
 							<button
 								type="button"
 								class="badge badge-error felx items-center"
-								onclick={() => {
-									let index = notificationEmail.indexOf(badgeEmailNotifica);
-
-									if (index !== -1) {
-										notificationEmail.splice(index, 1);
-									}
-								}}
+								onclick={() => removeItem(i, 'email')}
 							>
 								X
 							</button>

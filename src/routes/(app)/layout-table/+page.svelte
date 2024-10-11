@@ -155,7 +155,9 @@
 					<!-- Color -->
 					<td>{row.bgColor}</td>
 					<!-- url foto -->
-					<td>{row.urlPic}</td>
+					<td>
+						<img class="w-64" src={row.urlPic} alt={row.urlPic} />
+					</td>
 					<!-- Prezzo -->
 					<td>{row.price}</td>
 					<!-- Azione -->
