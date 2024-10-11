@@ -50,7 +50,6 @@
 	coursesList.forEach((item) => {
 		const countryState = item.countryState;
 		numCoursesInProvince[countryState] = (numCoursesInProvince[countryState] || 0) + 1;
-		console.log('numCoursesInProvince',numCoursesInProvince)
 		// key : value ---> es: numCoursesInProvince = {"Bologna": "1", "Firenze": "2", "Roma": "3"}
 	});
 

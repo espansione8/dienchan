@@ -12,7 +12,6 @@ export const DELETE = async ({ request }) => {
         await dbConnect();
         // Find and delete the discount with the specified userId
         const result = await Product.deleteOne({ prodId });
-
         if (result.deletedCount == 1) {
             return json({
                 message: 'Corso eliminato con successo',

@@ -21,12 +21,21 @@
 	} from 'lucide-svelte';
 	import { coursesInfo, province, months, days, hours, minutes } from '$lib/stores/arrays';
 
+
+
 	let { data, form } = $props();
 	let { getTable, getTableNames, userData } = $derived(data);
 	let tableList = $state(getTable);
 
+	const now = new Date();
+	let currentYear = now.getFullYear();
+	let currentMonth = now.getMonth() + 1; // getMonth() restituisce 0-11, quindi aggiungiamo 1
+	let currentDay = now.getDate();
+	let currentHour = now.getHours();
+	let currentMinute = now.getMinutes();
+
 	let title = $state('');
-	let productCorsoID = $state('');
+	let prodId = $state('');
 	let descrLong = $state('');
 	let infoExtra = $state('');
 	let productCorsoUserId = $state(userData.userId);
@@ -40,10 +49,10 @@
 	let notificationEmail = $state([userData.email]);
 	let currentEmail = $state('');
 	let price = $state(1);
-	let startYear = $state(0);
-	let startMonth = $state(0);
-	let startDay = $state(0);
-	let startHour = $state(0);
+	let startYear = $state(currentYear);
+	let startMonth = $state(currentMonth);
+	let startDay = $state(currentDay);
+	let startHour = $state(currentHour);
 	let startMinute = $state(0);
 
 	// year input
@@ -484,6 +493,11 @@
 				eventStartDate: obj.eventStartDate.substring(0, 10),
 				timeStartDate: obj.eventStartDate.substring(11, 16),
 				timeEndDate: obj.eventEndDate.substring(11, 16)
+				// startYear: obj.eventStartDate.substring(0, 4),
+				// startMonth: obj.eventStartDate.subString(4, 5),
+				// startDay: obj.eventStartDate.subString(5, 7),
+				// startHour: obj.eventStartDate.substring(9, 11),
+				// startMinute: obj.eventStartDate.substring(13, 15)
 			}));
 			tableList = newTableList;
 			clearTimeout(startTimeout);
@@ -532,8 +546,8 @@
 		}
 		if (type == 'modify') {
 			console.log('okkk', item);
-			productCorsoID = item.prodId;
-			category = item.category;
+			prodId = item.prodId;
+			category = item.category[0];
 			price = item.price;
 			stockQty = item.stockQty;
 			countryState = item.countryState;
@@ -541,6 +555,24 @@
 			title = item.title;
 			descrLong = item.descrLong;
 			infoExtra = item.infoExtra;
+			location = item.location;
+			startYear = item.eventStartDate.substring(0, 4);
+			startMonth = item.eventStartDate.substring(5, 7);
+			startDay = item.eventStartDate.substring(8, 10);
+			startHour = item.eventStartDate.substring(11, 13);
+			startMinute = item.eventStartDate.substring(14, 16);
+
+			// startDay= item.eventStartDate.substring(0, 2);
+			console.log(
+				'Day',
+				item.eventStartDate,
+				startYear,
+				startMonth,
+				startDay,
+				startHour,
+				startMinute
+			);
+			// console.log('event',item.eventStartDate )
 			postAction = `?/modifyCourse`;
 		}
 	};
@@ -549,18 +581,19 @@
 		invalidateAll();
 		category = '';
 		price = 1;
-		startYear = 0;
-		startMonth = 0;
-		startDay = 0;
-		startHour = 0;
+		startYear = currentYear;
+		startMonth = currentMonth;
+		startDay = currentDay;
+		startHour = currentHour;
 		startMinute = 0;
-		stockQty = 1;
+		stockQty = 0;
 		countryState = '';
 		currentEmail = '';
 		title = '';
 		descrLong = '';
 		infoExtra = '';
-
+		location = '';
+		notificationEmail =  userData.email;
 		productCorsoUserId = userData.userId;
 		productCorsoStatus = 'enabled';
 		tag = '';
@@ -698,7 +731,7 @@
 					<!-- Titolo -->
 					<td>{row.title}</td>
 					<!-- Data -->
-					<td>{row.eventStartDate}</td>
+					<td>{row.eventStartDate.substring(0, 10)}</td>
 					<!-- Ora -->
 					<td>
 						Da {row.timeStartDate}
@@ -719,7 +752,7 @@
 							class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:bg-gray-300 hover:text-gray-800"
 							><Settings />
 						</button>
-						<button class="btn btn-error btn-sm" onclick={() => onOpenConfirmDelete(row.discountId)}
+						<button class="btn btn-error btn-sm" onclick={() => onOpenConfirmDelete(row.prodId)}
 							><Trash2 /></button
 						>
 					</td>
@@ -842,8 +875,8 @@
 			class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 		>
 			{#if currentDialog == 'modify'}
-				<section class="col-span-4">
-					<label for="productCorsoID" class="form-label">
+				<section class="col-span-4 md:col-span-4">
+					<label for="prodId" class="form-label">
 						<p class="font-bold mb-2">ID codice</p>
 					</label>
 
@@ -851,11 +884,11 @@
 						<button class="join-item bg-gray-300 px-3"><Pen /></button>
 						<input
 							class="input input-bordered join-item w-full"
-							id="productCorsoID"
-							name="productCorsoID"
+							id="prodId"
+							name="prodId"
 							type="text"
-							placeholder="discountId"
-							bind:value={productCorsoID}
+							placeholder="prodId"
+							bind:value={prodId}
 							readonly
 						/>
 					</div>
@@ -928,7 +961,7 @@
 					<select
 						id="productCorsoDataInizioMese"
 						name="productCorsoDataInizioMese"
-						class="join-item select select-bordered w-20"
+						class="join-item select select-bordered w-32"
 						aria-label="Seleziona Mese"
 						bind:value={startMonth}
 						required
@@ -949,6 +982,7 @@
 						required
 					>
 						<option value="" disabled selected>Anno</option>
+						<option value="">{startYear}</option>
 						{#each years as year}
 							<option value={year}>{year}</option>
 						{/each}
@@ -956,9 +990,9 @@
 				</div>
 			</section>
 			<!-- Orario Inizio -->
-			<section class="col-span-4 md:col-span-2">
+			<section class="ml-10 col-span-4 md:col-span-2 ">
 				<label for="orario-inizio" class="form-label">
-					<p class="font-bold mb-2">Orario inizio</p>
+					<p class="font-bold mb-2 ">Orario inizio</p>
 				</label>
 				<div class="join join-horizontal rounded-md">
 					<!-- Ore Dropdown -->
@@ -1051,7 +1085,7 @@
 						id="location"
 						name="location"
 						type="text"
-						placeholder="location"
+						placeholder="es: via Roma, 1, Vigasio, 37069"
 						bind:value={location}
 						required
 					/>
@@ -1155,7 +1189,7 @@
 				{/if}
 			</section>
 			<!-- Titolo -->
-			<section class="col-span-2">
+			<section class="col-span-4 md:col-span-2">
 				<label for="title" class="form-label">
 					<p class="font-bold mb-2">Titolo</p>
 				</label>
@@ -1171,26 +1205,27 @@
 						readonly
 					/>
 				</div>
+			</section>
+			<!-- Descrizione -->
+			<section class="col-span-4 md:col-span-4">
 				<!-- Descrizione -->
-				<div class="mt-6">
-					<label for="descrLong" class="form-label">
-						<p class="font-bold mb-2">Descrizione</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
-						<textarea
-							class="textarea textarea-bordered h-24 join-item w-full"
-							id="descrLong"
-							name="descrLong"
-							placeholder="Descrizione"
-							bind:value={descrLong}
-							readonly
-						></textarea>
-					</div>
+				<label for="descrLong" class="form-label">
+					<p class="font-bold mb-2">Descrizione</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<textarea
+						class="textarea textarea-bordered h-24 join-item w-full"
+						id="descrLong"
+						name="descrLong"
+						placeholder="Descrizione"
+						bind:value={descrLong}
+						readonly
+					></textarea>
 				</div>
 			</section>
 			<!-- ALtre informazione -->
-			<section class="col-span-2">
+			<section class="col-span-4">
 				<label for="infoExtra" class="form-label">
 					<p class="font-bold mb-2">Altre informazioni</p>
 				</label>
@@ -1200,7 +1235,7 @@
 						class="textarea textarea-bordered join-item w-full"
 						id="infoExtra"
 						name="infoExtra"
-						rows="7"
+						rows="6"
 						placeholder="Altre informazioni"
 						bind:value={infoExtra}
 					></textarea>
@@ -1241,8 +1276,8 @@
 	>
 		<h2 class="text-2xl font-bold text-black flex items-center">Conferma l'eliminazione?</h2>
 
-		<form action="?/deleteDiscount" method="POST" use:enhance>
-			<input type="hidden" name="discountId" value={deleteId} />
+		<form action="?/deleteCourse" method="POST" use:enhance>
+			<input type="hidden" name="prodId" value={deleteId} />
 			<div class="flex flex-row justify-between space-x-4">
 				<button class="btn btn-error btn-md" type="button" onclick={onCloseConfirmDelete}
 					>Annulla</button

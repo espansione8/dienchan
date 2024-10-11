@@ -7,22 +7,21 @@ export const POST = async ({ request }) => {
     const body = await request.json();
 
     const {
-        productCorsoID,
-        productCorsoUserId,
-        productCorsoTitolo,
-        productCorsoInfoExtra,
-        productCorsoDescrizione,
-        productCorsoDataInizioCompleto,
-        productCorsoDataFineCompleto,
-        productCorsoStatus,
-        productCorsoQuantitaPartecipanti,
-        productCorsoProvincia,
-        productCorsoCategoria,
-        productCorsoElencoEmailNotifica,
-        productCorsoElencoTag,
-        productPriceCorso,
+        prodId,
+        userId,
         name,
-        surname
+        surname,
+        title,
+        descrLong,
+        eventStartDate,
+        stockQty,
+        countryState,
+        location,
+        category,
+        notificationEmail,
+        tag,
+        price,
+        infoExtra,
     } = body;
 
     // const productCorsoTitolo = body.productCorsoTitolo;
@@ -34,25 +33,25 @@ export const POST = async ({ request }) => {
         await dbConnect();
         // console.log('Connessione al database avvenuta con successo');
 
-        const filter = { prodId: productCorsoID, type: 'course' };
+        const filter = { prodId: prodId, type: 'course' };
         // console.log('Filtro utilizzato:', filter);
 
         const update = {
-            title: productCorsoTitolo,
-            infoExtra: productCorsoInfoExtra,
-            descrLong: productCorsoDescrizione,
-            name,
-            surname,
-            eventStartDate: productCorsoDataInizioCompleto,
-            eventEndDate: productCorsoDataFineCompleto,
-            place: productCorsoProvincia,
-            notificationEmail: productCorsoElencoEmailNotifica,
-            tag: productCorsoElencoTag,
-            userId: productCorsoUserId,
-            price: productPriceCorso,
-            status: productCorsoStatus,
-            category: productCorsoCategoria,
-            stockQty: productCorsoQuantitaPartecipanti
+            userId: userId,
+            name: name,
+            surname: surname,
+            title: title,
+            descrLong: descrLong,
+            eventStartDate: eventStartDate,
+            stockQty: stockQty,
+            countryState: countryState,
+            location: location,
+            category: category,
+            notificationEmail: notificationEmail,
+            tag: tag,
+            price: price,
+            infoExtra: infoExtra,
+            type: 'course'
         };
         // console.log('Oggetto di aggiornamento:', update);
 
