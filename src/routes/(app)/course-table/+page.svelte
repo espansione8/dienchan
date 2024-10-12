@@ -19,7 +19,7 @@
 		Settings,
 		ShieldAlert
 	} from 'lucide-svelte';
-	import { coursesInfo, province, months, days, hours, minutes } from '$lib/stores/arrays';
+	import { province, months, days, hours, minutes } from '$lib/stores/arrays';
 
 	let { data, form } = $props();
 	let { getTable, getTableNames, userData, getLayout } = $derived(data);
@@ -30,7 +30,7 @@
 	let currentMonth = now.getMonth() + 1; // getMonth() restituisce 0-11, quindi aggiungiamo 1
 	let currentDay = now.getDate();
 	let currentHour = now.getHours();
-	let currentMinute = now.getMinutes();
+	let currentMinute = now.getMinutes(); // for now force to 0
 
 	let title = $state('');
 	let prodId = $state('');
@@ -40,7 +40,6 @@
 	let productCorsoStatus = $state('enabled');
 	let countryState = $state('');
 	let location = $state('');
-	let category = $state('');
 	let layoutId = $state('');
 	let tagArray: any[] = $state([]);
 	let tag = $state('');
@@ -547,7 +546,6 @@
 		if (type == 'modify') {
 			console.log('okkk', item);
 			prodId = item.prodId;
-			category = item.category[0];
 			layoutId = item.layoutId;
 			price = item.price;
 			stockQty = item.stockQty;
@@ -580,7 +578,6 @@
 
 	const resetFields = () => {
 		invalidateAll();
-		category = '';
 		layoutId = '';
 		price = 1;
 		startYear = currentYear;
@@ -603,12 +600,13 @@
 		tableList = getTable;
 	};
 
-	const selectLayout = () => {
-		const course = getLayout.filter((item: any) => item.id == category);
-		//console.log('course', course);
-		title = course[0].title;
-		descrLong = course[0].descr;
-		price = course[0].price;
+	const selectLayout = (layout: any) => {
+		// const course = getLayout.filter((item: any) => item.layoutId == layoutId);
+		const course = getLayout.find((item: any) => item.layoutId == layoutId);
+		console.log('course', course, layoutId);
+		title = course.title;
+		descrLong = course.descr;
+		price = course.price;
 	};
 
 	const onCloseConfirmDelete = () => {
@@ -620,11 +618,11 @@
 		if (type == 'email') {
 			var mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,6})$/;
 			if (item.match(mailformat)) {
-				notificationError = false;
-				notificationContent = 'Email valida';
-				toastClosed = false;
+				// notificationError = false;
+				// notificationContent = 'Email valida';
+				// toastClosed = false;
 				notificationEmail.push(item);
-				closeNotification();
+				// closeNotification();
 			} else {
 				notificationError = true;
 				notificationContent = 'Email NON valida';
@@ -632,7 +630,20 @@
 				closeNotification();
 			}
 		}
-		if (type == 'tag') tagArray.push(item);
+		if (type == 'tag')
+			if (tag != '') {
+				// notificationError = false;
+				// notificationContent = 'Tag valido';
+				// toastClosed = false;
+				// closeNotification();
+				tagArray.push(item);
+			} else {
+				notificationError = true;
+				notificationContent = 'Tag NON valido';
+				toastClosed = false;
+				closeNotification();
+			}
+
 		inputEmail = '';
 		tag = '';
 	};
@@ -814,11 +825,11 @@
 				</div>
 
 				<div>
-					<label for="category" class="block text-sm font-medium text-gray-700 mb-1"
-						>Layout corso</label
+					<label for="layoutId" class="block text-sm font-medium text-gray-700 mb-1"
+						>Tipo corso</label
 					>
 					<select
-						id="category"
+						id="layoutId"
 						bind:value={selectedLayout}
 						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
@@ -907,17 +918,17 @@
 
 			<!-- Categoria  -->
 			<section class="col-span-4 md:col-span-2">
-				<label for="category" class="form-label">
-					<p class="font-bold mb-2">Layout corso</p>
+				<label for="layoutId" class="form-label">
+					<p class="font-bold mb-2">Tipo corso</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
 					<button class="join-item bg-gray-300 px-3"><Pen /></button>
 					<select
 						class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
-						id="category"
-						name="category"
-						bind:value={category}
-						onchange={() => selectLayout()}
+						id="layoutId"
+						name="layoutId"
+						bind:value={layoutId}
+						onchange={() => selectLayout(layoutId)}
 						required
 					>
 						<option disabled value="">Scegli</option>
@@ -1123,9 +1134,8 @@
 					/>
 					<button
 						type="button"
-						class="join-item btn btn-primary"
+						class="join-item btn btn-primary disabled:blue-500 disabled:cursor-not-allowed"
 						onclick={() => addItem(tag, 'tag')}
-						disabled={tag == ''}
 					>
 						Aggiungi
 					</button>

@@ -80,19 +80,17 @@ export const actions: Actions = {
 		const stockQty = formData.get('stockQty') || 0;
 		const countryState = formData.get('countryState') || '';
 		const location = formData.get('location');
-		const category = formData.get('category');
-		const layoutId = formData.get('layoutId'); // TODO aggiungere input nel fronte-end + API
+		const layoutId = formData.get('layoutId'); 
 		const price = formData.get('price');
 		const tagArray = formData.get('tagArray') || [];
 		const tag = tagArray.split(",");
 		const arrayEmail = formData.get('notificationEmail') || [];
 		const notificationEmail = arrayEmail.split(",");
-		//console.log("tag", typeof tag, tag);
 		const infoExtra = formData.get('infoExtra');
-		//console.log({ name }, { surname }, { title }, { descrLong }, { eventStartDate }, { stockQty }, { countryState }, { location }, { category }, { price }, { notificationEmail }, { tag }, { infoExtra });
+		//console.log({ name }, { surname }, { title }, { descrLong }, { eventStartDate }, { stockQty }, { countryState }, { location }, { price }, { notificationEmail }, { tag }, { infoExtra });
 
-		if (!name || !surname || !title || !descrLong || !eventStartDate || !stockQty || !countryState || !location || !category || !price) {
-			return fail(400, { action: 'newCourse', success: false, message: 'Dati mancanti' });
+		if (!name || !surname || !title || !descrLong || !eventStartDate || !stockQty || !countryState || !location  || !price) {
+			return fail(400, { action: 'newCourse', success: false, message: 'Dati mancantrrri' });
 		}
 
 		try {
@@ -102,6 +100,7 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
+					layoutId,
 					userId,
 					name,
 					surname,
@@ -111,7 +110,6 @@ export const actions: Actions = {
 					stockQty,
 					countryState,
 					location,
-					category,
 					notificationEmail,
 					tag,
 					price,
@@ -141,7 +139,7 @@ export const actions: Actions = {
 		const stockQty = formData.get('stockQty') || 0;
 		const countryState = formData.get('countryState') || '';
 		const location = formData.get('location');
-		const category = formData.get('category');
+		const layoutId = formData.get('layoutId');
 		const price = formData.get('price');
 		const tagArray = formData.get('tagArray') || [];
 		const tag = tagArray.split(",");
@@ -150,7 +148,7 @@ export const actions: Actions = {
 		const infoExtra = formData.get('infoExtra');
 		const prodId = formData.get('prodId');
 
-		if (!name || !surname || !title || !descrLong || !eventStartDate || !stockQty || !countryState || !location || !category || !price) {
+		if (!name || !surname || !title || !descrLong || !eventStartDate || !stockQty || !countryState || !location || !layoutId || !price) {
 			return fail(400, { action: 'newCourse', success: false, message: 'Dati mancanti' });
 		}
 
@@ -172,7 +170,7 @@ export const actions: Actions = {
 					stockQty,
 					countryState,
 					location,
-					category,
+					layoutId,
 					notificationEmail,
 					tag,
 					price,

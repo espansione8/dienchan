@@ -6,6 +6,7 @@ import { Product } from '$lib/models/Products.model';
 export const POST = async ({ request }) => {
 	const body = await request.json();
 	const {
+		layoutId,
 		userId,
 		name,
 		surname,
@@ -33,6 +34,7 @@ export const POST = async ({ request }) => {
 		// const cookieId = crypto.randomUUID();
 		const newEvent = new Product();
 		newEvent.prodId = crypto.randomUUID();
+		newEvent.layoutId = layoutId;
 		newEvent.userId = userId;
 		newEvent.name = name;
 		newEvent.surname = surname;
