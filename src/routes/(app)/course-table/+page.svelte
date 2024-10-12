@@ -750,7 +750,7 @@
 					<!-- Email Riflessologo -->
 					<td>{row.notificationEmail[0]}</td>
 					<!-- Titolo -->
-					<td>{row.title}</td>
+					<td>{row.layoutView.title}</td>
 					<!-- Data -->
 					<td>{row.eventStartDate.substring(0, 10)}</td>
 					<!-- Ora -->

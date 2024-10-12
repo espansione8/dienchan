@@ -43,17 +43,13 @@
 		return `${findRiflessologo.name} ${findRiflessologo.surname}`;
 	}
 
-
-
-	// cycle to count the number of courses in each province 
+	// cycle to count the number of courses in each province
 	const numCoursesInProvince = {};
 	coursesList.forEach((item) => {
 		const countryState = item.countryState;
 		numCoursesInProvince[countryState] = (numCoursesInProvince[countryState] || 0) + 1;
 		// key : value ---> es: numCoursesInProvince = {"Bologna": "1", "Firenze": "2", "Roma": "3"}
 	});
-
-
 
 	const sortAZconOnlineInCima = (a, b) => {
 		if ('Online' in a) {
@@ -262,12 +258,12 @@
 
 	const imgSrc = (value: string) => {
 		const src = $coursesInfo.filter((item: any) => item.id == value);
-		return src[0].urlPic;
+		return src[0]?.urlPic || 'images/default.png';
 	};
 
 	const bgColor = (value: string) => {
 		const src = $coursesInfo.filter((item: any) => item.id == value);
-		return src[0].bgColor;
+		return src[0]?.bgColor || 'bg-base-200';
 	};
 </script>
 
@@ -359,17 +355,17 @@
 				<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100">
 					<ul class="list-none -mx-4">
 						{#each Object.entries(numCoursesInProvince) as [chiave, valore]}
-								<li
-									class="p-2 border-b cursor-pointer transition-colors duration-300
+							<li
+								class="p-2 border-b cursor-pointer transition-colors duration-300
 								{filtriAttivi.provincia == chiave
-										? 'bg-orange-200 text-red-900 font-bold'
-										: 'hover:bg-blue-200 hover:text-blue-900'}"
-									onclick={() => onClickFilterProvincia(chiave)}
-								>
-									{'>'}
-									{chiave}: ({valore})
-								</li>
-							{/each}
+									? 'bg-orange-200 text-red-900 font-bold'
+									: 'hover:bg-blue-200 hover:text-blue-900'}"
+								onclick={() => onClickFilterProvincia(chiave)}
+							>
+								{'>'}
+								{chiave}: ({valore})
+							</li>
+						{/each}
 					</ul>
 				</div>
 			</div>

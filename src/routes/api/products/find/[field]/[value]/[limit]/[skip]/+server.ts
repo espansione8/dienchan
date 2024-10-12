@@ -33,6 +33,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			.skip(skipResults)
 			.lean()
 			.populate(['userView', 'layoutView'])
+			//.populate('userView')
 			.exec();
 
 		return json(find);

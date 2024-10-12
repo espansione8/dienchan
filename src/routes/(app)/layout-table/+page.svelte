@@ -133,10 +133,10 @@
 		<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">
 			<tr>
 				<th>Data inserimento</th>
+				<th>Foto</th>
 				<th>Titolo</th>
 				<th>Descrizione</th>
 				<th>Colore tema</th>
-				<th>Foto</th>
 				<th>Prezzo</th>
 				<th>Azione</th>
 			</tr>
@@ -148,16 +148,15 @@
 				<tr class="hover:bg-gray-100">
 					<!-- Date created -->
 					<td>{row.createdAt}</td>
+					<td>
+						<img class="w-64" src={row.urlPic} alt={row.urlPic} />
+					</td>
 					<!-- title -->
 					<td>{row.title}</td>
 					<!-- descr -->
 					<td>{row.descr}</td>
 					<!-- Color -->
 					<td>{row.bgColor}</td>
-					<!-- url foto -->
-					<td>
-						<img class="w-64" src={row.urlPic} alt={row.urlPic} />
-					</td>
 					<!-- Prezzo -->
 					<td>{row.price}</td>
 					<!-- Azione -->

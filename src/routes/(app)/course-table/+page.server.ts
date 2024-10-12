@@ -20,6 +20,8 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		const res = await fetch(path);
 
 		const resGetTable = await res.json();
+		console.log({ resGetTable })
+
 		getTable = resGetTable.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10),
@@ -80,7 +82,7 @@ export const actions: Actions = {
 		const stockQty = formData.get('stockQty') || 0;
 		const countryState = formData.get('countryState') || '';
 		const location = formData.get('location');
-		const layoutId = formData.get('layoutId'); 
+		const layoutId = formData.get('layoutId');
 		const price = formData.get('price');
 		const tagArray = formData.get('tagArray') || [];
 		const tag = tagArray.split(",");
@@ -89,7 +91,7 @@ export const actions: Actions = {
 		const infoExtra = formData.get('infoExtra');
 		//console.log({ name }, { surname }, { title }, { descrLong }, { eventStartDate }, { stockQty }, { countryState }, { location }, { price }, { notificationEmail }, { tag }, { infoExtra });
 
-		if (!name || !surname || !title || !descrLong || !eventStartDate || !stockQty || !countryState || !location  || !price) {
+		if (!name || !surname || !title || !descrLong || !eventStartDate || !stockQty || !countryState || !location || !price) {
 			return fail(400, { action: 'newCourse', success: false, message: 'Dati mancantrrri' });
 		}
 
