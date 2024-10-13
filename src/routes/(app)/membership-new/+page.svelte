@@ -2,7 +2,8 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
-	import { province } from '$lib/stores/arrays';
+	import Modal from '$lib/components/Modal.svelte';
+	import { province, country_list } from '$lib/stores/arrays';
 	import {
 		Mail,
 		User,
@@ -14,12 +15,6 @@
 		Lock,
 		CircleCheckBig
 	} from 'lucide-svelte';
-	import { country_list } from '$lib/stores/arrays.js';
-
-	let { data, form } = $props();
-	let { userData, auth } = $derived(data);
-
-	let provinceFilterate = $province.filter((p) => p.sigla !== 'ON');
 
 	const testimonials = [
 		{
@@ -42,29 +37,16 @@
 		}
 	];
 
-	let newExpire: any = $state(new Date());
-	let currentDialog = $state('');
-	let postAction = $state('');
-	const onClickDialog = (type: string) => {
-		currentDialog = type;
-		isModal = true;
-		if (type == 'associate') {
-			postAction = `?/newMembership`;
-		}
-		if (type == 'lifetime') {
-			postAction = `?/newLifetime`;
-		}
-		if (type == 'renew') {
-			postAction = `?/renewMembership`;
-			const newDate = newExpire.setFullYear(newExpire.getFullYear() + 1);
-			newExpire = newDate.toISOString().substring(0, 10);
-		}
-	};
+	let { data, form } = $props();
+	let { userData, auth } = $derived(data);
 
 	let paymentType = $state('bonifico');
 	let isModal = $state(false);
+	let newExpire: any = $state(new Date());
+	let currentDialog = $state('');
+	let postAction = $state('?/renewMembership');
+	let modalTitle = $state('');
 
-	const countryList = $country_list;
 	let password1 = $state('');
 	let password2 = $state('');
 	let name = $state('');
@@ -102,6 +84,26 @@
 		password2 = '';
 	};
 
+	const onClickDialog = (type: string) => {
+		currentDialog = type;
+		isModal = true;
+		console.log('onClickDialog', type, { isModal });
+		if (type == 'associate') {
+			postAction = `?/newMembership`;
+			modalTitle = 'Nuova iscrizione socio ordinario';
+		}
+		if (type == 'lifetime') {
+			postAction = `?/newLifetime`;
+			modalTitle = 'Nuova iscrizione socio vitalizio';
+		}
+		if (type == 'renew') {
+			postAction = `?/renewMembership`;
+			modalTitle = 'Rinnovo iscrizione';
+			const newDate = newExpire.setFullYear(newExpire.getFullYear() + 1);
+			newExpire = newDate.toISOString().substring(0, 10);
+		}
+	};
+
 	// notification
 	let toastClosed: boolean = $state(true);
 	let notificationContent: string = $state('');
@@ -119,12 +121,12 @@
 			async () => await invalidateAll(); // MUST be async/await or tableList = getTable will trigger infinite loop
 			const { action, success, message } = form;
 			if (success) {
-				closeNotification();
 				fieldReset();
 				isModal = false;
 			} else {
 				notificationError = true;
 			}
+			closeNotification();
 			toastClosed = false;
 			notificationContent = message;
 		}
@@ -410,7 +412,7 @@
 <Notification {toastClosed} {notificationContent} {notificationError} />
 
 <!-- modal CONFIRM -->
-<dialog id="my_modal_2" class="modal" class:modal-open={isModal}>
+<dialog id="my_modal_2" class="modal" class:modal-open={false}>
 	<div class="modal-box flex flex-col text-center">
 		<div class="container mx-auto">
 			<div class="flex justify-center">
@@ -422,16 +424,9 @@
 						class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 					>
 						<header class="col-span-4 text-center text-2xl font-bold text-green-800">
-							{#if currentDialog == 'associate'}
-								Nuova iscrizione socio ordinario
-							{:else if currentDialog == 'lifetime'}
-								Nuova iscrizione socio vitalizio
-							{:else if currentDialog == 'renew'}
-								Rinnovo iscrizione
-							{/if}
+							{modalTitle}
 						</header>
 						{#if !auth}
-							<!-- Nome -->
 							<section class="col-span-4 md:col-span-2">
 								<label for="nome" class="form-label">
 									<p class="font-bold mb-2">Nome</p>
@@ -451,7 +446,7 @@
 									/>
 								</div>
 							</section>
-							<!-- Cognome -->
+
 							<section class="col-span-4 md:col-span-2">
 								<label for="cognome" class="form-label">
 									<p class="font-bold mb-2">Cognome</p>
@@ -471,7 +466,7 @@
 									/>
 								</div>
 							</section>
-							<!-- Email -->
+
 							<section class="col-span-4">
 								<label for="email" class="form-label">
 									<p class="font-bold mb-2">Email</p>
@@ -489,7 +484,7 @@
 									/>
 								</div>
 							</section>
-							<!-- Indirizzo -->
+
 							<section class="col-span-4">
 								<label for="indirizzo" class="form-label">
 									<p class="font-bold mb-2">Indirizzo</p>
@@ -509,7 +504,7 @@
 									/>
 								</div>
 							</section>
-							<!-- CAP -->
+
 							<section class="col-span-4 md:col-span-2">
 								<label for="cap" class="form-label">
 									<p class="font-bold mb-2">CAP</p>
@@ -529,7 +524,7 @@
 									/>
 								</div>
 							</section>
-							<!-- Citta -->
+
 							<section class="col-span-4 md:col-span-2">
 								<label for="citta" class="form-label">
 									<p class="font-bold mb-2">Città</p>
@@ -549,7 +544,7 @@
 									/>
 								</div>
 							</section>
-							<!-- Provincia -->
+
 							<section class="col-span-4">
 								<label for="provincia" class="form-label">
 									<p class="font-bold mb-2">Provincia</p>
@@ -567,15 +562,15 @@
 										required
 									>
 										<option selected disabled>Scegli</option>
-										{#each provinceFilterate as provincia, i}
-											<option value={provincia.sigla}>
-												{provincia.nome} ({provincia.sigla})
+										{#each $province as provincia, i}
+											<option value={provincia.title}>
+												{provincia.title} ({provincia.code})
 											</option>
 										{/each}
 									</select>
 								</div>
 							</section>
-							<!-- Nazione -->
+
 							<section class="col-span-4">
 								<label for="nazione" class="form-label">
 									<p class="font-bold mb-2">Nazione</p>
@@ -591,7 +586,7 @@
 										bind:value={country}
 									>
 										<option selected disabled>Scegli</option>
-										{#each countryList as country}
+										{#each $country_list as country}
 											<option value={country}>
 												{country}
 											</option>
@@ -599,7 +594,7 @@
 									</select>
 								</div>
 							</section>
-							<!-- Telefono -->
+
 							<section class="col-span-4">
 								<label for="telefono" class="form-label">
 									<p class="font-bold mb-2">Telefono</p>
@@ -618,7 +613,7 @@
 									/>
 								</div>
 							</section>
-							<!-- Cellulare -->
+
 							<section class="col-span-4">
 								<label for="cellulare" class="form-label">
 									<p class="font-bold mb-2">Cellulare</p>
@@ -637,7 +632,6 @@
 									/>
 								</div>
 							</section>
-							<!-- Password -->
 							<section class="col-span-4">
 								<label for="password" class="form-label">
 									<p class="font-bold mb-2">
@@ -665,7 +659,7 @@
 									/>
 								</div>
 							</section>
-							<!-- Conferma password -->
+
 							<section class="col-span-4">
 								<label for="password2" class="form-label">
 									<p class="font-bold mb-2">Conferma password</p>
@@ -750,7 +744,6 @@
 								</label>
 							</div>
 
-							<!-- button -->
 							<div class="modal-action">
 								<button
 									type="button"
@@ -768,7 +761,366 @@
 				</div>
 			</div>
 		</div>
-		<!-- metodo di pagamento -->
 	</div>
 </dialog>
 <!-- modal END CONFIRM -->
+
+<Modal
+	isOpen={isModal}
+	header={modalTitle}
+	headerBg="bg-blue-600"
+	footer="ERROR SPACE"
+	footerColor="text-error"
+>
+	<button
+		class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+		onclick={() => (isModal = false)}>✕</button
+	>
+	<!-- START CONTENT -->
+	<div class="flex justify-center">
+		<div class="w-full">
+			<form
+				method="POST"
+				action={postAction}
+				use:enhance
+				class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+			>
+				<!-- <header class="col-span-4 text-center text-2xl font-bold text-green-800">
+					{modalTitle}
+				</header> -->
+				{#if !auth}
+					<!-- Nome -->
+					<section class="col-span-4 md:col-span-2">
+						<label for="nome" class="form-label">
+							<p class="font-bold mb-2">Nome</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button class="join-item bg-gray-300 px-3"><User /></button>
+							<input
+								class="input input-bordered join-item w-full"
+								id="nome"
+								name="name"
+								type="text"
+								placeholder="Nome"
+								aria-label="nome"
+								aria-describedby="basic-nome"
+								bind:value={name}
+								required
+							/>
+						</div>
+					</section>
+					<!-- Cognome -->
+					<section class="col-span-4 md:col-span-2">
+						<label for="cognome" class="form-label">
+							<p class="font-bold mb-2">Cognome</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button class="join-item bg-gray-300 px-3"><User /></button>
+							<input
+								class="input input-bordered join-item w-full"
+								id="cognome"
+								name="surname"
+								type="text"
+								placeholder="Cognome"
+								aria-label="cognome"
+								aria-describedby="basic-cognome"
+								bind:value={surname}
+								required
+							/>
+						</div>
+					</section>
+					<!-- Email -->
+					<section class="col-span-4">
+						<label for="email" class="form-label">
+							<p class="font-bold mb-2">Email</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button class="join-item bg-gray-300 px-3"><Mail /></button>
+							<input
+								class="input input-bordered join-item w-full"
+								id="email"
+								name="email"
+								type="email"
+								placeholder="Tua Email"
+								bind:value={email}
+								required
+							/>
+						</div>
+					</section>
+					<!-- Indirizzo -->
+					<section class="col-span-4">
+						<label for="indirizzo" class="form-label">
+							<p class="font-bold mb-2">Indirizzo</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button class="join-item bg-gray-300 px-3"><MapPin /></button>
+							<input
+								class="input input-bordered join-item w-full"
+								id="indirizzo"
+								name="address"
+								type="text"
+								placeholder="Indirizzo"
+								aria-label="indirizzo"
+								aria-describedby="basic-indirizzo"
+								bind:value={address}
+								required
+							/>
+						</div>
+					</section>
+					<!-- CAP -->
+					<section class="col-span-4 md:col-span-2">
+						<label for="cap" class="form-label">
+							<p class="font-bold mb-2">CAP</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button class="join-item bg-gray-300 px-3"><MapPin /></button>
+							<input
+								class="input input-bordered join-item w-full"
+								id="cap"
+								name="postalCode"
+								type="text"
+								placeholder="CAP"
+								aria-label="cap"
+								aria-describedby="basic-cap"
+								bind:value={postalCode}
+								required
+							/>
+						</div>
+					</section>
+					<!-- Citta -->
+					<section class="col-span-4 md:col-span-2">
+						<label for="citta" class="form-label">
+							<p class="font-bold mb-2">Città</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button class="join-item bg-gray-300 px-3"><Building2 /></button>
+							<input
+								class="input input-bordered join-item w-full"
+								id="citta"
+								name="city"
+								type="text"
+								placeholder="Città"
+								aria-label="citta"
+								aria-describedby="basic-citta"
+								bind:value={city}
+								required
+							/>
+						</div>
+					</section>
+					<!-- Provincia -->
+					<section class="col-span-4">
+						<label for="provincia" class="form-label">
+							<p class="font-bold mb-2">Provincia</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button class="join-item bg-gray-300 px-3"><Building2 /></button>
+							<select
+								class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
+								id="provincia"
+								name="countryState"
+								aria-label="Provincia"
+								aria-describedby="basic-provincia"
+								placeholder="Scegli"
+								bind:value={countryState}
+								required
+							>
+								<option selected disabled>Scegli</option>
+								{#each $province as provincia, i}
+									<option value={provincia.title}>
+										{provincia.title} ({provincia.code})
+									</option>
+								{/each}
+							</select>
+						</div>
+					</section>
+					<!-- Nazione -->
+					<section class="col-span-4">
+						<label for="nazione" class="form-label">
+							<p class="font-bold mb-2">Nazione</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button class="join-item bg-gray-300 px-3"><Globe /></button>
+							<select
+								class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
+								aria-label="Default select example"
+								id="nazione"
+								name="country"
+								required
+								bind:value={country}
+							>
+								<option selected disabled>Scegli</option>
+								{#each $country_list as country}
+									<option value={country}>
+										{country}
+									</option>
+								{/each}
+							</select>
+						</div>
+					</section>
+					<!-- Telefono -->
+					<section class="col-span-4">
+						<label for="telefono" class="form-label">
+							<p class="font-bold mb-2">Telefono</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button class="join-item bg-gray-300 px-3"><Phone /></button>
+							<input
+								class="input input-bordered join-item w-full"
+								id="telefono"
+								name="phone"
+								type="text"
+								placeholder="Telefono"
+								aria-label="telefono"
+								aria-describedby="basic-telefono"
+								bind:value={phone}
+							/>
+						</div>
+					</section>
+					<!-- Cellulare -->
+					<section class="col-span-4">
+						<label for="cellulare" class="form-label">
+							<p class="font-bold mb-2">Cellulare</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button class="join-item bg-gray-300 px-3"><Smartphone /></button>
+							<input
+								class="input input-bordered join-item w-full"
+								id="cellulare"
+								name="mobilePhone"
+								type="text"
+								placeholder="Cellulare"
+								aria-label="cellulare"
+								aria-describedby="basic-cellulare"
+								bind:value={mobilePhone}
+							/>
+						</div>
+					</section>
+					<!-- Password -->
+					<section class="col-span-4">
+						<label for="password" class="form-label">
+							<p class="font-bold mb-2">
+								Password <br />
+								<span class="text-sm text-gray-600">( Almeno 8 caratteri numeri e lettere )</span>
+							</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button class="join-item bg-gray-300 px-3"
+								><Lock color={checkPass ? 'green' : 'black'} /></button
+							>
+							<input
+								class="input input-bordered join-item w-full"
+								id="password"
+								name="password1"
+								type="password"
+								placeholder="your password"
+								aria-label="Password"
+								aria-describedby="basic-password"
+								bind:value={password1}
+								oninput={testPass}
+								required
+							/>
+						</div>
+					</section>
+					<!-- Conferma password -->
+					<section class="col-span-4">
+						<label for="password2" class="form-label">
+							<p class="font-bold mb-2">Conferma password</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button class="join-item bg-gray-300 px-3"
+								><Lock color={checkSecondPass && checkPass ? 'green' : 'black'} /></button
+							>
+							<input
+								class="input input-bordered join-item w-full"
+								id="password2"
+								type="password"
+								placeholder="Repeat password"
+								bind:value={password2}
+								oninput={testSecondPass}
+								bind:this={inputRef}
+								required
+							/>
+						</div>
+					</section>
+				{/if}
+				<section class="col-span-4">
+					<hr class="bg-black h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
+					{#if auth}
+						<p class="py-2 font-semibold mt-2">
+							Attuale livello associazione: {userData?.membership?.membershipLevel}
+						</p>
+					{/if}
+					{#if auth && currentDialog == 'renew'}
+						<p class="py-2 font-semibold mt-2">
+							Attuale data di scadenza:
+							<strong class="text-red-500">{userData.membership.membershipExpiry}</strong>
+						</p>
+						<p class=" font-semibold">
+							Futura data di scadenza:
+							<b class="text-green-500">{newExpire}</b>
+						</p>
+					{/if}
+					<p class="  font-bold text-lg text-center mt-4">
+						{#if currentDialog == 'associate' || currentDialog == 'renew'}
+							Totale: 25€
+						{:else if currentDialog == 'lifetime'}
+							Totale: 390€
+						{/if}
+					</p>
+					<hr class="bg-black h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
+					<p class="  font-bold text-lg text-center mt-4">Scegli il metodo di pagamento:</p>
+					<div class="form-control col-span-2 mx-2">
+						<label class="label cursor-pointer">
+							<span class="label-text font-semibold">Bonifico (IBAN: 1548416800005462)</span>
+							<input
+								type="radio"
+								name="radio-paymentType"
+								class="radio checked:bg-blue-500"
+								bind:group={paymentType}
+								value={'bonifico'}
+							/>
+						</label>
+					</div>
+					<div class="form-control col-span-2 mx-2">
+						<label class="label cursor-pointer">
+							<span class="label-text font-semibold">Paypal</span>
+							<input
+								type="radio"
+								name="radio-paymentType"
+								class="radio checked:bg-blue-500"
+								bind:group={paymentType}
+								value={'paypal'}
+							/>
+						</label>
+					</div>
+					<div class="form-control col-span-2 mx-2">
+						<label class="label cursor-pointer">
+							<span class="label-text font-semibold">Contanti (all'inizio corso)</span>
+							<input
+								type="radio"
+								name="radio-paymentType"
+								class="radio checked:bg-blue-500"
+								bind:group={paymentType}
+								value={'contanti'}
+							/>
+						</label>
+					</div>
+
+					<!-- button -->
+					<div class="modal-action">
+						<button
+							type="button"
+							class="btn btn-sm btn-error w-24 hover:bg-white hover:text-red-500 rounded-lg"
+							onclick={() => (isModal = false)}>Chiudi</button
+						>
+						<button
+							type="submit"
+							class="btn btn-sm btn-success w-24 hover:bg-white hover:text-green-500 rounded-lg"
+							>Conferma</button
+						>
+					</div>
+				</section>
+			</form>
+		</div>
+	</div>
+</Modal>
