@@ -58,6 +58,10 @@ export const POST: RequestHandler = async ({ request, params }) => {
 				path: 'userView',
 				options: { strictPopulate: false }
 			})
+			.populate({
+				path: 'layoutView',
+				options: { strictPopulate: false }
+			})
 			.lean()
 			.exec();
 

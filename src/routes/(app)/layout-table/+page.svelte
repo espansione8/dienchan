@@ -148,8 +148,9 @@
 				<tr class="hover:bg-gray-100">
 					<!-- Date created -->
 					<td>{row.createdAt}</td>
+					<!-- picture -->
 					<td>
-						<img class="w-64" src={row.urlPic} alt={row.urlPic} />
+						<img class="w-96" src={row.urlPic} alt={row.urlPic} />
 					</td>
 					<!-- title -->
 					<td>{row.title}</td>

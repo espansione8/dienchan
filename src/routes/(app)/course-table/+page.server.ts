@@ -2,7 +2,7 @@ import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
-	//console.log('locals', locals);
+	// console.log('locals', locals);
 	if (!locals.auth) {
 		throw redirect(302, '/login');
 	}
@@ -20,7 +20,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		const res = await fetch(path);
 
 		const resGetTable = await res.json();
-		console.log({ resGetTable })
+		// console.log({ resGetTable })
 
 		getTable = resGetTable.map((obj: any) => ({
 			...obj,
@@ -191,7 +191,6 @@ export const actions: Actions = {
 		}
 	},
 
-
 	deleteCourse: async ({ request, fetch }) => {
 
 		const formData = await request.formData();
@@ -215,6 +214,59 @@ export const actions: Actions = {
 		} catch (error) {
 			console.error('Error deleteCourse:', error);
 			return { action: 'deleteCourse', success: false, message: 'Errore deleteCourse' };
+		}
+	},
+
+	filterCourse: async ({ request, fetch }) => {
+
+
+		const formData = await request.formData();
+		const countryState = formData.get('countryState');
+		const layoutId = formData.get('layoutId');
+		const userId = formData.get('userId');
+		console.log('layoutId', layoutId);
+		console.log('userId', userId);
+		console.log('countryState', countryState);
+
+
+		const arrayField = ['countryState', 'layoutId', 'userId', 'type'];
+		const arrayValue = [countryState, layoutId, userId, 'course'];
+
+
+		try {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
+				method: 'POST',
+				body: JSON.stringify({
+					schema: 'product',
+					arrayField,
+					arrayValue
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			console.log('response', response);
+			const result = await response.json();
+
+
+			if (response.ok) {
+
+
+				
+				const filterTableList = result.map((obj: any) => ({
+					...obj,
+					createdAt: obj.createdAt.substring(0, 10),
+					eventStartDate: obj.eventStartDate.substring(0, 10),
+					timeStartDate: obj.eventStartDate.substring(11, 16)
+				}));
+				return { action: 'filterCourse', success: true, message: 'Filtro applicato' , filterTableList};
+
+			} else {
+				return { action: 'filterCourse', success: false, message: 'Filtro NON applicato' };
+			}
+		} catch (error) {
+			console.error('Error filterCourse:', error);
+			return { action: 'filterCourse', success: false, message: 'Errore filterCourse' };
 		}
 	}
 

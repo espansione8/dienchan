@@ -258,7 +258,7 @@
 
 	const imgSrc = (value: string) => {
 		const src = $coursesInfo.filter((item: any) => item.id == value);
-		return src[0]?.urlPic || 'images/default.png';
+		return src[0]?.urlPic || 'images/picture.png';
 	};
 
 	const bgColor = (value: string) => {

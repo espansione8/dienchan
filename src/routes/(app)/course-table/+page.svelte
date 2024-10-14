@@ -41,6 +41,7 @@
 	let countryState = $state('');
 	let location = $state('');
 	let layoutId = $state('');
+	let userId = $state('');
 	let tagArray: any[] = $state([]);
 	let tag = $state('');
 	let stockQty = $state(1);
@@ -462,14 +463,14 @@
 
 	const onSubmitFilterSearch = async () => {
 		resetActive = true;
-		//let countryState = '';
-		let title = '';
+		let countryState = '';
+		let layoutId = '';
 		let userId = '';
-		//if (countryState) countryState = countryState;
-		if (selectedLayout) title = selectedLayout;
+		if (countryState) countryState = countryState;
+		if (selectedLayout) layoutId = selectedLayout;
 		if (selectedUserId) userId = selectedUserId;
-		const arrayField = ['countryState', 'title', 'userId', 'type'];
-		const arrayValue = [countryState, title, userId, 'course'];
+		const arrayField = ['countryState', 'layoutId', 'userId', 'type'];
+		const arrayValue = [countryState, layoutId, userId, 'course'];
 		const response = await fetch(`/api/finds/0/0`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -489,8 +490,8 @@
 				...obj,
 				createdAt: obj.createdAt.substring(0, 10),
 				eventStartDate: obj.eventStartDate.substring(0, 10),
-				timeStartDate: obj.eventStartDate.substring(11, 16),
-				timeEndDate: obj.eventEndDate.substring(11, 16)
+				timeStartDate: obj.eventStartDate.substring(11, 16)
+				// timeEndDate: obj.eventEndDate.substring(11, 16)
 				// startYear: obj.eventStartDate.substring(0, 4),
 				// startMonth: obj.eventStartDate.subString(4, 5),
 				// startDay: obj.eventStartDate.subString(5, 7),
@@ -507,6 +508,7 @@
 		}
 		if (response.status != 200) {
 			console.log('KO', response);
+			isModalFilterCourse = false;
 			toastClosed = false;
 			notificationContent = 'errore filtro';
 			notificationError = true;
@@ -515,6 +517,10 @@
 	};
 
 	const onOpenFilter = () => {
+		countryState = ';'
+		layoutId = '';
+		userId = '';
+		postAction = `?/filterCourse`;
 		isModalFilterCourse = true;
 	};
 
@@ -544,16 +550,16 @@
 			postAction = `?/newCourse`;
 		}
 		if (type == 'modify') {
-			console.log('okkk', item);
+			// console.log('item', item);
 			prodId = item.prodId;
 			layoutId = item.layoutId;
-			price = item.price;
+			price = item.layoutView.price;
 			stockQty = item.stockQty;
 			countryState = item.countryState;
 			notificationEmail = item.notificationEmail;
 			tagArray = item.tag;
-			title = item.title;
-			descrLong = item.descrLong;
+			title = item.layoutView.title;
+			descrLong = item.layoutView.descr;
 			infoExtra = item.infoExtra;
 			location = item.location;
 			startYear = Number(item.eventStartDate.substring(0, 4));
@@ -562,15 +568,15 @@
 			startHour = Number(item.eventStartDate.substring(11, 13));
 			startMinute = Number(item.eventStartDate.substring(14, 16));
 
-			console.log(
-				'Day',
-				item.eventStartDate,
-				startYear,
-				startMonth,
-				startDay,
-				startHour,
-				startMinute
-			);
+			// console.log(
+			// 	'Day',
+			// 	item.eventStartDate,
+			// 	startYear,
+			// 	startMonth,
+			// 	startDay,
+			// 	startHour,
+			// 	startMinute
+			// );
 			// console.log('event',item.eventStartDate )
 			postAction = `?/modifyCourse`;
 		}
@@ -597,7 +603,9 @@
 		notificationEmail = [userData.email];
 		tag = '';
 		tagArray = [];
-		tableList = getTable;
+		if (resetActive != true) {
+			tableList = getTable;
+		}
 	};
 
 	const selectLayout = (layout: any) => {
@@ -670,19 +678,27 @@
 	$effect(() => {
 		if (form != null) {
 			async () => await invalidateAll();
-			const { action, success, message } = form;
+			const { action, success, message, filterTableList } = form;
 			if (success) {
 				closeNotification();
 				//resetFieldsModalFilter();
 				isModal = false;
 				isModalConfirmDelete = false;
+				isModalFilterCourse = false;
+				resetActive = false;
 				tableList = getTable;
+				if (postAction == '?/filterCourse') {
+					resetActive = true;
+					console.log('filterTableList', filterTableList);
+					tableList = filterTableList;
+				}
 			} else {
 				notificationError = true;
 			}
 			toastClosed = false;
 			notificationContent = message;
 			form = null;
+			postAction = ``;
 		}
 	}); // end effect
 </script>
@@ -765,7 +781,7 @@
 						</p>
 					</td>
 					<!-- Prezzo -->
-					<td>{row.price} €</td>
+					<td>{row.layoutView.price} €</td>
 					<!-- Azione -->
 					<td class="flex items-center space-x-4">
 						<button
@@ -795,6 +811,7 @@
 		</div>
 	{/if}
 </div>
+
 <Notification {toastClosed} {notificationContent} {notificationError} />
 
 <!-- modal filter  -->
@@ -805,7 +822,7 @@
 			<p class="text-blue-100">Personalizza la tua ricerca selezionando i criteri desiderati</p>
 		</div>
 
-		<div class="p-6 space-y-6">
+		<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
 			<div class="space-y-4">
 				<div>
 					<label for="countryState" class="block text-sm font-medium text-gray-700 mb-1"
@@ -817,7 +834,7 @@
 						bind:value={countryState}
 						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
-						<option value="">Scegli una Provincia</option>
+						<option value="" >Scegli una Provincia</option>
 						{#each $province as item}
 							<option value={item.title}>{item.title}</option>
 						{/each}
@@ -830,10 +847,11 @@
 					>
 					<select
 						id="layoutId"
-						bind:value={selectedLayout}
+						name="layoutId"
+						bind:value={layoutId}
 						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
-						<option value="">Scegli un tipo</option>
+						<option value="" >Scegli un tipo</option>
 						{#each getLayout as option}
 							<option value={option.layoutId}>{option.title}</option>
 						{/each}
@@ -846,7 +864,8 @@
 					>
 					<select
 						id="reflexologist"
-						bind:value={selectedUserId}
+						name="userId"
+						bind:value={userId}
 						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
 						<option value="">Scegli un riflessologo</option>
@@ -856,22 +875,20 @@
 					</select>
 				</div>
 			</div>
-		</div>
 
-		<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
-			<button
-				class="btn btn-error btn-sm rounded-md hover:bg-red-300"
-				onclick={onCloseFilterSearch}
-			>
-				Annulla
-			</button>
-			<button
-				class="btn btn-success btn-sm rounded-md hover:bg-green-400"
-				onclick={onSubmitFilterSearch}
-			>
-				Applica Filtri
-			</button>
-		</div>
+			<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
+				<button
+					class="btn btn-error btn-sm rounded-md hover:bg-red-300"
+					type="button"
+					onclick={onCloseFilterSearch}
+				>
+					Annulla
+				</button>
+				<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit">
+					Applica Filtri
+				</button>
+			</div>
+		</form>
 	</div>
 </dialog>
 <!-- /modal filter  -->
