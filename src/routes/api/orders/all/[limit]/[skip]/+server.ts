@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { Order } from '$lib/models/Orders.model';
+import { User } from '$lib/models/Users.model'; // neeed for populate userView
 import dbConnect from '$lib/database';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -22,7 +23,10 @@ export const GET: RequestHandler = async ({ params }) => {
 
 	try {
 		await dbConnect();
-		const all = await Order.find().limit(queryLimit).skip(skipResults).populate('userView').lean().sort({ orderDate: -1 }).exec();
+		const all = await Order.find().limit(queryLimit).skip(skipResults).sort({ orderDate: -1 }).lean().populate({
+			path: 'userView',
+			options: { strictPopulate: false }
+		}).exec();
 		//throw new Error("@1migration task: Migrate this return statement (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292701)");
 		// Suggestion (check for correctness before using):
 		return json(all);
@@ -30,7 +34,7 @@ export const GET: RequestHandler = async ({ params }) => {
 		// 	body: all
 		// };
 	} catch (err) {
-		console.log('GET User all ERROR:', err);
+		console.log('GET Orders all ERROR:', err);
 		return json({
 			error: `Server error: ${err}`
 		}, {

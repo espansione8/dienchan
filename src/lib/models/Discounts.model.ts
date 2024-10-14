@@ -60,4 +60,4 @@ const discountSchema = new Schema(
 // });
 
 //module.exports = mongoose.model('Order', orderSchema);
-export const Discount = mongoose.models.Discounts || mongoose.model('Discounts', discountSchema);
+export const Discount = mongoose.models.Discount || mongoose.model('Discount', discountSchema);

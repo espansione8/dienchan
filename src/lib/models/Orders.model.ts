@@ -101,7 +101,7 @@ const orderSchema = new Schema(
 //orderSchema.index({ title: 1, descrLong: 1 });
 
 orderSchema.virtual('userView', {
-	ref: 'Users', // The model to use
+	ref: 'User', // The model to use
 	localField: 'userId', // Find where `localField`
 	foreignField: 'userId', // is equal to `foreignField`
 	justOne: true
@@ -110,4 +110,4 @@ orderSchema.virtual('userView', {
 });
 
 //module.exports = mongoose.model('Order', orderSchema);
-export const Order = mongoose.models.Orders || mongoose.model('Orders', orderSchema);
+export const Order = mongoose.models.Order || mongoose.model('Order', orderSchema);

@@ -23,7 +23,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			totalCart: obj.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(0)
 		}));
 
-		// LISTA NOMI RIFLESSOLOGI
+		//LISTA NOMI RIFLESSOLOGI
 		const resName = await fetch(
 			`${import.meta.env.VITE_BASE_URL}/api/users/all-active-names/0/0`
 		);

@@ -1,6 +1,6 @@
 import mongoose, { Schema, Types } from 'mongoose';
 
-const layoutSchema = new Schema(
+const LayoutSchema = new Schema(
     {
         layoutId: {
             type: String,
@@ -14,7 +14,7 @@ const layoutSchema = new Schema(
         urlPic: { type: String, default: '' },
         bgColor: { type: String, default: '' },
         price: { type: Number, default: 0 }, // in days
-        
+
         bundleProduct: [{
             _id: false,  // This prevents MongoDB from adding _id to array elements
             prodId: { type: String, default: '' },
@@ -40,4 +40,4 @@ const layoutSchema = new Schema(
 //     //count: true // And only get the number of docs
 // });
 
-export const Layout = mongoose.models.ProductLayouts || mongoose.model('ProductLayouts', layoutSchema);
+export const Layout = mongoose.models.Layout || mongoose.model('Layout', LayoutSchema);

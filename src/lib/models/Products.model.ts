@@ -175,7 +175,7 @@ const productSchema = new Schema(
 );
 
 productSchema.virtual('userView', {
-    ref: 'Users', // The model to use
+    ref: 'User', // The model to use
     localField: 'userId', // FIND WHERE `localField` 
     foreignField: 'userId', // IS EQUAL TO `foreignField` 
     justOne: true,
@@ -183,7 +183,7 @@ productSchema.virtual('userView', {
     //count: true // And only get the number of docs
 });
 productSchema.virtual('layoutView', {
-    ref: 'ProductLayouts', // The model to use
+    ref: 'Layout', // The model to use
     localField: 'layoutId', // FIND WHERE `localField` 
     foreignField: 'layoutId', // IS EQUAL TO `foreignField` 
     justOne: true,
@@ -191,4 +191,4 @@ productSchema.virtual('layoutView', {
     //count: true // And only get the number of docs
 });
 
-export const Product = mongoose.models.Products || mongoose.model('Products', productSchema);
+export const Product = mongoose.models.Product || mongoose.model('Product', productSchema);

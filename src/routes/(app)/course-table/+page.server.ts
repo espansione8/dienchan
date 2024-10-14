@@ -7,7 +7,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		throw redirect(302, '/login');
 	}
 
-	let getTable = [];
+	let getTable: any = [];
 	let getTableNames = [];
 	let getLayout = [];
 	const userId = locals.data.userId || ''
@@ -20,7 +20,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		const res = await fetch(path);
 
 		const resGetTable = await res.json();
-		// console.log({ resGetTable })
+		//console.log({ resGetTable })
 
 		getTable = resGetTable.map((obj: any) => ({
 			...obj,
@@ -192,7 +192,6 @@ export const actions: Actions = {
 	},
 
 	deleteCourse: async ({ request, fetch }) => {
-
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');
 		try {
@@ -218,21 +217,14 @@ export const actions: Actions = {
 	},
 
 	filterCourse: async ({ request, fetch }) => {
-
-
 		const formData = await request.formData();
 		const countryState = formData.get('countryState');
 		const layoutId = formData.get('layoutId');
 		const userId = formData.get('userId');
-		console.log('layoutId', layoutId);
-		console.log('userId', userId);
-		console.log('countryState', countryState);
-
+		// console.log('layoutId', layoutId);
 
 		const arrayField = ['countryState', 'layoutId', 'userId', 'type'];
 		const arrayValue = [countryState, layoutId, userId, 'course'];
-
-
 		try {
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
 				method: 'POST',
@@ -245,21 +237,17 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				}
 			});
-			console.log('response', response);
+			//console.log('response', response);
 			const result = await response.json();
 
-
-			if (response.ok) {
-
-
-				
+			if (response.status == 200) {
 				const filterTableList = result.map((obj: any) => ({
 					...obj,
 					createdAt: obj.createdAt.substring(0, 10),
 					eventStartDate: obj.eventStartDate.substring(0, 10),
 					timeStartDate: obj.eventStartDate.substring(11, 16)
 				}));
-				return { action: 'filterCourse', success: true, message: 'Filtro applicato' , filterTableList};
+				return { action: 'filterCourse', success: true, message: 'Filtro applicato', filterTableList };
 
 			} else {
 				return { action: 'filterCourse', success: false, message: 'Filtro NON applicato' };

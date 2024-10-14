@@ -3,7 +3,7 @@ import { User } from '$lib/models/Users.model';
 import dbConnect from '$lib/database';
 import type { RequestHandler } from '@sveltejs/kit';
 
-///BASE_URL/api/users/all/:limit/:skip
+///BASE_URL/api/users/all-active-names/:limit/:skip
 
 export const GET: RequestHandler = async ({ params }) => {
 	let queryLimit = 1;

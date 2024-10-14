@@ -1,6 +1,8 @@
 ///BASE_URL/api/products/find/:field/:value/:limit/:skip
 import { json } from '@sveltejs/kit';
 import { Product } from '$lib/models/Products.model';
+import { Layout } from '$lib/models/ProductLayouts.model';	// need for populate
+import { User } from '$lib/models/Users.model';				// need for populate
 import dbConnect from '$lib/database';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -32,10 +34,17 @@ export const GET: RequestHandler = async ({ params }) => {
 			.limit(queryLimit)
 			.skip(skipResults)
 			.lean()
-			.populate(['userView', 'layoutView'])
-			//.populate('userView')
+			.populate({
+				path: 'userView',
+				options: { strictPopulate: false }
+			})
+			.populate({
+				path: 'layoutView',
+				options: { strictPopulate: false }
+			})
 			.exec();
 
+		//console.log({ find });
 		return json(find);
 		// return {
 		// 	body: find

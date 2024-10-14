@@ -20,9 +20,15 @@
 	let { getOrders, getTableNames, auth } = $derived(data);
 	let tableList = $state(getOrders || []);
 
+	tableList
+		.filter((element) => element.userView != null)
+		.forEach((element) => {
+			console.log('element', element.orderId, element.userId);
+		});
+
 	const imgSrc = (value: string) => {
 		const src = $coursesInfo.filter((item: any) => item.id == value);
-		return src[0].urlPic;
+		return src[0]?.urlPic || '/images/no-image.png';
 	};
 
 	let isModalFilterOrder = $state(false);
@@ -589,9 +595,9 @@
 					<!-- ID ordine-->
 					<td>{row.orderId}</td>
 					<!-- Email-->
-					<td>{row.userView.email}</td>
+					<td>{row.userView?.email}</td>
 					<!-- Nome-->
-					<td>{row.userView.name} {row.userView.surname}</td>
+					<td>{row.userView?.name} {row.userView?.surname}</td>
 					<!-- Ordine -->
 					<td>
 						<div class="flex flex-col space-y-1">
