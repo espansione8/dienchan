@@ -7,7 +7,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	// 	throw redirect(302, '/login');
 	// }
 
-	let getTableCourses = [];
+	let getTable = [];
 	let getTableNames = [];
 
 	try {
@@ -15,13 +15,27 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		//console.log('MY DOCS userData', userData);
 
 		// CORSI
+		// const resProductsCorso = await fetch(
+		// 	`${import.meta.env.VITE_BASE_URL}/api/courses/all-enabled/0/0`
+		// );
+		// const resGetTableProductsCorso = await resProductsCorso.json();
+		// getTable = resGetTableProductsCorso.map((obj) => ({
+		// 	...obj,
+		// 	createdAt: obj.createdAt.substring(0, 10)
+		// }));
+
 		const resProductsCorso = await fetch(
-			`${import.meta.env.VITE_BASE_URL}/api/courses/all-enabled/0/0`
+			`${import.meta.env.VITE_BASE_URL}/api/products/find/type/course/0/0`
 		);
-		const resGetTableProductsCorso = await resProductsCorso.json();
-		getTableCourses = resGetTableProductsCorso.map((obj) => ({
+
+		const resGetTable = await resProductsCorso.json();
+
+		getTable = resGetTable.map((obj: any) => ({
 			...obj,
-			createdAt: obj.createdAt.substring(0, 10)
+			createdAt: obj.createdAt.substring(0, 10),
+			eventStartDate: obj.eventStartDate.substring(0, 10),
+			timeStartDate: obj.eventStartDate.substring(11, 16),
+			//timeEndDate: obj.eventEndDate.substring(11, 16),
 		}));
 
 		// LISTA NOMI RIFLESSOLOGI
@@ -36,7 +50,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	}
 	//console.log('getTableCorsi', getTableCorsi);
 	return {
-		getTableCourses,
+		getTable,
 		getTableNames,
 		auth: locals.auth
 		//userData

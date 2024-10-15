@@ -6,9 +6,9 @@ import type { RequestHandler } from '@sveltejs/kit';
 ///BASE_URL/api/users/all-active-names/:limit/:skip
 
 export const GET: RequestHandler = async ({ params }) => {
-	let queryLimit = 1;
+	let queryLimit = 10;
 	if (isNaN(Number(params.limit)) || params.limit === '0') {
-		queryLimit = 10;
+		queryLimit = 1000;
 	} else {
 		queryLimit = Number(params.limit);
 	}

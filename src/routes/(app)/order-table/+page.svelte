@@ -6,14 +6,10 @@
 	import {
 		ListPlus,
 		Filter,
-		ArrowUp,
-		ArrowDown,
-		FilterX,
-		MapPin,
 		XCircle,
-		CircleAlert,
-		Search,
-		ShieldAlert
+		ShieldAlert,
+		RefreshCcw,
+		FileDown
 	} from 'lucide-svelte';
 
 	let { data } = $props();
@@ -533,31 +529,30 @@
 </svelte:head>
 
 <div class="overflow-x-auto mt-5 px-4 mb-5">
-	<div class="flex justify-between items-center w-full">
-		<div class="flex space-x-4">
+
+
+	<div class="flex flex-col gap-4 mb-4">
+		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">
+			Ordini
+		</h1>
+		<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
+			<button class="btn btn-info text-white w-full sm:w-auto" onclick={onFilterReset}>
+				<RefreshCcw />
+			</button>
 			{#if resetActive == true}
-				<button
-					class="btn btn-error rounded-md text-white border-orange-500 hover:bg-red-200 hover:text-red-600 hover:border-red-400"
-					onclick={onFilterReset}
-				>
+				<button class="btn btn-error rounded-md text-white" onclick={onFilterReset}>
 					<XCircle class="mt-1" /> Reset Filtro
 				</button>
 			{:else}
-				<button class="btn rounded-md text-white btn-info" onclick={onOpenFilter}>
+				<button class="btn btn-info rounded-md text-white" onclick={onOpenFilter}>
 					<Filter class="mt-1" /> Filtra
 				</button>
 			{/if}
+			<button class="btn btn-info text-white w-full sm:w-auto"  onclick={() => csvCreate()}>
+				<FileDown />CSV
+			</button>
 		</div>
-
-		<header class="text-2xl font-bold text-gray-700 absolute left-1/2 transform -translate-x-1/2">
-			Ordini
-		</header>
-
-		<button class="btn btn-info rounded-md text-white" onclick={() => csvCreate()}>
-			<ListPlus /> Scarica CSV
-		</button>
 	</div>
-
 	<table class="table mt-5 bg-white border-2">
 		<!-- head -->
 		<thead class="text-base italic bg-info text-accent">

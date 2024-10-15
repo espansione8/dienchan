@@ -140,7 +140,6 @@
 			closeNotification();
 		}
 		if (response.status != 200) {
-			//console.log('KO', response);
 			toastClosed = false;
 			notificationContent = 'errore filtro';
 			notificationError = true;

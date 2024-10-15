@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
+	import Modal from '$lib/components/Modal.svelte';
 	import {
 		CopyPlus,
 		Settings,
@@ -9,7 +9,10 @@
 		StretchHorizontal,
 		ImagePlus,
 		Calculator,
-		Palette
+		Palette,
+		RefreshCcw,
+		XCircle,
+		Filter
 	} from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 	import Notification from '$lib/components/Notification.svelte';
@@ -65,13 +68,17 @@
 	let currentDialog = $state('');
 	let isModal = $state(false);
 	let postAction = $state('');
+	let modalTitle = $state('');
+
 	const onClickDialog = (type: string, item: any) => {
 		currentDialog = type;
 		isModal = true;
 		if (type == 'new') {
 			postAction = `?/newLayout`;
+			modalTitle = 'Nuovo Layout';
 		}
 		if (type == 'modify') {
+			modalTitle = 'Modifica Layout';
 			layoutId = item.layoutId;
 			title = item.title;
 			descr = item.descr;
@@ -83,6 +90,8 @@
 			postAction = `?/modifyLayout`;
 		}
 	};
+
+	let resetActive = $state(false);
 
 	$effect(() => {
 		// console.log({ form });
@@ -120,14 +129,30 @@
 </noscript>
 
 <div class="overflow-x-auto mt-5 px-4 mb-5">
-	<span class="flex justify-between">
-		<button
-			class="btn btn-info text-white w-full sm:w-auto"
-			onclick={() => onClickDialog('new', null)}><CopyPlus /> Nuovo</button
-		>
-		<header class="text-center text-2xl font-bold text-gray-700">Lista modelli</header>
-		<button class="btn btn-info text-white w-full sm:w-auto"><FileDown /> Scarica CSV</button>
-	</span>
+	<div class="flex flex-col gap-4 mb-4">
+		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Lista modelli</h1>
+		<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
+			<button class="btn btn-info text-white w-full sm:w-auto">
+				<RefreshCcw />
+			</button>
+			{#if resetActive == true}
+				<button class="btn btn-error rounded-md text-white">
+					<XCircle class="mt-1" /> Reset Filtro
+				</button>
+			{:else}
+				<button class="btn btn-info rounded-md text-white">
+					<Filter class="mt-1" /> Filtra
+				</button>
+			{/if}
+			<button class="btn btn-info rounded-md text-white" onclick={() => onClickDialog('new', null)}>
+				<CopyPlus /> Nuovo
+			</button>
+			<button class="btn btn-info text-white w-full sm:w-auto">
+				<FileDown />CSV
+			</button>
+		</div>
+	</div>
+
 	<table class="table mt-5 border-2">
 		<!-- head -->
 		<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">
@@ -180,7 +205,7 @@
 <Notification {toastClosed} {notificationContent} {notificationError} />
 
 <!-- modal New and Modify  -->
-<dialog id="modal_new-modify" class="modal" class:modal-open={isModal}>
+<dialog id="modal_new-modify" class="modal" class:modal-open={false}>
 	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-2xl">
 		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
 			<h2 class="text-2xl font-bold text-white mb-1">
@@ -315,13 +340,12 @@
 				</div>
 			</section>
 
-			<!-- ALtre informazione -->
-
 			<!-- registra corso button -->
 			<div class="col-span-4 mt-5 flex justify-center">
 				<div class="bg-gray-50 flex justify-center">
 					<button
 						class="btn btn-error btn-sm mx-2"
+						type="button"
 						onclick={() => {
 							(isModal = false), resetFields();
 						}}
@@ -343,7 +367,7 @@
 <!-- /modal New and Modify -->
 
 <!-- Modal confirm delete -->
-<dialog id="modal_confirm_delete" class="modal" class:modal-open={isModalConfirmDelete}>
+<dialog id="modal_confirm_delete" class="modal" class:modal-open={false}>
 	<div
 		class="modal-box bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass flex flex-row justify-between max-w-2xl"
 	>
@@ -359,3 +383,163 @@
 		</form>
 	</div>
 </dialog>
+
+<!-- modal New and Modify  -->
+<Modal isOpen={isModal} header={modalTitle} cssClass="max-w-4xl">
+	<form
+		method="POST"
+		action={postAction}
+		use:enhance
+		class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+	>
+		{#if currentDialog == 'modify'}
+			<section class="col-span-4">
+				<label for="discountId" class="form-label">
+					<p class="font-bold mb-2">ID codice</p>
+				</label>
+
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="layoutId"
+						name="layoutId"
+						type="text"
+						placeholder="layoutId"
+						bind:value={layoutId}
+						readonly
+					/>
+				</div>
+			</section>
+		{/if}
+		<section class="col-span-4">
+			<label for="title" class="form-label">
+				<p class="font-bold mb-2">Titolo</p>
+			</label>
+			<div class="join join-horizontal w-full">
+				<button class="join-item bg-gray-300 px-3"><Pen /></button>
+				<textarea
+					class="textarea textarea-bordered h-24 join-item w-full"
+					id="title"
+					name="title"
+					placeholder="Titolo"
+					bind:value={title}
+				/>
+			</div>
+		</section>
+
+		<section class="col-span-4 md:col-span-4">
+			<label for="descr" class="form-label">
+				<p class="font-bold mb-2">Descrizione</p>
+			</label>
+			<div class="join join-horizontal w-full">
+				<button class="join-item bg-gray-300 px-3"><StretchHorizontal /></button>
+				<textarea
+					class="textarea textarea-bordered h-24 join-item w-full"
+					id="descr"
+					name="descr"
+					placeholder="Descrizione"
+					bind:value={descr}
+				/>
+			</div>
+		</section>
+		<!-- URL image -->
+		<section class="col-span-4 md:col-span-4">
+			<label for="urlPic" class="form-label">
+				<p class="font-bold mb-2">URL immagine</p>
+			</label>
+			<div class="join join-horizontal w-full">
+				<button class="join-item bg-gray-300 px-3"><ImagePlus /></button>
+				<input
+					type="text"
+					class="input input-bordered w-full join-item"
+					name="urlPic"
+					placeholder="Inserisci il percorso dell'immagine"
+					bind:value={urlPic}
+				/>
+			</div>
+		</section>
+		<!-- Color -->
+		<section class="col-span-2 md:col-span-2">
+			<label for="bgColor" class="form-label">
+				<p class="font-bold mb-2">Colore</p>
+			</label>
+			<div class="join join-horizontal w-full">
+				<button class="join-item bg-gray-300 px-3"><Palette /></button>
+				<input
+					type="text"
+					class="input input-bordered w-full join-item"
+					name="bgColor"
+					placeholder="Inserisci il percorso dell'immagine"
+					bind:value={bgColor}
+				/>
+			</div>
+		</section>
+		<!-- Value -->
+		<section class="col-span-2 md:col-span-2">
+			<label for="price" class="form-label">
+				<p class="font-bold mb-2">Prezzo</p>
+			</label>
+			<div class="join join-horizontal w-full">
+				<button class="join-item bg-gray-300 px-3"><Calculator /></button>
+				<input
+					class="input input-bordered join-item w-full"
+					id="price"
+					type="number"
+					name="price"
+					bind:value={price}
+				/>
+			</div>
+		</section>
+		<!-- Bundle product -->
+		<section class="col-span-4">
+			<label for="bundleProduct" class="form-label">
+				<p class="font-bold mb-2">Correlati</p>
+			</label>
+			<div class="join join-horizontal rounded-md w-full">
+				<button class="join-item bg-gray-300 px-3"><Pen /></button>
+				<textarea
+					class="textarea textarea-bordered h-24 join-item w-full"
+					id="correlati"
+					name="bundleProduct"
+					placeholder="Correlati"
+					bind:value={bundleProduct}
+				/>
+			</div>
+		</section>
+		<!-- registra corso button -->
+		<div class="col-span-4 mt-5 flex justify-center">
+			<div class="bg-gray-50 flex justify-center">
+				<button
+					class="btn btn-error btn-sm mx-2"
+					type="button"
+					onclick={() => {
+						(isModal = false), resetFields();
+					}}
+				>
+					Annulla
+				</button>
+				<button type="submit" class="btn btn-success btn-sm mx-2 text-white">
+					{#if currentDialog == 'new'}
+						Registra
+					{:else if currentDialog == 'modify'}
+						Modifica
+					{/if}
+				</button>
+			</div>
+		</div>
+	</form>
+</Modal>
+
+<!-- Modal confirm delete -->
+<Modal isOpen={isModalConfirmDelete} header="Conferma l'eliminazione?" cssClass="max-w-2xl">
+	<form action="?/deleteLayout" method="POST" use:enhance>
+		<input type="hidden" name="layoutId" value={deleteId} />
+		<div class="flex justify-center space-x-10 mt-4">
+			<button class="btn btn-error btn-md" type="button" onclick={onCloseConfirmDelete}
+				>Annulla</button
+			>
+			<button class="btn btn-success btn-md text-white" type="submit"><Trash2 />Conferma</button>
+		</div>
+	</form>
+</Modal>

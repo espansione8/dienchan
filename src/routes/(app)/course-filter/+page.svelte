@@ -21,8 +21,10 @@
 	// moment.locale('it');
 
 	let { data, auth } = $props();
-	let { getTableCourses, getTableNames } = $derived(data);
-	let coursesList = $state(getTableCourses);
+	let { getTable, getTableNames } = $derived(data);
+	let coursesList = $state(getTable);
+
+	console.log('coursesList', coursesList);
 
 	const checkCart = (id) => {
 		const check = $cartProducts.some((item) => item.prodId == id);
@@ -39,7 +41,7 @@
 
 	function findNameRiflessologo(userIdCode) {
 		//console.log('userIdCode', userIdCode);
-		const findRiflessologo = getTableCourses.find((user) => user.userId == userIdCode);
+		const findRiflessologo = getTable.find((user) => user.userId == userIdCode);
 		return `${findRiflessologo.name} ${findRiflessologo.surname}`;
 	}
 
@@ -90,7 +92,7 @@
 	nomiMesi.forEach((mese) => (conteggioMesi[mese] = 0));
 
 	// Contare le occorrenze per ogni mese
-	getTableCourses.forEach((item) => {
+	getTable.forEach((item) => {
 		const meseTesto = new Date(item.eventStartDate).toLocaleString('it-IT', { month: 'long' });
 		const mese = capitalizzaPrimaLettera(meseTesto);
 		conteggioMesi[mese]++;
@@ -117,7 +119,7 @@
 
 	const onFilterReset = () => {
 		// invalidateAll();
-		coursesList = getTableCourses || '';
+		coursesList = getTable || '';
 		coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
 		filtriAttivi = {
@@ -137,7 +139,7 @@
 	};
 
 	const updateFilter = () => {
-		coursesList = getTableCourses;
+		coursesList = getTable;
 		// provincia
 		if (filtriAttivi.provincia) {
 			coursesList = coursesList.filter((item) => item.countryState == filtriAttivi.provincia);
@@ -253,7 +255,7 @@
 	// 	});
 	// };
 
-	// console.log('getTableCourses.category',getTableCourses)
+	// console.log('getTable.category',getTable)
 	const course = $coursesInfo.filter((item: any) => item.id == coursesList.category);
 
 	const imgSrc = (value: string) => {
@@ -541,7 +543,7 @@
 				>
 					<figure class="px-8 pt-8">
 						<img
-							src={imgSrc(courseData.category[0])}
+							src={courseData.layoutView.urlPic}
 							alt="tipo corso"
 							class="h-full w-full object-cover border-2 rounded-lg"
 						/>
@@ -549,7 +551,7 @@
 					<div class="card-body items-center text-center">
 						<!-- data giorno -->
 						<h2 class="card-title text-2xl">
-							{moment(courseData.eventStartDate).format('DD/MM/YYYY')}
+							{courseData.eventStartDate}
 						</h2>
 						<!-- luogo -->
 						<p class="card-text text-xl">
@@ -558,36 +560,29 @@
 						<!-- title -->
 						<h5
 							class="card-text text-xl bg-base-200 border rounded-md shadow-sm font-semibold p-2
-						 {bgColor(courseData.category)}"
+						 {courseData.layoutView.bgColor}"
 						>
-							{courseData.title}
+							{courseData.layoutView.title}
 						</h5>
 						<!-- riflessologo -->
 						<p class="card-text">
-							Riflessologo: <b>{findNameRiflessologo(courseData.userId)}</b>
+							Riflessologo: <b>{courseData.name} {courseData.surname}</b>
 						</p>
 						<!-- dalle x alle y -->
 						<h5 class="card-text">
-							Dalle <b>{moment(courseData.eventStartDate).format('HH:mm')}</b>
-							alle <b>{moment(courseData.eventEndDate).format(' HH:mm')}</b>
+							Dalle <b>{courseData.timeStartDate}</b>
+							<!-- alle <b>{moment(courseData.eventEndDate).format(' HH:mm')}</b> -->
 						</h5>
 						<!-- price -->
 						<p class="card-text">
-							<!-- {#if auth}
-								Prezzo: <b>{auth ? courseData.price - 25 : courseData.price} €</b>
-							{/if} -->
-
-							Prezzo: <b>{courseData.price} €</b>
+							Prezzo: <b>{courseData.layoutView.price} €</b>
 						</p>
-
 						<div class="card-actions">
 							<span class="flex justify-between gap-10 my-3">
 								<button
 									class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:text-gray-300"
 									onclick={() => onClickInfo(courseData.prodId)}>Info</button
 								>
-
-								<!-- {#if currentCart.some((item) => item.prodId == courseData.prodId)} -->
 								{#if checkCart(courseData.prodId)}
 									<!-- in carello -->
 									<button

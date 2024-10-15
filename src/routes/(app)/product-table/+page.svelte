@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { CopyPlus } from 'lucide-svelte';
+	import { CopyPlus, RefreshCcw, XCircle, Filter, FileDown } from 'lucide-svelte';
 
 	let { data } = $props();
 	let { getTable } = $derived(data);
 	let tableList = $state(getTable);
+	
+	let resetActive = $state(false);
 
 	const onClickModify = (id: number) => {
 		goto(`/product-modify/${id}`);
@@ -33,14 +35,35 @@
 </noscript>
 
 <div class="overflow-x-auto mt-5 px-4 mb-5">
-	<span class="flex justify-between">
-		<button
-			class="btn btn-success rounded-md text-white border-green-500 hover:bg-gray-200 hover:text-success hover:border-success"
-			onclick={() => onGotoNewProduct()}><CopyPlus /> Nuovo prodotto</button
-		>
-		<header class="text-center text-2xl font-bold text-gray-700">Lista prodotti</header>
-		<button class="btn btn-success invisible"><CopyPlus /> Scarica CSV</button>
-	</span>
+
+	<div class="flex flex-col gap-4 mb-4">
+		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">
+			Lista prodotti
+		</h1>
+		<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
+			<button class="btn btn-info text-white w-full sm:w-auto" >
+				<RefreshCcw />
+			</button>
+			{#if resetActive == true}
+				<button class="btn btn-error rounded-md text-white">
+					<XCircle class="mt-1" /> Reset Filtro
+				</button>
+			{:else}
+				<button class="btn btn-info rounded-md text-white" >
+					<Filter class="mt-1" /> Filtra
+				</button>
+			{/if}
+			<button class="btn btn-info rounded-md text-white" onclick={() => onGotoNewProduct()}>
+				<CopyPlus /> Nuovo
+			</button>
+			<button class="btn btn-info text-white w-full sm:w-auto">
+				<FileDown />CSV
+			</button>
+		</div>
+	</div>
+
+
+
 	<table class="table mt-5 border-2">
 		<!-- head -->
 		<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">

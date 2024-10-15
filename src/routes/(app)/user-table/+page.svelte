@@ -10,7 +10,7 @@
 		Filter,
 		Trash2,
 		Settings,
-		View,
+		UserRoundSearch ,
 		Eye,
 		XCircle,
 		EyeOff,
@@ -21,7 +21,10 @@
 		Phone,
 		Building2,
 		Smartphone,
-		Globe
+		Globe,
+		RefreshCcw,
+		FileDown,
+		CopyPlus
 	} from 'lucide-svelte';
 	import moment from 'moment';
 	import { enhance } from '$app/forms';
@@ -534,27 +537,30 @@
 </svelte:head>
 
 <div class="overflow-x-auto mt-5 px-4 mb-5">
-	<div class="flex justify-between items-center w-full">
-		<div class="flex space-x-4">
+	<div class="flex flex-col gap-4 mb-4">
+		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">
+			Lista utenti
+		</h1>
+		<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
+			<button class="btn btn-info text-white w-full sm:w-auto" onclick={onFilterReset}>
+				<RefreshCcw />
+			</button>
 			{#if resetActive == true}
-				<button class="btn btn-error text-white" onclick={onFilterReset}>
+				<button class="btn btn-error rounded-md text-white" onclick={onFilterReset}>
 					<XCircle class="mt-1" /> Reset Filtro
 				</button>
 			{:else}
-				<button class="btn btn-info text-white" onclick={onOpenFilter}>
+				<button class="btn btn-info rounded-md text-white" onclick={onOpenFilter}>
 					<Filter class="mt-1" /> Filtra
 				</button>
 			{/if}
-			<button class="btn btn-info text-white" onclick={() => onClickDialog('new', null)}>
-				<ListPlus /> Nuovo
+			<button class="btn btn-info rounded-md text-white" onclick={() => onClickDialog('new', null)}>
+				<CopyPlus /> Nuovo
+			</button>
+			<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate()}>
+				<FileDown />CSV
 			</button>
 		</div>
-		<header class="text-2xl font-bold text-gray-700 absolute left-1/2 transform -translate-x-1/2">
-			Lista utenti
-		</header>
-		<button class="btn text-white btn-info" onclick={() => csvCreate()}>
-			<ListPlus /> Scarica CSV
-		</button>
 	</div>
 
 	<table class="table mt-5 bg-white border-2">
@@ -668,7 +674,7 @@
 						<button
 							onclick={() => onClickDetail(row.userId)}
 							class="btn btn-sm bg-green-200 btn-green-400 rounded-md text-green-800 hover:bg-green-300 hover:text-green-800"
-							><View />
+							><UserRoundSearch  />
 						</button>
 						<button class="btn btn-error btn-sm" onclick={() => onOpenConfirmDelete(row.userId)}
 							><Trash2 /></button
