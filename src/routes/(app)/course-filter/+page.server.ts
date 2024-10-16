@@ -43,16 +43,16 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		});
 		getLayout = await resLayout.json();
 
-
 	} catch (error) {
 		console.log('products-corso fetch error:', error);
 	}
+	const user = locals.data
 	//console.log('getTableCorsi', getTableCorsi);
 	return {
 		getLayout,
 		getTable,
 		getTableNames,
-		auth: locals.auth
-		//userData
+		auth: locals.auth,
+		userData: user
 	};
 }

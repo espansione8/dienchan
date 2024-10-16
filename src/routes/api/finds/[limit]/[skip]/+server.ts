@@ -8,6 +8,22 @@ import { Discount } from '$lib/models/Discounts.model';
 import dbConnect from '$lib/database';
 import type { RequestHandler } from '@sveltejs/kit';
 
+// INSTRUCTION
+// const arrayField = ['type', 'price'];
+// const arrayValue = ['course', 50]; // DEFINE TYPE "course|membership|product" FOR PRODUCT SCEMA
+// const resLayout = await fetch(`/api/finds/0/0`, {
+// 	method: 'POST',
+// 	body: JSON.stringify({
+// 		schema: 'layout', // CHANGE FOR USE SCHEMA
+// 		arrayField,
+// 		arrayValue
+// 	}),
+// 	headers: {
+// 		'Content-Type': 'application/json'
+// 	}
+// });
+// getLayout = await resLayout.json();
+
 export const POST: RequestHandler = async ({ request, params }) => {
 	const body = await request.json();
 	const {
@@ -36,7 +52,7 @@ export const POST: RequestHandler = async ({ request, params }) => {
 
 	// limit + skip
 	let queryLimit = 1;
-	if (isNaN(Number(params.limit)) || params.limit === '0') {
+	if (isNaN(Number(params.limit)) || params.limit == '0') {
 		queryLimit = 1000;
 	} else {
 		queryLimit = Number(params.limit);
@@ -66,17 +82,16 @@ export const POST: RequestHandler = async ({ request, params }) => {
 			.exec();
 
 		//console.log('find', find);
+		if (find.length > 0) {
+			return json(find, { status: 200 });
+		}
+		return json({ message: 'no result' }, { status: 400 });
 
-		return json(find);
 		// return {
 		// 	body: find
 		// };
 	} catch (err) {
 		console.log('Query find ERROR:', err);
-		return json({
-			error: `Server error: ${err}`
-		}, {
-			status: 500
-		});
+		return json({ message: `Server error: ${err}` }, { status: 500 });
 	}
 };

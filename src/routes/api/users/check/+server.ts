@@ -17,7 +17,7 @@ export const POST = async ({ request }) => {
 			.exec();
 
 		//console.log({ user });
-		if (user.email === registerEmail) {
+		if (!user) {
 			return json(
 				{
 					message: 'OK to register'

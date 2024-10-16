@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
-	import { ShoppingCart,	Trash2  } from 'lucide-svelte';
+	import { ShoppingCart, Trash2 } from 'lucide-svelte';
 
 	let { data } = $props();
 	let { getCourse, userData } = $derived(data);
@@ -10,15 +10,14 @@
 		return check;
 	};
 
-	let userfiles = $state(userData.uploadfiles);
-	let findAvatar = $state(userfiles.filter((file: any) => file.type === 'avatar'));
+	let userfiles = $state(userData?.uploadfiles || []);
+	let findAvatar = $state(userfiles.filter((file: any) => file.type == 'avatar'));
 
 	let picFilter = $derived(
-		userData.uploadfiles.filter((item: any) => {
+		userfiles.filter((item: any) => {
 			return item.type == 'avatar';
 		})
 	);
-
 </script>
 
 <svelte:head>
@@ -31,17 +30,25 @@
 		<div class="flex items-center mx-auto gap-20">
 			<!-- Immagine del corso -->
 			<div class="relative w-60 shrink-0 rounded-md overflow-hidden shadow-2xl">
-				<img src={getCourse.layoutView.urlPic} alt="course type" class="h-full w-full object-cover" />
+				<img
+					src={getCourse.layoutView?.urlPic || '/images/avatar.png'}
+					alt="course type"
+					class="h-full w-full object-cover"
+				/>
 			</div>
 			<!-- Dettagli del corso -->
 			<div class="flex flex-col gap-4 mx-auto text-center">
 				<div class="text-3xl font-bold text-blue-600">
-					{(getCourse.eventStartDate).substring(0, 10)}
+					{getCourse.eventStartDate.substring(0, 10)}
 				</div>
 				<div class="text-2xl font-bold text-blue-500 -mt-4">
-					da {(getCourse.eventStartDate).substring(11, 16)} a
+					alle {getCourse.eventStartDate.substring(11, 16)}
 				</div>
-				<div class="text-4xl font-semibold text-gray-800 p-1 rounded-lg {getCourse.layoutView.bgColor}">{getCourse.layoutView.title}</div>
+				<div
+					class="text-4xl font-semibold text-gray-800 p-1 rounded-lg {getCourse.layoutView.bgColor}"
+				>
+					{getCourse.layoutView.title}
+				</div>
 				<div class=" text-3xl text-blue-900">
 					<p>
 						<b>{getCourse.countryState}</b>
@@ -134,9 +141,8 @@
 				</div>
 				<!-- Data -->
 				<div class="text-2xl font-semibold text-gray-700">
-					Data: <b>{(getCourse.eventStartDate).substring(0, 10)} </b> da
-					<b>{(getCourse.eventStartDate).substring(11, 16)}</b>
-					a 
+					Data: <b>{getCourse.eventStartDate.substring(0, 10)} </b> alle
+					<b>{getCourse.eventStartDate.substring(11, 16)}</b>
 				</div>
 				<!-- Numero partecipanti -->
 				<div class="text-2xl font-semibold text-gray-700">
@@ -151,12 +157,15 @@
 					{#if checkCart(getCourse.prodId)}
 						<button
 							class="btn btn-sm bg-red-200 w-48 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400 inline-flex items-center justify-center space-x-2"
-							onclick={() => removeFromCart($cartProducts, getCourse)}><Trash2/> Rimuovi dal Carrello</button
+							onclick={() => removeFromCart($cartProducts, getCourse)}
+							><Trash2 /> Rimuovi dal Carrello</button
 						>
 					{:else}
 						<button
-							class="btn btn-sm bg-green-200 w-48 btn-success rounded-md text-green-700 hover:text-green-300  inline-flex items-center justify-center space-x-2"
-							onclick={() => addToCart($cartProducts, getCourse, false)}> <ShoppingCart/> Aggiungi al Carrello</button
+							class="btn btn-sm bg-green-200 w-48 btn-success rounded-md text-green-700 hover:text-green-300 inline-flex items-center justify-center space-x-2"
+							onclick={() => addToCart($cartProducts, getCourse, false)}
+						>
+							<ShoppingCart /> Aggiungi al Carrello</button
 						>
 					{/if}
 				</div>

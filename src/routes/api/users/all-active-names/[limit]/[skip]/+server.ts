@@ -23,18 +23,33 @@ export const GET: RequestHandler = async ({ params }) => {
 	try {
 		await dbConnect();
 
-		const all = await User.find({ active: true }, { name: 1, surname: 1, userId: 1 }).limit(queryLimit).skip(skipResults).lean().exec();
-		//throw new Error("@1migration task: Migrate this return statement (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292701)");
-		// Suggestion (check for correctness before using):
-		return json(all);
-		// return {
-		// 	body: all
-		// };
+		const all = await User.find({ status: 'enabled' }, { name: 1, surname: 1, userId: 1 }).limit(queryLimit).skip(skipResults).lean().exec();
+
+		//console.log({ all })
+		if (all.length > 0) {
+			return json(
+				{
+					response: all
+				},
+				{
+					status: 200
+				}
+			);
+		}
+		return json(
+			{
+				message: 'user not found'
+			},
+			{
+				status: 400
+			}
+		);
 	} catch (err) {
 		console.log('GET User all ERROR:', err);
-		return json({
-			error: `Server error: ${err}`
-		}, {
+		return json(
+			{
+				message: `Server error: ${err}`
+			}, {
 			status: 500
 		});
 	}

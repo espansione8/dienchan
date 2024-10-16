@@ -28,7 +28,7 @@
 	let { getTable, getTableNames, userData, getLayout } = $derived(data);
 	let tableList = $state(getTable);
 
-	console.log('getTableNames', getTableNames);
+	//console.log('getTableNames', getTableNames);
 
 	const now = new Date();
 	let currentYear = now.getFullYear();
@@ -470,8 +470,6 @@
 		isModalFilterCourse = true;
 	};
 
-
-
 	const onFilterReset = () => {
 		resetActive = false;
 		tableList = getTable;
@@ -511,7 +509,7 @@
 			startDay = Number(item.eventStartDate.substring(8, 10));
 			startHour = Number(item.eventStartDate.substring(11, 13));
 			startMinute = Number(item.eventStartDate.substring(14, 16));
-			
+
 			postAction = `?/modifyCourse`;
 		}
 	};
@@ -1194,7 +1192,7 @@
 					class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 				>
 					<option value="">Scegli un riflessologo</option>
-					{#each tableList as item}
+					{#each getTableNames as item}
 						<option value={item.userId}>{item.surname} {item.name}</option>
 					{/each}
 				</select>

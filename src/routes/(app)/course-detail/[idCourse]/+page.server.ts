@@ -33,7 +33,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 
 
 	return {
-		getCourse,
+		getCourse: getCourse.response,
 		userData,
 		auth: locals.auth
 	};

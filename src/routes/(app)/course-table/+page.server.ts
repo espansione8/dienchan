@@ -30,15 +30,29 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			//timeEndDate: obj.eventEndDate.substring(11, 16),
 		}));
 
+		let arrayField = [];
+		let arrayValue = [];
+
 		// LISTA NOMI RIFLESSOLOGI
-		const resName = await fetch(
-			`${import.meta.env.VITE_BASE_URL}/api/users/all-active-names/0/0`
-		);
+		arrayField = ['status', 'level'];
+		arrayValue = ['enabled', 'superadmin'];
+		// arrayValue = ['enabled', 'formatore']; // REFACTOR
+		const resName = await fetch(`/api/finds/0/0`, {
+			method: 'POST',
+			body: JSON.stringify({
+				schema: 'user',
+				arrayField,
+				arrayValue
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 		getTableNames = await resName.json();
 
 		// Layout list
-		const arrayField = [];
-		const arrayValue = [];
+		arrayField = [];
+		arrayValue = [];
 		const resLayout = await fetch(`/api/finds/0/0`, {
 			method: 'POST',
 			body: JSON.stringify({
