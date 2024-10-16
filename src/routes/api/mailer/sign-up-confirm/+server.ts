@@ -454,9 +454,14 @@ export const POST = async ({ request }) => {
 		};
 		mailer().catch(console.error);
 
-		return json({
-			message: 'mail di conferma NON inviata'
-		});
+		return json(
+			{
+				message: 'mail di conferma NON inviata'
+			},
+			{
+				status: 400
+			}
+		);
 	} catch (err) {
 		console.log('registerUser ERROR:', err);
 		return json(

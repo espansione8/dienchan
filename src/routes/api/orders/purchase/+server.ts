@@ -99,6 +99,15 @@ export const POST = async ({ request }) => {
 				}
 			);
 		}
+
+		return json(
+			{
+				message: 'Ordine fallito',
+			},
+			{
+				status: 400,
+			}
+		);
 	} catch (err) {
 		console.log('order purchase ERROR:', err);
 		return json({

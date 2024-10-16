@@ -1,4 +1,3 @@
-
 // src/routes/api/courses/remove
 import { json } from '@sveltejs/kit';
 import dbConnect from '$lib/database';
@@ -13,16 +12,22 @@ export const DELETE = async ({ request }) => {
         // Find and delete the discount with the specified userId
         const result = await Product.deleteOne({ prodId });
         if (result.deletedCount == 1) {
-            return json({
-                message: 'Corso eliminato con successo',
-                status: 200
-            });
+            return json(
+                {
+                    message: 'Corso eliminato con successo',
+                },
+                {
+                    status: 200
+                });
         }
 
-        return json({
-            message: 'Nessun corso trovato con l\'ID specificato',
-            status: 404
-        });
+        return json(
+            {
+                message: 'Nessun corso trovato con l\'ID specificato',
+            },
+            {
+                status: 400
+            });
 
     } catch (err) {
         console.error('Errore durante l\'eliminazione del corso:', err);
@@ -32,7 +37,6 @@ export const DELETE = async ({ request }) => {
             },
             {
                 status: 500
-            }
-        );
+            });
     }
 };

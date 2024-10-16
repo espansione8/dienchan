@@ -40,8 +40,10 @@ export const POST = async ({ request }) => {
         if (newData.matchedCount == 0) {
             return json({
                 message: 'Utente già socio!',
-                status: 500
-            });
+            },
+                {
+                    status: 400
+                });
         }
 
         if (newData.matchedCount == 1) {
@@ -57,8 +59,10 @@ export const POST = async ({ request }) => {
 
         return json({
             message: 'POST User update ERR',
-            status: 500
-        });
+        },
+            {
+                status: 400
+            });
     } catch (err) {
         console.log('POST User update ERROR:', err);
         return json(

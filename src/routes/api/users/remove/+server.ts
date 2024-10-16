@@ -1,4 +1,3 @@
-
 // src/routes/api/users/remove
 import { json } from '@sveltejs/kit';
 import dbConnect from '$lib/database';
@@ -16,14 +15,18 @@ export const DELETE = async ({ request }) => {
         if (result.deletedCount == 1) {
             return json({
                 message: 'Utente eliminato con successo',
-                status: 200
-            });
+            },
+                {
+                    status: 200
+                });
         }
 
         return json({
             message: 'Nessun utente trovato con l\'ID specificato',
-            status: 404
-        });
+        },
+            {
+                status: 400
+            });
 
     } catch (err) {
         console.error('Errore durante l\'eliminazione dell utente:', err);
@@ -33,7 +36,6 @@ export const DELETE = async ({ request }) => {
             },
             {
                 status: 500
-            }
-        );
+            });
     }
 };

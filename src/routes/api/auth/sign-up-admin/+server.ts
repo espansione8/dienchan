@@ -69,33 +69,52 @@ export const POST = async ({ request }) => {
 		const userSave = await newUser.save()
 
 		if (userSave.userId == id) {
-			await fetch(`${import.meta.env.VITE_BASE_URL}/api/mailer/sign-up-confirm`, {
-				method: 'POST',
-				body: JSON.stringify({ email }),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
 			return json(
 				{
-					message:
-						"Iscrizione fatta! controllale email (anche in SPAM) per la conferma.",
+					message: 'Iscrizione avvenuta con successo',
 					userId: newUser.userId
 				},
 				{
 					status: 200
 				}
 			);
+			// const sendMail = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mailer/sign-up-confirm`, {
+			// 	method: 'POST',
+			// 	body: JSON.stringify({ email }),
+			// 	headers: {
+			// 		'Content-Type': 'application/json'
+			// 	}
+			// });
+			// if (sendMail.status == 200) {
+			// 	return json(
+			// 		{
+			// 			message: 'mail sent',
+			// 			userId: newUser.userId
+			// 		},
+			// 		{
+			// 			status: 200
+			// 		}
+			// 	);
+			// } else {
+			// 	return json(
+			// 		{
+			// 			message: "mail sent failed",
+
+			// 		},
+			// 		{
+			// 			status: 400
+			// 		}
+			// 	);
+			// }
 		}
 
 		return json(
 			{
 				message:
-					"Iscrizione fatta! controllale email (anche in SPAM) per la conferma.",
-				userId: newUser.userId
+					"Iscrizione fallita",
 			},
 			{
-				status: 200
+				status: 400
 			}
 		);
 	} catch (err) {

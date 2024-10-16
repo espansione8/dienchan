@@ -30,31 +30,25 @@ export const POST = async ({ request }) => {
             new: true
         }).lean();
 
-        if (newData.matchedCount == 0) {
-            return json({
-                message: 'Utente già socio!',
-            },
-                {
-                    status: 500
-                });
-        }
-
         if (newData.matchedCount == 1) {
-            return json({
-                message: 'Assocciazione evvenuta con successo',
-                ok: true,
-            },
+            return json(
+                {
+                    message: 'membership evvenuta con successo',
+                    ok: true,
+                },
                 {
                     status: 200
                 });
         }
 
         return json({
-            message: 'POST User update ERR',
-            status: 500
-        });
+            message: 'membership ERR',
+        },
+            {
+                status: 400
+            });
     } catch (err) {
-        console.log('POST User update ERROR:', err);
+        console.log('membership ERROR:', err);
         return json(
             {
                 error: `Server error: ${err}`

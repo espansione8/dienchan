@@ -1,4 +1,4 @@
-import { redirect, fail } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
 import { Product } from '$lib/models/Products.model';
 
@@ -40,6 +40,7 @@ export const actions: Actions = {
 		const password1 = formData.get('password1');
 		const membershipLevel = 'Socio ordinario';
 		const paymentType = formData.get('radio-paymentType');
+		let userId = ''
 
 		if (!name || !surname || !email || !address || !postalCode || !city || !countryState || !country || !password1 || !paymentType) {
 			console.log('newMembership', name, surname, email, address, postalCode, city, countryState, country, password1, paymentType);
@@ -49,41 +50,109 @@ export const actions: Actions = {
 			const findProduct = await Product.findOne({ title: membershipLevel });
 			const product = findProduct?.prodId ? findProduct : () => { return { action: 'newMembership', success: false, message: 'errore iscrizione (1)' } }
 
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/orders/purchase-first`, {
+			const checkUser = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/check`, {
 				method: 'POST',
 				body: JSON.stringify({
-					name,
-					surname,
-					email,
-					password1, // only registration
-					address,
-					city,
-					countryState,
-					postalCode,
-					country,
-					phone,
-					mobilePhone,
-					cart: [product],
-					paymentType,
-					userId: ''
+					email
 				}),
 				headers: {
 					'Content-Type': 'application/json'
 				}
 			});
-			const res = await response.json();
-			if (response.status == 200) {
+			const resCheckUser = await checkUser.json();
+			if (checkUser.status != 200) {
+				return fail(400, { action: 'newMembership', success: false, message: resCheckUser.message });
+			}
+
+			const signUpUser = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-up-admin`, {
+				method: 'POST',
+				body: JSON.stringify({
+					name,
+					surname,
+					email,
+					address,
+					postalCode,
+					city,
+					countryState,
+					country,
+					phone,
+					mobilePhone,
+					password1
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const resSignUpUser = await signUpUser.json();
+			if (signUpUser.status == 200) {
+				userId = resSignUpUser.userId;
+			}
+			if (signUpUser.status != 200) {
+				return fail(400, { action: 'newMembership', success: false, message: resSignUpUser.message });
+			}
+
+			const setMembership = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/new`, {
+				method: 'POST',
+				body: JSON.stringify({
+					userId,
+					membershipLevel: paymentType == 'bonifico' ? 'Socio inattivo' : 'Socio ordinario',
+					membershipSignUp: new Date(),
+					membershipActivation: new Date(),
+					membershipExpiry: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+					membershipStatus: true
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const resMembership = await setMembership.json()
+			if (setMembership.status != 200) {
+				return { action: 'newMembership', success: false, message: resMembership.message };
+			}
+
+			const makeOrder = await fetch(`${import.meta.env.VITE_BASE_URL}/api/orders/purchase`, {
+				method: 'POST',
+				body: JSON.stringify({
+					userId,
+					paymentType,
+					cart: [product],
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const resMakeOrder = await makeOrder.json();
+			if (makeOrder.status != 200) {
+				return { action: 'newMembership', success: false, message: resMakeOrder.message };
+			}
+
+			const sendMail = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mailer/sign-up-confirm`, {
+				method: 'POST',
+				body: JSON.stringify({ email }),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			const resSendMail = await sendMail.json();
+			if (sendMail.status != 200) {
+				return { action: 'newMembership', success: false, message: resSendMail.message };
+			}
+
+			if (setMembership.status == 200 || makeOrder.status == 200) {
 				return { action: 'newMembership', success: true, message: "Iscrizione avvenuta con successo, ora puoi effettuare il LOGIN" };
 			} else {
-				//console.log(res)
-				return { action: 'newMembership', success: false, message: res.message };
+				return { action: 'newMembership', success: false, message: "iscrizione fallita" };
 			}
+
 		} catch (error) {
 			console.error('Error creating new membership:', error);
 			return { action: 'newMembership', success: false, message: 'Errore creazione membership' };
 		}
 	},
+
 	newLifetime: async ({ request, fetch }) => {
+		// TODO REFACTOR
 		const formData = await request.formData();
 		const name = formData.get('name');
 		const surname = formData.get('surname');
