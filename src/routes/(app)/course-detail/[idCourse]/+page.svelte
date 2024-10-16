@@ -1,13 +1,11 @@
 <script lang="ts">
-	import moment from 'moment';
-	import { coursesInfo } from '$lib/stores/arrays.js';
 	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
-	//import { province } from '$lib/stores/arrays.js';
+	import { ShoppingCart,	Trash2  } from 'lucide-svelte';
 
 	let { data } = $props();
 	let { getCourse, userData } = $derived(data);
 
-	const checkCart = (id) => {
+	const checkCart = (id: any) => {
 		const check = $cartProducts.some((item) => item.prodId == id);
 		return check;
 	};
@@ -21,7 +19,6 @@
 		})
 	);
 
-	const course = $coursesInfo.filter((item: any) => item.id == getCourse.category);
 </script>
 
 <svelte:head>
@@ -34,20 +31,17 @@
 		<div class="flex items-center mx-auto gap-20">
 			<!-- Immagine del corso -->
 			<div class="relative w-60 shrink-0 rounded-md overflow-hidden shadow-2xl">
-				<img src={course[0].urlPic} alt="course type" class="h-full w-full object-cover" />
+				<img src={getCourse.layoutView.urlPic} alt="course type" class="h-full w-full object-cover" />
 			</div>
 			<!-- Dettagli del corso -->
 			<div class="flex flex-col gap-4 mx-auto text-center">
 				<div class="text-3xl font-bold text-blue-600">
-					<!-- {getCourse.eventStartDate} -->
-					{moment(getCourse.eventStartDate).format('DD/MM/YYYY')}
+					{(getCourse.eventStartDate).substring(0, 10)}
 				</div>
 				<div class="text-2xl font-bold text-blue-500 -mt-4">
-					Dalle {moment(getCourse.eventStartDate).format('HH:mm')} alle {moment(
-						getCourse.eventEndDate
-					).format('HH:mm')}
+					da {(getCourse.eventStartDate).substring(11, 16)} a
 				</div>
-				<div class="text-4xl font-semibold text-gray-800">{getCourse.title}</div>
+				<div class="text-4xl font-semibold text-gray-800 p-1 rounded-lg {getCourse.layoutView.bgColor}">{getCourse.layoutView.title}</div>
 				<div class=" text-3xl text-blue-900">
 					<p>
 						<b>{getCourse.countryState}</b>
@@ -88,7 +82,7 @@
 						class="tab-content border-base-300 rounded-lg text-lg leading-relaxed text-gray-600 bg-gray-50 p-4 shadow-inner"
 					>
 						<p class="my-3">
-							{getCourse.descrLong}
+							{getCourse.layoutView.descr}
 						</p>
 						<hr />
 						<p class="my-3">
@@ -113,20 +107,6 @@
 							base.
 						</p>
 					</div>
-
-					<!-- <input
-						type="radio"
-						name="my_tabs"
-						role="tab"
-						class="tab tab text-xl italic"
-						aria-label="Informazioni"
-					/> -->
-					<!-- <div
-						role="tabpanel"
-						class="tab-content border-base-300 rounded-lg text-xl leading-relaxed text-gray-600 bg-gray-50 p-4 shadow-inner"
-					>
-						
-					</div> -->
 				</div>
 
 				{#if getCourse.tag.length > 0}
@@ -154,9 +134,9 @@
 				</div>
 				<!-- Data -->
 				<div class="text-2xl font-semibold text-gray-700">
-					Data: <b>{moment(getCourse.eventStartDate).format('DD/MM/YYYY')} </b> da
-					<b>{moment(getCourse.eventStartDate).format('HH:mm')}</b>
-					a <b>{moment(getCourse.eventEndDate).format('HH:mm')}</b>
+					Data: <b>{(getCourse.eventStartDate).substring(0, 10)} </b> da
+					<b>{(getCourse.eventStartDate).substring(11, 16)}</b>
+					a 
 				</div>
 				<!-- Numero partecipanti -->
 				<div class="text-2xl font-semibold text-gray-700">
@@ -164,19 +144,19 @@
 				</div>
 				<!-- Prezzo -->
 				<div class="text-2xl font-semibold text-gray-700">
-					Prezzo: <b>{getCourse.price} €</b>
+					Prezzo: <b>{getCourse.layoutView.price} €</b>
 				</div>
 				<div class="flex justify-start">
 					<!-- {#if $cartProducts.some((item: any) => item.prodId == getCourse.prodId)} -->
 					{#if checkCart(getCourse.prodId)}
 						<button
-							class="btn btn-sm bg-red-200 w-40 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400"
-							onclick={() => removeFromCart($cartProducts, getCourse)}>Rimuovi dal Carrello</button
+							class="btn btn-sm bg-red-200 w-48 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400 inline-flex items-center justify-center space-x-2"
+							onclick={() => removeFromCart($cartProducts, getCourse)}><Trash2/> Rimuovi dal Carrello</button
 						>
 					{:else}
 						<button
-							class="btn btn-sm bg-green-200 w-40 btn-success rounded-md text-green-700 hover:text-green-300"
-							onclick={() => addToCart($cartProducts, getCourse, false)}>Aggiungi a Carrello</button
+							class="btn btn-sm bg-green-200 w-48 btn-success rounded-md text-green-700 hover:text-green-300  inline-flex items-center justify-center space-x-2"
+							onclick={() => addToCart($cartProducts, getCourse, false)}> <ShoppingCart/> Aggiungi al Carrello</button
 						>
 					{/if}
 				</div>

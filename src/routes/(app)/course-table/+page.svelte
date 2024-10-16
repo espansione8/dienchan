@@ -459,7 +459,6 @@
 
 	const onCloseFilterSearch = () => {
 		isModalFilterCourse = false;
-		resetFieldsModalFilter();
 		onFilterReset();
 	};
 
@@ -471,9 +470,7 @@
 		isModalFilterCourse = true;
 	};
 
-	const resetFieldsModalFilter = () => {
-		countryState = '';
-	};
+
 
 	const onFilterReset = () => {
 		resetActive = false;
@@ -546,7 +543,6 @@
 	};
 
 	const selectLayout = (layout: any) => {
-		// const course = getLayout.filter((item: any) => item.layoutId == layoutId);
 		const course = getLayout.find((item: any) => item.layoutId == layoutId);
 		console.log('course', course, layoutId);
 		title = course.title;
@@ -618,7 +614,6 @@
 			const { action, success, message, filterTableList } = form;
 			if (success) {
 				closeNotification();
-				//resetFieldsModalFilter();
 				isModal = false;
 				isModalConfirmDelete = false;
 				isModalFilterCourse = false;
@@ -626,12 +621,11 @@
 				tableList = getTable;
 				if (action == 'filterCourse') {
 					resetActive = true;
-					console.log('tableList', tableList);
 					tableList = filterTableList;
 				}
 			} else {
 				notificationError = true;
-				errMessage = message;
+				// errMessage = message;
 			}
 			toastClosed = false;
 			notificationContent = message;

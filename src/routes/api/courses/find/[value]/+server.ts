@@ -8,7 +8,7 @@ import dbConnect from '$lib/database';
 export const GET = async ({ params }) => {
 	try {
 		await dbConnect();
-		const findCourse = await Product.findOne({ prodId: params.value, type: 'course' }).lean().populate('userView').exec();
+		const findCourse = await Product.findOne({ prodId: params.value, type: 'course' }).lean().populate('userView').populate('layoutView').exec();
 		//throw new Error("@1migration task: Migrate this return statement (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292701)");
 		// Suggestion (check for correctness before using):
 		return json(findCourse);

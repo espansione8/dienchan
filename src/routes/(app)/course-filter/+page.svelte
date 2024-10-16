@@ -6,10 +6,12 @@
 		ChevronDown,
 		ShieldAlert,
 		Check,
-		CalendarSearch,
+		CalendarSearch,		
 		UserSearch,
 		TextSearch,
-		MapPinned
+		MapPinned,
+		ShoppingCart,
+		Trash2 
 	} from 'lucide-svelte';
 	import Notification from '$lib/components/Notification.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
@@ -21,10 +23,10 @@
 	// moment.locale('it');
 
 	let { data, auth } = $props();
-	let { getTable, getTableNames } = $derived(data);
+	let { getTable, getTableNames, getLayout } = $derived(data);
 	let coursesList = $state(getTable);
 
-	console.log('coursesList', coursesList);
+	// console.log('coursesList', coursesList);
 
 	const checkCart = (id) => {
 		const check = $cartProducts.some((item) => item.prodId == id);
@@ -112,9 +114,7 @@
 		mese: '',
 		provincia: '',
 		evento: '',
-		riflessologo: '',
-		nomeRiflessologo: '',
-		cognomeRiflessologo: ''
+		riflessologo: ''
 	});
 
 	const onFilterReset = () => {
@@ -158,7 +158,7 @@
 		}
 		// Evento
 		if (filtriAttivi.evento) {
-			coursesList = coursesList.filter((item) => item.category == filtriAttivi.evento);
+			coursesList = coursesList.filter((item) => item.title == filtriAttivi.evento);
 		}
 	};
 
@@ -225,47 +225,9 @@
 		}
 	};
 
-	// TODO per chiudere il drodown
-	// AGG provato ma mi dice che serve tag details
-	// let openDropdown= $state(false);
-
-	// function handleClickItem() {
-	// 	// close it
-	// 	openDropdown = false;
-	// }
-
 	const onClickInfo = (idCourse: any) => {
 		//  console.log('idCourse', idCourse);
 		goto(`/course-detail/${idCourse}`);
-	};
-
-	// cart store CURRENT, commented to test
-	// const addToCart = (course) => {
-	// 	cart.update((n) => {
-	// 		// console.log('n', n);
-	// 		n.push(course);
-	// 		return n;
-	// 	});
-	// };
-
-	// const removeFromCart = (prodId) => {
-	// 	cart.update((n) => {
-	// 		// Filtra il carrello per rimuovere il corso con l'ID specificato
-	// 		return n.filter((item) => item.prodId !== prodId.prodId);
-	// 	});
-	// };
-
-	// console.log('getTable.category',getTable)
-	const course = $coursesInfo.filter((item: any) => item.id == coursesList.category);
-
-	const imgSrc = (value: string) => {
-		const src = $coursesInfo.filter((item: any) => item.id == value);
-		return src[0]?.urlPic || 'images/picture.png';
-	};
-
-	const bgColor = (value: string) => {
-		const src = $coursesInfo.filter((item: any) => item.id == value);
-		return src[0]?.bgColor || 'bg-base-200';
 	};
 </script>
 
@@ -285,23 +247,23 @@
 				>
 					<span class="inline-flex items-center">
 						<b><TextSearch class="-mt-1" /> Evento</b>
-						{#if filtriAttivi.evento.length > 0}
+						{#if filtriAttivi?.evento.length > 0}
 							<Check class="ml-1" color="green" />
 						{/if}
 					</span>
 				</div>
 				<div class="collapse-content bg-blue-50 text-base-content peer-checked:bg-base-100">
 					<ul class="list-none -mx-4">
-						{#each $coursesInfo as option}
+						{#each getLayout as option}
 							<li
 								class="p-2 border-b cursor-pointer transition-colors duration-300
-							{filtriAttivi.evento == option.id
+							{filtriAttivi.evento == option.title
 									? 'bg-orange-200 text-red-900 font-bold'
 									: 'hover:bg-blue-200 hover:text-blue-900'}"
-								onclick={() => onClickFilterEvent(option.id)}
+								onclick={() => onClickFilterEvent(option.title)}
 							>
 								{'>'}
-								{option.id}
+								{option.title}
 							</li>
 						{/each}
 					</ul>
@@ -510,7 +472,7 @@
 					{/if}
 					{#if filtriAttivi.provincia.length > 0}
 						<div class="badge badge-accent rounded-md">
-							Provincia: <strong class="pl-1">{filtriAttivi.countryState}</strong>
+							Provincia: <strong class="pl-1">{filtriAttivi.provincia}</strong>
 						</div>
 					{/if}
 					{#if filtriAttivi.riflessologo.length > 0}
@@ -586,16 +548,16 @@
 								{#if checkCart(courseData.prodId)}
 									<!-- in carello -->
 									<button
-										class="btn btn-sm bg-red-200 w-40 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400"
+										class="btn btn-sm bg-red-200 w-48 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400 inline-flex items-center justify-center space-x-2"
 										onclick={() => removeFromCart($cartProducts, courseData)}
-										>Rimuovi dal Carrello</button
+										><Trash2 />Rimuovi dal Carrello</button
 									>
 								{:else}
 									<!-- non in carello -->
 									<button
-										class="btn btn-sm bg-green-200 w-40 btn-success rounded-md text-green-700 hover:text-green-300"
+										class="btn btn-sm bg-green-200 w-48 btn-success rounded-md text-green-700 hover:text-green-300 inline-flex items-center justify-center space-x-2"
 										onclick={() => addToCart($cartProducts, courseData, false)}
-										>Aggiungi a Carrello</button
+										><ShoppingCart/> Aggiungi al Carrello</button
 									>
 								{/if}
 							</span>

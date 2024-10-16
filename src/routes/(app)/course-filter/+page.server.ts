@@ -2,28 +2,11 @@
 import type { PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
-	//console.log('locals', locals);
-	// if (!locals.auth) {
-	// 	throw redirect(302, '/login');
-	// }
-
 	let getTable = [];
 	let getTableNames = [];
+	let getLayout = [];
 
 	try {
-		// const userData = session.user;
-		//console.log('MY DOCS userData', userData);
-
-		// CORSI
-		// const resProductsCorso = await fetch(
-		// 	`${import.meta.env.VITE_BASE_URL}/api/courses/all-enabled/0/0`
-		// );
-		// const resGetTableProductsCorso = await resProductsCorso.json();
-		// getTable = resGetTableProductsCorso.map((obj) => ({
-		// 	...obj,
-		// 	createdAt: obj.createdAt.substring(0, 10)
-		// }));
-
 		const resProductsCorso = await fetch(
 			`${import.meta.env.VITE_BASE_URL}/api/products/find/type/course/0/0`
 		);
@@ -44,12 +27,29 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		);
 		getTableNames = await resName.json();
 
+		// Layout list
+		const arrayField: unknown[] = [];
+		const arrayValue: unknown[] = [];
+		const resLayout = await fetch(`/api/finds/0/0`, {
+			method: 'POST',
+			body: JSON.stringify({
+				schema: 'layout',
+				arrayField,
+				arrayValue
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		getLayout = await resLayout.json();
+
 
 	} catch (error) {
 		console.log('products-corso fetch error:', error);
 	}
 	//console.log('getTableCorsi', getTableCorsi);
 	return {
+		getLayout,
 		getTable,
 		getTableNames,
 		auth: locals.auth

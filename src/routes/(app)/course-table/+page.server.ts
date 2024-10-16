@@ -257,5 +257,4 @@ export const actions: Actions = {
 			return { action: 'filterCourse', success: false, message: 'Errore filterCourse' };
 		}
 	}
-
 } satisfies Actions;

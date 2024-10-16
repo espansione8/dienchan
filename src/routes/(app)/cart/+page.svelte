@@ -12,6 +12,8 @@
 	let { data } = $props();
 	let { userData, auth } = $derived(data);
 
+	console.log('cartProducts',cartProducts);
+
 	// notification
 	let toastClosed: boolean = $state(true);
 	let notificationContent: string = $state('');
@@ -274,9 +276,11 @@
 				<div
 					class="card card-compact overflow-hidden bg-base-100 max-w-xs rounded-xl shadow-md border"
 				>
+				<!-- src={imgSrc(item.category[0])} -->
 					<figure class="px-4 pt-4">
 						<img
-							src={imgSrc(item.category[0])}
+							
+							src={item.layoutView.urlPic}
 							alt="tipo corso"
 							class="h-full w-full object-cover border-2 rounded-lg"
 						/>
@@ -284,18 +288,18 @@
 					<div class="card-body items-center text-center">
 						<!-- data giorno -->
 						<h2 class="card-title text-2xl">
-							{moment(item.eventStartDate).format('DD/MM/YYYY')}
+							{item.eventStartDate}
 						</h2>
 						<!-- provincia -->
 						<p class="card-text text-xl">
-							<b>(item.countryState)</b>
+							<b>{item.countryState}</b>
 						</p>
 						<!-- title -->
 						<h5
-							class="card-text text-xl bg-base-200 border rounded-md shadow-sm font-semibold p-2
-							 {bgColor(item.category)}"
+							class="card-text text-xl bg-base-200 border rounded-md shadow-sm font-semibold p-2 {item.layoutView.bgColor}"
+							 
 						>
-							{item.title}
+							{item.layoutView.title}
 						</h5>
 						<!-- riflessologo -->
 						<p class="card-text">
@@ -303,12 +307,12 @@
 						</p>
 						<!-- dalle x alle y -->
 						<h5 class="card-text">
-							Dalle <b>{moment(item.eventStartDate).format('HH:mm')}</b>
-							alle <b>{moment(item.eventEndDate).format(' HH:mm')}</b>
+							Dalle <b>{item.timeStartDate}</b>
+							<!-- alle <b>{moment(item.eventEndDate).format(' HH:mm')}</b> -->
 						</h5>
 						<!-- price -->
 						<p class="card-text">
-							Prezzo: <b>{item.price}</b>
+							Prezzo: <b>{item.layoutView.price}</b>
 						</p>
 
 						<div class="card-actions">
@@ -759,15 +763,15 @@
 				>
 					<div class="w-1/3 p-3">
 						<img
-							src={imgSrc(item.category[0])}
+							src={item.layoutView.urlPic}
 							alt="Immagine corso"
 							class="w-full h-full object-cover"
 						/>
 					</div>
 					<div class="w-2/3 p-4 flex items-center justify-center">
 						<h2 class="text-center text-md font-semibold">
-							{item.title} <br /><br />
-							{item.price}€
+							{item.layoutView.title} <br /><br />
+							{item.layoutView.price}€
 						</h2>
 					</div>
 				</div>
@@ -782,77 +786,6 @@
 				{/if}
 			{/if}
 		</div>
-		<!-- DISCOUNT -->
-		<!-- <div class="col-span-2 mt-4 text-center">
-			<div class="form-control">
-				<label class="label">
-					<span class="label-text text-md sm:text-xl font-semibold">Codice Sconto</span>
-				</label>
-				<div class="flex space-x-2">
-					<input
-						type="text"
-						id="discountCode"
-						placeholder="Inserisci il codice"
-						class="input input-bordered w-full"
-						bind:value={discountCode}
-					/>
-					<button
-						class="btn btn-primary"
-						onclick={() => {
-							discountApplied = true;
-							if (!discountCode) {
-								discountApplied = true;
-								discountError = true;
-								return;
-							}
-							discountList.push(discountCode);
-							discountList = discountList;
-							discountCode = '';
-							discountError = false;
-						}}
-					>
-						Aggiungi
-					</button>
-				</div>
-			</div>
-			{#if discountList.length !== 0}
-				{#each discountList as badgeCode}
-					<div class="btn btn-primary mx-1 rounded-md mt-4">
-						Sconto di: {badgeCode}
-						{' '}
-						<button
-							type="button"
-							class="badge badge-error felx items-center"
-							onclick={() => {
-								if (discountList.length == 0) {
-									discountApplied = false;
-								}
-								let index = discountList.indexOf(badgeCode);
-								if (index !== -1) {
-									discountList.splice(index, 1);
-									discountList = discountList;
-								}
-							}}
-						>
-							X
-						</button>
-					</div>
-				{/each}
-			{/if}
-
-			{#if discountError}
-				<p class="text-secondary mt-2 text-left italic">CODICE NON VALIDO</p>
-			{/if}
-
-			{#if discountList.length !== 0}
-				<h2 class="text-lg font-bold mt-4">Totale Carrello (con sconto):</h2>
-
-				<p class="text-xl font-semibold text-black-800">{total}  €</p>
-				{#each discountList as amount}
-					<p class="text-gray-800">Sconto {amount}: -{amount} €</p>
-				{/each}
-			{/if}
-		</div> -->
 		<p class=" col-span-2 font-bold text-lg text-center mt-6">Scegli il metodo di pagamento:</p>
 		<div class="form-control col-span-2 mx-2">
 			<label class="label cursor-pointer">

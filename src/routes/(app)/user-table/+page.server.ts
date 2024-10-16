@@ -112,7 +112,7 @@ export const actions: Actions = {
 
 		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
 		try {
-			
+
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/modify`, {
 				method: 'POST',
 				headers: {
@@ -181,7 +181,7 @@ export const actions: Actions = {
 
 		const formData = await request.formData();
 		const userId = formData.get('userId');
-		try { 
+		try {
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/remove`, {
 				method: 'DELETE',
 				headers: {
@@ -201,6 +201,47 @@ export const actions: Actions = {
 			console.error('Error deleteUser:', error);
 			return { action: 'deleteUser', success: false, message: 'Errore deleteUser' };
 		}
-	}
+	},
 
+	filterUser: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const level = formData.get('level');
+		const membershipLevel = formData.get('membershipLevel');
+		const email = formData.get('email');
+
+		console.log('level', level);
+
+		const arrayField = ['level', 'membership.membershipLevel', 'email'];
+		const arrayValue = [level, membershipLevel, email];
+
+		try {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
+				method: 'POST',
+				body: JSON.stringify({
+					schema: 'user',
+					arrayField,
+					arrayValue
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			//console.log('response', response);
+			const result = await response.json();
+
+			if (response.status == 200) {
+				const filterTableList = result.map((obj: any) => ({
+					...obj,
+					createdAt: obj.createdAt.substring(0, 10)
+				}));
+				return { action: 'filterUser', success: true, message: 'Filtro applicato', filterTableList };
+
+			} else {
+				return { action: 'filterUser', success: false, message: 'Filtro NON applicato' };
+			}
+		} catch (error) {
+			console.error('Error filterUser:', error);
+			return { action: 'filterUser', success: false, message: 'Errore filterUser' };
+		}
+	}
 } satisfies Actions;

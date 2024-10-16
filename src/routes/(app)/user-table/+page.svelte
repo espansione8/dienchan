@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
+	import Modal from '$lib/components/Modal.svelte';
 	import Papa from 'papaparse';
-	import { UserPlus } from 'lucide-svelte';
 	import {
-		ListPlus,
 		Pen,
 		Mail,
 		Filter,
@@ -23,10 +22,9 @@
 		Smartphone,
 		Globe,
 		RefreshCcw,
-		FileDown,
+		FileDown, 		 
 		CopyPlus
 	} from 'lucide-svelte';
-	import moment from 'moment';
 	import { enhance } from '$app/forms';
 	import { country_list } from '$lib/stores/arrays.js';
 	import { province } from '$lib/stores/arrays';
@@ -46,71 +44,23 @@
 	let isModalConfirmDelete = $state(false);
 	let isModalModify = $state(false);
 	let resetActive = $state(false);
-	//filter
-	let selectedLevel = $state('');
-	let selectedMembershipLevel = $state('');
-	let selectedEmail = $state('');
+
 
 	const onCloseFilterSearch = () => {
 		isModalFilterCourse = false;
-		resetFieldsModalFilter();
 		onFilterReset();
 	};
 
-	const onSubmitFilterSearch = async () => {
-		resetActive = true;
-		let level = '';
-		let membershipLevel = '';
-		let email = '';
-		if (selectedLevel) level = selectedLevel;
-		if (selectedMembershipLevel) membershipLevel = selectedMembershipLevel;
-		if (selectedEmail) email = selectedEmail;
-		const arrayField = ['level', 'membership.membershipLevel', 'email'];
-		const arrayValue = [level, membershipLevel, email];
-		const response = await fetch(`/api/finds/0/0`, {
-			method: 'POST',
-			body: JSON.stringify({
-				schema: 'user',
-				arrayField,
-				arrayValue
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
-		const res = await response.json();
-		if (response.status == 200) {
-			const newTableList = res.map((obj: any) => ({
-				...obj,
-				createdAt: obj.createdAt.substring(0, 10)
-			}));
-			tableList = newTableList;
-			clearTimeout(startTimeout);
-			isModalFilterCourse = false;
-			toastClosed = false;
-			notificationContent = 'Utenti filtrati';
-			resetFieldsModalFilter();
-			closeNotification();
-		}
-		if (response.status != 200) {
-			//console.log('KO', response);
-			toastClosed = false;
-			notificationContent = 'errore filtro';
-			notificationError = true;
-			closeNotification();
-		}
-	};
 
 	const onOpenFilter = () => {
+		level = '';
+		membershipLevel = '';
+		email = '';
+		postAction = `?/filterUser`;
 		isModalFilterCourse = true;
 	};
 
-	const resetFieldsModalFilter = () => {
-		selectedLevel = '';
-		selectedMembershipLevel = '';
-		selectedEmail = '';
-	};
+
 
 	const onFilterReset = () => {
 		resetActive = false;
@@ -394,9 +344,9 @@
 		URL.revokeObjectURL(link.href);
 	};
 
-	let provinceFilterate = $province.filter((p) => p.sigla !== 'ON');
 	const countryList = $country_list;
 	let level = $state('');
+	let membershipLevel = $state('');
 	let password1 = $state('');
 	let password2 = $state('');
 	let name = $state('');
@@ -419,18 +369,8 @@
 	};
 	const testSecondPass = () => (checkSecondPass = password1 === password2);
 
-	let isModalNew = $state(false);
-
-	const onOpenNew = () => {
-		isModalNew = true;
-	};
-
-	const onCloseNew = () => {
-		isModalNew = false;
-		resetFields();
-	};
-
 	let deleteId = $state('');
+
 	const onOpenConfirmDelete = (id: string) => {
 		isModalConfirmDelete = true;
 		isModalModify = false;
@@ -442,28 +382,6 @@
 		resetFields();
 	};
 
-	const onOpenModify = (item: any) => {
-		//currentItem = item;
-		userId = item.userId;
-		name = item.name;
-		surname = item.surname;
-		email = item.email;
-		address = item.address;
-		postalCode = item.postalCode;
-		city = item.city;
-		countryState = item.countryState;
-		country = item.country;
-		phone = item.phone;
-		mobilePhone = item.mobilePhone;
-		password1 = item.password1;
-		level = item.level;
-		isModalModify = true;
-	};
-
-	const onCloseModify = () => {
-		isModalModify = false;
-		resetFields();
-	};
 
 	const resetFields = () => {
 		invalidateAll();
@@ -486,13 +404,17 @@
 	let currentDialog = $state('');
 	let isModal = $state(false);
 	let postAction = $state('');
+	let modalTitle = $state('');
+
 	const onClickDialog = (type: string, item: any) => {
 		currentDialog = type;
 		isModal = true;
 		if (type == 'new') {
 			postAction = `?/newUser`;
+			modalTitle = 'Nuovo utente';
 		}
 		if (type == 'modify') {
+			modalTitle = 'Modifica utente';
 			userId = item.userId;
 			name = item.name;
 			surname = item.surname;
@@ -511,23 +433,26 @@
 	};
 
 	$effect(() => {
-		// console.log({ form });
-
 		if (form != null) {
 			async () => await invalidateAll();
-			const { action, success, message } = form;
+			const { action, success, message, filterTableList } = form;
 			if (success) {
 				closeNotification();
-				//resetFieldsModalFilter();
 				isModal = false;
 				isModalConfirmDelete = false;
+				isModalFilterCourse = false;
 				tableList = getTable;
+				if (action == 'filterUser') {
+					resetActive = true;
+					tableList = filterTableList;
+				}
 			} else {
 				notificationError = true;
 			}
 			toastClosed = false;
 			notificationContent = message;
 			form = null;
+			postAction = ``;
 		}
 	}); // end effect
 </script>
@@ -620,18 +545,18 @@
 							</span>
 						</form>
 					</td>
-					<!-- Nome Cognome -->
+					<!-- Name and Surname -->
 					<td>{row.name} {row.surname}</td>
-					<!-- Livello -->
+					<!-- Level, MembreshipLevel, Expire Date -->
 					<td
 						>{row.level}
 						<br /><br />
 						{row.membership.membershipLevel}
 						<br /><br />
 						<span>Scadenza:</span>
-						<strong>{moment(row.membership.membershipExpiry).format('DD/MM/YYYY')}</strong>
+						<strong>{(row.membership.membershipExpiry).substring(0, 10)}</strong>
 					</td>
-					<!-- Indirizzo completo -->
+					<!-- Addres  -->
 					<td>
 						<ul class="">
 							<li>
@@ -648,7 +573,7 @@
 							</li>
 							<li>
 								<strong>Provincia:</strong>
-								{row.state}
+								{row.countryState}
 							</li>
 							<li>
 								<strong>Nazione:</strong>
@@ -664,7 +589,7 @@
 							</li>
 						</ul>
 					</td>
-					<!-- Azione -->
+					<!-- Action -->
 					<td class="flex items-center justify-center space-x-4">
 						<button
 							onclick={() => onClickDialog('modify', row)}
@@ -700,90 +625,11 @@
 </div>
 <Notification {toastClosed} {notificationContent} {notificationError} />
 
-<!-- modal filter  -->
-<dialog id="modal_filter" class="modal" class:modal-open={isModalFilterCourse}>
-	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-2xl">
-		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
-			<h2 class="text-2xl font-bold text-white mb-1">Filtri di Ricerca</h2>
-			<p class="text-blue-100">Personalizza la tua ricerca selezionando i criteri desiderati</p>
-		</div>
 
-		<div class="p-6 space-y-6">
-			<div class="space-y-4">
-				<div>
-					<label for="level" class="block text-sm font-medium text-gray-700 mb-1"
-						>Livello utente</label
-					>
-					<select
-						id="level"
-						bind:value={selectedLevel}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					>
-						<option value="">Seleziona il livello utente</option>
-						<option value="user">Utente base</option>
-						<option value="formatore">Formatore</option>
-						<option value="admin">Admin</option>
-						<option value="superadmin">Superadmin</option>
-					</select>
-				</div>
 
-				<div>
-					<label for="membershipLevel" class="block text-sm font-medium text-gray-700 mb-1"
-						>Livello associato</label
-					>
-					<select
-						id="membershipLevel"
-						bind:value={selectedMembershipLevel}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					>
-						<option value="">Seleziona il livello associato</option>
-						<option value="Socio inattivo">Socio inattivo</option>
-						<option value="Socio ordinario">Socio ordinario</option>
-						<option value="Socio sostenitore">Socio sostenitore</option>
-						<option value="Socio vitalizio">Socio vitalizio</option>
-						<option value="Socio contributore">Socio contributore</option>
-						<option value="Master Dien Chan">Master Dien Chan</option>
-					</select>
-				</div>
-
-				<div>
-					<label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-					<input
-						type="text"
-						id="email"
-						bind:value={selectedEmail}
-						placeholder="Scrivi un email"
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-			</div>
-		</div>
-
-		<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
-			<button class="btn btn-error btn-sm hover:bg-red-300" onclick={onCloseFilterSearch}>
-				Annulla
-			</button>
-			<button class="btn btn-success btn-sm hover:bg-green-400" onclick={onSubmitFilterSearch}>
-				Applica Filtri
-			</button>
-		</div>
-	</div>
-</dialog>
-<!-- /modal filter  -->
-
-<!-- modal New  -->
-<dialog id="modal_new-modify" class="modal" class:modal-open={isModal}>
-	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-3xl">
-		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
-			<h2 class="text-2xl font-bold text-white mb-1">
-				{#if currentDialog == 'new'}
-					Nuovo utente
-				{:else if currentDialog == 'modify'}
-					Modifica utente
-				{/if}
-			</h2>
-		</div>
-		<form
+<!--Modal New and Modify  -->
+<Modal isOpen={isModal} header={modalTitle} cssClass="max-w-4xl">
+	<form
 			method="POST"
 			action={postAction}
 			use:enhance
@@ -935,11 +781,11 @@
 							required
 						>
 							<option selected disabled>Scegli</option>
-							{#each provinceFilterate as provincia, i}
-								<option value={provincia.sigla}>
-									{provincia.nome} ({provincia.sigla})
-								</option>
-							{/each}
+							{#each $province as provincia, i}
+							<option value={provincia.title}>
+								{provincia.title} ({provincia.region})
+							</option>
+						{/each}
 						</select>
 					</div>
 				</section>
@@ -1089,279 +935,90 @@
 				</div>
 			</div>
 		</form>
-	</div>
-</dialog>
-<!-- /modal New  -->
+</Modal>
 
-<!-- modal Modify  -->
-<dialog id="modal_modify" class="modal" class:modal-open={isModalModify}>
-	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-3xl">
-		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
-			<h2 class="text-2xl font-bold text-white mb-1">Modifica utente</h2>
+<!-- Modal confirm delete -->
+<Modal isOpen={isModalConfirmDelete} header="Conferma l'eliminazione?" cssClass="max-w-2xl">
+	<form action="?/deleteUser" method="POST" use:enhance>
+		<input type="hidden" name="userId" value={deleteId} />
+		<div class="flex justify-center space-x-10 mt-4">
+			<button class="btn btn-error btn-md" type="button" onclick={onCloseConfirmDelete}
+				>Annulla</button
+			>
+			<button class="btn btn-success btn-md text-white" type="submit"><Trash2 />Conferma</button>
 		</div>
-		<form
-			method="POST"
-			action={`?/modifyUser`}
-			use:enhance
-			class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-		>
-			<section class="col-span-4">
-				<label for="userId" class="form-label">
-					<p class="font-bold mb-2">ID utente</p>
-				</label>
+	</form>
+</Modal>
 
-				<div class="join join-horizontal w-full">
-					<button class="join-item bg-gray-300 px-3"><Pen /></button>
-					<input
-						class="input input-bordered join-item w-full"
-						id="userId"
-						name="userId"
-						type="text"
-						bind:value={userId}
-						readonly
-					/>
-				</div>
-			</section>
-			<!-- Nome -->
-			<section class="col-span-4 md:col-span-2">
-				<label for="name" class="form-label">
-					<p class="font-bold mb-2">Nome</p>
-				</label>
-				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"><User /></button>
-					<input
-						class="input input-bordered join-item w-full"
-						id="name"
-						name="name"
-						type="text"
-						placeholder="Nome"
-						bind:value={name}
-						required
-					/>
-				</div>
-			</section>
-			<!-- Cognome -->
-			<section class="col-span-4 md:col-span-2">
-				<label for="surname" class="form-label">
-					<p class="font-bold mb-2">Cognome</p>
-				</label>
-				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"><User /></button>
-					<input
-						class="input input-bordered join-item w-full"
-						id="surname"
-						name="surname"
-						type="text"
-						placeholder="Cognome"
-						bind:value={surname}
-						required
-					/>
-				</div>
-			</section>
-			<!-- Email -->
-			<section class="col-span-4">
-				<label for="email" class="form-label">
-					<p class="font-bold mb-2">Email</p>
-				</label>
-				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"><Mail /></button>
-					<input
-						class="input input-bordered join-item w-full"
-						id="email"
-						type="email"
-						name="email"
-						placeholder="Inserisci E-mail"
-						bind:value={email}
-						required
-					/>
-				</div>
-			</section>
-			<!-- Indirizzo -->
-			<section class="col-span-4">
-				<label for="address" class="form-label">
-					<p class="font-bold mb-2">Indirizzo</p>
-				</label>
-				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"><MapPin /></button>
-					<input
-						class="input input-bordered join-item w-full"
-						id="address"
-						name="address"
-						type="text"
-						placeholder="Indirizzo"
-						bind:value={address}
-						required
-					/>
-				</div>
-			</section>
-			<!-- Trio -->
-			<div class="col-span-4 gap-10 flex justify-between md:col-span-4">
-				<!-- CAP -->
-				<section class="">
-					<label for="postalCode" class="form-label">
-						<p class="font-bold mb-2">CAP</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><MapPin /></button>
-						<input
-							class="input input-bordered join-item w-full"
-							id="postalCode"
-							type="text"
-							name="postalCode"
-							placeholder="CAP"
-							bind:value={postalCode}
-							required
-						/>
-					</div>
-				</section>
-				<!-- Citta -->
-				<section class="">
-					<label for="city" class="form-label">
-						<p class="font-bold mb-2">Città</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Building2 /></button>
-						<input
-							class="input input-bordered join-item w-full"
-							id="city"
-							type="text"
-							name="city"
-							placeholder="Città"
-							bind:value={city}
-							required
-						/>
-					</div>
-				</section>
-				<!-- Provincia -->
-				<section class="">
-					<label for="countryState" class="form-label">
-						<p class="font-bold mb-2">Provincia</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Building2 /></button>
-						<select
-							class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
-							id="countryState"
-							name="countryState"
-							placeholder="Scegli"
-							bind:value={countryState}
-							required
-						>
-							<option selected disabled>Scegli</option>
-							{#each provinceFilterate as provincia, i}
-								<option value={provincia.sigla}>
-									{provincia.nome} ({provincia.sigla})
-								</option>
-							{/each}
-						</select>
-					</div>
-				</section>
-			</div>
-			<!-- Nazione -->
-			<section class="col-span-4">
-				<label for="country" class="form-label">
-					<p class="font-bold mb-2">Nazione</p>
-				</label>
-				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"><Globe /></button>
-					<select
-						class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
-						aria-label="Default select example"
-						id="country"
-						name="country"
-						required
-						bind:value={country}
-					>
-						<option selected disabled>Scegli</option>
-						{#each countryList as country}
-							<option value={country}>
-								{country}
-							</option>
-						{/each}
-					</select>
-				</div>
-			</section>
-			<!-- Telefono -->
-			<section class="col-span-4">
-				<label for="phone" class="form-label">
-					<p class="font-bold mb-2">Telefono</p>
-				</label>
-				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"><Phone /></button>
-					<input
-						class="input input-bordered join-item w-full"
-						id="phone"
-						type="text"
-						name="phone"
-						placeholder="Telefono"
-						bind:value={phone}
-					/>
-				</div>
-			</section>
-			<!-- Cellulare -->
-			<section class="col-span-4">
-				<label for="mobilePhone" class="form-label">
-					<p class="font-bold mb-2">Cellulare</p>
-				</label>
-				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"><Smartphone /></button>
-					<input
-						class="input input-bordered join-item w-full"
-						id="mobilePhone"
-						name="mobilePhone"
-						type="text"
-						placeholder="Cellulare"
-						bind:value={mobilePhone}
-					/>
-				</div>
-			</section>
-			<!-- Level -->
-			<section class="col-span-4">
-				<label for="level" class="form-label">
-					<p class="font-bold mb-2">Livello di permesso (solo per SuperAdmin)</p>
-				</label>
+
+<!-- Modal filter  -->
+<Modal isOpen={isModalFilterCourse} header="Filtri di Ricerca">
+	<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
+		<div class="space-y-4">
+			<div>
+				<label for="level" class="block text-sm font-medium text-gray-700 mb-1"
+					>Livello utente</label
+				>
 				<select
 					id="level"
-					class="select select-bordered w-full rounded-md mt-2"
 					name="level"
-					placeholder="Scegli"
-					required
 					bind:value={level}
+					class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 				>
+					<option value="">Seleziona il livello utente</option>
 					<option value="user">Utente base</option>
 					<option value="formatore">Formatore</option>
 					<option value="admin">Admin</option>
+					<option value="superadmin">Superadmin</option>
 				</select>
-			</section>
-			<!-- modify user button -->
-			<div class="col-span-4 mt-5 flex justify-center">
-				<div class="bg-gray-50 flex justify-center">
-					<button class="btn btn-error btn-sm mx-2" type="button" onclick={onCloseModify}>
-						Annulla
-					</button>
-					<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Modifica </button>
-				</div>
 			</div>
-		</form>
-	</div>
-</dialog>
-<!-- /modal Modify  -->
 
-<!-- Modal confirm delete -->
-<dialog id="modal_confirm_delete" class="modal" class:modal-open={isModalConfirmDelete}>
-	<div
-		class="modal-box bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass flex flex-row justify-between max-w-2xl"
-	>
-		<h2 class="text-2xl font-bold text-black flex items-center">Conferma l'eliminazione?</h2>
-
-		<form action="?/deleteUser" method="POST" use:enhance>
-			<input type="hidden" name="userId" value={deleteId} />
-			<div class="flex flex-row justify-between space-x-4">
-				<button class="btn btn-error btn-md" type="button" onclick={onCloseConfirmDelete}
-					>Annulla</button
+			<div>
+				<label for="membershipLevel" class="block text-sm font-medium text-gray-700 mb-1"
+					>Livello associato</label
 				>
-				<button class="btn btn-success btn-md text-white" type="submit"><Trash2 />Conferma</button>
+				<select
+					id="membershipLevel"
+					name="membershipLevel"
+					bind:value={membershipLevel}
+					class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+				>
+					<option value="">Seleziona il livello associato</option>
+					<option value="Socio inattivo">Socio inattivo</option>
+					<option value="Socio ordinario">Socio ordinario</option>
+					<option value="Socio sostenitore">Socio sostenitore</option>
+					<option value="Socio vitalizio">Socio vitalizio</option>
+					<option value="Socio contributore">Socio contributore</option>
+					<option value="Master Dien Chan">Master Dien Chan</option>
+				</select>
 			</div>
-		</form>
-	</div>
-</dialog>
+
+			<div>
+				<label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+				<input
+					type="text"
+					id="email"
+					name="email"
+					bind:value={email}
+					placeholder="Scrivi un email"
+					class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+				/>
+			</div>
+		</div>
+
+		<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
+			<button class="btn btn-error btn-sm hover:bg-red-300" 
+					onclick={onCloseFilterSearch}
+					type="button">
+				Annulla
+			</button>
+			<button class="btn btn-success btn-sm hover:bg-green-400"  type="submit"
+			>
+				Applica Filtri
+			</button>
+		</div>
+
+
+	</form>
+
+</Modal>
