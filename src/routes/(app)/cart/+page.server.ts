@@ -49,8 +49,8 @@ export const actions: Actions = {
 			if (response.status == 200) {
 				let cartTotal: number = 0;    //0-190 1-705		   	  895
 				let newCartTotal: number = 0;  //0-180 1-             875
-				
-				const newCart = cartArray.map((item: any, i ) => {
+
+				const newCart = cartArray.map((item: any, i) => {
 					const discountType = discount.selectedApplicability;
 					cartTotal += item.layoutView.price;
 					if (discountType === 'userId' || discountType === 'membershipLevel') {
@@ -61,23 +61,23 @@ export const actions: Actions = {
 							newCartTotal = cartTotal - (cartTotal * discount.value) / 100;
 						}
 					} else if (item[discountType] === discount[discountType]) {
-						console.log(item.layoutView.title, item.layoutView.price, discount.type, discount.value,i);
+						console.log(item.layoutView.title, item.layoutView.price, discount.type, discount.value, i);
 						if (discount.type == 'amount') {
 							item.layoutView.price -= discount.value;
-							console.log(cartTotal - (discount.value * item.orderQuantity), i)
-							console.log((discount.value * item.orderQuantity), i)
-							newCartTotal = cartTotal - (discount.value * item.orderQuantity);
+							//newCartTotal = cartTotal - (discount.value * item.orderQuantity);
+							newCartTotal += (item.layoutView.price * item.orderQuantity)
 						}
 						if (discount.type == 'percent') {
 							item.layoutView.price -= (item.layoutView.price * discount.value) / 100;
-							newCartTotal = cartTotal - (((item.layoutView.price * discount.value) / 100) * item.orderQuantity);
+							//newCartTotal = newCartTotal - (((item.layoutView.price * discount.value) / 100) * item.orderQuantity);
+							newCartTotal += (item.layoutView.price * item.orderQuantity)
 						}
 					} else {
-						newCartTotal +=  item.layoutView.price
+						newCartTotal += item.layoutView.price
 					}
 					return item;
 				});
-				// console.log({ newCartTotal, cartTotal, newCart });
+				console.log({ cartTotal, newCartTotal });
 				// controllo i prezzi in log
 				// newCart.forEach((item: any) => {
 				// 	console.log(item.layoutView.price);
