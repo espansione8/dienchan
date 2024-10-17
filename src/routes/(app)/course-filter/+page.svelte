@@ -531,11 +531,11 @@
 						</h5>
 						<!-- price -->
 						<p class="card-text">
-							{#if auth}
-								loggato
+							Prezzo: <b>{courseData.layoutView.price}</b>
+							<br>
+							{#if !auth}
+								+ 25 solo al primo corso
 							{/if}
-
-							Prezzo: <b>{auth ? courseData.layoutView.price : courseData.layoutView.price + 25}</b>
 						</p>
 						<div class="card-actions">
 							<span class="flex justify-between gap-10 my-3">

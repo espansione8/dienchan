@@ -9,6 +9,9 @@
 	let { data, form } = $props();
 	let { userData, auth } = $derived(data);
 
+	let cart = $state($cartProducts);
+	console.log('cart', cart)
+
 	// console.log('cartProducts',cartProducts);
 
 	// notification
@@ -233,25 +236,29 @@
 	};
 
 	let discountCode = $state('');
-	let discountAmount = $state(0);
 	let discountApplied = $state(false);
 	let discountError = $state(false);
 	let discountList: any[] = $state([]);
 	let discountErr = $state('');
+	let totalDiscount = $state(0);
 
 	$effect(() => {
 		if (form != null) {
 			async () => await invalidateAll();
 			const { action, success, message, payload } = form;
 
+			// console.log('discount', payload?.discount);
+			// console.log('newCart', payload?.newCart);
+			// console.log('newCartTotal', payload?.newCartTotal);
+			// console.log('cartTotal', payload?.cartTotal);
 
-			console.log('discount', payload?.discount);
-			console.log('newCart', payload?.newCart);
-			console.log('newCartTotal', payload?.newCartTotal);
-			console.log('cartTotal', payload?.cartTotal);
-
-			
 			if (success) {
+				totalDiscount = payload?.cartTotal - payload?.newCartTotal;
+				grandTotal = payload?.cartTotal;
+				total = payload?.newCartTotal;
+
+				cart = payload?.newCart;
+				console.log('cart EFFECT', cart)
 				//if (action != 'applyDiscount') fieldReset();
 				isModalConfirm = false;
 				// isModalConfirmDelete = false;
@@ -315,6 +322,10 @@
 						<!-- price -->
 						<p class="card-text">
 							Prezzo: <b>{item.layoutView.price}</b>
+							<br />
+							{#if !auth}
+								+ 25 solo al primo corso
+							{/if}
 						</p>
 
 						<div class="card-actions">
@@ -618,7 +629,7 @@
 									class="input input-bordered w-full"
 									bind:value={discountCode}
 								/>
-								<input type="hidden" name="cart" value={JSON.stringify($cartProducts)} />
+								<input type="hidden" name="cart" value={JSON.stringify(cart)} />
 								<button
 									class="btn"
 									class:btn-primary={discountCode}
@@ -673,9 +684,10 @@
 							<p class="text-xl font-bold text-gray-800">{grandTotal} €</p>
 
 							{#if $cartProducts.length > 0}
-								{#if auth}
-									<p class="text-gray-800 font-semibold">-25 € sconto tesserati</p>
+								{#if !auth}
+									<p class="text-gray-800 font-semibold">+25 € solo per il primo corso</p>
 								{/if}
+								Totale sconto: {totalDiscount} € - {grandTotal} - {total}
 								<div class="divider"></div>
 								<p class="text-xl font-bold text-gray-800">Totale da pagare:{total} €</p>
 							{:else}

@@ -28,7 +28,7 @@ export const actions: Actions = {
 		const cart = formData.get('cart');
 		const cartArray = JSON.parse(cart)
 
-		// console.log({ cartArray })
+		console.log({ cartArray })
 
 		if (!discountCode) {
 			return fail(400, { action: 'applyDiscount', success: false, message: 'Dati mancanti' });
@@ -53,6 +53,8 @@ export const actions: Actions = {
 				const newCart = cartArray.map((item: any, i) => {
 					const discountType = discount.selectedApplicability;
 					cartTotal += item.layoutView.price;
+
+					console.log('parziali',newCartTotal, i);
 					if (discountType === 'userId' || discountType === 'membershipLevel') {
 						if (discount.type === 'amount') {
 							newCartTotal = cartTotal - discount.value;
@@ -64,20 +66,18 @@ export const actions: Actions = {
 						console.log(item.layoutView.title, item.layoutView.price, discount.type, discount.value, i);
 						if (discount.type == 'amount') {
 							item.layoutView.price -= discount.value;
-							//newCartTotal = cartTotal - (discount.value * item.orderQuantity);
 							newCartTotal += (item.layoutView.price * item.orderQuantity)
 						}
 						if (discount.type == 'percent') {
 							item.layoutView.price -= (item.layoutView.price * discount.value) / 100;
-							//newCartTotal = newCartTotal - (((item.layoutView.price * discount.value) / 100) * item.orderQuantity);
 							newCartTotal += (item.layoutView.price * item.orderQuantity)
 						}
 					} else {
 						newCartTotal += item.layoutView.price
 					}
+
 					return item;
 				});
-				console.log({ cartTotal, newCartTotal });
 				// controllo i prezzi in log
 				// newCart.forEach((item: any) => {
 				// 	console.log(item.layoutView.price);
