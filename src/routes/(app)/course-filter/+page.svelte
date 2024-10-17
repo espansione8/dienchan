@@ -6,12 +6,12 @@
 		ChevronDown,
 		ShieldAlert,
 		Check,
-		CalendarSearch,		
+		CalendarSearch,
 		UserSearch,
 		TextSearch,
 		MapPinned,
 		ShoppingCart,
-		Trash2 
+		Trash2
 	} from 'lucide-svelte';
 	import Notification from '$lib/components/Notification.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
@@ -22,8 +22,8 @@
 	import 'moment/min/locales.js';
 	// moment.locale('it');
 
-	let { data, auth } = $props();
-	let { getTable, getTableNames, getLayout } = $derived(data);
+	let { data } = $props();
+	let { getTable, getTableNames, getLayout, auth } = $derived(data);
 	let coursesList = $state(getTable);
 
 	// console.log('coursesList', coursesList);
@@ -40,7 +40,7 @@
 		const findProvincia = $province.find((prov) => prov.sigla == provinciaSigla);
 		return findProvincia?.nome || '';
 	}
-	
+
 	// cycle to count the number of courses in each province
 	const numCoursesInProvince = {};
 	coursesList.forEach((item) => {
@@ -531,7 +531,11 @@
 						</h5>
 						<!-- price -->
 						<p class="card-text">
-							Prezzo: <b>{courseData.layoutView.price} €</b>
+							{#if auth}
+								loggato
+							{/if}
+
+							Prezzo: <b>{auth ? courseData.layoutView.price : courseData.layoutView.price + 25}</b>
 						</p>
 						<div class="card-actions">
 							<span class="flex justify-between gap-10 my-3">
@@ -551,7 +555,7 @@
 									<button
 										class="btn btn-sm bg-green-200 w-48 btn-success rounded-md text-green-700 hover:text-green-300 inline-flex items-center justify-center space-x-2"
 										onclick={() => addToCart($cartProducts, courseData, false)}
-										><ShoppingCart/> Aggiungi al Carrello</button
+										><ShoppingCart /> Aggiungi al Carrello</button
 									>
 								{/if}
 							</span>

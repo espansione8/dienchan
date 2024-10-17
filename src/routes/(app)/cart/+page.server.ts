@@ -58,24 +58,24 @@ export const actions: Actions = {
 							newCartTotal = cartTotal - (cartTotal * discount.value) / 100;
 						}
 					} else if (item[discountType] === discount[discountType]) {
-						console.log(item.layoutView.title, item.layoutView.price, discount.type, discount.value);
+						//console.log(item.layoutView.title, item.layoutView.price, discount.type, discount.value);
 						if (discount.type == 'amount') {
 							item.layoutView.price -= discount.value;
+							newCartTotal = cartTotal - discount.value;
 						}
 						if (discount.type == 'percent') {
 							item.layoutView.price -= (item.layoutView.price * discount.value) / 100;
+							newCartTotal = cartTotal - (cartTotal * discount.value) / 100;
 						}
 					}
 					return item;
 				});
-				newCartTotal = cartTotal;
 				// controllo i prezzi in log
-				newCart.forEach((item: any) => {
-					console.log(item.layoutView.price);
-				});
+				// newCart.forEach((item: any) => {
+				// 	console.log(item.layoutView.price);
+				// });
 
-
-				return { action: 'applyDiscount', success: true, message: "sconto applicato", discount, newCart };
+				return { action: 'applyDiscount', success: true, message: "sconto applicato", payload: { discount, newCart, newCartTotal, cartTotal } };
 			} else {
 				return { action: 'applyDiscount', success: false, message: discount.message };
 			}
