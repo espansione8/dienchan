@@ -5,6 +5,8 @@
 	let { data } = $props();
 	let { getCourse, userData } = $derived(data);
 
+	console.log('getCourse',getCourse)
+
 	const checkCart = (id: any) => {
 		const check = $cartProducts.some((item) => item.prodId == id);
 		return check;
@@ -21,7 +23,7 @@
 </script>
 
 <svelte:head>
-	<title>{getCourse.title}</title>
+	<title>{getCourse.layoutView.title}</title>
 </svelte:head>
 
 <div class="flex p-10 bg-gray-100 rounded-lg shadow-lg">

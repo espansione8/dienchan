@@ -28,7 +28,6 @@
 	let { getTable, getTableNames, userData, getLayout } = $derived(data);
 	let tableList = $state(getTable);
 
-	//console.log('getTableNames', getTableNames);
 
 	const now = new Date();
 	let currentYear = now.getFullYear();
@@ -1182,11 +1181,11 @@
 			</div>
 
 			<div>
-				<label for="reflexologist" class="block text-sm font-medium text-gray-700 mb-1"
+				<label for="userId" class="block text-sm font-medium text-gray-700 mb-1"
 					>Riflessologo</label
 				>
 				<select
-					id="reflexologist"
+					id="userId"
 					name="userId"
 					bind:value={userId}
 					class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"

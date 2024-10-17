@@ -5,6 +5,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	let getTable = [];
 	let getTableNames = [];
 	let getLayout = [];
+	const user = locals.data
 
 	try {
 		const resProductsCorso = await fetch(
@@ -21,15 +22,32 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			//timeEndDate: obj.eventEndDate.substring(11, 16),
 		}));
 
+		let arrayField = [];
+		let arrayValue = [];
+
 		// LISTA NOMI RIFLESSOLOGI
-		const resName = await fetch(
-			`${import.meta.env.VITE_BASE_URL}/api/users/all-active-names/0/0`
-		);
+		arrayField = ['status', 'level'];
+		arrayValue = ['enabled', 'superadmin'];
+		// arrayValue = ['enabled', 'formatore']; // REFACTOR
+		const resName = await fetch(`/api/finds/0/0`, {
+			method: 'POST',
+			body: JSON.stringify({
+				schema: 'user',
+				arrayField,
+				arrayValue
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 		getTableNames = await resName.json();
 
+
 		// Layout list
-		const arrayField: unknown[] = [];
-		const arrayValue: unknown[] = [];
+		// arrayField: unknown[] = [];
+		// arrayValue: unknown[] = [];
+		arrayField = [];
+		arrayValue = [];
 		const resLayout = await fetch(`/api/finds/0/0`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -46,7 +64,6 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	} catch (error) {
 		console.log('products-corso fetch error:', error);
 	}
-	const user = locals.data
 	//console.log('getTableCorsi', getTableCorsi);
 	return {
 		getLayout,

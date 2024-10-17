@@ -33,17 +33,6 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			createdAt: obj.createdAt.substring(0, 10)
 		}));
 
-		// GET USERS
-		// const res = await fetch(
-		// 	`${import.meta.env.VITE_BASE_URL}/api/users/all-active/0/0`
-		// );
-		// const resGetTableUser = await res.json();
-		// //console.log('MY DOCS res.ok', res.ok);
-		// //console.log('res getTableData', resGetTableData)
-		// getTableUser = resGetTableUser.map((obj) => ({
-		// 	...obj,
-		// 	createdAt: obj.createdAt.substring(0, 10)
-		// }));
 
 	} catch (error) {
 		console.log('products-corso fetch error:', error);

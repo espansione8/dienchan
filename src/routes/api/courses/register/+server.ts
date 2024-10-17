@@ -10,16 +10,16 @@ export const POST = async ({ request }) => {
 		userId,
 		name,
 		surname,
-		title,
-		descrLong,
+		// title,
+		// descrLong,
 		eventStartDate,
 		stockQty,
 		countryState,
 		location,
-		category,
+		// category,
 		notificationEmail,
 		tag,
-		price,
+		// price,
 		infoExtra,
 	} = body;
 
@@ -38,16 +38,16 @@ export const POST = async ({ request }) => {
 		newEvent.userId = userId;
 		newEvent.name = name;
 		newEvent.surname = surname;
-		newEvent.title = title;
-		newEvent.descrLong = descrLong;
+		// newEvent.title = title;
+		// newEvent.descrLong = descrLong;
 		newEvent.eventStartDate = eventStartDate;
 		newEvent.stockQty = stockQty;
 		newEvent.countryState = countryState;
 		newEvent.location = location;
-		newEvent.category = category;
+		// newEvent.category = category;
 		newEvent.notificationEmail = notificationEmail;
 		newEvent.tag = tag;
-		newEvent.price = price;
+		// newEvent.price = price;
 		newEvent.infoExtra = infoExtra;
 		newEvent.type = 'course';
 

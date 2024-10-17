@@ -31,9 +31,10 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 
 	const userData = await resUser.json();
 
+	// getCourse: getCourse.response,
 
 	return {
-		getCourse: getCourse.response,
+		getCourse,
 		userData,
 		auth: locals.auth
 	};

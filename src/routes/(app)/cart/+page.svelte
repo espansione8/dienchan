@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { cartProducts, removeFromCart, emptyCart } from '$lib/stores/cart';
-	import moment from 'moment';
 	import { Lock } from 'lucide-svelte';
 	import { goto } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
@@ -12,7 +11,7 @@
 	let { data } = $props();
 	let { userData, auth } = $derived(data);
 
-	console.log('cartProducts',cartProducts);
+	// console.log('cartProducts',cartProducts);
 
 	// notification
 	let toastClosed: boolean = $state(true);
@@ -288,7 +287,7 @@
 					<div class="card-body items-center text-center">
 						<!-- data giorno -->
 						<h2 class="card-title text-2xl">
-							{item.eventStartDate}
+							{(item.eventStartDate).substring(0, 10)}
 						</h2>
 						<!-- provincia -->
 						<p class="card-text text-xl">

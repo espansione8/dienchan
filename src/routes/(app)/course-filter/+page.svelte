@@ -40,13 +40,7 @@
 		const findProvincia = $province.find((prov) => prov.sigla == provinciaSigla);
 		return findProvincia?.nome || '';
 	}
-
-	function findNameRiflessologo(userIdCode) {
-		//console.log('userIdCode', userIdCode);
-		const findRiflessologo = getTable.find((user) => user.userId == userIdCode);
-		return `${findRiflessologo.name} ${findRiflessologo.surname}`;
-	}
-
+	
 	// cycle to count the number of courses in each province
 	const numCoursesInProvince = {};
 	coursesList.forEach((item) => {

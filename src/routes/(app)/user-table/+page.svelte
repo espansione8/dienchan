@@ -76,6 +76,18 @@
 	};
 	//clearTimeout(startTimeout); // reset timer
 
+	const showLevel = (level: string) => {
+		if (level == 'user') {
+			return 'Utente base';
+		} else if (level == 'formatore') {
+			return 'Formatore';
+		} else if (level == 'admin') {
+			return 'Admin';
+		} else if (level == 'superadmin') {
+			return 'Superadmin';
+		}
+	};
+
 	const csvCreate = () => {
 		let csv = $state('');
 		let newList: any = $state();
@@ -542,8 +554,7 @@
 					<td>{row.name} {row.surname}</td>
 					<!-- Level, MembreshipLevel, Expire Date -->
 					<td>
-						{row.level}
-						<!-- {function(row.level)} TODO -->
+						{showLevel(row.level)}
 						<br /><br />
 						{row.membership.membershipLevel}
 						<br /><br />
