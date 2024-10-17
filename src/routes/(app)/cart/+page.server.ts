@@ -28,6 +28,8 @@ export const actions: Actions = {
 		const cart = formData.get('cart');
 		const cartArray = JSON.parse(cart)
 
+		// console.log({ cartArray })
+
 		if (!discountCode) {
 			return fail(400, { action: 'applyDiscount', success: false, message: 'Dati mancanti' });
 		}
@@ -43,11 +45,12 @@ export const actions: Actions = {
 				})
 			});
 			const discount = await response.json();
-			console.log({ discount });
+			// console.log({ discount });
 			if (response.status == 200) {
-				let cartTotal: number = 0;
-				let newCartTotal: number = 0;
-				const newCart = cartArray.map((item: any) => {
+				let cartTotal: number = 0;    //0-190 1-705		   	  895
+				let newCartTotal: number = 0;  //0-180 1-             875
+				
+				const newCart = cartArray.map((item: any, i ) => {
 					const discountType = discount.selectedApplicability;
 					cartTotal += item.layoutView.price;
 					if (discountType === 'userId' || discountType === 'membershipLevel') {
@@ -58,18 +61,23 @@ export const actions: Actions = {
 							newCartTotal = cartTotal - (cartTotal * discount.value) / 100;
 						}
 					} else if (item[discountType] === discount[discountType]) {
-						//console.log(item.layoutView.title, item.layoutView.price, discount.type, discount.value);
+						console.log(item.layoutView.title, item.layoutView.price, discount.type, discount.value,i);
 						if (discount.type == 'amount') {
 							item.layoutView.price -= discount.value;
-							newCartTotal = cartTotal - discount.value;
+							console.log(cartTotal - (discount.value * item.orderQuantity), i)
+							console.log((discount.value * item.orderQuantity), i)
+							newCartTotal = cartTotal - (discount.value * item.orderQuantity);
 						}
 						if (discount.type == 'percent') {
 							item.layoutView.price -= (item.layoutView.price * discount.value) / 100;
-							newCartTotal = cartTotal - (cartTotal * discount.value) / 100;
+							newCartTotal = cartTotal - (((item.layoutView.price * discount.value) / 100) * item.orderQuantity);
 						}
+					} else {
+						newCartTotal +=  item.layoutView.price
 					}
 					return item;
 				});
+				// console.log({ newCartTotal, cartTotal, newCart });
 				// controllo i prezzi in log
 				// newCart.forEach((item: any) => {
 				// 	console.log(item.layoutView.price);

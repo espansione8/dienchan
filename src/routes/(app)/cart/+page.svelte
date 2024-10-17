@@ -239,25 +239,33 @@
 	let discountList: any[] = $state([]);
 	let discountErr = $state('');
 
-	// $effect(() => {
-	// 	if (form != null) {
-	// 		async () => await invalidateAll();
-	// 		const { action, success, message } = form;
-	// 		if (success) {
-	// 			//if (action != 'applyDiscount') fieldReset();
-	// 			isModalConfirm = false;
-	// 			// isModalConfirmDelete = false;
-	// 			// tableList = getTable;
-	// 		} else {
-	// 			notificationError = true;
-	// 			discountErr = message;
-	// 		}
-	// 		closeNotification();
-	// 		toastClosed = false;
-	// 		notificationContent = message;
-	// 		form = null;
-	// 	}
-	// }); // end effect
+	$effect(() => {
+		if (form != null) {
+			async () => await invalidateAll();
+			const { action, success, message, payload } = form;
+
+
+			console.log('discount', payload?.discount);
+			console.log('newCart', payload?.newCart);
+			console.log('newCartTotal', payload?.newCartTotal);
+			console.log('cartTotal', payload?.cartTotal);
+
+			
+			if (success) {
+				//if (action != 'applyDiscount') fieldReset();
+				isModalConfirm = false;
+				// isModalConfirmDelete = false;
+				// tableList = getTable;
+			} else {
+				notificationError = true;
+				discountErr = message;
+			}
+			closeNotification();
+			toastClosed = false;
+			notificationContent = message;
+			form = null;
+		}
+	}); // end effect
 </script>
 
 <svelte:head>
