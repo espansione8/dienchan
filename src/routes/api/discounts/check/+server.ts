@@ -1,0 +1,28 @@
+// src/routes/api/discounts/check
+import { json } from '@sveltejs/kit';
+import dbConnect from '$lib/database';
+import { Discount } from '$lib/models/Discounts.model.js';
+
+export const POST = async ({ request }) => {
+	const body = await request.json();
+	const { discountCode } = body;
+	try {
+		// Connecting to DB
+		// All database code can only run inside async functions as it uses await
+		await dbConnect();
+		// Is there a user with such an email?
+		const discount = await Discount.findOne({ code: discountCode })
+			.lean()
+			.exec();
+
+		//console.log({ user });
+		if (discount) {
+			return json(discount, { status: 200 });
+		}
+		return json({ message: 'sconto non valido' }, { status: 400 });
+
+	} catch (err) {
+		console.log('discount ERROR:', err);
+		return json({ message: 'discount ERROR' }, { status: 500 });
+	}
+};

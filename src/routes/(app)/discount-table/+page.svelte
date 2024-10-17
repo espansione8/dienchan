@@ -32,6 +32,7 @@
 	let notes = $state('');
 	let discountId = $state('');
 	let selectedApplicability = $state('userId');
+	let selectedId = $state('');
 	let isModalConfirmDelete = $state(false);
 
 	let deleteId = $state('');
@@ -88,11 +89,8 @@
 			code = item.code;
 			type = item.type;
 			value = item.value;
-			userId = item.userId;
-			productId = item.productId;
-			layoutId = item.layoutId;
-			membershipLevel = item.membershipLevel;
 			selectedApplicability = item.selectedApplicability;
+			selectedId = item[selectedApplicability];
 			notes = item.notes;
 			postAction = `?/modifyDiscount`;
 		}
@@ -141,7 +139,7 @@
 			<button class="btn btn-info text-white w-full sm:w-auto">
 				<RefreshCcw />
 			</button>
-			{#if resetActive == true}
+			{#if resetActive}
 				<button class="btn btn-error rounded-md text-white">
 					<XCircle class="mt-1" /> Reset Filtro
 				</button>
@@ -168,8 +166,8 @@
 				<th>Codice</th>
 				<th>Tipologia</th>
 				<th>Valore</th>
-				<th>Utente</th>
-				<th>Prodotto</th>
+				<th>Tipo sconto</th>
+				<th>ID</th>
 				<th>Categoria</th>
 				<th>Livello socio</th>
 				<th>Azione</th>
@@ -248,239 +246,6 @@
 </div>
 
 <Notification {toastClosed} {notificationContent} {notificationError} />
-
-<!-- modal New and Modify  -->
-<dialog id="modal_new-modify" class="modal" class:modal-open={false}>
-	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-2xl">
-		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
-			<h2 class="text-2xl font-bold text-white mb-1">
-				{#if currentDialog == 'new'}
-					Nuovo Codice Sconto
-				{:else if currentDialog == 'modify'}
-					Modifica Codice Sconto
-				{/if}
-			</h2>
-		</div>
-
-		<form
-			method="POST"
-			action={postAction}
-			use:enhance
-			class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-		>
-			{#if currentDialog == 'modify'}
-				<section class="col-span-4">
-					<label for="discountId" class="form-label">
-						<p class="font-bold mb-2">ID codice</p>
-					</label>
-
-					<div class="join join-horizontal w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
-						<input
-							class="input input-bordered join-item w-full"
-							id="discountId"
-							name="discountId"
-							type="text"
-							placeholder="discountId"
-							aria-label="discountId"
-							aria-describedby="basic-discountId"
-							bind:value={discountId}
-							readonly
-						/>
-					</div>
-				</section>
-			{/if}
-
-			<section class="col-span-4">
-				<label for="code" class="form-label">
-					<p class="font-bold mb-2">Codice sconto</p>
-				</label>
-
-				<div class="join join-horizontal w-full">
-					<button class="join-item bg-gray-300 px-3"><Pen /></button>
-					<input
-						class="input input-bordered join-item w-full"
-						id="titolo"
-						name="code"
-						type="text"
-						placeholder="Codice"
-						aria-label="Titolo"
-						aria-describedby="basic-titolo"
-						bind:value={code}
-						required
-					/>
-				</div>
-			</section>
-
-			<section class="col-span-2 md:col-span-2">
-				<label for="type" class="form-label">
-					<p class="font-bold mb-2">Tipologia</p>
-				</label>
-				<div class="join join-horizontal w-full">
-					<button class="join-item bg-gray-300 px-3"><StretchHorizontal /></button>
-					<select
-						class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
-						id="categoria"
-						name="type"
-						aria-label="Categoria"
-						aria-describedby="basic-categoria"
-						bind:value={type}
-						required
-					>
-						<option disabled value="">Scegli</option>
-						<option value="percent">Percentuale %</option>
-						<option value="amount">Valore fisso €</option>
-					</select>
-				</div>
-			</section>
-			<!-- Value -->
-			<section class="col-span-2 md:col-span-2">
-				<label for="value" class="form-label">
-					<p class="font-bold mb-2">Valore</p>
-				</label>
-				<div class="join join-horizontal w-full">
-					<button class="join-item bg-gray-300 px-3"><Calculator /></button>
-					<input
-						class="input input-bordered join-item w-full"
-						id="renewalLength"
-						type="number"
-						name="value"
-						aria-label="value"
-						aria-describedby="value"
-						bind:value
-						required
-					/>
-				</div>
-			</section>
-
-			<!-- Radio buttons and input text -->
-			<section class="col-span-4">
-				<label class="form-label">
-					<p class="font-bold mb-2"><Filter /> Uso</p>
-				</label>
-				<div class="flex flex-wrap gap-4">
-					<label class="flex items-center">
-						<input
-							type="radio"
-							name="applicability"
-							value="userId"
-							class="radio radio-primary mr-2"
-							bind:group={selectedApplicability}
-						/>
-						<span>User ID</span>
-					</label>
-					<label class="flex items-center">
-						<input
-							type="radio"
-							name="applicability"
-							value="membershipLevel"
-							class="radio radio-primary mr-2"
-							bind:group={selectedApplicability}
-						/>
-						<span>Membership level</span>
-					</label>
-					<label class="flex items-center">
-						<input
-							type="radio"
-							name="applicability"
-							value="product"
-							class="radio radio-primary mr-2"
-							bind:group={selectedApplicability}
-						/>
-						<span>Prodotto</span>
-					</label>
-					<label class="flex items-center">
-						<input
-							type="radio"
-							name="applicability"
-							value="course"
-							class="radio radio-primary mr-2"
-							bind:group={selectedApplicability}
-						/>
-						<span>Corso</span>
-					</label>
-				</div>
-				<div class="mt-4">
-					{#if selectedApplicability === 'userId'}
-						<input
-							type="text"
-							name="userId"
-							class="input input-bordered w-full"
-							placeholder="Inserisci il valore corrispondente"
-							bind:value={userId}
-						/>
-					{:else if selectedApplicability === 'membershipLevel'}
-						<input
-							type="text"
-							name="membershipLevel"
-							class="input input-bordered w-full"
-							placeholder="Inserisci il valore corrispondente"
-							bind:value={membershipLevel}
-						/>
-					{:else if selectedApplicability === 'product'}
-						<input
-							type="text"
-							name="productId"
-							class="input input-bordered w-full"
-							placeholder="Inserisci il valore corrispondente"
-							bind:value={productId}
-						/>
-					{:else if selectedApplicability === 'course'}
-						<input
-							type="text"
-							name="layoutId"
-							class="input input-bordered w-full"
-							placeholder="Inserisci il valore corrispondente"
-							bind:value={layoutId}
-						/>
-					{/if}
-				</div>
-			</section>
-
-			<!-- Note -->
-			<section class="col-span-4">
-				<label for="descrizione" class="form-label">
-					<p class="font-bold mb-2">Note</p>
-				</label>
-
-				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"><Pen /></button>
-					<textarea
-						class="textarea textarea-bordered h-24 join-item w-full"
-						id="descrizione"
-						name="notes"
-						placeholder="Descrizione"
-						aria-label="descrizione"
-						aria-describedby="basic-descrizione"
-						bind:value={notes}
-					></textarea>
-				</div>
-			</section>
-			<!-- button -->
-			<div class="col-span-4 mt-5 flex justify-center">
-				<div class="bg-gray-50 flex justify-center">
-					<button
-						class="btn btn-error btn-sm mx-2"
-						onclick={() => {
-							(isModal = false), resetFields();
-						}}
-					>
-						Annulla
-					</button>
-
-					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">
-						{#if currentDialog == 'new'}
-							Registra
-						{:else if currentDialog == 'modify'}
-							Modifica
-						{/if}
-					</button>
-				</div>
-			</div>
-		</form>
-	</div>
-</dialog>
-<!-- /modal New  -->
 
 <!-- Modal confirm delete -->
 <dialog id="modal_confirm_delete" class="modal" class:modal-open={false}>
@@ -624,7 +389,7 @@
 					<input
 						type="radio"
 						name="applicability"
-						value="product"
+						value="productId"
 						class="radio radio-primary mr-2"
 						bind:group={selectedApplicability}
 					/>
@@ -634,47 +399,21 @@
 					<input
 						type="radio"
 						name="applicability"
-						value="course"
+						value="layoutId"
 						class="radio radio-primary mr-2"
 						bind:group={selectedApplicability}
 					/>
-					<span>Corso</span>
+					<span>Tipo Corso</span>
 				</label>
 			</div>
 			<div class="mt-4">
-				{#if selectedApplicability === 'userId'}
-					<input
-						type="text"
-						name="userId"
-						class="input input-bordered w-full"
-						placeholder="Inserisci il valore corrispondente"
-						bind:value={userId}
-					/>
-				{:else if selectedApplicability === 'membershipLevel'}
-					<input
-						type="text"
-						name="membershipLevel"
-						class="input input-bordered w-full"
-						placeholder="Inserisci il valore corrispondente"
-						bind:value={membershipLevel}
-					/>
-				{:else if selectedApplicability === 'product'}
-					<input
-						type="text"
-						name="productId"
-						class="input input-bordered w-full"
-						placeholder="Inserisci il valore corrispondente"
-						bind:value={productId}
-					/>
-				{:else if selectedApplicability === 'course'}
-					<input
-						type="text"
-						name="layoutId"
-						class="input input-bordered w-full"
-						placeholder="Inserisci il valore corrispondente"
-						bind:value={layoutId}
-					/>
-				{/if}
+				<input
+					type="text"
+					name="selectId"
+					class="input input-bordered w-full"
+					placeholder="Inserisci il valore corrispondente"
+					bind:value={selectedId}
+				/>
 			</div>
 		</section>
 
@@ -720,7 +459,6 @@
 		</div>
 	</form>
 </Modal>
-
 
 <!-- Modal confirm delete -->
 <Modal isOpen={isModalConfirmDelete} header="Conferma l'eliminazione?" cssClass="max-w-2xl">

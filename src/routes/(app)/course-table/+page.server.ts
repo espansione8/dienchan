@@ -67,7 +67,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		getLayout = await resLayout.json();
 
 	} catch (error) {
-		console.log('products-corso fetch error:', error);
+		console.log('course table fetch error:', error);
 	}
 	const user = locals.data
 	if (locals.auth) {

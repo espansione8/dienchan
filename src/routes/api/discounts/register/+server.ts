@@ -5,7 +5,12 @@ import { Discount } from '$lib/models/Discounts.model';
 
 export const POST = async ({ request }) => {
 	const body = await request.json();
-	const { code, type, value, selectedApplicability, userId, productId, layoutId, membershipLevel, notes } = body;
+	const { code,
+		type,
+		value,
+		selectedApplicability,
+		selectId,
+		notes } = body;
 
 	try {
 		// Connecting to DB
@@ -34,14 +39,8 @@ export const POST = async ({ request }) => {
 		newDiscount.type = type;
 		newDiscount.value = value;
 		newDiscount.selectedApplicability = selectedApplicability;
-		newDiscount.userId = userId;
-		newDiscount.productId = productId;
-		newDiscount.layoutId = layoutId;
-		newDiscount.membershipLevel = membershipLevel;
+		newDiscount[selectedApplicability] = selectId;
 		newDiscount.notes = notes;
-
-
-		// console.log('value:', value);
 
 		const discountSave = await newDiscount.save();
 
@@ -61,7 +60,7 @@ export const POST = async ({ request }) => {
 				message: 'Codice Sconto registrazione fallita (1)'
 			},
 			{
-				status: 500
+				status: 400
 			}
 		);
 

@@ -57,11 +57,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 				return response;
 			}
 
-			// route protection DEBUG: event.url detect API URL in +page.server, not the current page
+			//route protection DEBUG: event.url detect API URL in +page.server, not the current page
 			// if (event.url.pathname.startsWith('/app')) {
 			//     if (!event.locals.auth) {
-			//         //throw redirect(401, '/login');
 			//         console.log('not logged');
+			//         throw redirect(400, '/login');
 			//     }
 			// }
 		} catch (error) {

@@ -3,10 +3,10 @@ import type { PageServerLoad, Actions } from './$types'
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
 	//console.log('locals', locals);
+	let getTable = [];
 	if (!locals.auth) {
 		throw redirect(302, '/login');
 	}
-	let getTable = [];
 	//let getTableUser = [];
 
 	try {
@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		// GET PRODUCTS
 		const arrayField = [];
 		const arrayValue = [];
-		const res = await fetch(`/api/finds/0/0`, {
+		const res = await fetch(`/api/finds/0/0`, { // URL:app/dashboard
 			method: 'POST',
 			body: JSON.stringify({
 				schema: 'discount',
@@ -28,14 +28,15 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			}
 		});
 		const resGetTable = await res.json();
-		getTable = resGetTable.map((obj) => ({
-			...obj,
-			createdAt: obj.createdAt.substring(0, 10)
-		}));
-
+		if (resGetTable.length > 0) {
+			getTable = resGetTable.map((obj) => ({
+				...obj,
+				createdAt: obj.createdAt.substring(0, 10)
+			}));
+		}
 
 	} catch (error) {
-		console.log('products-corso fetch error:', error);
+		console.log('discount fetch error:', error);
 	}
 	const user = locals.data
 	if (locals.auth) {
@@ -57,17 +58,13 @@ export const actions: Actions = {
 		const type = formData.get('type');
 		const value = formData.get('value');
 		const selectedApplicability = formData.get('applicability');
-		const userId = formData.get('userId') || '';
-		const membershipLevel = formData.get('membershipLevel') || '';
-		const productId = formData.get('productId') || '';
-		const layoutId = formData.get('layoutId') || '';
+		const selectId = formData.get('selectId')
 		const notes = formData.get('notes') || '';
 
 		if (!code || !type || !value) {
 			return fail(400, { action: 'newDiscount', success: false, message: 'Dati mancanti' });
 		}
 
-		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
 		try {
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/register`, {
 				method: 'POST',
@@ -79,10 +76,8 @@ export const actions: Actions = {
 					type,
 					value,
 					selectedApplicability,
-					userId,
-					membershipLevel,
-					productId,
-					layoutId,
+					selectId,
+
 					notes
 				})
 			});

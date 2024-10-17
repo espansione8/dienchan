@@ -35,7 +35,7 @@ export const POST = async ({ request }) => {
 
         const result = await Discount.updateOne(filter, update);
 
-        if (result.matchedCount === 1) {
+        if (result.matchedCount == 1) {
             return json(
                 {
                     message: 'Status Sconto aggiornato'

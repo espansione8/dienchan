@@ -30,7 +30,7 @@ export const POST = async ({ request }) => {
 					message: 'Incorrect user or password'
 				},
 				{
-					status: 401
+					status: 400
 				}
 			);
 		}

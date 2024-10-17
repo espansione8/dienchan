@@ -38,8 +38,8 @@ export const actions: Actions = {
 		const phone = formData.get('phone');
 		const mobilePhone = formData.get('mobilePhone');
 		const password1 = formData.get('password1');
-		const membershipLevel = 'Socio ordinario';
 		const paymentType = formData.get('radio-paymentType');
+		const membershipLevel = formData.get('membershipLevel')
 		let userId = ''
 
 		if (!name || !surname || !email || !address || !postalCode || !city || !countryState || !country || !password1 || !paymentType) {
@@ -151,64 +151,6 @@ export const actions: Actions = {
 		}
 	},
 
-	newLifetime: async ({ request, fetch }) => {
-		// TODO REFACTOR
-		const formData = await request.formData();
-		const name = formData.get('name');
-		const surname = formData.get('surname');
-		const email = formData.get('email');
-		const address = formData.get('address');
-		const postalCode = formData.get('postalCode');
-		const city = formData.get('city');
-		const countryState = formData.get('countryState');
-		const country = formData.get('country');
-		const phone = formData.get('phone');
-		const mobilePhone = formData.get('mobilePhone');
-		const password1 = formData.get('password1');
-		const membershipLevel = 'Socio vitalizio';
-		const paymentType = formData.get('radio-paymentType');
-
-		if (!name || !surname || !email || !address || !postalCode || !city || !countryState || !country || !password1 || !paymentType) {
-			console.log('newMembership', name, surname, email, address, postalCode, city, countryState, country, password1, paymentType);
-			return fail(400, { action: 'newMembership', success: false, message: 'Dati mancanti' });
-		}
-		try {
-			const findProduct = await Product.findOne({ title: membershipLevel });
-			const product = findProduct?.prodId ? findProduct : () => { return { action: 'newMembership', success: false, message: 'errore iscrizione (1)' } }
-
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/orders/purchase-first`, {
-				method: 'POST',
-				body: JSON.stringify({
-					name,
-					surname,
-					email,
-					password1, // only registration
-					address,
-					city,
-					countryState,
-					postalCode,
-					country,
-					phone,
-					mobilePhone,
-					cart: [product],
-					paymentType,
-					userId: ''
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			const res = await response.json();
-			if (response.status == 200) {
-				return { action: 'newMembership', success: true, message: "tessera Vitalizia ordinata successo" };
-			} else {
-				return { action: 'newMembership', success: false, message: res.message };
-			}
-		} catch (error) {
-			console.error('Error creating new membership:', error);
-			return { action: 'newMembership', success: false, message: 'Errore creazione membership' };
-		}
-	},
 	renewMembership: async ({ request, fetch, locals }) => {
 		const userData = locals.data;
 		const formData = await request.formData();

@@ -62,7 +62,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		getLayout = await resLayout.json();
 
 	} catch (error) {
-		console.log('products-corso fetch error:', error);
+		console.log('course filter fetch error:', error);
 	}
 	//console.log('getTableCorsi', getTableCorsi);
 	return {

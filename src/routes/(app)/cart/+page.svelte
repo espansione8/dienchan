@@ -1,14 +1,12 @@
 <script lang="ts">
+	import { goto, invalidateAll } from '$app/navigation';
+	import { enhance } from '$app/forms';
 	import { cartProducts, removeFromCart, emptyCart } from '$lib/stores/cart';
-	import { Lock } from 'lucide-svelte';
-	import { goto } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
-	import { province } from '$lib/stores/arrays.js';
-	import { country_list } from '$lib/stores/arrays.js';
-	import { coursesInfo } from '$lib/stores/arrays.js';
-	import { Settings, X, Check } from 'lucide-svelte';
+	import { country_list, province } from '$lib/stores/arrays.js';
+	import { Settings, X, Check, Lock } from 'lucide-svelte';
 
-	let { data } = $props();
+	let { data, form } = $props();
 	let { userData, auth } = $derived(data);
 
 	// console.log('cartProducts',cartProducts);
@@ -224,6 +222,8 @@
 		country = 'Italy';
 		phone = '';
 		mobilePhone = '';
+		discountErr = '';
+		form = null;
 		emptyCart();
 	};
 
@@ -232,36 +232,32 @@
 		goto(`/course-detail/${idCourse}`);
 	};
 
-	// const findObjectByParam = (jsonArray, paramName, paramValue) => {
-	// 	// Itera attraverso ogni oggetto nell'array JSON
-	// 	console.log('jsonArray', jsonArray);
-	// 	console.log('paramName', paramName);
-	// 	console.log('paramValue', paramValue);
-	// 	for (let i = 0; i < jsonArray.length; i++) {
-	// 		// Controlla se il parametro nell'oggetto corrisponde al valore cercato
-	// 		if (jsonArray[i][paramName] === paramValue) {
-	// 			return jsonArray[i]; // Restituisce l'oggetto se trovato
-	// 		}
-	// 	}
-	// 	return null; // Restituisce null se non trova un oggetto corrispondente
-	// };
-
-	const imgSrc = (value: string) => {
-		const src = $coursesInfo.filter((item: any) => item.id == value);
-		return src[0].urlPic;
-	};
-
-	const bgColor = (value: string) => {
-		const src = $coursesInfo.filter((item: any) => item.id == value);
-		return src[0].bgColor;
-	};
-
 	let discountCode = $state('');
 	let discountAmount = $state(0);
 	let discountApplied = $state(false);
 	let discountError = $state(false);
-
 	let discountList: any[] = $state([]);
+	let discountErr = $state('');
+
+	// $effect(() => {
+	// 	if (form != null) {
+	// 		async () => await invalidateAll();
+	// 		const { action, success, message } = form;
+	// 		if (success) {
+	// 			//if (action != 'applyDiscount') fieldReset();
+	// 			isModalConfirm = false;
+	// 			// isModalConfirmDelete = false;
+	// 			// tableList = getTable;
+	// 		} else {
+	// 			notificationError = true;
+	// 			discountErr = message;
+	// 		}
+	// 		closeNotification();
+	// 		toastClosed = false;
+	// 		notificationContent = message;
+	// 		form = null;
+	// 	}
+	// }); // end effect
 </script>
 
 <svelte:head>
@@ -275,10 +271,9 @@
 				<div
 					class="card card-compact overflow-hidden bg-base-100 max-w-xs rounded-xl shadow-md border"
 				>
-				<!-- src={imgSrc(item.category[0])} -->
+					<!-- src={imgSrc(item.category[0])} -->
 					<figure class="px-4 pt-4">
 						<img
-							
 							src={item.layoutView.urlPic}
 							alt="tipo corso"
 							class="h-full w-full object-cover border-2 rounded-lg"
@@ -287,7 +282,7 @@
 					<div class="card-body items-center text-center">
 						<!-- data giorno -->
 						<h2 class="card-title text-2xl">
-							{(item.eventStartDate).substring(0, 10)}
+							{item.eventStartDate.substring(0, 10)}
 						</h2>
 						<!-- provincia -->
 						<p class="card-text text-xl">
@@ -295,8 +290,8 @@
 						</p>
 						<!-- title -->
 						<h5
-							class="card-text text-xl bg-base-200 border rounded-md shadow-sm font-semibold p-2 {item.layoutView.bgColor}"
-							 
+							class="card-text text-xl bg-base-200 border rounded-md shadow-sm font-semibold p-2 {item
+								.layoutView.bgColor}"
 						>
 							{item.layoutView.title}
 						</h5>
@@ -365,7 +360,7 @@
 					{/if}
 				</div>
 
-				<form class=" pt-2" onsubmit={onConfirmForm}>
+				<form class="pt-2" method="POST" action={`?/todo`} use:enhance>
 					<fieldset disabled={closedInput} class="grid grid-cols-12 gap-2">
 						<!-- Nome -->
 						<div class="form-control col-span-12 md:col-span-6 w-full">
@@ -522,8 +517,8 @@
 							>
 								<option selected disabled>Scegli</option>
 								{#each $province as provincia, i}
-									<option value={provincia.sigla}>
-										{provincia.nome} ({provincia.sigla})
+									<option value={provincia.title}>
+										{provincia.title} ({provincia.region})
 									</option>
 								{/each}
 							</select>
@@ -602,29 +597,25 @@
 							<label class="label">
 								<span class="label-text text-md sm:text-xl font-semibold">Codice Sconto</span>
 							</label>
+							{#if discountErr}
+								<span class="text-error">{discountErr}</span>
+							{/if}
+
 							<div class="flex space-x-2">
 								<input
 									type="text"
 									id="discountCode"
+									name="discountCode"
 									placeholder="Inserisci il codice"
 									class="input input-bordered w-full"
 									bind:value={discountCode}
 								/>
+								<input type="hidden" name="cart" value={JSON.stringify($cartProducts)} />
 								<button
-									class="btn btn-primary"
-									type="button"
-									onclick={() => {
-										discountApplied = true;
-										if (!discountCode) {
-											discountApplied = true;
-											discountError = true;
-											return;
-										}
-										discountList.push(discountCode);
-										discountList = discountList;
-										discountCode = '';
-										discountError = false;
-									}}
+									class="btn"
+									class:btn-primary={discountCode}
+									formaction="?/applyDiscount"
+									disabled={!discountCode}
 								>
 									Applica
 								</button>

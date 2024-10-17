@@ -63,6 +63,7 @@
 	let checkSecondPass = $state(false);
 	//let error = $state();
 	let inputRef = $state();
+	let membershipLevel = $state('');
 	const testPass = () => {
 		checkPass = password1.length >= 8;
 		checkSecondPass = password1 === password2;
@@ -91,10 +92,12 @@
 		if (type == 'associate') {
 			postAction = `?/newMembership`;
 			modalTitle = 'Nuova iscrizione socio ordinario';
+			membershipLevel = 'Socio ordinario';
 		}
 		if (type == 'lifetime') {
 			postAction = `?/newLifetime`;
 			modalTitle = 'Nuova iscrizione socio vitalizio';
+			membershipLevel = 'Socio vitalizio';
 		}
 		if (type == 'renew') {
 			postAction = `?/renewMembership`;
@@ -1104,6 +1107,7 @@
 								value={'contanti'}
 							/>
 						</label>
+						<input type="hidden" name="membershipLevel" value={membershipLevel} />
 					</div>
 
 					<!-- button -->

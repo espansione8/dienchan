@@ -35,7 +35,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 
 	} catch (error) {
-		console.log('products-corso fetch error:', error);
+		console.log('layout fetch error:', error);
 	}
 	const user = locals.data
 	if (locals.auth) {

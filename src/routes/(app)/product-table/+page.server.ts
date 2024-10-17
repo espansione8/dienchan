@@ -23,10 +23,10 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			createdAt: obj.createdAt.substring(0, 10)
 		}));
 
-	
+
 
 	} catch (error) {
-		console.log('products-corso fetch error:', error);
+		console.log('products-table fetch error:', error);
 	}
 	const user = locals.data
 	if (locals.auth) {

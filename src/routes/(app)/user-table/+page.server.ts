@@ -10,10 +10,20 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	try {
 		//const userData = session.user;
 		//console.log('MY DOCS userData', userData);
-		const res = await fetch(
-			`${import.meta.env.VITE_BASE_URL}/api/users/all/0/0`
-		);
-		const resGetTableUser = await res.json();
+		const arrayField = ['status'];
+		const arrayValue = ['enabled'];
+		const response = await fetch(`/api/finds/0/0`, {
+			method: 'POST',
+			body: JSON.stringify({
+				schema: 'user',
+				arrayField,
+				arrayValue
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		const resGetTableUser = await response.json();
 		//console.log('MY DOCS res.ok', res.ok);
 		//console.log('res getTableData', resGetTableData)
 		getTable = resGetTableUser.map((obj: any) => ({
