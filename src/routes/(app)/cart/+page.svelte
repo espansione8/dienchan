@@ -10,21 +10,7 @@
 	let { userData, auth } = $derived(data);
 
 	let cart = $state($cartProducts);
-	console.log('cart', cart)
-
-	// console.log('cartProducts',cartProducts);
-
-	// notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-		}, 3000); // 1000 milliseconds = 1 second
-	};
-	//clearTimeout(startTimeout); // reset timer
+	//console.log('cart', cart);
 
 	let error: string = $state('');
 	let password1 = $state('');
@@ -39,6 +25,14 @@
 	};
 	const testSecondPass = () => (checkSecondPass = password1 === password2);
 
+	const totalCart = () => {
+		grandTotal = 0;
+		$cartProducts.forEach((element: { price: number }) => {
+			grandTotal += element.layoutView.price;
+		});
+		//return grandTotal;
+	};
+
 	let name = $state(userData.name || '');
 	let surname = $state(userData.surname || '');
 	let email = $state(userData.email || '');
@@ -49,17 +43,6 @@
 	let country = $state(userData.country || 'Italy');
 	let phone = $state(userData.phone || '');
 	let mobilePhone = $state(userData.mobilePhone || '');
-	// privacy
-	// let namePublic = $state(userData.namePublic || false);
-	// let surnamePublic = $state(userData.surnamePublic || false);
-	// let emailPublic = $state(userData.emailPublic || false);
-	// let addressPublic = $state(userData.addressPublic || false);
-	// let cityPublic = $state(userData.cityPublic || false);
-	// let statePublic = $state(userData.statePublic || false);
-	// let postalCodePublic = $state(userData.postalCodePublic || false);
-	// let countryPublic = $state(userData.countryPublic || false);
-	// let phonePublic = $state(userData.phonePublic || false);
-	// let mobilePhonePublic = $state(userData.mobilePhonePublic || false);
 	let paymentType = $state('bonifico');
 	let closedInput = $state(false);
 
@@ -73,13 +56,10 @@
 
 	const saveInput = async () => {
 		closedInput = true;
-		//alert('save data');
-		// console.log('test');
 
 		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/billing-data`, {
 			method: 'POST',
 			body: JSON.stringify({
-				//id: userData._id,
 				userId: userData.userId,
 				name,
 				surname,
@@ -91,16 +71,6 @@
 				country,
 				phone,
 				mobilePhone
-				// namePublic,
-				// surnamePublic,
-				// emailPublic
-				// addressPublic,
-				// cityPublic,
-				// statePublic,
-				// postalCodePublic,
-				// countryPublic,
-				// phonePublic,
-				// mobilePhonePublic
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -189,29 +159,11 @@
 		}
 	};
 
-	let total = $state(0);
-	let grandTotal = $state(0);
-
-	const totalCart = () => {
-		total = 0;
-		grandTotal = 0;
-		$cartProducts.forEach((element: number) => {
-			total = total + element.price;
-		});
-		grandTotal = total;
-		// TODO
-		//if (auth) total -= 25 * $cartProducts.length; IF course
-		// if (!auth) total -= 25 * ($cartProducts.length -1); IF course
-		if (auth) total -= 25;
-
-		return total;
-	};
-
-	// cart store
-	totalCart();
 	const onRemoveFromCart = (item: any) => {
 		removeFromCart($cartProducts, item);
+		totalDiscount = 0;
 		totalCart();
+		cart = $cartProducts;
 	};
 
 	const fieldReset = () => {
@@ -241,38 +193,50 @@
 	let discountList: any[] = $state([]);
 	let discountErr = $state('');
 	let totalDiscount = $state(0);
+	let subTotal = $state(0);
+	let grandTotal = $state(0);
+
+	totalCart();
+	subTotal = grandTotal;
 
 	$effect(() => {
 		if (form != null) {
 			async () => await invalidateAll();
 			const { action, success, message, payload } = form;
-
 			// console.log('discount', payload?.discount);
 			// console.log('newCart', payload?.newCart);
 			// console.log('newCartTotal', payload?.newCartTotal);
-			// console.log('cartTotal', payload?.cartTotal);
 
 			if (success) {
-				totalDiscount = payload?.cartTotal - payload?.newCartTotal;
-				grandTotal = payload?.cartTotal;
-				total = payload?.newCartTotal;
-
-				cart = payload?.newCart;
-				console.log('cart EFFECT', cart)
-				//if (action != 'applyDiscount') fieldReset();
+				subTotal = payload?.newCartTotal ?? 0;
+				totalDiscount = grandTotal - subTotal;
+				cart = payload?.newCart ?? [];
 				isModalConfirm = false;
-				// isModalConfirmDelete = false;
-				// tableList = getTable;
+				//console.log('cart EFFECT', cart);
+				//if (action != 'applyDiscount') fieldReset();
 			} else {
 				notificationError = true;
 				discountErr = message;
 			}
 			closeNotification();
+			totalCart();
 			toastClosed = false;
 			notificationContent = message;
 			form = null;
 		}
 	}); // end effect
+
+	// notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+		}, 3000); // 1000 milliseconds = 1 second
+	};
+	//clearTimeout(startTimeout); // reset timer
 </script>
 
 <svelte:head>
@@ -630,6 +594,7 @@
 									bind:value={discountCode}
 								/>
 								<input type="hidden" name="cart" value={JSON.stringify(cart)} />
+								<input type="hidden" name="grandTotal" value={grandTotal} />
 								<button
 									class="btn"
 									class:btn-primary={discountCode}
@@ -672,7 +637,7 @@
 						{#if discountList.length !== 0}
 							<h2 class="text-lg font-bold mt-4">Totale Carrello (con sconto):</h2>
 
-							<p class="text-xl font-semibold text-black-800">{total} €</p>
+							<p class="text-xl font-semibold text-black-800">{subTotal} €</p>
 							{#each discountList as amount}
 								<p class="text-gray-800">{amount}: -{amount} €</p>
 							{/each}
@@ -687,9 +652,16 @@
 								{#if !auth}
 									<p class="text-gray-800 font-semibold">+25 € solo per il primo corso</p>
 								{/if}
-								Totale sconto: {totalDiscount} € - {grandTotal} - {total}
+								Totale sconto: {totalDiscount} €
 								<div class="divider"></div>
-								<p class="text-xl font-bold text-gray-800">Totale da pagare:{total} €</p>
+								<p class="text-xl font-bold text-gray-800">Totale da pagare:{subTotal} €</p>
+
+								{#each cart as item, i}
+									<div class="divider">--check item {i}--</div>
+									<p class="text-xl font-bold text-gray-800">Titolo: {item.layoutView.title}</p>
+									<p class="text-xl font-bold text-gray-800">Quantità: {item.orderQuantity}</p>
+									<p class="text-xl font-bold text-gray-800">Prezzo: {item.layoutView.price}</p>
+								{/each}
 							{:else}
 								<p class="text-xl font-semibold text-red-500">Nessun prodotto nel carrello</p>
 							{/if}
@@ -790,7 +762,7 @@
 		<div class="col-span-2 text-center mt-3">
 			<h2 class="text-lg font-bold">Totale Carrello:</h2>
 			{#if $cartProducts.length > 0}
-				<p class="text-xl font-semibold text-black-800">{total} €</p>
+				<p class="text-xl font-semibold text-black-800">{subTotal} €</p>
 				{#if auth}
 					<p class="text-gray-800">-25 € sconto tesserati</p>
 				{/if}

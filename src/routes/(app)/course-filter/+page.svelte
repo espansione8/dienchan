@@ -14,6 +14,7 @@
 		Trash2
 	} from 'lucide-svelte';
 	import Notification from '$lib/components/Notification.svelte';
+	import CartFloat from '$lib/components/CartFloat.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	//import { cart } from '$lib/stores/cart';
 	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
@@ -532,7 +533,7 @@
 						<!-- price -->
 						<p class="card-text">
 							Prezzo: <b>{courseData.layoutView.price}</b>
-							<br>
+							<br />
 							{#if !auth}
 								+ 25 solo al primo corso
 							{/if}
@@ -568,6 +569,9 @@
 	</section>
 </div>
 <Notification {toastClosed} {notificationContent} {notificationError} />
+{#if $cartProducts.length > 0}
+	<CartFloat />
+{/if}
 
 <style>
 </style>

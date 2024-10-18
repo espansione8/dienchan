@@ -168,33 +168,15 @@
 				<th>Valore</th>
 				<th>Tipo sconto</th>
 				<th>ID</th>
-				<th>Categoria</th>
-				<th>Livello socio</th>
 				<th>Azione</th>
 			</tr>
 		</thead>
 		<!-- body -->
-		<tbody class="">
+		<tbody>
 			<!-- row 1 -->
 			{#each tableList as row}
 				<tr class="hover:bg-gray-100">
-					<td class="">
-						<!-- <form method="POST" action={`?/disableDiscount`} use:enhance>
-							<span class="flex items-center">
-								<input
-									type="checkbox"
-									name="status"
-									class=" mr-2 border-gray-500 bg-gray-500 hover:bg-black toggle toggle-md"
-									checked={row.status == 'enabled'}
-									onclick={() => onChangeStatus(row.status, row.discountId)}
-								/>
-								{#if row.status == 'enabled'}
-									<span class="text-green-600 font-semibold">ATTIVO</span>
-								{:else}
-									<span class="text-red-600 font-semibold">INATTIVO</span>
-								{/if}
-							</span>
-						</form> -->
+					<td>
 						<form method="POST" action={`?/disableDiscount`} use:enhance>
 							<input type="hidden" name="discountId" value={row.discountId} />
 							<input type="hidden" name="status" value={row.status} />
@@ -210,24 +192,13 @@
 							</span>
 						</form>
 					</td>
-					<!-- Data inserimento -->
 					<td>{row.createdAt}</td>
-					<!-- ID -->
 					<td>{row.discountId}</td>
-					<!-- Codice -->
 					<td>{row.code}</td>
-					<!-- Tipologia -->
 					<td>{row.type}</td>
-					<!-- Valore -->
 					<td>{row.value}</td>
-					<!-- Utente -->
-					<td>{row.userId}</td>
-					<!-- Prodotto -->
-					<td>{row.productId}</td>
-					<!-- Categoria -->
-					<td>{row.layoutId}</td>
-					<!-- Socio -->
-					<td>{row.membershipLevel}</td>
+					<td>{row.selectedApplicability}</td>
+					<td>{row[selectedApplicability]}</td>
 					<!-- Azione -->
 					<td class="flex items-center space-x-4">
 						<button
