@@ -4,7 +4,6 @@
 	import { enhance } from '$app/forms';
 	import Notification from '$lib/components/Notification.svelte';
 	import {
-		ListPlus,
 		Filter,
 		XCircle,
 		Trash2,
@@ -1206,7 +1205,8 @@
 			>
 				Annulla
 			</button>
-			<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit">
+			<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" 
+			type="submit">
 				Applica Filtri
 			</button>
 		</div>

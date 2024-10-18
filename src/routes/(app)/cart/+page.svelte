@@ -25,6 +25,8 @@
 	};
 	const testSecondPass = () => (checkSecondPass = password1 === password2);
 
+
+	// reset cart - original price
 	const totalCart = () => {
 		grandTotal = 0;
 		$cartProducts.forEach((element: { price: number }) => {

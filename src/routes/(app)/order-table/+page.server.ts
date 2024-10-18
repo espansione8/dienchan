@@ -1,5 +1,5 @@
-import { redirect } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types'
+import { redirect, fail } from '@sveltejs/kit';
+import type { PageServerLoad, Actions } from './$types'
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
 	//console.log('locals', locals);
@@ -58,3 +58,52 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		//userData
 	};
 }
+
+
+export const actions: Actions = {
+	
+	filterOrder: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const orderId = formData.get('orderId');
+		const userId = formData.get('userId');
+		const paymentMethod = formData.get('paymentMethod');
+		const status = formData.get('status');
+
+		// console.log('orderId', orderId);
+		
+		const arrayField = ['orderId', 'userId', 'payment.method', 'status'];
+		const arrayValue = [orderId, userId, paymentMethod, status];
+		try {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
+				method: 'POST',
+				body: JSON.stringify({
+					schema: 'order',
+					arrayField,
+					arrayValue
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			//console.log('response', response);
+			const result = await response.json();
+
+			if (response.status == 200) {
+				const filterTableList = result.map((obj: any) => ({
+					...obj,
+					orderDate: obj.createdAt.substring(0, 10),
+					totalCart: obj.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(0)
+					// eventStartDate: obj.eventStartDate.substring(0, 10),
+					// timeStartDate: obj.eventStartDate.substring(11, 16)
+				}));
+				return { action: 'filterOrder', success: true, message: 'Filtro applicato', filterTableList };
+
+			} else {
+				return { action: 'filterOrder', success: false, message: 'Filtro NON applicato' };
+			}
+		} catch (error) {
+			console.error('Error filterOrder:', error);
+			return { action: 'filterOrder', success: false, message: 'Errore filterOrder' };
+		}
+	}
+} satisfies Actions;

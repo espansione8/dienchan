@@ -3,16 +3,11 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import Papa from 'papaparse';
 	import Notification from '$lib/components/Notification.svelte';
-	import {
-		ListPlus,
-		Filter,
-		XCircle,
-		ShieldAlert,
-		RefreshCcw,
-		FileDown
-	} from 'lucide-svelte';
+	import Modal from '$lib/components/Modal.svelte';
+	import { enhance } from '$app/forms';
+	import { FileSearch , Filter, XCircle, ShieldAlert, RefreshCcw, FileDown } from 'lucide-svelte';
 
-	let { data } = $props();
+	let { data, form } = $props();
 	let { getOrders, getTableNames, auth } = $derived(data);
 	let tableList = $state(getOrders || []);
 
@@ -21,88 +16,31 @@
 		return src[0]?.urlPic || '/images/picture.png';
 	};
 
+	let postAction = $state('');
 	let isModalFilterOrder = $state(false);
 	let resetActive = $state(false);
 	let quickSearch = $state('data'); // radio button
-	let quickSearchInput = $state('');
 	//filter
-	let selectedOrderId = $state('');
-	let selectedPaymentMethod = $state('');
-	let selectedAssociate = $state('');
-	let selectedStatus = $state('');
+	let orderId = $state('');
+	let userId = $state('');
+	let paymentMethod = $state('');
+	let status = $state('');
 
 	const onCloseFilterSearch = () => {
 		isModalFilterOrder = false;
-		resetFieldsModalFilter();
 		onFilterReset();
-	};
-
-	const onSubmitFilterSearch = async () => {
-		resetActive = true;
-		let orderId = '';
-		let userId = '';
-		let paymentMethod = '';
-		let status = '';
-		if (selectedOrderId) orderId = selectedOrderId;
-		if (selectedAssociate) userId = selectedAssociate;
-		if (selectedPaymentMethod) paymentMethod = selectedPaymentMethod;
-		if (selectedStatus) status = selectedStatus;
-		const arrayField = ['orderId', 'userId', 'payment.method', 'status'];
-		const arrayValue = [orderId, userId, paymentMethod, status];
-		const response = await fetch(`/api/finds/0/0`, {
-			method: 'POST',
-			body: JSON.stringify({
-				schema: 'order',
-				arrayField,
-				arrayValue
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
-		const res = await response.json();
-		if (response.status == 200) {
-			//console.log('res table', res);
-			const getTable = res.map((obj: any) => ({
-				...obj,
-				orderDate: obj.orderDate.substring(0, 10),
-				totalCart: obj.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(0)
-			}));
-			tableList = getTable;
-			clearTimeout(startTimeout);
-			isModalFilterOrder = false;
-			toastClosed = false;
-			notificationContent = 'Ordini filtrati';
-			resetFieldsModalFilter();
-			closeNotification();
-		}
-		if (response.status != 200) {
-			console.log('KO', response);
-			toastClosed = false;
-			notificationContent = 'Errore filtro';
-			notificationError = true;
-			closeNotification();
-		}
 	};
 
 	const onOpenFilter = () => {
 		isModalFilterOrder = true;
+		postAction = `?/filterOrder`;
 		quickSearch = 'location';
-	};
-
-	const resetFieldsModalFilter = () => {
-		selectedOrderId = '';
-		selectedPaymentMethod = '';
-		selectedAssociate = '';
 	};
 
 	const onFilterReset = () => {
 		resetActive = false;
 		tableList = getOrders;
-
 		invalidateAll();
-		quickSearchInput = '';
 	};
 
 	//modal detail
@@ -522,6 +460,30 @@
 		// Release the URL object
 		URL.revokeObjectURL(link.href);
 	};
+
+	$effect(() => {
+		if (form != null) {
+			async () => await invalidateAll();
+			const { action, success, message, filterTableList } = form;
+			if (success) {
+				closeNotification();
+				isModalFilterOrder = false;
+				resetActive = false;
+				tableList = getOrders;
+				if (action == 'filterOrder') {
+					resetActive = true;
+					tableList = filterTableList;
+				}
+			} else {
+				notificationError = true;
+				// errMessage = message;
+			}
+			toastClosed = false;
+			notificationContent = message;
+			form = null;
+			postAction = ``;
+		}
+	}); // end effect
 </script>
 
 <svelte:head>
@@ -529,12 +491,8 @@
 </svelte:head>
 
 <div class="overflow-x-auto mt-5 px-4 mb-5">
-
-
 	<div class="flex flex-col gap-4 mb-4">
-		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">
-			Ordini
-		</h1>
+		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Ordini</h1>
 		<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
 			<button class="btn btn-info text-white w-full sm:w-auto" onclick={onFilterReset}>
 				<RefreshCcw />
@@ -548,7 +506,7 @@
 					<Filter class="mt-1" /> Filtra
 				</button>
 			{/if}
-			<button class="btn btn-info text-white w-full sm:w-auto"  onclick={() => csvCreate()}>
+			<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate()}>
 				<FileDown />CSV
 			</button>
 		</div>
@@ -610,7 +568,7 @@
 						<button
 							onclick={() => onModalDetail(row)}
 							class="btn btn-sm bg-green-200 btn-success rounded-md text-green-700 hover:bg-green-300 hover:text-green-800"
-							>Dettagli</button
+							><FileSearch /></button
 						>
 					</td>
 				</tr>
@@ -631,106 +589,11 @@
 		</div>
 	{/if}
 </div>
-<!-- modal filter  -->
-<dialog id="modal_filter" class="modal" class:modal-open={isModalFilterOrder}>
-	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-2xl">
-		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg">
-			<h2 class="text-2xl font-bold text-white mb-1">Filtri di Ricerca</h2>
-			<p class="text-blue-100">Personalizza la tua ricerca selezionando i criteri desiderati</p>
-		</div>
 
-		<div class="p-6 space-y-6">
-			<div class="space-y-4">
-				<div>
-					<label for="orderId" class="block text-sm font-medium text-gray-700 mb-1">ID ordine</label
-					>
-					<input
-						type="text"
-						id="orderId"
-						bind:value={selectedOrderId}
-						placeholder="Inserisci l'ID dell'ordine"
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-					<!-- <select
-						id="location"
-						bind:value={selectedOrderId}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					>
-						<option value="">Scegli un luogo</option>
-						{#each $province as item}
-							<option value={item.sigla}>{item.nome}</option>
-						{/each}
-					</select> -->
-				</div>
-				<div>
-					<label for="associate" class="block text-sm font-medium text-gray-700 mb-1"
-						>Associato</label
-					>
-					<select
-						id="associate"
-						bind:value={selectedAssociate}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					>
-						<option value="">Scegli un associato</option>
-						{#each getTableNames as item}
-							<option value={item.userId}>{item.surname} {item.name}</option>
-						{/each}
-					</select>
-				</div>
-				<div>
-					<label for="payment" class="block text-sm font-medium text-gray-700 mb-1"
-						>Metodo di pagamento</label
-					>
-					<select
-						id="payment"
-						bind:value={selectedPaymentMethod}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					>
-						<option value="">Scegli un metodo</option>
-						<option value="bonifico">Bonifico</option>
-						<option value="paypal">Paypal</option>
-						<option value="contanti">Contanti</option>
-					</select>
-				</div>
-				<div>
-					<label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-					<select
-						id="status"
-						bind:value={selectedStatus}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					>
-						<option value="">Scegli uno status</option>
-						<option value="requested">Richiesta in corso</option>
-						<option value="confirmed">Confermato</option>
-						<option value="cancelled">Cancellato</option>
-						<option value="exported">Esportato</option>
-						<option value="processed">Processato</option>
-					</select>
-				</div>
-			</div>
-		</div>
-		<Notification {toastClosed} {notificationContent} {notificationError} />
-
-		<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
-			<button
-				class="btn btn-error btn-sm rounded-md hover:bg-red-300"
-				onclick={onCloseFilterSearch}
-			>
-				Annulla
-			</button>
-			<button
-				class="btn btn-success btn-sm rounded-md hover:bg-green-400"
-				onclick={onSubmitFilterSearch}
-			>
-				Applica Filtri
-			</button>
-		</div>
-	</div>
-</dialog>
-<!-- /modal filter  -->
+<Notification {toastClosed} {notificationContent} {notificationError} />
 
 <!-- modal DETAIL -->
-<dialog id="my_modal_2" class="modal" class:modal-open={isModalDetail}>
+<dialog id="my_modal_2" class="modal" class:modal-open={false}>
 	<div class="modal-box grid grid-cols-2">
 		<h3 class="col-span-2 font-bold text-xl text-center mb-4">
 			Dettagli ordine (ID: {orderDetail.orderId})
@@ -828,3 +691,174 @@
 	</div>
 </dialog>
 <!-- /modal DETAIL -->
+
+<!-- modal filter  -->
+<Modal isOpen={isModalFilterOrder} header="Filtri di Ricerca">
+	<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
+		<div class="space-y-4">
+			<div>
+				<label for="orderId" class="block text-sm font-medium text-gray-700 mb-1">ID ordine</label>
+				<input
+					type="text"
+					id="orderId"
+					name="orderId"
+					bind:value={orderId}
+					placeholder="Inserisci l'ID dell'ordine"
+					class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+				/>
+			</div>
+			<div>
+				<label for="userId" class="block text-sm font-medium text-gray-700 mb-1">Associato</label>
+				<select
+					id="userId"
+					name="userId"
+					bind:value={userId}
+					class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+				>
+					<option value="">Scegli un associato</option>
+					{#each getTableNames as item}
+						<option value={item.userId}>{item.surname} {item.name}</option>
+					{/each}
+				</select>
+			</div>
+			<div>
+				<label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-1"
+					>Metodo di pagamento</label
+				>
+				<select
+					id="paymentMethod"
+					name="paymentMethod"
+					bind:value={paymentMethod}
+					class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+				>
+					<option value="">Scegli un metodo</option>
+					<option value="bonifico">Bonifico</option>
+					<option value="paypal">Paypal</option>
+					<option value="contanti">Contanti</option>
+				</select>
+			</div>
+			<div>
+				<label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+				<select
+					id="status"
+					name="status"
+					bind:value={status}
+					class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+				>
+					<option value="">Scegli uno status</option>
+					<option value="requested">Richiesta in corso</option>
+					<option value="confirmed">Confermato</option>
+					<option value="cancelled">Cancellato</option>
+					<option value="exported">Esportato</option>
+					<option value="processed">Processato</option>
+				</select>
+			</div>
+		</div>
+		<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
+			<button
+				class="btn btn-error btn-sm rounded-md hover:bg-red-300"
+				type="button"
+				onclick={onCloseFilterSearch}
+			>
+				Annulla
+			</button>
+			<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit">
+				Applica Filtri
+			</button>
+		</div>
+	</form>
+</Modal>
+
+<!-- modal DETAIL -->
+<Modal isOpen={isModalDetail} header="Dettagli ordine (ID: {orderDetail.orderId})">
+	<div class="col-span-2 grid grid-cols-2 gap-2 mt-4 mb-4">
+		<div class="flex flex-col items-center">
+			<p class="text-sm text-gray-600">Nome/Cognome</p>
+			<p class="font-bold text-center mt-1">
+				{orderDetail.userView?.name}
+				{orderDetail.userView?.surname}
+			</p>
+		</div>
+		<div class="flex flex-col items-center">
+			<p class="text-sm text-gray-600">Email</p>
+			<p class="font-bold text-center mt-1">{orderDetail.userView?.email}</p>
+		</div>
+		<div class="flex flex-col items-center">
+			<p class="text-sm text-gray-600">Città</p>
+			<p class="font-bold text-center mt-1">{orderDetail.userView?.city}</p>
+		</div>
+		<div class="flex flex-col items-center">
+			<p class="text-sm text-gray-600">Indirizzo</p>
+			<p class="font-bold text-center mt-1">{orderDetail.userView?.address}</p>
+		</div>
+		<div class="flex flex-col items-center">
+			<p class="text-sm text-gray-600">Codice Postale - Provincia</p>
+			<p class="font-bold text-center mt-1">
+				{orderDetail.userView?.postalCode} - {orderDetail.userView?.countryState}
+			</p>
+		</div>
+		<div class="flex flex-col items-center">
+			<p class="text-sm text-gray-600">Paese</p>
+			<p class="font-bold text-center mt-1">{orderDetail.userView?.country}</p>
+		</div>
+		<div class="flex flex-col items-center">
+			<p class="text-sm text-gray-600">Telefono</p>
+			<p class="font-bold text-center mt-1">{orderDetail.userView?.phone}</p>
+		</div>
+		<div class="flex flex-col items-center">
+			<p class="text-sm text-gray-600">Cellulare</p>
+			<p class="font-bold text-center mt-1">{orderDetail.userView?.mobile}</p>
+		</div>
+		<!-- <div class="flex flex-col items-center">
+			<p class="text-sm text-gray-600">metodo di pagamento:</p>
+			<p class="font-bold text-center mt-1">{orderDetail.orderId}</p>
+		</div> -->
+	</div>
+	<div class="col-span-2 flex flex-col items-center w-full gap-3 my-4">
+		{#each orderDetail?.cart as item}
+			<div
+				class="flex items-center w-full max-w-96 bg-indigo-100 rounded-lg shadow-md overflow-hidden"
+			>
+				<div class="w-1/3 p-3">
+					<img
+						src={imgSrc(item.category[0])}
+						alt="Immagine corso"
+						class="w-full h-full object-cover"
+					/>
+				</div>
+				<div class="w-2/3 p-4 flex items-center justify-center">
+					<h2 class="text-center text-md font-semibold">
+						{item.title} <br /><br />
+						{item.price}€
+					</h2>
+				</div>
+			</div>
+		{/each}
+	</div>
+	<div class="col-span-2 text-center mt-3">
+		<h2 class="text-lg font-bold">Totale Carrello:</h2>
+		<p class="text-xl font-semibold text-black-800">{orderDetail.totalValue} €</p>
+		<!-- {#if auth}
+			<p class="text-gray-800 font-semibold">-25 € sconto tesserati</p>
+		{/if} -->
+	</div>
+	<div class="col-span-2 text-center mt-5">
+		<div class="flex justify-center space-x-8">
+			<div>
+				<h2 class="text-md font-bold">Metodo pagamento:</h2>
+				<p class="text-md font-semibold text-black-800">{orderDetail.payment.method}</p>
+			</div>
+			<div>
+				<h2 class="text-md font-bold">Status pagamento:</h2>
+				<p class="text-md font-semibold text-black-800">{orderDetail.payment.statusPayment}</p>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal-action col-span-2">
+		<button
+			class="btn btn-sm btn-error w-24 hover:bg-white hover:text-error rounded-lg mr-4"
+			onclick={() => (isModalDetail = false)}>Chiudi</button
+		>
+	</div>
+</Modal>

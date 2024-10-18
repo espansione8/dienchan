@@ -288,7 +288,7 @@
 	$effect(() => {
 		if (form != null) {
 			async () => await invalidateAll();
-			const { action, success, message, filterTableList } = form;
+			const { action, success, message } = form;
 			if (success) {
 				closeNotification();
 
