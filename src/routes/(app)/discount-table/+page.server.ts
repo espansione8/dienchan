@@ -4,6 +4,11 @@ import type { PageServerLoad, Actions } from './$types'
 export const load: PageServerLoad = async ({ fetch, locals }) => {
 	//console.log('locals', locals);
 	let getTable = [];
+	let getLayout = [];
+
+	let arrayField = [];
+	let arrayValue = [];
+
 	if (!locals.auth) {
 		throw redirect(302, '/login');
 	}
@@ -14,8 +19,8 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		//console.log('MY DOCS userData', userData);
 
 		// GET PRODUCTS
-		const arrayField = [];
-		const arrayValue = [];
+		arrayField = [];
+		arrayValue = [];
 		const res = await fetch(`/api/finds/0/0`, { // URL:app/dashboard
 			method: 'POST',
 			body: JSON.stringify({
@@ -35,6 +40,22 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			}));
 		}
 
+			// Layout list
+			arrayField = [];
+			arrayValue = [];
+			const resLayout = await fetch(`/api/finds/0/0`, {
+				method: 'POST',
+				body: JSON.stringify({
+					schema: 'layout',
+					arrayField,
+					arrayValue
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			getLayout = await resLayout.json();
+
 	} catch (error) {
 		console.log('discount fetch error:', error);
 	}
@@ -46,6 +67,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	}
 	return {
 		getTable,
+		getLayout,
 		auth: locals.auth,
 		userData: user,
 	};

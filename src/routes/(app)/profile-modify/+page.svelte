@@ -1,19 +1,16 @@
 <script lang="ts">
 	import { tweened } from 'svelte/motion';
+	import { enhance } from '$app/forms';
 	import { cubicOut } from 'svelte/easing';
 	import { create_upload } from '$lib/stores/upload';
 	import Notification from '$lib/components/Notification.svelte';
 	import { Settings, X, Check, Eye, EyeOff, Trash2, Award } from 'lucide-svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { province } from '$lib/stores/arrays.js';
-	// import moment from 'moment';
-	// import 'moment/min/locales.js';
 	import { country_list } from '$lib/stores/arrays.js';
 	import { coursesInfo } from '$lib/stores/arrays.js';
 
-	//moment.locale('it');
-
-	let { data } = $props();
+	let { data, form } = $props();
 	let { userData, orderData } = $derived(data);
 
 	let provinceFilterate = $province.filter((p) => p.sigla !== 'ON');
@@ -32,7 +29,7 @@
 	const saveInput = async () => {
 		closedInput = true;
 		//alert('save data');
-		console.log('test');
+		// console.log('test');
 
 		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/billing-data`, {
 			method: 'POST',
@@ -57,17 +54,9 @@
 				cityPublic,
 				statePublic,
 				postalCodePublic,
-				// regionPublic,
 				countryPublic,
 				phonePublic,
 				mobilePhonePublic
-				// businessAddress,
-				// businessCity,
-				// businessPostalCode,
-				// businessCounty,
-				// businessCountry,
-				// businessName,
-				// vatNumber
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -295,6 +284,23 @@
 		const src = $coursesInfo.filter((item: any) => item.id == value);
 		return src[0]?.urlPic || '/images/picture.png';
 	};
+
+	$effect(() => {
+		if (form != null) {
+			async () => await invalidateAll();
+			const { action, success, message, filterTableList } = form;
+			if (success) {
+				closeNotification();
+
+				closedInput = true;
+				console.log('userData', userData);
+			} else {
+				notificationError = true;
+			}
+			toastClosed = false;
+			notificationContent = message;
+		}
+	}); // end effect
 </script>
 
 <svelte:head>
@@ -305,33 +311,38 @@
 	<!--section 1: profilo + dettagli fatturazione-->
 	<section class="card col-span-12 xl:col-span-6 gap-y-8 rounded-lg bg-white">
 		<!-- PROFILO -->
-		<div
-			class="card-title bg-gray-400 glass font-bold flex justify-between p-3 mx-4 mt-4 rounded-lg"
-		>
-			<span> Profilo</span>
-			{#if closedInput}
-				<button class="btn btn-outline btn-sm btn-neutral rounded-lg border-2" onclick={openInput}>
-					<Settings size="24" />Modifica
-				</button>
-			{:else}
-				<div class="flex space-x-4">
+		<form class="card-body pt-1" action="?/modifyUser" method="POST" use:enhance>
+			<div class="card-title bg-gray-400 glass font-bold flex justify-between p-3 my-4 rounded-lg">
+				<span> Profilo</span>
+
+				{#if closedInput}
 					<button
-						class="btn btn-outline btn-sm btn-error rounded-lg flex-1 min-w-[110px] border-2"
-						onclick={closeInput}
+						class="btn btn-outline btn-sm btn-neutral rounded-lg border-2"
+						onclick={openInput}
 					>
-						<X size="24" />Annulla
+						<Settings size="24" />Modifica
 					</button>
-					<button
-						class="btn btn-outline btn-sm btn-success rounded-lg flex-1 min-w-[110px] border-2"
-						onclick={saveInput}
-					>
-						<Check size="24" />Salva
-					</button>
-				</div>
-			{/if}
-		</div>
-		<form class="card-body pt-1" action="">
+				{:else}
+					<div class="flex space-x-4">
+						<button
+							class="btn btn-outline btn-sm btn-error rounded-lg flex-1 min-w-[110px] border-2"
+							onclick={closeInput}
+							type="button"
+						>
+							<X size="24" />Annulla
+						</button>
+						<button
+							class="btn btn-outline btn-sm btn-success rounded-lg flex-1 min-w-[110px] border-2"
+							type="submit"
+						>
+							<Check size="24" />Salva
+						</button>
+					</div>
+				{/if}
+			</div>
+
 			<fieldset disabled={closedInput} class="grid grid-cols-12 gap-x-4 gap-y-8">
+				<input type="hidden" name="userId" value={userData.userId} />
 				<!-- Nome -->
 				<div class="form-control col-span-12 md:col-span-6">
 					<label for="Name" class="form-label">
@@ -559,10 +570,11 @@
 								<span class="text-white">{statePublic ? 'Pubblico' : 'Privato'}</span>
 							</label>
 						</div>
+						<!-- name="state" -->
 						<select
-							id="state"
+							id="countryState"
 							class="select select-bordered w-full rounded-md mt-2"
-							name="state"
+							name="countryState"
 							placeholder="Scegli"
 							required
 							disabled={closedInput}
@@ -570,8 +582,8 @@
 						>
 							<option selected disabled>Scegli</option>
 							{#each provinceFilterate as provincia, i}
-								<option value={provincia.sigla}>
-									{provincia.nome} ({provincia.sigla})
+								<option value={provincia.title}>
+									{provincia.title} ({provincia.region})
 								</option>
 							{/each}
 						</select>

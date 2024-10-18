@@ -10,18 +10,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 }
 
 export const actions: Actions = {
-	// onclick={() => {
-	// 	discountApplied = true;
-	// 	if (!discountCode) {
-	// 		discountApplied = true;
-	// 		discountError = true;
-	// 		return;
-	// 	}
-	// 	discountList.push(discountCode);
-	// 	discountList = discountList;
-	// 	discountCode = '';
-	// 	discountError = false;
-	// }}
+	
 	applyDiscount: async ({ request, fetch, event }) => {
 		const formData = await request.formData();
 		const discountCode = formData.get('discountCode');
@@ -105,6 +94,57 @@ export const actions: Actions = {
 			return { action: 'applyDiscount', success: false, message: 'Errore sconto' };
 		}
 	},
+
+	confirmCart: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const name = formData.get('name');
+		const surname = formData.get('surname');
+		const email = formData.get('email');
+		const address = formData.get('address');
+		const postalCode = formData.get('postalCode') || '';
+		const city = formData.get('city') || '';
+		const countryState = formData.get('countryState') || '';
+		const country = formData.get('country') || '';
+		const phone = formData.get('phone') || '';
+		const mobilePhone = formData.get('mobilePhone') || '';
+		const password1 = formData.get('password1') || '';
+
+		if (!name || !surname || !email || !address || !postalCode || !city || !countryState || !country || !phone || !mobilePhone || !password1) {
+			return fail(400, { action: 'newUser', success: false, message: 'Dati mancanti' });
+		}
+
+		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
+		try {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-up-admin`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					name,
+					surname,
+					email,
+					address,
+					postalCode,
+					city,
+					countryState,
+					country,
+					phone,
+					mobilePhone,
+					password1
+				})
+			});
+			const result = await response.json();
+			if (response.ok) {
+				return { action: 'newUser', success: true, message: result.message };
+			} else {
+				return { action: 'newUser', success: false, message: result.message };
+			}
+		} catch (error) {
+			console.error('Error creating new newUser:', error);
+			return { action: 'newUser', success: false, message: 'Errore creazione newUser' };
+		}
+	}
 
 	// modifyDiscount: async ({ request, fetch }) => {
 	// 	const formData = await request.formData();

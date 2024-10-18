@@ -109,6 +109,24 @@
 		isModalConfirm = true;
 	};
 
+	const addDiscount = (discount: any) => {
+		discountList.push(discount.code);
+		discountApplied = true;
+		discountCode = '';
+		discountError = false;
+	};
+
+	const removeDiscount = (badge: any) => {
+		if (discountList.length == 0) {
+			discountApplied = false;
+		}
+		let index = discountList.indexOf(badge);
+		if (index != -1) {
+			discountList.splice(index, 1);
+			discountList = discountList;
+		}
+	};
+
 	const onConfirmCart = async () => {
 		error = '';
 		let path = `${import.meta.env.VITE_BASE_URL}/api/orders/purchase-first`;
@@ -213,7 +231,11 @@
 				cart = payload?.newCart ?? [];
 				isModalConfirm = false;
 				//console.log('cart EFFECT', cart);
-				//if (action != 'applyDiscount') fieldReset();
+				// if (action != 'applyDiscount') fieldReset();
+
+				if (action == 'applyDiscount') {
+					addDiscount(payload?.discount);
+				}
 			} else {
 				notificationError = true;
 				discountErr = message;
@@ -343,7 +365,7 @@
 					{/if}
 				</div>
 
-				<form class="pt-2" method="POST" action={`?/todo`} use:enhance>
+				<form class="pt-2" method="POST" action={`?/confirmCart`} use:enhance>
 					<fieldset disabled={closedInput} class="grid grid-cols-12 gap-2">
 						<!-- Nome -->
 						<div class="form-control col-span-12 md:col-span-6 w-full">
@@ -576,7 +598,7 @@
 						</div>
 					</fieldset>
 					<div class="col-span-2 mt-4 text-center">
-						<div class="form-control">
+						<div class="form-control mb-2">
 							<label class="label">
 								<span class="label-text text-md sm:text-xl font-semibold">Codice Sconto</span>
 							</label>
@@ -605,24 +627,25 @@
 								</button>
 							</div>
 						</div>
-						{#if discountList.length !== 0}
-							{#each discountList as badgeCode}
-								<div class="badge">
-									{badgeCode}
-									{' '}
-									<button
-										type="button"
-										class="badge badge-error felx items-center"
-										onclick={() => {
+										<!-- onclick={() => {
 											if (discountList.length == 0) {
 												discountApplied = false;
 											}
 											let index = discountList.indexOf(badgeCode);
-											if (index !== -1) {
+											if (index != -1) {
 												discountList.splice(index, 1);
 												discountList = discountList;
 											}
-										}}
+										}} -->
+						{#if discountList.length != 0}
+							{#each discountList as badgeCode}
+								<div class="badge h-10 mx-1">
+									{badgeCode}
+									{' '}
+									<button
+										type="button"
+										class="badge badge-error felx items-center ml-2"
+										onclick={removeDiscount(badgeCode)}
 									>
 										X
 									</button>
@@ -630,18 +653,12 @@
 							{/each}
 						{/if}
 
-						{#if discountError}
-							<p class="text-secondary mt-2 text-left italic">CODICE NON VALIDO</p>
-						{/if}
-
-						{#if discountList.length !== 0}
+						<!-- {#if discountList.length != 0}
 							<h2 class="text-lg font-bold mt-4">Totale Carrello (con sconto):</h2>
 
 							<p class="text-xl font-semibold text-black-800">{subTotal} €</p>
-							{#each discountList as amount}
-								<p class="text-gray-800">{amount}: -{amount} €</p>
-							{/each}
-						{/if}
+							
+						{/if} -->
 					</div>
 					<section class=" ">
 						<div class="text-center mt-6">

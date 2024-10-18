@@ -19,8 +19,10 @@
 	import { enhance } from '$app/forms';
 
 	let { data, form } = $props();
-	let { getTable } = $derived(data);
+	let { getTable, getLayout } = $derived(data);
 	let tableList = $state(getTable);
+
+	console.log('tableList', tableList);
 
 	let code = $state('');
 	let type = $state('');
@@ -156,7 +158,7 @@
 			</button>
 		</div>
 	</div>
-	<table class="table mt-5 border-2">
+	<table class="table mt-5 border-2 ">
 		<!-- head -->
 		<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">
 			<tr>
@@ -197,8 +199,8 @@
 					<td>{row.code}</td>
 					<td>{row.type}</td>
 					<td>{row.value}</td>
-					<td>{row.selectedApplicability}</td>
-					<td>{row[selectedApplicability]}</td>
+					<td> {row.selectedApplicability}</td>
+					<td> {row[selectedApplicability]}</td>
 					<!-- Azione -->
 					<td class="flex items-center space-x-4">
 						<button
@@ -378,13 +380,49 @@
 				</label>
 			</div>
 			<div class="mt-4">
-				<input
-					type="text"
-					name="selectId"
-					class="input input-bordered w-full"
-					placeholder="Inserisci il valore corrispondente"
-					bind:value={selectedId}
-				/>
+				{#if selectedApplicability == 'userId'}
+					<input
+						type="text"
+						name="selectId"
+						class="input input-bordered w-full"
+						placeholder="Inserisci il valore corrispondente"
+						bind:value={selectedId}
+					/>
+				{:else if selectedApplicability == 'membershipLevel'}
+					<select
+						name="selectId"
+						bind:value={selectedId}
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					>
+						<option value="">Seleziona il livello associato</option>
+						<option value="Socio inattivo">Socio inattivo</option>
+						<option value="Socio ordinario">Socio ordinario</option>
+						<option value="Socio sostenitore">Socio sostenitore</option>
+						<option value="Socio vitalizio">Socio vitalizio</option>
+						<option value="Socio contributore">Socio contributore</option>
+						<option value="Master Dien Chan">Master Dien Chan</option>
+					</select>
+				{:else if selectedApplicability == 'productId'}
+					<input
+						type="text"
+						name="selectId"
+						class="input input-bordered w-full"
+						placeholder="Inserisci il valore corrispondente"
+						bind:value={selectedId}
+					/>
+				{:else if selectedApplicability == 'layoutId'}
+					<select
+						id="selectId"
+						name="selectId"
+						bind:value={selectedId}
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					>
+						<option value="">Scegli un tipo</option>
+						{#each getLayout as option}
+							<option value={option.layoutId}>{option.title}</option>
+						{/each}
+					</select>
+				{/if}
 			</div>
 		</section>
 
