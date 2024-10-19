@@ -25,7 +25,6 @@
 	};
 	const testSecondPass = () => (checkSecondPass = password1 === password2);
 
-
 	// reset cart - original price
 	const totalCart = () => {
 		grandTotal = 0;
@@ -111,22 +110,27 @@
 		isModalConfirm = true;
 	};
 
-	const addDiscount = (discount: any) => {
-		discountList.push(discount.code);
-		discountApplied = true;
-		discountCode = '';
-		discountError = false;
+	let stringList: string = $state('[]');
+
+	const addDiscount = (title: string) => {
+		discountList.push(title);
+		stringList = JSON.stringify(discountList);
+	};
+	const discountTostring = () => {
+		stringList = JSON.stringify(discountList);
 	};
 
 	const removeDiscount = (badge: any) => {
-		if (discountList.length == 0) {
-			discountApplied = false;
-		}
-		let index = discountList.indexOf(badge);
-		if (index != -1) {
-			discountList.splice(index, 1);
-			discountList = discountList;
-		}
+		console.log('badge', badge);
+
+		// if (discountList.length == 0) {
+		// 	discountApplied = false;
+		// }
+		// let index = discountList.indexOf(badge);
+		// if (index != -1) {
+		// 	discountList.splice(index, 1);
+		// 	//discountList = discountList;
+		// }
 	};
 
 	const onConfirmCart = async () => {
@@ -211,6 +215,7 @@
 	let discountApplied = $state(false);
 	let discountError = $state(false);
 	let discountList: any[] = $state([]);
+	let discountArray: any[] = $state([]);
 	let discountErr = $state('');
 	let totalDiscount = $state(0);
 	let subTotal = $state(0);
@@ -218,7 +223,7 @@
 
 	totalCart();
 	subTotal = grandTotal;
-
+	let check1 = $state();
 	$effect(() => {
 		if (form != null) {
 			async () => await invalidateAll();
@@ -228,25 +233,28 @@
 			// console.log('newCartTotal', payload?.newCartTotal);
 
 			if (success) {
-				subTotal = payload?.newCartTotal ?? 0;
-				totalDiscount = grandTotal - subTotal;
-				cart = payload?.newCart ?? [];
+				subTotal = 0;
+				totalDiscount = 0;
+				check1 = payload?.discountApplied ?? [];
 				isModalConfirm = false;
 				//console.log('cart EFFECT', cart);
 				// if (action != 'applyDiscount') fieldReset();
 
 				if (action == 'applyDiscount') {
-					addDiscount(payload?.discount);
+					discountList = payload?.discountArray;
+					discountTostring();
 				}
 			} else {
 				notificationError = true;
 				discountErr = message;
+				discountCode = '';
 			}
 			closeNotification();
 			totalCart();
 			toastClosed = false;
 			notificationContent = message;
 			form = null;
+			console.log('list front', discountList);
 		}
 	}); // end effect
 
@@ -619,6 +627,7 @@
 								/>
 								<input type="hidden" name="cart" value={JSON.stringify(cart)} />
 								<input type="hidden" name="grandTotal" value={grandTotal} />
+								<input type="hidden" name="discountList" bind:value={stringList} />
 								<button
 									class="btn"
 									class:btn-primary={discountCode}
@@ -629,7 +638,7 @@
 								</button>
 							</div>
 						</div>
-										<!-- onclick={() => {
+						<!-- onclick={() => {
 											if (discountList.length == 0) {
 												discountApplied = false;
 											}
@@ -647,7 +656,7 @@
 									<button
 										type="button"
 										class="badge badge-error felx items-center ml-2"
-										onclick={removeDiscount(badgeCode)}
+										onclick={() => removeDiscount(badgeCode)}
 									>
 										X
 									</button>
@@ -674,6 +683,12 @@
 								Totale sconto: {totalDiscount} €
 								<div class="divider"></div>
 								<p class="text-xl font-bold text-gray-800">Totale da pagare:{subTotal} €</p>
+
+								{#each check1 as item}
+									code: {item.code}
+									discount: {item.totalDiscount}
+									<br />
+								{/each}
 
 								{#each cart as item, i}
 									<div class="divider">--check item {i}--</div>

@@ -5,13 +5,14 @@ import { Discount } from '$lib/models/Discounts.model.js';
 
 export const POST = async ({ request }) => {
 	const body = await request.json();
-	const { discountCode } = body;
+	const { discountArray } = body;
+	console.log('discountArray', discountArray);
 	try {
 		// Connecting to DB
 		// All database code can only run inside async functions as it uses await
 		await dbConnect();
 		// Is there a user with such an email?
-		const discount = await Discount.findOne({ code: discountCode })
+		const discount = await Discount.find({ code: { $in: discountArray } })
 			.lean()
 			.exec();
 

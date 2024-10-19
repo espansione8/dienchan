@@ -1,6 +1,22 @@
 import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
 
+type CartItem = {
+	layoutView: { price: number };
+	orderQuantity: number;
+	[key: string]: any;
+};
+
+type DiscountResult = {
+	//discountId: string;
+	code: string;
+	// type: string;
+	// value: number;
+	// selectedApplicability: string;
+	totalDiscount: number;
+};
+
+
 export const load: PageServerLoad = async ({ locals }) => {
 
 	return {
@@ -10,24 +26,24 @@ export const load: PageServerLoad = async ({ locals }) => {
 }
 
 export const actions: Actions = {
-	
+
 	applyDiscount: async ({ request, fetch, event }) => {
 		const formData = await request.formData();
-		const discountCode = formData.get('discountCode');
+		const discountCode = formData.get('discountCode');  //base10 
 		const grandTotal = formData.get('grandTotal');
 		const originalTotal = Number(grandTotal)
 		const cart = formData.get('cart');
 		const cartArray = JSON.parse(cart)
+		const discountList = formData.get('discountList');
+		const discountArray = JSON.parse(discountList)  //[]   
 
-		////// LOG cart, comment in production
-		cartArray.forEach((item: any, i: number) => {
-			if (i == 0) console.log('cart start');
-			console.log(item.title, item.layoutView.price, i);
-		});
-		///////////////
+		const checkCode = discountArray.some((item: any) => item == discountCode);
+		discountArray.push(discountCode);
 
-		if (!discountCode) {
-			return fail(400, { action: 'applyDiscount', success: false, message: 'Dati mancanti' });
+		console.log('discountArray', discountArray);
+
+		if (!discountCode || checkCode) {
+			return fail(400, { action: 'applyDiscount', success: false, message: checkCode ? 'Sconto già applicato' : 'Dati mancanti' });
 		}
 
 		try {
@@ -37,57 +53,68 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					discountCode
+					discountArray
 				})
 			});
-			const discount = await response.json();
-			// console.log({ discount });
+			const discountGroup = await response.json();
+			//console.log('discountGroup response', discountGroup);
+
+			const discountItem = discountGroup.find((item: any) => item.code == discountCode);
+
+			if (discountItem && discountItem.status == "disabled") {
+				return fail(400, { action: 'applyDiscount', success: false, message: 'Sconto disabilitato' });
+			}
+
+			if (!discountItem) {
+				return fail(400, { action: 'applyDiscount', success: false, message: 'Sconto non trovato' });
+			}
+
 			if (response.status == 200) {
-				//let cartTotal: number = 0;
-				let newCartTotal: number = 0;
-				const newCart = cartArray.map((item: any, i) => {
-					const discountType = discount.selectedApplicability;
-					//cartTotal += item.layoutView.price;
+				const discountApplied: DiscountResult[] = []
+				discountGroup.forEach((discount: any) => {
+					const { discountId, code, type, value, selectedApplicability } = discount;
+					let totalDiscount = 0;
 
-					//console.log('parziali',newCartTotal, i);
-					if (item[discountType] == discount[discountType]) {
-						//console.log('OK sconto', item.layoutView.title, item.layoutView.price, discount.type, discount.value, i);
-						if (discount.type == 'amount') {
-							item.layoutView.price -= discount.value;
-							newCartTotal += (item.layoutView.price * item.orderQuantity)
+					cartArray.forEach((item: CartItem) => {
+						if (selectedApplicability == 'productId' || selectedApplicability == 'layoutId') {
+							if (item[selectedApplicability] == discount[selectedApplicability]) {
+								let itemDiscount = 0;
+								if (type == 'amount') {
+									itemDiscount = value * item.orderQuantity;
+								} else if (type == 'percent') {
+									const singleValue = (item.layoutView.price * value) / 100;
+									itemDiscount = singleValue * item.orderQuantity;
+								}
+								totalDiscount += itemDiscount;
+							}
 						}
-						if (discount.type == 'percent') {
-							item.layoutView.price -= (item.layoutView.price * discount.value) / 100;
-							newCartTotal += (item.layoutView.price * item.orderQuantity)
-						}
-					} else {
-						newCartTotal += item.layoutView.price
-					}
-					return item;
-				});
-				// apply final discount
-				if (discount.selectedApplicability == 'userId' || discount.selectedApplicability == 'membershipLevel') {
-					if (discount.type == 'amount') {
-						const finalDiscount = discount.value;
-						newCartTotal -= finalDiscount;
-						console.log('discount amount', finalDiscount);
-					}
-					if (discount.type == 'percent') {
-						const finalDiscount = originalTotal * discount.value / 100;
-						newCartTotal -= finalDiscount
-						console.log('discount percent', finalDiscount);
-					}
-				}
-				////// LOG cart, comment in production
-				cartArray.forEach((item: any, i: number) => {
-					if (i == 0) console.log('newCart end');
-					console.log(item.title, item.layoutView.price, i);
-				});
-				////////////////
+					});
 
-				return { action: 'applyDiscount', success: true, message: "sconto applicato", payload: { discount, newCart, newCartTotal } };
+					if (selectedApplicability == 'userId' || selectedApplicability == 'membershipLevel') {
+
+						let itemDiscount = 0;
+						if (type == 'amount') {
+							itemDiscount = value
+						} else if (type == 'percent') {
+							itemDiscount = (originalTotal * value) / 100;
+						}
+						totalDiscount += itemDiscount;
+					}
+
+					discountApplied.push({
+						//discountId,
+						code,
+						//type,
+						//value,
+						//selectedApplicability,
+						totalDiscount
+					});
+				});
+				//console.log({ discountApplied });
+
+				return { action: 'applyDiscount', success: true, message: "sconto applicato", payload: { discountApplied, discountArray } };
 			} else {
-				return { action: 'applyDiscount', success: false, message: discount.message };
+				return { action: 'applyDiscount', success: false, message: discountGroup.message };
 			}
 		} catch (error) {
 			console.error('Error apply Discount:', error);

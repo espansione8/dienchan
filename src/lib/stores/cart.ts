@@ -112,3 +112,5 @@ export const emptyCart = () => {
 	//cartTotalQuantity.set(0);
 	cdata.set({ q1: 0, p1: 0 });
 };
+
+export const discountList = writable([])

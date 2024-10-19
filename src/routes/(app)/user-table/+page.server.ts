@@ -247,7 +247,7 @@ export const actions: Actions = {
 				return { action: 'filterUser', success: true, message: 'Filtro applicato', filterTableList };
 
 			} else {
-				return { action: 'filterUser', success: false, message: 'Filtro NON applicato' };
+				return { action: 'filterUser', success: false, message: 'Utente non trovato' };
 			}
 		} catch (error) {
 			console.error('Error filterUser:', error);

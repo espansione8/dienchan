@@ -158,18 +158,18 @@
 			</button>
 		</div>
 	</div>
-	<table class="table mt-5 border-2 ">
+	<table class="table mt-5 border-2">
 		<!-- head -->
 		<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">
 			<tr>
 				<th>Status</th>
 				<th>Data inserimento</th>
-				<th>ID</th>
+				<th>ID Sconto</th>
 				<th>Codice</th>
 				<th>Tipologia</th>
 				<th>Valore</th>
 				<th>Tipo sconto</th>
-				<th>ID</th>
+				<th>ID tipo</th>
 				<th>Azione</th>
 			</tr>
 		</thead>
@@ -200,7 +200,8 @@
 					<td>{row.type}</td>
 					<td>{row.value}</td>
 					<td> {row.selectedApplicability}</td>
-					<td> {row[selectedApplicability]}</td>
+					<!-- <td> {row[selectedApplicability]}</td> -->
+					<td> {row[row.selectedApplicability]}</td>
 					<!-- Azione -->
 					<td class="flex items-center space-x-4">
 						<button
