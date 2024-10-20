@@ -33,6 +33,9 @@
 	let { getTable } = $derived(data);
 	let tableList = $state(getTable);
 
+	// remove online in province
+	let provinceFilterate = $province.filter((p) => p.title !== 'Online');
+
 	let userId = $state('');
 
 	const onClickDetail = (id: number) => {
@@ -86,6 +89,21 @@
 		} else if (level == 'superadmin') {
 			return 'Superadmin';
 		}
+	};
+
+	const onSwitchPublicProfile = async (type: string, value: boolean) => {
+		if (type == 'namePublic') namePublic = !value;
+		if (type == 'surnamePublic') surnamePublic = !value;
+		if (type == 'emailPublic') emailPublic = !value;
+		if (type == 'addressPublic') addressPublic = !value;
+		if (type == 'cityPublic') cityPublic = !value;
+		if (type == 'statePublic') statePublic = !value;
+		if (type == 'postalCodePublic') postalCodePublic = !value;
+		if (type == 'countryPublic') countryPublic = !value;
+		if (type == 'phonePublic') phonePublic = !value;
+		if (type == 'mobilePhonePublic') mobilePhonePublic = !value;
+		//userData[type] = !value;
+		// console.log('onSwitchPublicProfile', type, value, typeof namePublic, namePublic);
 	};
 
 	const csvCreate = () => {
@@ -369,6 +387,16 @@
 	let mobilePhone = $state('');
 	let checkPass = $state(false);
 	let checkSecondPass = $state(false);
+	let namePublic = $state(false);
+	let surnamePublic = $state(false);
+	let emailPublic = $state(false);
+	let addressPublic = $state(false);
+	let cityPublic = $state(false);
+	let statePublic = $state(false);
+	let postalCodePublic = $state(false);
+	let countryPublic = $state(false);
+	let phonePublic = $state(false);
+	let mobilePhonePublic = $state(false);
 	let error = $state();
 	let inputRef = $state();
 	const testPass = () => {
@@ -405,6 +433,16 @@
 		password1 = '';
 		password2 = '';
 		level = '';
+		namePublic = false;
+		surnamePublic = false;
+		emailPublic = false;
+		addressPublic = false;
+		cityPublic = false;
+		statePublic = false;
+		postalCodePublic = false;
+		countryPublic = false;
+		phonePublic = false;
+		mobilePhonePublic = false;
 		tableList = getTable;
 	};
 
@@ -435,6 +473,16 @@
 			mobilePhone = item.mobilePhone;
 			password1 = item.password1;
 			level = item.level;
+			namePublic = item.namePublic;
+			surnamePublic = item.surnamePublic;
+			emailPublic = item.emailPublic;
+			addressPublic = item.addressPublic;
+			cityPublic = item.cityPublic;
+			statePublic = item.statePublic;
+			postalCodePublic = item.postalCodePublic;
+			countryPublic = item.countryPublic;
+			phonePublic = item.phonePublic;
+			mobilePhonePublic = item.mobilePhonePublic;
 			postAction = `?/modifyUser`;
 		}
 	};
@@ -459,7 +507,6 @@
 			toastClosed = false;
 			notificationContent = message;
 			form = null;
-			postAction = ``;
 		}
 	}); // end effect
 </script>
@@ -636,224 +683,451 @@
 		method="POST"
 		action={postAction}
 		use:enhance
-		class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+		class=" grid grid-cols-12 gap-x-4 gap-y-8 p-4"
 	>
 		{#if currentDialog == 'modify'}
-			<section class="col-span-4">
+			<div class="form-control col-span-12 md:col-span-12">
 				<label for="userId" class="form-label">
-					<p class="font-bold mb-2">ID utente</p>
+					<div class="flex flex-col gap-4">
+						<span class="label-text font-bold">ID utente</span>
+						<input
+							class="input input-bordered join-item w-full"
+							id="userId"
+							name="userId"
+							type="text"
+							bind:value={userId}
+							readonly
+						/>
+					</div>
 				</label>
-
-				<div class="join join-horizontal w-full">
-					<button class="join-item bg-gray-300 px-3"><Pen /></button>
-					<input
-						class="input input-bordered join-item w-full"
-						id="userId"
-						name="userId"
-						type="text"
-						bind:value={userId}
-						readonly
-					/>
-				</div>
-			</section>
+			</div>
 		{/if}
 
 		<!-- Nome -->
-		<section class="col-span-4 md:col-span-2">
+		<div class="form-control col-span-12 md:col-span-6">
 			<label for="name" class="form-label">
-				<p class="font-bold mb-2">Nome</p>
-			</label>
-			<div class="join join-horizontal rounded-md w-full">
-				<button class="join-item bg-gray-300 px-3"><User /></button>
+				<div class="flex items-center justify-between gap-4">
+					<span class="label-text font-bold">Nome</span>
+					{#if currentDialog == 'modify'}
+						<input
+							type="checkbox"
+							class="hidden"
+							id="btn-check8"
+							name="namePublic"
+							autocomplete="off"
+							checked={namePublic}
+							onclick={() => onSwitchPublicProfile('namePublic', namePublic)}
+						/>
+						<label
+							class={namePublic
+								? 'btn btn-success btn-sm rounded-md'
+								: 'btn btn-secondary btn-sm rounded-md'}
+							for="btn-check8"
+						>
+							{#if namePublic}
+								<Eye size="20" color="white" strokeWidth={2.5} />
+							{:else}
+								<EyeOff size="20" color="white" strokeWidth={2.5} />
+							{/if}
+							<span class="text-white">{namePublic ? 'Pubblico' : 'Privato'}</span>
+						</label>
+					{/if}
+				</div>
 				<input
-					class="input input-bordered join-item w-full"
 					id="name"
 					name="name"
 					type="text"
-					placeholder="Nome"
-					bind:value={name}
+					class="input input-bordered w-full rounded-md mt-2"
+					placeholder="Nome..."
 					required
+					bind:value={name}
 				/>
-			</div>
-		</section>
-		<!-- Cognome -->
-		<section class="col-span-4 md:col-span-2">
-			<label for="surname" class="form-label">
-				<p class="font-bold mb-2">Cognome</p>
 			</label>
-			<div class="join join-horizontal rounded-md w-full">
-				<button class="join-item bg-gray-300 px-3"><User /></button>
+		</div>
+		<!-- Cognome -->
+		<div class="form-control col-span-12 md:col-span-6">
+			<label for="surname" class="form-label">
+				<div class="flex items-center justify-between gap-4">
+					<span class="label-text font-bold">Cognome</span>
+					{#if currentDialog == 'modify'}
+						<input
+							type="checkbox"
+							class="hidden"
+							id="btn-check9"
+							name="surnamePublic"
+							autocomplete="off"
+							checked={surnamePublic}
+							onclick={() => onSwitchPublicProfile('surnamePublic', surnamePublic)}
+						/>
+						<label
+							class={surnamePublic
+								? 'btn btn-success btn-sm rounded-md'
+								: 'btn btn-secondary btn-sm rounded-md'}
+							for="btn-check9"
+						>
+							{#if surnamePublic}
+								<Eye size="20" color="white" strokeWidth={2.5} />
+							{:else}
+								<EyeOff size="20" color="white" strokeWidth={2.5} />
+							{/if}
+							<span class="text-white">{surnamePublic ? 'Pubblico' : 'Privato'}</span>
+						</label>
+					{/if}
+				</div>
 				<input
-					class="input input-bordered join-item w-full"
 					id="surname"
 					name="surname"
 					type="text"
-					placeholder="Cognome"
+					class="input input-bordered w-full rounded-md mt-2"
+					placeholder="Cognome..."
+					required
 					bind:value={surname}
-					required
 				/>
-			</div>
-		</section>
+			</label>
+		</div>
 		<!-- Email -->
-		<section class="col-span-4">
+		<div class="form-control col-span-12">
 			<label for="email" class="form-label">
-				<p class="font-bold mb-2">Email</p>
-			</label>
-			<div class="join join-horizontal rounded-md w-full">
-				<button class="join-item bg-gray-300 px-3"><Mail /></button>
+				<div class="flex items-center justify-between gap-4">
+					<span class="label-text font-bold">Email</span>
+					{#if currentDialog == 'modify'}
+						<input
+							type="checkbox"
+							class="hidden"
+							id="btn-check10"
+							name="emailPublic"
+							autocomplete="off"
+							checked={emailPublic}
+							onclick={() => onSwitchPublicProfile('emailPublic', emailPublic)}
+						/>
+						<label
+							class={emailPublic
+								? 'btn btn-success btn-sm rounded-md'
+								: 'btn btn-secondary btn-sm rounded-md'}
+							for="btn-check10"
+						>
+							{#if emailPublic}
+								<Eye size="20" color="white" strokeWidth={2.5} />
+							{:else}
+								<EyeOff size="20" color="white" strokeWidth={2.5} />
+							{/if}
+							<span class="text-white">{emailPublic ? 'Pubblico' : 'Privato'}</span>
+						</label>
+					{/if}
+				</div>
 				<input
-					class="input input-bordered join-item w-full"
 					id="email"
-					type="email"
 					name="email"
-					placeholder="Inserisci E-mail"
-					bind:value={email}
+					type="email"
+					class="input input-bordered w-full rounded-md mt-2"
+					placeholder="Email..."
 					required
+					bind:value={email}
 				/>
-			</div>
-		</section>
-		<!-- Indirizzo -->
-		<section class="col-span-4">
-			<label for="address" class="form-label">
-				<p class="font-bold mb-2">Indirizzo</p>
 			</label>
-			<div class="join join-horizontal rounded-md w-full">
-				<button class="join-item bg-gray-300 px-3"><MapPin /></button>
+		</div>
+		<!-- Indirizzo -->
+		<div class="form-control col-span-12">
+			<label for="address" class="form-label">
+				<div class="flex items-center justify-between gap-4">
+					<span class="label-text font-bold">Indirizzo</span>
+					{#if currentDialog == 'modify'}
+						<input
+							type="checkbox"
+							class="hidden"
+							id="btn-check1"
+							name="addressPublic"
+							autocomplete="off"
+							checked={addressPublic}
+							onclick={() => onSwitchPublicProfile('addressPublic', addressPublic)}
+						/>
+						<label
+							class={addressPublic
+								? 'btn btn-success btn-sm rounded-md'
+								: 'btn btn-secondary btn-sm rounded-md'}
+							for="btn-check1"
+						>
+							{#if addressPublic}
+								<Eye size="20" color="white" strokeWidth={2.5} />
+							{:else}
+								<EyeOff size="20" color="white" strokeWidth={2.5} />
+							{/if}
+							<span class="text-white">{addressPublic ? 'Pubblico' : 'Privato'}</span>
+						</label>
+					{/if}
+				</div>
 				<input
-					class="input input-bordered join-item w-full"
 					id="address"
 					name="address"
 					type="text"
-					placeholder="Indirizzo"
-					bind:value={address}
+					class="input input-bordered w-full rounded-md mt-2"
+					placeholder="Indirizzo..."
 					required
+					bind:value={address}
 				/>
-			</div>
-		</section>
-		<!-- Trio -->
-		<div class="col-span-4 gap-10 flex justify-between md:col-span-4">
-			<!-- CAP -->
-			<section class="">
-				<label for="postalCode" class="form-label">
-					<p class="font-bold mb-2">CAP</p>
-				</label>
-				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"><MapPin /></button>
-					<input
-						class="input input-bordered join-item w-full"
-						id="postalCode"
-						type="text"
-						name="postalCode"
-						placeholder="CAP"
-						bind:value={postalCode}
-						required
-					/>
+			</label>
+		</div>
+		<!-- Città -->
+		<div class="form-control col-span-12 md:col-span-6">
+			<label for="city" class="form-label">
+				<div class="flex items-center gap-4 justify-between">
+					<span class="label-text font-bold">Città</span>
+					{#if currentDialog == 'modify'}
+						<input
+							type="checkbox"
+							class="hidden"
+							id="btn-check2"
+							name="cityPublic"
+							autocomplete="off"
+							checked={cityPublic}
+							onclick={() => onSwitchPublicProfile('cityPublic', cityPublic)}
+						/>
+						<label
+							class={cityPublic
+								? 'btn btn-success btn-sm rounded-md'
+								: 'btn btn-secondary btn-sm rounded-md'}
+							for="btn-check2"
+						>
+							{#if cityPublic}
+								<Eye size="20" color="white" strokeWidth={2.5} />
+							{:else}
+								<EyeOff size="20" color="white" strokeWidth={2.5} />
+							{/if}
+							<span class="text-white">{cityPublic ? 'Pubblico' : 'Privato'}</span>
+						</label>
+					{/if}
 				</div>
-			</section>
-			<!-- Citta -->
-			<section class="">
-				<label for="city" class="form-label">
-					<p class="font-bold mb-2">Città</p>
-				</label>
-				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"><Building2 /></button>
-					<input
-						class="input input-bordered join-item w-full"
-						id="city"
-						type="text"
-						name="city"
-						placeholder="Città"
-						bind:value={city}
-						required
-					/>
+				<input
+					id="city"
+					name="city"
+					type="text"
+					class="input input-bordered w-full rounded-md mt-2"
+					placeholder="Città..."
+					required
+					bind:value={city}
+				/>
+			</label>
+		</div>
+		<!-- Provincia -->
+		<div class="form-control col-span-12 md:col-span-6">
+			<label for="state" class="form-label">
+				<div class="flex items-center gap-4 justify-between">
+					<span class="label-text font-bold">Provincia</span>
+					{#if currentDialog == 'modify'}
+						<input
+							type="checkbox"
+							class="hidden"
+							id="btn-check3"
+							name="statePublic"
+							autocomplete="off"
+							checked={statePublic}
+							onclick={() => onSwitchPublicProfile('statePublic', statePublic)}
+						/>
+						<label
+							class={statePublic
+								? 'btn btn-success btn-sm rounded-md'
+								: 'btn btn-secondary btn-sm rounded-md'}
+							for="btn-check3"
+						>
+							{#if statePublic}
+								<Eye size="20" color="white" strokeWidth={2.5} />
+							{:else}
+								<EyeOff size="20" color="white" strokeWidth={2.5} />
+							{/if}
+							<span class="text-white">{statePublic ? 'Pubblico' : 'Privato'}</span>
+						</label>
+					{/if}
 				</div>
-			</section>
-			<!-- Provincia -->
-			<section class="">
-				<label for="countryState" class="form-label">
-					<p class="font-bold mb-2">Provincia</p>
-				</label>
-				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"><Building2 /></button>
-					<select
-						class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
-						id="countryState"
-						name="countryState"
-						placeholder="Scegli"
-						bind:value={countryState}
-						required
-					>
-						<option selected disabled>Scegli</option>
-						{#each $province as provincia, i}
-							<option value={provincia.title}>
-								{provincia.title} ({provincia.region})
-							</option>
-						{/each}
-					</select>
+				<select
+					id="countryState"
+					class="select select-bordered w-full rounded-md mt-2"
+					name="countryState"
+					placeholder="Scegli"
+					required
+					bind:value={countryState}
+				>
+					<option selected disabled>Scegli</option>
+					{#each provinceFilterate as provincia, i}
+						<option value={provincia.title}>
+							{provincia.title} ({provincia.region})
+						</option>
+					{/each}
+				</select>
+			</label>
+		</div>
+		<!-- CAP -->
+		<div class="form-control col-span-12 md:col-span-6">
+			<label for="postalcode" class="form-label">
+				<div class="flex items-center gap-4 justify-between">
+					<span class="label-text font-bold">CAP</span>
+					{#if currentDialog == 'modify'}
+						<input
+							type="checkbox"
+							class="hidden"
+							id="btn-check4"
+							name="postalCodePublic"
+							autocomplete="off"
+							checked={postalCodePublic}
+							onclick={() => onSwitchPublicProfile('postalCodePublic', postalCodePublic)}
+						/>
+						<label
+							class={postalCodePublic
+								? 'btn btn-success btn-sm rounded-md'
+								: 'btn btn-secondary btn-sm rounded-md'}
+							for="btn-check4"
+						>
+							{#if postalCodePublic}
+								<Eye size="20" color="white" strokeWidth={2.5} />
+							{:else}
+								<EyeOff size="20" color="white" strokeWidth={2.5} />
+							{/if}
+							<span class="text-white">{postalCodePublic ? 'Pubblico' : 'Privato'}</span>
+						</label>
+					{/if}
 				</div>
-			</section>
+				<input
+					id="postalCode"
+					name="postalCode"
+					type="text"
+					class="input input-bordered w-full rounded-md mt-2"
+					placeholder="CAP..."
+					required
+					bind:value={postalCode}
+				/>
+			</label>
 		</div>
 		<!-- Nazione -->
-		<section class="col-span-4">
+		<div class="form-control col-span-12 md:col-span-6">
 			<label for="country" class="form-label">
-				<p class="font-bold mb-2">Nazione</p>
-			</label>
-			<div class="join join-horizontal rounded-md w-full">
-				<button class="join-item bg-gray-300 px-3"><Globe /></button>
+				<div class="flex items-center gap-4 justify-between">
+					<span class="label-text font-bold">Nazione</span>
+					{#if currentDialog == 'modify'}
+						<input
+							type="checkbox"
+							class="hidden"
+							id="btn-check5"
+							name="countryPublic"
+							autocomplete="off"
+							checked={countryPublic}
+							onclick={() => onSwitchPublicProfile('countryPublic', countryPublic)}
+						/>
+						<label
+							class={countryPublic
+								? 'btn btn-success btn-sm rounded-md'
+								: 'btn btn-secondary btn-sm rounded-md'}
+							for="btn-check5"
+						>
+							{#if countryPublic}
+								<Eye size="20" color="white" strokeWidth={2.5} />
+							{:else}
+								<EyeOff size="20" color="white" strokeWidth={2.5} />
+							{/if}
+							<span class="text-white">{countryPublic ? 'Pubblico' : 'Privato'}</span>
+						</label>
+					{/if}
+				</div>
 				<select
-					class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
-					aria-label="Default select example"
 					id="country"
+					class="select select-bordered w-full rounded-md mt-2"
 					name="country"
+					placeholder="Scegli"
 					required
 					bind:value={country}
 				>
 					<option selected disabled>Scegli</option>
-					{#each countryList as country}
+					{#each $country_list as country}
 						<option value={country}>
 							{country}
 						</option>
 					{/each}
 				</select>
-			</div>
-		</section>
-		<!-- Telefono -->
-		<section class="col-span-4">
-			<label for="phone" class="form-label">
-				<p class="font-bold mb-2">Telefono</p>
 			</label>
-			<div class="join join-horizontal rounded-md w-full">
-				<button class="join-item bg-gray-300 px-3"><Phone /></button>
+		</div>
+		<!-- Telefono -->
+		<div class="form-control col-span-12 md:col-span-6">
+			<label for="telefono" class="form-label">
+				<div class="flex items-center gap-4 justify-between">
+					<span class="label-text font-bold">Telefono</span>
+					{#if currentDialog == 'modify'}
+						<input
+							type="checkbox"
+							class="hidden"
+							id="btn-check6"
+							name="phonePublic"
+							autocomplete="off"
+							checked={phonePublic}
+							onclick={() => onSwitchPublicProfile('phonePublic', phonePublic)}
+						/>
+						<label
+							class={phonePublic
+								? 'btn btn-success btn-sm rounded-md'
+								: 'btn btn-secondary btn-sm rounded-md'}
+							for="btn-check6"
+						>
+							{#if phonePublic}
+								<Eye size="20" color="white" strokeWidth={2.5} />
+							{:else}
+								<EyeOff size="20" color="white" strokeWidth={2.5} />
+							{/if}
+							<span class="text-white">{phonePublic ? 'Pubblico' : 'Privato'}</span>
+						</label>
+					{/if}
+				</div>
 				<input
-					class="input input-bordered join-item w-full"
-					id="phone"
-					type="text"
+					id="telefono"
 					name="phone"
-					placeholder="Telefono"
+					type="text"
+					class="input input-bordered w-full rounded-md mt-2"
+					placeholder="Telefono..."
+					required
 					bind:value={phone}
 				/>
-			</div>
-		</section>
-		<!-- Cellulare -->
-		<section class="col-span-4">
-			<label for="mobilePhone" class="form-label">
-				<p class="font-bold mb-2">Cellulare</p>
 			</label>
-			<div class="join join-horizontal rounded-md w-full">
-				<button class="join-item bg-gray-300 px-3"><Smartphone /></button>
+		</div>
+		<!-- Cellulare -->
+		<div class="form-control col-span-12 md:col-span-6">
+			<label for="cellulare" class="form-label">
+				<div class="flex items-center gap-4 justify-between">
+					<span class="label-text font-bold">Cellulare</span>
+					{#if currentDialog == 'modify'}
+						<input
+							type="checkbox"
+							class="hidden"
+							id="btn-check7"
+							name="mobilePhonePublic"
+							autocomplete="off"
+							checked={mobilePhonePublic}
+							onclick={() => onSwitchPublicProfile('mobilePhonePublic', mobilePhonePublic)}
+						/>
+						<label
+							class={mobilePhonePublic
+								? 'btn btn-success btn-sm rounded-md'
+								: 'btn btn-secondary btn-sm rounded-md'}
+							for="btn-check7"
+						>
+							{#if mobilePhonePublic}
+								<Eye size="20" color="white" strokeWidth={2.5} />
+							{:else}
+								<EyeOff size="20" color="white" strokeWidth={2.5} />
+							{/if}
+							<span class="text-white">{mobilePhonePublic ? 'Pubblico' : 'Privato'}</span>
+						</label>
+					{/if}
+				</div>
 				<input
-					class="input input-bordered join-item w-full"
-					id="mobilePhone"
+					id="cellulare"
 					name="mobilePhone"
 					type="text"
-					placeholder="Cellulare"
+					class="input input-bordered w-full rounded-md mt-2"
+					placeholder="Telefono..."
+					required
 					bind:value={mobilePhone}
 				/>
-			</div>
-		</section>
+			</label>
+		</div>
 		{#if currentDialog == 'new'}
 			<!-- Password -->
-			<section class="col-span-4">
+			<div class="form-control col-span-12">
 				<label for="password1" class="form-label">
 					<p class="font-bold mb-2">
 						Password <br />
@@ -875,9 +1149,9 @@
 						required
 					/>
 				</div>
-			</section>
+			</div>
 			<!-- Conferma password -->
-			<section class="col-span-4">
+			<div class="form-control col-span-12">
 				<label for="password2" class="form-label">
 					<p class="font-bold mb-2">Conferma password</p>
 				</label>
@@ -896,10 +1170,10 @@
 						required
 					/>
 				</div>
-			</section>
+			</div>
 		{/if}
 		<!-- Level -->
-		<section class="col-span-4">
+		<div class="form-control col-span-12">
 			<label for="level" class="form-label">
 				<p class="font-bold mb-2">Livello di permesso (solo per SuperAdmin)</p>
 			</label>
@@ -914,11 +1188,12 @@
 				<option value="user">Utente base</option>
 				<option value="formatore">Formatore</option>
 				<option value="admin">Admin</option>
+				<option value="superadmin">Superadmin</option>
 			</select>
-		</section>
+		</div>
 
 		<!-- button -->
-		<div class="col-span-4 mt-5 flex justify-center">
+		<div class="col-span-12 mt-5 flex justify-center gap-4">
 			<div class="bg-gray-50 flex justify-center">
 				<button
 					class="btn btn-error btn-sm mx-2"

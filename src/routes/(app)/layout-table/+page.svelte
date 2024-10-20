@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Modal from '$lib/components/Modal.svelte';
+	import {  invalidateAll } from '$app/navigation';
 	import {
 		CopyPlus,
 		Settings,

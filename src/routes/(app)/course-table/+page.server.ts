@@ -264,7 +264,7 @@ export const actions: Actions = {
 				return { action: 'filterCourse', success: true, message: 'Filtro applicato', filterTableList };
 
 			} else {
-				return { action: 'filterCourse', success: false, message: 'Filtro NON applicato' };
+				return { action: 'filterCourse', success: false, message: 'Corso non trovato' };
 			}
 		} catch (error) {
 			console.error('Error filterCourse:', error);

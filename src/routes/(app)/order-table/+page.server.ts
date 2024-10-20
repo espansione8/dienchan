@@ -99,7 +99,7 @@ export const actions: Actions = {
 				return { action: 'filterOrder', success: true, message: 'Filtro applicato', filterTableList };
 
 			} else {
-				return { action: 'filterOrder', success: false, message: 'Filtro NON applicato' };
+				return { action: 'filterOrder', success: false, message: 'Ordine non trovato' };
 			}
 		} catch (error) {
 			console.error('Error filterOrder:', error);

@@ -10,8 +10,11 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	try {
 		//const userData = session.user;
 		//console.log('MY DOCS userData', userData);
-		const arrayField = ['status'];
-		const arrayValue = ['enabled'];
+		const arrayField = [];
+		const arrayValue = [];
+		// view all users
+		// const arrayField = ['status'];
+		// const arrayValue = ['enabled'];
 		const response = await fetch(`/api/finds/0/0`, {
 			method: 'POST',
 			body: JSON.stringify({

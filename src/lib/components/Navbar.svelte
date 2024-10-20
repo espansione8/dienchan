@@ -6,13 +6,13 @@
 
 	let { user, auth } = $props();
 
-	let pointsBalance = $state(user.pointsBalance || 0);
+	let pointsBalance = $state(user?.pointsBalance || 0);
 	//if (auth) pointsBalance = user.pointsBalance;
-	let userLevel = $state(user.level || '');
+	let userLevel = $state(user?.level || '');
 	let menuActive = $state(false);
-	let userName = $state(user.name || '');
-	let userSurname = $state(user.surname || '');
-	let userId = $state(user.userId || '');
+	let userName = $state(user?.name || '');
+	let userSurname = $state(user?.surname || '');
+	let userId = $state(user?.userId || '');
 
 	const onBurgerclick = () => {
 		menuActive = !menuActive;

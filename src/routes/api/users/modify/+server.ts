@@ -20,10 +20,22 @@ export const POST = async ({ request }) => {
         phone,
         mobilePhone,
         level,
+        namePublic,
+        surnamePublic,
+        emailPublic,
+        addressPublic,
+        cityPublic,
+        statePublic,
+        postalCodePublic,
+        countryPublic,
+        phonePublic,
+        mobilePhonePublic
     } = body;
 
 
     try {
+        
+        console.log('body', body);
         // Connecting to DB
         // All database code can only run inside async functions as it uses await
         await dbConnect();
@@ -41,7 +53,17 @@ export const POST = async ({ request }) => {
             country,
             phone,
             mobilePhone,
-            level
+            level,
+            namePublic,
+            surnamePublic,
+            emailPublic,
+            addressPublic,
+            cityPublic,
+            statePublic,
+            postalCodePublic,
+            countryPublic,
+            phonePublic,
+            mobilePhonePublic
         };
 
 
@@ -57,7 +79,7 @@ export const POST = async ({ request }) => {
         }
 
         return json({
-            message: 'Nessun corso trovato con l\'ID specificato'
+            message: 'Nessun utente trovato con l\'ID specificato'
         },
             {
                 status: 400

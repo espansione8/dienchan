@@ -13,7 +13,8 @@
 	let { data, form } = $props();
 	let { userData, orderData } = $derived(data);
 
-	let provinceFilterate = $province.filter((p) => p.sigla !== 'ON');
+	// remove online in province
+	let provinceFilterate = $province.filter((p) => p.title !== 'Online');
 
 	let picFilter = $derived(
 		userData.uploadfiles.filter((item: any) => {
@@ -25,59 +26,6 @@
 	const openInput = () => (closedInput = false);
 	const closeInput = () => {
 		closedInput = true;
-	};
-	const saveInput = async () => {
-		closedInput = true;
-		//alert('save data');
-		// console.log('test');
-
-		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/billing-data`, {
-			method: 'POST',
-			body: JSON.stringify({
-				//id: userData._id,
-				userId: userData.userId,
-				name,
-				surname,
-				email,
-				address,
-				city,
-				countryState,
-				postalCode,
-				// region,
-				country,
-				phone,
-				mobilePhone,
-				namePublic,
-				surnamePublic,
-				emailPublic,
-				addressPublic,
-				cityPublic,
-				statePublic,
-				postalCodePublic,
-				countryPublic,
-				phonePublic,
-				mobilePhonePublic
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		if (response.status == 200) {
-			clearTimeout(startTimeout);
-			console.log('OK', response);
-			let content = (await response.json()).message;
-			toastClosed = false;
-			notificationContent = content;
-			closeNotification();
-		}
-		if (response.status != 200) {
-			console.log('KO', response);
-			let error = (await response.json()).message;
-			toastClosed = false;
-			notificationContent = error;
-			notificationError = true;
-			closeNotification();
-		}
 	};
 
 	let name = $state(userData.name || '');
@@ -115,6 +63,7 @@
 	let namePublic = $state(userData.namePublic || false);
 	let surnamePublic = $state(userData.surnamePublic || false);
 	let emailPublic = $state(userData.emailPublic || false);
+	let level = $state(userData.level || '');
 
 	for (let i = max; i >= min; i--) {
 		years.push(i);
@@ -136,7 +85,7 @@
 		if (type == 'phonePublic') phonePublic = !value;
 		if (type == 'mobilePhonePublic') mobilePhonePublic = !value;
 		//userData[type] = !value;
-		// console.log('onSwitchPublicProfile', type, value);
+		// console.log('onSwitchPublicProfile', type, value, typeof namePublic, namePublic);
 	};
 
 	// profile pic upload
@@ -277,7 +226,7 @@
 	//clearTimeout(startTimeout); // reset timer
 	if (!userData.name && !userData.surname) {
 		toastClosed = false;
-		notificationContent = 'registrazione effettuta, completare il profilo';
+		notificationContent = 'Registrazione effettuta, completare il profilo';
 	}
 
 	const imgSrc = (value: string) => {
@@ -291,9 +240,8 @@
 			const { action, success, message } = form;
 			if (success) {
 				closeNotification();
-
 				closedInput = true;
-				console.log('userData', userData);
+				// console.log('userData', userData);
 			} else {
 				notificationError = true;
 			}
@@ -342,16 +290,34 @@
 			</div>
 
 			<fieldset disabled={closedInput} class="grid grid-cols-12 gap-x-4 gap-y-8">
-				<input type="hidden" name="userId" value={userData.userId} />
+				<!-- UserId -->
+				<div class="form-control col-span-12 md:col-span-12">
+					<label for="userId" class="form-label">
+						<div class="flex flex-col gap-4">
+							<span class="label-text font-bold">ID utente</span>
+							<input
+								class="input input-bordered join-item w-full"
+								id="userId"
+								name="userId"
+								type="text"
+								bind:value={userData.userId}
+								readonly
+							/>
+						</div>
+					</label>
+				</div>
+
+				<!-- <input type="hidden" name="userId" value={userData.userId} /> -->
 				<!-- Nome -->
 				<div class="form-control col-span-12 md:col-span-6">
-					<label for="Name" class="form-label">
+					<label for="name" class="form-label">
 						<div class="flex items-center justify-between gap-4">
 							<span class="label-text font-bold">Nome</span>
 							<input
 								type="checkbox"
 								class="hidden"
 								id="btn-check8"
+								name="namePublic"
 								autocomplete="off"
 								checked={namePublic}
 								onclick={() => onSwitchPublicProfile('namePublic', namePublic)}
@@ -371,7 +337,7 @@
 							</label>
 						</div>
 						<input
-							id="Name"
+							id="name"
 							name="name"
 							type="text"
 							class="input input-bordered w-full rounded-md mt-2"
@@ -379,19 +345,20 @@
 							required
 							readonly={closedInput}
 							class:is-static={closedInput}
-							bind:value={name}
+							bind:value={userData.name}
 						/>
 					</label>
 				</div>
 				<!-- Cognome -->
 				<div class="form-control col-span-12 md:col-span-6">
-					<label for="Surname" class="form-label">
+					<label for="surname" class="form-label">
 						<div class="flex items-center justify-between gap-4">
 							<span class="label-text font-bold">Cognome</span>
 							<input
 								type="checkbox"
 								class="hidden"
 								id="btn-check9"
+								name="surnamePublic"
 								autocomplete="off"
 								checked={surnamePublic}
 								onclick={() => onSwitchPublicProfile('surnamePublic', surnamePublic)}
@@ -411,7 +378,7 @@
 							</label>
 						</div>
 						<input
-							id="Surname"
+							id="surname"
 							name="surname"
 							type="text"
 							class="input input-bordered w-full rounded-md mt-2"
@@ -419,19 +386,20 @@
 							required
 							readonly={closedInput}
 							class:is-static={closedInput}
-							bind:value={surname}
+							bind:value={userData.surname}
 						/>
 					</label>
 				</div>
 				<!-- Email -->
 				<div class="form-control col-span-12">
-					<label for="Email" class="form-label">
+					<label for="email" class="form-label">
 						<div class="flex items-center justify-between gap-4">
 							<span class="label-text font-bold">Email</span>
 							<input
 								type="checkbox"
 								class="hidden"
 								id="btn-check10"
+								name="emailPublic"
 								autocomplete="off"
 								checked={emailPublic}
 								onclick={() => onSwitchPublicProfile('emailPublic', emailPublic)}
@@ -451,7 +419,7 @@
 							</label>
 						</div>
 						<input
-							id="Email"
+							id="email"
 							name="email"
 							type="email"
 							class="input input-bordered w-full rounded-md mt-2"
@@ -459,7 +427,7 @@
 							required
 							readonly={closedInput}
 							class:is-static={closedInput}
-							bind:value={email}
+							bind:value={userData.email}
 						/>
 					</label>
 				</div>
@@ -472,6 +440,7 @@
 								type="checkbox"
 								class="hidden"
 								id="btn-check1"
+								name="addressPublic"
 								autocomplete="off"
 								checked={addressPublic}
 								onclick={() => onSwitchPublicProfile('addressPublic', addressPublic)}
@@ -499,7 +468,7 @@
 							required
 							readonly={closedInput}
 							class:is-static={closedInput}
-							bind:value={address}
+							bind:value={userData.address}
 						/>
 					</label>
 				</div>
@@ -512,6 +481,7 @@
 								type="checkbox"
 								class="hidden"
 								id="btn-check2"
+								name="cityPublic"
 								autocomplete="off"
 								checked={cityPublic}
 								onclick={() => onSwitchPublicProfile('cityPublic', cityPublic)}
@@ -539,7 +509,7 @@
 							required
 							readonly={closedInput}
 							class:is-static={closedInput}
-							bind:value={city}
+							bind:value={userData.city}
 						/>
 					</label>
 				</div>
@@ -552,6 +522,7 @@
 								type="checkbox"
 								class="hidden"
 								id="btn-check3"
+								name="statePublic"
 								autocomplete="off"
 								checked={statePublic}
 								onclick={() => onSwitchPublicProfile('statePublic', statePublic)}
@@ -578,7 +549,7 @@
 							placeholder="Scegli"
 							required
 							disabled={closedInput}
-							bind:value={countryState}
+							bind:value={userData.countryState}
 						>
 							<option selected disabled>Scegli</option>
 							{#each provinceFilterate as provincia, i}
@@ -598,6 +569,7 @@
 								type="checkbox"
 								class="hidden"
 								id="btn-check4"
+								name="postalCodePublic"
 								autocomplete="off"
 								checked={postalCodePublic}
 								onclick={() => onSwitchPublicProfile('postalCodePublic', postalCodePublic)}
@@ -625,7 +597,7 @@
 							required
 							readonly={closedInput}
 							class:is-static={closedInput}
-							bind:value={postalCode}
+							bind:value={userData.postalCode}
 						/>
 					</label>
 				</div>
@@ -638,6 +610,7 @@
 								type="checkbox"
 								class="hidden"
 								id="btn-check5"
+								name="countryPublic"
 								autocomplete="off"
 								checked={countryPublic}
 								onclick={() => onSwitchPublicProfile('countryPublic', countryPublic)}
@@ -663,7 +636,7 @@
 							placeholder="Scegli"
 							required
 							disabled={closedInput}
-							bind:value={country}
+							bind:value={userData.country}
 						>
 							<option selected disabled>Scegli</option>
 							{#each $country_list as country}
@@ -683,6 +656,7 @@
 								type="checkbox"
 								class="hidden"
 								id="btn-check6"
+								name="phonePublic"
 								autocomplete="off"
 								checked={phonePublic}
 								onclick={() => onSwitchPublicProfile('phonePublic', phonePublic)}
@@ -709,7 +683,7 @@
 							placeholder="Telefono..."
 							required
 							readonly={closedInput}
-							bind:value={phone}
+							bind:value={userData.phone}
 						/>
 					</label>
 				</div>
@@ -722,6 +696,7 @@
 								type="checkbox"
 								class="hidden"
 								id="btn-check7"
+								name="mobilePhonePublic"
 								autocomplete="off"
 								checked={mobilePhonePublic}
 								onclick={() => onSwitchPublicProfile('mobilePhonePublic', mobilePhonePublic)}
@@ -749,8 +724,24 @@
 							required
 							readonly={closedInput}
 							class:is-static={closedInput}
-							bind:value={mobilePhone}
+							bind:value={userData.mobilePhone}
 						/>
+					</label>
+				</div>
+				<!-- level -->
+				<div class="form-control col-span-12 md:col-span-12">
+					<label for="userId" class="form-label">
+						<div class="flex flex-col gap-4">
+							<span class="label-text font-bold">Livello</span>
+							<input
+								class="input input-bordered join-item w-full"
+								id="level"
+								name="level"
+								type="text"
+								bind:value={userData.level}
+								readonly
+							/>
+						</div>
 					</label>
 				</div>
 			</fieldset>

@@ -481,7 +481,6 @@
 			toastClosed = false;
 			notificationContent = message;
 			form = null;
-			postAction = ``;
 		}
 	}); // end effect
 </script>
