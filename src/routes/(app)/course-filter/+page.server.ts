@@ -5,7 +5,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	let getTable = [];
 	let getTableNames = [];
 	let getLayout = [];
-	const user = locals.data
+	const user = locals.user
 
 	try {
 		const resProductsCorso = await fetch(

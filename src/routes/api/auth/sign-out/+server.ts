@@ -1,45 +1,27 @@
-import { json as json$1 } from '@sveltejs/kit';
-// src/routes/api/sign-out.js
-import { parse, serialize } from 'cookie';
+// src/routes/api/sign-out
+import { json } from '@sveltejs/kit';
 import dbConnect from '$lib/database';
 import { User } from '$lib/models/Users.model';
 import type { RequestHandler } from '@sveltejs/kit';
 
-/** @type {import('@sveltejs/kit').RequestHandler} */
-
-//export async function get({ headers: { cookie } }) {
-export const GET: RequestHandler = async ({ request }) => {
-	//const body = await request.json();
-	const cookies = parse(request.headers.get('cookie') || '');
-
-	if (cookies.session_id) {
+export const GET: RequestHandler = async ({ cookies }) => {
+	const session_id = cookies.get('session_id');
+	if (session_id) {
 		try {
 			await dbConnect();
-			//const res = await User.updateOne({ cookieId: cookies.session_id }, { $set: { cookieId:'' } });
-			//console.log(res.acknowledged);
-			await User.updateOne({ cookieId: cookies.session_id }, { $set: { cookieId: '' } }).lean().exec();
+			const logout = await User.updateOne({ cookieId: session_id }, { $set: { cookieId: '' } }).lean().exec();
+			console.log(logout);
+
+			if (logout.modifiedCount == 1) {
+				cookies.delete('session_id', { path: '/' });
+				return json({ message: 'Logged out' }, { status: 200 });
+			}
+
+			return json({ message: 'error Log out' }, { status: 400 });
+
 		} catch (err) {
 			console.log('Logout ERROR:', err);
-			//throw new Error("@1migration task: Migrate this return statement (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292701)");
-			return new Response(JSON.stringify({ errors: `Logout ERR: ${err}` }), {
-				status: 500,
-				headers: {
-					'content-type': 'application/json; charset=utf-8'
-				}
-			});
-			///////////////
-			//return Promise.reject(new Error(`Logout ERR: ${err}`));
+			return json({ errors: `Logout ERR: ${err}` }, { status: 500 });
 		}
 	}
-
-	return json$1({
-		message: 'Logged out'
-	}, {
-		headers: {
-			'Set-Cookie': serialize('session_id', '', {
-				path: '/',
-				expires: new Date(0)
-			})
-		}
-	});
 }

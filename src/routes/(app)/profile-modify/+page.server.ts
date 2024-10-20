@@ -8,9 +8,9 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	}
 	let getOrderData = [];
 	let getOrder = [];
-	// console.log('locals.data', locals.data.userId);
+	// console.log('locals.data', locals.user.userId);
 	const res = await fetch(
-		`${import.meta.env.VITE_BASE_URL}/api/orders/findId/${locals.data.userId}`
+		`${import.meta.env.VITE_BASE_URL}/api/orders/findId/${locals.user.userId}`
 	);
 	getOrderData = await res.json();
 
@@ -20,7 +20,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	}));
 	//console.log('getOrder', getOrder);
 
-	const user = locals.data
+	const user = locals.user
 	if (locals.auth) {
 		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
 		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);

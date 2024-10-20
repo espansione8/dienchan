@@ -1,7 +1,6 @@
-import { json as json$1 } from '@sveltejs/kit';
 // src/routes/api/auth/sign-up.js
+import { json } from '@sveltejs/kit';
 import stringHash from 'string-hash';
-import { serialize } from 'cookie';
 import dbConnect from '$lib/database';
 import { Product } from '$lib/models/Products.model';
 import { File } from 'nft.storage';
@@ -83,21 +82,7 @@ export const POST = async ({ request }) => {
 		)
 			.lean()
 			.exec();
-		// await changeProd
-		// 	.save()
-		// 	.then(async (res) => {})
-		// 	// .catch(console.error);
-		// 	.catch((error) => {
-		// 		console.error(error);
-		// 		return json$1(
-		// 			{
-		// 				message: 'Prodotto registrazione fallita'
-		// 			},
-		// 			{
-		// 				status: 500
-		// 			}
-		// 		);
-		// 	});
+
 
 		////POST file upload//////
 		//// product-primary ////
@@ -130,51 +115,17 @@ export const POST = async ({ request }) => {
 			body: formFileGallery
 		});
 		const resFileGallery = await responseFileGallery.json();
-		// console.log('resFileGallery UPLOAD response', resFileGallery);
-		//resFile UPLOAD response { filesUpload: 'ok' }
-		///// END file upload
 
-		// Set cookie
-		// If you want cookies to be passed alongside user when they redirect to another website using a link, change sameSite to 'lax'
-		// If you don't want cookies to be valid everywhere in your app, modify the path property accordingly
-		// const headers = {
-		// 	'Set-Cookie': serialize('session_id', cookieId, {
-		// 		httpOnly: true,
-		// 		maxAge: 60 * 60 * 24 * 7, // one week
-		// 		sameSite: 'strict',
-		// 		path: '/'
-		// 	})
-		// };
 		const findId = await Product.find({ _id: updateProduct._id });
 		if (findId.length > 0) {
-			return json$1(
-				{
-					message: 'Prodotto Aggiornato'
-				},
-				{
-					status: 200
-				}
-			);
+			return json({ message: 'Prodotto Aggiornato' }, { status: 200 });
 		} else {
 			// console.log('Nope');
-			return json$1(
-				{
-					message: 'Prodotto aggiornamento fallito'
-				},
-				{
-					status: 500
-				}
-			);
+			return json({ message: 'Prodotto aggiornamento fallito' }, { status: 400 });
+
 		}
 	} catch (err) {
 		console.log('Prodotto ERROR:', err);
-		return json$1(
-			{
-				message: 'Prodotto aggiornamento fallito'
-			},
-			{
-				status: 500
-			}
-		);
+		return json({ message: 'server Prodotto aggiornamento fallito' }, { status: 500 });
 	}
 };

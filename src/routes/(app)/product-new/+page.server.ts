@@ -10,7 +10,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return {
 		//sessionAuth: session.auth,
 		//userEmail: session.user.email,
-		userData: locals.data,
+		userData: locals.user,
 		auth: locals.auth
 	};
 }

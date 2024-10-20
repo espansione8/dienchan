@@ -1,7 +1,5 @@
 // src/routes/api/auth/password-reset
-import { json as json$1 } from '@sveltejs/kit';
-//import { serialize } from 'cookie';
-
+import { json } from '@sveltejs/kit';
 import stringHash from 'string-hash';
 import dbConnect from '$lib/database';
 import { User } from '$lib/models/Users.model';
@@ -17,14 +15,7 @@ export const POST = async ({ request }) => {
 		const userCheck = await User.exists({ email: loginEmail }).limit(1).lean().exec();
 
 		if (!userCheck) {
-			return json$1(
-				{
-					message: 'User not found'
-				},
-				{
-					status: 401
-				}
-			);
+			return json({ message: 'User not found' }, { status: 400 });
 		}
 		const randomString = crypto.randomUUID();
 		const newPass = randomString.slice(-12);
@@ -53,30 +44,13 @@ export const POST = async ({ request }) => {
 				},
 				body: JSON.stringify(data)
 			});
-			return new Response(JSON.stringify({ message: 'Enable temporary password' }), {
-				status: 200
-				//headers
-			});
+			return json({ message: 'Enable temporary password' }, { status: 200 });
 		} else {
-			return new Response(JSON.stringify({ message: '(500) reset failed' }), {
-				status: 500,
-				headers: {
-					'content-type': 'application/json; charset=utf-8'
-				}
-			});
+			return json({ message: '(400) reset failed' }, { status: 400 });
 		}
 
-		// return new Response(JSON.stringify({ message: 'Enable temporary password' }), {
-		// 	status: 200
-		// 	//headers
-		// });
 	} catch (err) {
 		console.error('reset ERROR:', err);
-		return new Response(JSON.stringify({ message: '(500) reset failed' }), {
-			status: 500,
-			headers: {
-				'content-type': 'application/json; charset=utf-8'
-			}
-		});
+		return json({ message: '(500) reset failed' }, { status: 500 });
 	}
 };

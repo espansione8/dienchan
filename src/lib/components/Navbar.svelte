@@ -1,28 +1,19 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	//import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { LogOut, ChevronDown, Menu, Megaphone, LogIn } from 'lucide-svelte';
-	//import { cart } from '$lib/stores/cart';
 	import { cartProducts, emptyCart } from '$lib/stores/cart';
-	let logged = $state(false);
-	let sessionAuth = $page?.data?.auth;
-	//console.log('Nav', $page?.data?.userData?.level);
-	//console.log('cartProducts navbar', $cartProducts);
 
-	let pointsBalance = 0;
+	let { user, auth } = $props();
 
-	if (sessionAuth) {
-		logged = true;
-		pointsBalance = $page?.data?.userData?.pointsBalance;
-	} else {
-		logged = false;
-	}
-	let userLevel = $state($page?.data?.userData?.level || '');
-	const userName = $derived($page?.data?.userData?.name || '');
-	const userSurname = $derived($page?.data?.userData?.surname || '');
-	const userId = $page?.data?.userData?.userId || '';
+	let pointsBalance = $state(user.pointsBalance || 0);
+	//if (auth) pointsBalance = user.pointsBalance;
+	let userLevel = $state(user.level || '');
+	let menuActive = $state(false);
+	let userName = $state(user.name || '');
+	let userSurname = $state(user.surname || '');
+	let userId = $state(user.userId || '');
 
-	let menuActive = false;
 	const onBurgerclick = () => {
 		menuActive = !menuActive;
 	};
@@ -45,29 +36,17 @@
 			console.log('Error logout', err);
 		}
 	};
-	// TO test with STORE
-	// $effect(() => {
-	// 	sessionAuth = $page?.data?.auth;
-	// 	if (sessionAuth) {
-	// 		logged = true;
-	// 		userLevel = $page?.data?.userData?.level || '';
-	// 	} else {
-	// 		logged = false;
-	// 		userLevel = '';
-	// 	}
-	// 	pointsBalance = $page?.data?.userData?.pointsBalance || 0;
-	// });
 </script>
 
 <!-- Navbar -->
-<nav class="navbar animate-color-fade {logged ? 'justify-between' : 'justify-center'}">
+<nav class="navbar animate-color-fade {auth ? 'justify-between' : 'justify-center'}">
 	<!-- Logo e titolo-->
 	<div class="flex flex-col items-center">
 		<span class="">
 			<img alt="Logo" src="/images/logo-dien-chan-new.png" class="w-52" />
 		</span>
 		<!-- <strong> Diện Chẩn Bùi Quốc Châu ® </strong> -->
-		{#if logged}
+		{#if auth}
 			<span class="text-gray-700 mx-1">
 				<strong>Buongiorno {`${userName} ${userSurname}`}</strong>
 			</span>
@@ -127,7 +106,7 @@
 					<strong>Carrello</strong>
 				</a>
 			</li>
-			{#if logged}
+			{#if auth}
 				<a
 					class="btn btn-sm btn-primary border-black"
 					class:active={$page.url.pathname === '/profile-modify/'}
@@ -147,7 +126,7 @@
 					<strong>Profilo pubblico</strong>
 				</a>
 
-				{#if logged && userLevel == 'superadmin'}
+				{#if auth && userLevel == 'superadmin'}
 					<li>
 						<h2 class="menu-title text-lg text-blue-900">Gestione ADMIN:</h2>
 						<ul class="border-2 p-2 border-blue-900 rounded-md">
@@ -204,7 +183,7 @@
 						</ul>
 					</li>
 				{/if}
-				{#if logged && userLevel == 'formatore'}
+				{#if auth && userLevel == 'formatore'}
 					<li>
 						<h2 class="menu-title text-blue-900">Gestione</h2>
 						<ul>
@@ -219,7 +198,7 @@
 					</li>
 				{/if}
 			{/if}
-			{#if logged}
+			{#if auth}
 				<button
 					onclick={logOutNow}
 					class="btn btn-sm bg-transparent rounded-md flex border-red-900 text-red-900 mx-2"
@@ -278,7 +257,7 @@
 
 				<strong>Carrello</strong>
 			</a>
-			{#if logged}
+			{#if auth}
 				<a
 					class="btn btn-sm btn-outline btn-accent"
 					class:active={$page.url.pathname === '/profile-modify/'}
@@ -297,7 +276,7 @@
 				>
 					<strong>Profilo pubblico</strong>
 				</a>
-				{#if logged && userLevel == 'superadmin'}
+				{#if auth && userLevel == 'superadmin'}
 					<div class="dropdown dropdown-end">
 						<button class="btn btn-sm btn-accent btn-outline py-2">
 							<span class="flex justify-between"
@@ -346,14 +325,16 @@
 								>
 							</li>
 							<li>
-								<a class="btn btn-sm btn-accent btn-outline" href="/discount-table" aria-current="page"
-									><strong>Sconti</strong></a
+								<a
+									class="btn btn-sm btn-accent btn-outline"
+									href="/discount-table"
+									aria-current="page"><strong>Sconti</strong></a
 								>
 							</li>
 						</ul>
 					</div>
 				{/if}
-				{#if logged && userLevel == 'formatore'}
+				{#if auth && userLevel == 'formatore'}
 					<div class="dropdown dropdown-end">
 						<button class="btn btn-sm btn-accent btn-outline py-2">
 							<span class="flex justify-between"
@@ -373,7 +354,7 @@
 					</div>
 				{/if}
 			{/if}
-			{#if logged}
+			{#if auth}
 				<button onclick={logOutNow} class="btn btn-sm btn-outline btn-accent">
 					<span class="flex justify-center gap-1">
 						<LogOut size="16" strokeWidth={2.5} />

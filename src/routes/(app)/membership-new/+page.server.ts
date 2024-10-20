@@ -2,27 +2,28 @@ import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
 import { Product } from '$lib/models/Products.model';
 
-export const load: PageServerLoad = async ({ locals }) => {
-	//console.log('locals', locals);
-	// if (!locals.auth) {
-	// 	throw redirect(302, '/login');
-	// }
-	//console.log('locals.data', locals.data);
+// export const load: PageServerLoad = async ({ locals }) => {
+// 	console.log('locals', locals);
+// 	if (!locals.auth) {
+// 		throw redirect(302, '/login');
+// 	}
+// 	console.log('locals.data', locals.data);
 
-	let user = locals.data
-	if (locals.auth) {
-		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
-		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
-		user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
-	}
 
-	return {
-		//sessionAuth: session.auth,
-		//userEmail: session.user.email,
-		userData: user,
-		auth: locals.auth
-	};
-}
+// 	let user = locals.user
+// 	if (locals.auth) {
+// 		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
+// 		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
+// 		user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
+// 	}
+
+// 	return {
+// 		//sessionAuth: session.auth,
+// 		//userEmail: session.user.email,
+// 		userData: user,
+// 		auth: locals.auth
+// 	};
+// }
 
 export const actions: Actions = {
 	newMembership: async ({ request, fetch }) => {
@@ -152,7 +153,7 @@ export const actions: Actions = {
 	},
 
 	renewMembership: async ({ request, fetch, locals }) => {
-		const userData = locals.data;
+		const userData = locals.user;
 		const formData = await request.formData();
 		const userId = userData.userId;
 		const membershipActivation = userData.membership.membershipExpiry;

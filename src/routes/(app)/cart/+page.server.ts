@@ -20,7 +20,7 @@ type DiscountResult = {
 export const load: PageServerLoad = async ({ locals }) => {
 
 	return {
-		userData: locals.data,
+		userData: locals.user,
 		auth: locals.auth
 	};
 }

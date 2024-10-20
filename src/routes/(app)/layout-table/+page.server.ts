@@ -37,7 +37,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	} catch (error) {
 		console.log('layout fetch error:', error);
 	}
-	const user = locals.data
+	const user = locals.user
 	if (locals.auth) {
 		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
 		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);

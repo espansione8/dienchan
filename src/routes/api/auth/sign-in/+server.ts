@@ -1,12 +1,10 @@
 // src/routes/api/auth/sign-in
-import { json as json$1 } from '@sveltejs/kit';
-import { serialize } from 'cookie';
-
+import { json } from '@sveltejs/kit';
 import stringHash from 'string-hash';
 import dbConnect from '$lib/database';
 import { User } from '$lib/models/Users.model';
 
-export const POST = async ({ request }) => {
+export const POST = async ({ request, cookies }) => {
 	const body = await request.json();
 	const loginEmail = body.loginEmail.replace(/\s+/g, '').toLowerCase();
 	try {
@@ -25,14 +23,7 @@ export const POST = async ({ request }) => {
 		//console.log('pass test', user.password === stringHash(body.loginPassword).toString());
 
 		if (!user || user.password !== stringHash(body.loginPassword).toString()) {
-			return json$1(
-				{
-					message: 'Incorrect user or password'
-				},
-				{
-					status: 400
-				}
-			);
+			return json({ message: 'Incorrect user or password' }, { status: 400 });
 		}
 
 		// Look for existing email to avoid duplicate entries
@@ -43,34 +34,24 @@ export const POST = async ({ request }) => {
 		if (duplicateUser) {
 			await User.updateOne({ email: loginEmail }, { $set: { cookieId } });
 		}
-		// Set cookie
+		// Set cookie using SvelteKit's cookies API
 		// If you want cookies to be passed alongside user when they redirect to another website using a link, change sameSite to 'lax'
 		// If you don't want cookies to be valid everywhere in your app, modify the path property accordingly
-		const headers = {
-			'Set-Cookie': serialize('session_id', cookieId, {
-				httpOnly: true,
-				//maxAge: 60 * 60 * 24 * 7 // one week
-				maxAge: 60 * 60 * 24,
-				sameSite: 'strict',
-				secure: process.env.NODE_ENV === 'production',
-				path: '/'
-			})
-		};
+		cookies.set('session_id', cookieId, {
+			httpOnly: true,
+			//maxAge: 60 * 60 * 24 * 7 // one week
+			maxAge: 60 * 60 * 24, // one day
+			sameSite: 'strict',
+			secure: process.env.NODE_ENV === 'production',
+			path: '/'
+		});
 
 		if (user) {
-			//console.log('session_id', cookieId);
-			return new Response(JSON.stringify({ message: 'Success Sign In' }), {
-				status: 200,
-				headers
-			});
+			return json({ message: 'Success Sign In' }, { status: 200 });
 		}
+		return json({ message: 'login error' }, { status: 400 });
 	} catch (err) {
 		console.error('signUser ERROR:', err);
-		return new Response(JSON.stringify({ message: '(500) sign in failed' }), {
-			status: 500,
-			headers: {
-				'content-type': 'application/json; charset=utf-8'
-			}
-		});
+		return json({ message: '(500) sign in failed' }, { status: 500 });
 	}
 };

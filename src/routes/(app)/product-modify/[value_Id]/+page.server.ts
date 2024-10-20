@@ -30,7 +30,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 	// }
 	return {
 		getProduct,
-		userData: locals.data,
+		userData: locals.user,
 		auth: locals.auth
 	};
 	// }

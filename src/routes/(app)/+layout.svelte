@@ -1,12 +1,15 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import '../../app.css';
-	import Nav from '$lib/components/Navbar.svelte';
+	import Navbar from '$lib/components/Navbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
+
 	let { children } = $props();
+	let { user, auth } = $derived($page.data);
 </script>
 
 <div data-theme="dienchan" class="flex-col flex min-h-screen">
-	<Nav />
+	<Navbar {user} {auth} />
 
 	<main class="flex-grow">
 		<!-- <slot /> -->

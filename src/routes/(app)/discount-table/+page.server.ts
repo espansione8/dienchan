@@ -40,26 +40,26 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			}));
 		}
 
-			// Layout list
-			arrayField = [];
-			arrayValue = [];
-			const resLayout = await fetch(`/api/finds/0/0`, {
-				method: 'POST',
-				body: JSON.stringify({
-					schema: 'layout',
-					arrayField,
-					arrayValue
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			getLayout = await resLayout.json();
+		// Layout list
+		arrayField = [];
+		arrayValue = [];
+		const resLayout = await fetch(`/api/finds/0/0`, {
+			method: 'POST',
+			body: JSON.stringify({
+				schema: 'layout',
+				arrayField,
+				arrayValue
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		getLayout = await resLayout.json();
 
 	} catch (error) {
 		console.log('discount fetch error:', error);
 	}
-	const user = locals.data
+	const user = locals.user
 	if (locals.auth) {
 		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
 		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);

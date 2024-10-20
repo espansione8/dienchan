@@ -17,3 +17,6 @@ export type MembershipProduct = {
     renewalLength: number;
     // Add other membership
 };
+
+export type UserModel = App.UserModel;
+//USE import type { UserModel } from '$lib/types';

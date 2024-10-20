@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		console.log('membershipfetch error:', error);
 	}
 
-	const user = locals.data
+	const user = locals.user
 	if (locals.auth) {
 		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
 		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
@@ -44,7 +44,7 @@ export const actions: Actions = {
 		const descrShort = formData.get('descrShort');
 		const price = formData.get('price');
 		const renewalLength = formData.get('renewalLength');
-		const userId = locals.data.userId
+		const userId = locals.user.userId
 		if (!title || !price || !renewalLength || !userId) {
 			return fail(400, { action: 'newMembership', success: false, message: 'Dati mancanti' });
 		}

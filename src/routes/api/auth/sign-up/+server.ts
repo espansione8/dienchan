@@ -1,11 +1,10 @@
 // src/routes/api/auth/sign-up.js
 import { json } from '@sveltejs/kit';
 import stringHash from 'string-hash';
-import { serialize } from 'cookie';
 import dbConnect from '$lib/database';
 import { User } from '$lib/models/Users.model';
 
-export const POST = async ({ request }) => {
+export const POST = async ({ request, cookies }) => {
 	const body = await request.json();
 	const registerEmail = body.registerEmail.replace(/\s+/g, '').toLowerCase();
 	try {
@@ -21,14 +20,7 @@ export const POST = async ({ request }) => {
 		// If there is, either send status 409 Conflict and inform the user that their email is already taken
 		// or send status 202 or 204 and tell them to double-check on their credentials and try again - it is considered more secure
 		if (user) {
-			return json(
-				{
-					message: 'User already registered'
-				},
-				{
-					status: 409
-				}
-			);
+			return json({ message: 'User already registered' }, { status: 400 });
 		}
 
 		// Add user to DB
@@ -54,36 +46,22 @@ export const POST = async ({ request }) => {
 			})
 			.catch(console.error);
 
-		// Set cookie
+		// Set cookie using SvelteKit's cookies API
 		// If you want cookies to be passed alongside user when they redirect to another website using a link, change sameSite to 'lax'
 		// If you don't want cookies to be valid everywhere in your app, modify the path property accordingly
-		const headers = {
-			'Set-Cookie': serialize('session_id', cookieId, {
-				httpOnly: true,
-				maxAge: 60 * 60 * 24 * 7, // one week
-				sameSite: 'strict',
-				path: '/'
-			})
-		};
+		cookies.set('session_id', cookieId, {
+			httpOnly: true,
+			//maxAge: 60 * 60 * 24 * 7 // one week
+			maxAge: 60 * 60 * 24, // one day
+			sameSite: 'strict',
+			secure: process.env.NODE_ENV === 'production',
+			path: '/'
+		});
 
-		return json(
-			{
-				message:
-					"Sign up done! Check incoming email (don't forget SPAM folder) for the confirmation message."
-			},
-			{
-				headers: headers
-			}
-		);
+		return json({ message: "Sign up done! Check incoming email (don't forget SPAM folder) for the confirmation message." }, { status: 200 });
+
 	} catch (err) {
 		console.log('registerUser ERROR:', err);
-		return json(
-			{
-				message: 'Sign Up failed'
-			},
-			{
-				status: 500
-			}
-		);
+		return json({ message: '(500) sign up failed' }, { status: 500 });
 	}
 };

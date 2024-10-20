@@ -1,5 +1,7 @@
 import { readable, writable } from 'svelte/store';
 
+export const sidebarData = writable();
+
 export const nazioni = readable([
     { value: "S", title: "Select" },
     { value: "AF", title: "Afghanistan" },
@@ -879,19 +881,19 @@ export const province = readable(
 
 )
 
-export const hours = [
+export const hours = readable([
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
-]
+])
 
-export const minutes = [
+export const minutes = readable([
     0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55
-]
+])
 
-export const days = [
+export const days = readable([
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31
-]
+])
 
-export const months = [
+export const months = readable([
     { title: 'Gennaio', value: 1 },
     { title: 'Febbraio', value: 2 },
     { title: 'Marzo', value: 3 },
@@ -904,9 +906,9 @@ export const months = [
     { title: 'Ottobre', value: 10 },
     { title: 'Novembre', value: 11 },
     { title: 'Dicembre', value: 12 }
-]
+])
 
-export const monthsShort = [
+export const monthsShort = readable([
     'Gennaio',
     'Febbraio',
     'Marzo',
@@ -919,4 +921,4 @@ export const monthsShort = [
     'Ottobre',
     'Novembre',
     'Dicembre'
-]
+])

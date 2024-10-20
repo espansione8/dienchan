@@ -43,7 +43,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	} catch (error) {
 		console.log('orders fetch error:', error);
 	}
-	const user = locals.data
+	const user = locals.user
 	if (locals.auth) {
 		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
 		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
@@ -61,7 +61,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 
 export const actions: Actions = {
-	
+
 	filterOrder: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const orderId = formData.get('orderId');
@@ -70,7 +70,7 @@ export const actions: Actions = {
 		const status = formData.get('status');
 
 		// console.log('orderId', orderId);
-		
+
 		const arrayField = ['orderId', 'userId', 'payment.method', 'status'];
 		const arrayValue = [orderId, userId, paymentMethod, status];
 		try {

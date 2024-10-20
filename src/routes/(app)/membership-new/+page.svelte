@@ -3,6 +3,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
 	import Modal from '$lib/components/Modal.svelte';
+	import { page } from '$app/stores'; // $page.data.user $page.data.auth
 	import { province, country_list } from '$lib/stores/arrays';
 	import {
 		Mail,
@@ -15,6 +16,24 @@
 		Lock,
 		CircleCheckBig
 	} from 'lucide-svelte';
+
+	//let { data, form } = $props();
+	//let { userData, auth } = $derived(data);
+	let { form } = $props();
+	let auth = $state($page.data.auth);
+	let userData = $state($page.data.user);
+
+	if (auth) {
+		userData.membership.membershipExpiry = userData.membership.membershipExpiry
+			.toString()
+			.substring(0, 10);
+		userData.membership.membershipSignUp = userData.membership.membershipSignUp
+			.toString()
+			.substring(0, 10);
+		userData.membership.membershipActivation = userData.membership.membershipActivation
+			.toString()
+			.substring(0, 10);
+	}
 
 	const testimonials = [
 		{
@@ -36,9 +55,6 @@
 				'Associazione ben organizzata che insegna egregiamente e con passione tecniche utili per il benessere psicofisico.'
 		}
 	];
-
-	let { data, form } = $props();
-	let { userData, auth } = $derived(data);
 
 	let paymentType = $state('bonifico');
 	let isModal = $state(false);
@@ -103,21 +119,9 @@
 			postAction = `?/renewMembership`;
 			modalTitle = 'Rinnovo iscrizione';
 			const newDate = newExpire.setFullYear(newExpire.getFullYear() + 1);
-			newExpire = newDate.toISOString().substring(0, 10);
+			newExpire = newDate.toString().substring(0, 10);
 		}
 	};
-
-	// notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-		}, 3000); // 1000 milliseconds = 1 second
-	};
-	//clearTimeout(startTimeout); // reset timer
 
 	$effect(() => {
 		if (form != null) {
@@ -134,6 +138,18 @@
 			notificationContent = message;
 		}
 	}); // end effect
+
+	// notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+		}, 3000); // 1000 milliseconds = 1 second
+	};
+	//clearTimeout(startTimeout); // reset timer
 </script>
 
 <svelte:head>
@@ -298,15 +314,8 @@
 
 		<div class=" flex justify-center space-x-10 m-10">
 			{#each testimonials as testimonial}
-				<motion.div
+				<div
 					class="testimonial-card w-[450px] rounded-2xl shadow-lg bg-white p-8 transition-transform transform hover:scale-105"
-					variants={{
-						hidden: { opacity: 0, y: 20 },
-						visible: { opacity: 1, y: 0 }
-					}}
-					initial="hidden"
-					animate="visible"
-					transition={{ duration: 0.6, delay: 0.2 }}
 				>
 					<div class="flex items-center mb-6">
 						<img
@@ -317,7 +326,7 @@
 						<h4 class="text-xl font-semibold text-gray-800">{testimonial.name}</h4>
 					</div>
 					<p class="text-gray-700 text-base">{testimonial.review}</p>
-				</motion.div>
+				</div>
 			{/each}
 		</div>
 		<!-- Sezione Statistiche -->

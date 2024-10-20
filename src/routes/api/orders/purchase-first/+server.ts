@@ -1,11 +1,9 @@
 // src/routes/api/orders/purchase-first
 import { json } from '@sveltejs/kit';
 import stringHash from 'string-hash';
-//import { serialize } from 'cookie';
 import dbConnect from '$lib/database';
 import { Order } from '$lib/models/Orders.model';
 import { User } from '$lib/models/Users.model';
-//import nodemailer from 'nodemailer';
 
 export const POST = async ({ request }) => {
 	const body = await request.json();
@@ -77,13 +75,7 @@ export const POST = async ({ request }) => {
 		}
 		if (responseUser.status != 200) {
 			console.log('KO responseUser');
-			return json(
-				{
-					message: 'Sign KO'
-				},
-				{
-					status: 500
-				})
+			return json({ message: 'Sign KO' }, { status: 400 });
 		}
 		// REGISTER MEMBERSHIP
 		if (userId) {
@@ -108,22 +100,10 @@ export const POST = async ({ request }) => {
 			}
 			if (responseMembership.status != 200) {
 				console.log('KO member', resMembership);
-				return json(
-					{
-						message: 'Sign KO member'
-					},
-					{
-						status: 500
-					})
+				return json({ message: 'Sign KO member' }, { status: 400 });
 			}
 		} else {
-			return json(
-				{
-					message: 'no user'
-				},
-				{
-					status: 500
-				})
+			return json({ message: 'no user' }, { status: 400 });
 		}
 
 		// REGISTER ORDER
@@ -140,60 +120,18 @@ export const POST = async ({ request }) => {
 			const order = await newOrder.save()
 
 			if (order.orderId == orderId) {
-				////console.log('OK order', order);
-				// // Set cookie
-				// const headers = {
-				// 	'Set-Cookie': serialize('session_id', cookieId, {
-				// 		httpOnly: true,
-				// 		maxAge: 60 * 60 * 24 * 7, // one week
-				// 		sameSite: 'strict',
-				// 		path: '/'
-				// 	})
-				// };
-				return json(
-					{
-						message: 'Ordine inviato con successo',
-					},
-					{
-						status: 200,
-						//headers
-					}
-				);
+				return json({ message: 'Ordine inviato con successo' }, { status: 200 });
 			}
 			if (order.orderId != orderId) {
 				console.log('KO order', order);
-				return json(
-					{
-						message: 'order KO'
-					},
-					{
-						status: 500,
-					})
+				return json({ message: 'Order KO' }, { status: 400 });
 			}
 		} else {
-			return json(
-				{
-					message: 'no membership'
-				},
-				{
-					status: 500
-				})
+			return json({ message: 'no membership' }, { status: 400 });
 		}
-
-		return json({
-			message: 'Sign Up failed'
-		},
-			{
-				status: 500
-			});
+		return json({ message: 'Sign Up failed' }, { status: 400 });
 	} catch (err) {
 		console.log('order purchase ERROR:', err);
-		return json({
-			message: `order purchase ERR: ${err}`
-		},
-			{
-				status: 500
-			});
-
+		return json({ message: `order purchase ERR: ${err}` }, { status: 500 });
 	}
 };

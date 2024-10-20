@@ -10,11 +10,11 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	let getTable: any = [];
 	let getTableNames = [];
 	let getLayout = [];
-	const userId = locals.data.userId || ''
+	const userId = locals.user.userId || ''
 
 	try {
 		let path = `${import.meta.env.VITE_BASE_URL}/api/products/find/type/course/0/0`
-		if (locals.data.level == 'formatore') path = `${import.meta.env.VITE_BASE_URL}/api/courses/user-id/${userId}`
+		if (locals.user.level == 'formatore') path = `${import.meta.env.VITE_BASE_URL}/api/courses/user-id/${userId}`
 
 		// ADMIN course
 		const res = await fetch(path);
@@ -69,7 +69,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	} catch (error) {
 		console.log('course table fetch error:', error);
 	}
-	const user = locals.data
+	const user = locals.user
 	if (locals.auth) {
 		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
 		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
@@ -87,9 +87,9 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 export const actions: Actions = {
 	newCourse: async ({ request, fetch, locals }) => {
 		const formData = await request.formData();
-		const userId = locals.data.userId;
-		const name = locals.data.name;
-		const surname = locals.data.surname;
+		const userId = locals.user.userId;
+		const name = locals.user.name;
+		const surname = locals.user.surname;
 		const title = formData.get('title') || '';
 		const descrLong = formData.get('descrLong') || '';
 		const eventStartDate = formData.get('eventStartDate');
@@ -146,9 +146,9 @@ export const actions: Actions = {
 
 	modifyCourse: async ({ request, fetch, locals }) => {
 		const formData = await request.formData();
-		const userId = locals.data.userId;
-		const name = locals.data.name;
-		const surname = locals.data.surname;
+		const userId = locals.user.userId;
+		const name = locals.user.name;
+		const surname = locals.user.surname;
 		const title = formData.get('title') || '';
 		const descrLong = formData.get('descrLong') || '';
 		const eventStartDate = formData.get('eventStartDate');
