@@ -221,24 +221,6 @@
 
 <Notification {toastClosed} {notificationContent} {notificationError} />
 
-<!-- Modal confirm delete -->
-<dialog id="modal_confirm_delete" class="modal" class:modal-open={false}>
-	<div
-		class="modal-box bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass flex flex-row justify-between max-w-2xl"
-	>
-		<h2 class="text-2xl font-bold text-black flex items-center">Conferma l'eliminazione?</h2>
-
-		<form action="?/deleteDiscount" method="POST" use:enhance>
-			<input type="hidden" name="discountId" value={deleteId} />
-			<div class="flex flex-row justify-between space-x-4">
-				<button class="btn btn-error btn-md" type="button" onclick={onCloseConfirmDelete}
-					>Annulla</button
-				>
-				<button class="btn btn-success btn-md text-white" type="submit"><Trash2 />Conferma</button>
-			</div>
-		</form>
-	</div>
-</dialog>
 
 <!--Modal New and Modify  -->
 <Modal isOpen={isModal} header={modalTitle} cssClass="max-w-4xl">

@@ -17,7 +17,7 @@
 	};
 
 	let postAction = $state('');
-	let isModalFilterOrder = $state(false);
+	let isModalFilter = $state(false);
 	let resetActive = $state(false);
 	let quickSearch = $state('data'); // radio button
 	//filter
@@ -27,12 +27,12 @@
 	let status = $state('');
 
 	const onCloseFilterSearch = () => {
-		isModalFilterOrder = false;
+		isModalFilter = false;
 		onFilterReset();
 	};
 
 	const onOpenFilter = () => {
-		isModalFilterOrder = true;
+		isModalFilter = true;
 		postAction = `?/filterOrder`;
 		quickSearch = 'location';
 	};
@@ -467,7 +467,7 @@
 			const { action, success, message, filterTableList } = form;
 			if (success) {
 				closeNotification();
-				isModalFilterOrder = false;
+				isModalFilter = false;
 				resetActive = false;
 				tableList = getOrders;
 				if (action == 'filterOrder') {
@@ -591,108 +591,10 @@
 
 <Notification {toastClosed} {notificationContent} {notificationError} />
 
-<!-- modal DETAIL -->
-<dialog id="my_modal_2" class="modal" class:modal-open={false}>
-	<div class="modal-box grid grid-cols-2">
-		<h3 class="col-span-2 font-bold text-xl text-center mb-4">
-			Dettagli ordine (ID: {orderDetail.orderId})
-		</h3>
-		<div class="col-span-2 grid grid-cols-2 gap-2 mb-4">
-			<div class="flex flex-col items-center">
-				<p class="text-sm text-gray-600">Nome/Cognome</p>
-				<p class="font-bold text-center mt-1">
-					{orderDetail.userView?.name}
-					{orderDetail.userView?.surname}
-				</p>
-			</div>
-			<div class="flex flex-col items-center">
-				<p class="text-sm text-gray-600">Email</p>
-				<p class="font-bold text-center mt-1">{orderDetail.userView?.email}</p>
-			</div>
-			<div class="flex flex-col items-center">
-				<p class="text-sm text-gray-600">Città</p>
-				<p class="font-bold text-center mt-1">{orderDetail.userView?.city}</p>
-			</div>
-			<div class="flex flex-col items-center">
-				<p class="text-sm text-gray-600">Indirizzo</p>
-				<p class="font-bold text-center mt-1">{orderDetail.userView?.address}</p>
-			</div>
-			<div class="flex flex-col items-center">
-				<p class="text-sm text-gray-600">Codice Postale - Provincia</p>
-				<p class="font-bold text-center mt-1">
-					{orderDetail.userView?.postalCode} - {orderDetail.userView?.countryState}
-				</p>
-			</div>
-			<div class="flex flex-col items-center">
-				<p class="text-sm text-gray-600">Paese</p>
-				<p class="font-bold text-center mt-1">{orderDetail.userView?.country}</p>
-			</div>
-			<div class="flex flex-col items-center">
-				<p class="text-sm text-gray-600">Telefono</p>
-				<p class="font-bold text-center mt-1">{orderDetail.userView?.phone}</p>
-			</div>
-			<div class="flex flex-col items-center">
-				<p class="text-sm text-gray-600">Cellulare</p>
-				<p class="font-bold text-center mt-1">{orderDetail.userView?.mobile}</p>
-			</div>
-			<div class="flex flex-col items-center">
-				<p class="text-sm text-gray-600">metodo di pagamento:</p>
-				<p class="font-bold text-center mt-1">{orderDetail.orderId}</p>
-			</div>
-		</div>
-		<div class="col-span-2 flex flex-col items-center w-full gap-3 my-4">
-			{#each orderDetail?.cart as item}
-				<div
-					class="flex items-center w-full max-w-96 bg-indigo-100 rounded-lg shadow-md overflow-hidden"
-				>
-					<div class="w-1/3 p-3">
-						<img
-							src={imgSrc(item.category[0])}
-							alt="Immagine corso"
-							class="w-full h-full object-cover"
-						/>
-					</div>
-					<div class="w-2/3 p-4 flex items-center justify-center">
-						<h2 class="text-center text-md font-semibold">
-							{item.title} <br /><br />
-							{item.price}€
-						</h2>
-					</div>
-				</div>
-			{/each}
-		</div>
-		<div class="col-span-2 text-center mt-3">
-			<h2 class="text-lg font-bold">Totale Carrello:</h2>
-			<p class="text-xl font-semibold text-black-800">{orderDetail.totalValue} €</p>
-			{#if auth}
-				<p class="text-gray-800 font-semibold">-25 € sconto tesserati</p>
-			{/if}
-		</div>
-		<div class="col-span-2 text-center mt-5">
-			<div class="flex justify-center space-x-8">
-				<div>
-					<h2 class="text-md font-bold">Metodo pagamento:</h2>
-					<p class="text-md font-semibold text-black-800">{orderDetail.payment.method}</p>
-				</div>
-				<div>
-					<h2 class="text-md font-bold">Status pagamento:</h2>
-					<p class="text-md font-semibold text-black-800">{orderDetail.payment.statusPayment}</p>
-				</div>
-			</div>
-		</div>
 
-		<div class="modal-action col-span-2">
-			<button
-				class="btn btn-sm btn-error w-24 hover:bg-white hover:text-error rounded-lg"
-				onclick={() => (isModalDetail = false)}>Chiudi</button
-			>
-		</div>
-	</div>
-</dialog>
-<!-- /modal DETAIL -->
 
 <!-- modal filter  -->
-<Modal isOpen={isModalFilterOrder} header="Filtri di Ricerca">
+<Modal isOpen={isModalFilter} header="Filtri di Ricerca">
 	<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
 		<div class="space-y-4">
 			<div>

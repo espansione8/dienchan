@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
+	import Modal from '$lib/components/Modal.svelte';
 	import { enhance } from '$app/forms';
-	//import { page } from '$app/stores';
-	//import type { ActionData } from './$types';
 	import Notification from '$lib/components/Notification.svelte';
 	import Papa from 'papaparse';
 	import {
@@ -259,194 +258,167 @@
 <Notification {toastClosed} {notificationContent} {notificationError} />
 
 <!-- modal filter  -->
-<dialog id="modal_filter" class="modal" class:modal-open={isModalFilter}>
-	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-2xl">
-		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
-			<h2 class="text-2xl font-bold text-white mb-1">Filtri di Ricerca</h2>
-			<p class="text-blue-100">Personalizza la tua ricerca selezionando i criteri desiderati</p>
-		</div>
+<Modal isOpen={isModalFilter} header="Filtri di Ricerca">
+	<div class="p-6 space-y-6">
+		<div class="space-y-4">
+			<div>
+				<label for="level" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+				<select
+					id="level"
+					bind:value={status}
+					class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+				>
+					<option value="enabled">attivo</option>
+					<option value="disabled">inattivo</option>
+				</select>
+			</div>
 
-		<div class="p-6 space-y-6">
-			<div class="space-y-4">
-				<div>
-					<label for="level" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-					<select
-						id="level"
-						bind:value={status}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					>
-						<option value="enabled">attivo</option>
-						<option value="disabled">inattivo</option>
-					</select>
-				</div>
+			<div>
+				<label for="membershipLevel" class="block text-sm font-medium text-gray-700 mb-1"
+					>Nome</label
+				>
+				<select
+					id="membershipLevel"
+					bind:value={title}
+					class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+				>
+					<option value="Nome">Nome</option>
+					<option value="Nome">Nome</option>
+					<option value="Nome">Nome</option>
+				</select>
+			</div>
 
-				<div>
-					<label for="membershipLevel" class="block text-sm font-medium text-gray-700 mb-1"
-						>Nome</label
-					>
-					<select
-						id="membershipLevel"
-						bind:value={title}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					>
-						<option value="Nome">Nome</option>
-						<option value="Nome">Nome</option>
-						<option value="Nome">Nome</option>
-					</select>
-				</div>
-
-				<div>
-					<label for="priceF" class="block text-sm font-medium text-gray-700 mb-1">Prezzo</label>
-					<input
-						type="number"
-						id="priceF"
-						bind:value={price}
-						placeholder="€"
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div>
-					<label for="renewalLengthF" class="block text-sm font-medium text-gray-700 mb-1"
-						>Rinnovo</label
-					>
-					<input
-						type="number"
-						id="renewalLengthF"
-						bind:value={renewalLength}
-						placeholder="Giorni"
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
+			<div>
+				<label for="priceF" class="block text-sm font-medium text-gray-700 mb-1">Prezzo</label>
+				<input
+					type="number"
+					id="priceF"
+					bind:value={price}
+					placeholder="€"
+					class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+				/>
+			</div>
+			<div>
+				<label for="renewalLengthF" class="block text-sm font-medium text-gray-700 mb-1"
+					>Rinnovo</label
+				>
+				<input
+					type="number"
+					id="renewalLengthF"
+					bind:value={renewalLength}
+					placeholder="Giorni"
+					class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+				/>
 			</div>
 		</div>
-
-		<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
-			<button class="btn btn-error btn-sm hover:bg-red-300" onclick={onCloseFilterSearch}>
-				Annulla
-			</button>
-			<button class="btn btn-success btn-sm hover:bg-green-400" onclick={onSubmitFilterSearch}>
-				Applica Filtri
-			</button>
-		</div>
 	</div>
-</dialog>
+	<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
+		<button class="btn btn-error btn-sm hover:bg-red-300" onclick={onCloseFilterSearch}>
+			Annulla
+		</button>
+		<button class="btn btn-success btn-sm hover:bg-green-400" onclick={onSubmitFilterSearch}>
+			Applica Filtri
+		</button>
+	</div>
+</Modal>
 <!-- /modal filter  -->
 
 <!-- modal New  -->
-<dialog id="modal_filter" class="modal" class:modal-open={isModalNew}>
-	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-2xl">
-		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
-			<h2 class="text-2xl font-bold text-white mb-1">Nuovo Membership</h2>
-		</div>
-
-		<form
-			method="POST"
-			action={`?/newMembership`}
-			use:enhance
-			class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-		>
-			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
-				Nuovo membership
-			</header>
-			<section class="col-span-4">
-				<label for="titolo" class="form-label">
-					<p class="font-bold mb-2">Nome</p>
-				</label>
-				<div class="join join-horizontal w-full">
-					<button class="join-item bg-gray-300 px-3"><Pen /></button>
-					<input
-						class="input input-bordered join-item w-full"
-						id="titolo"
-						name="title"
-						type="text"
-						placeholder="Titolo"
-						aria-label="Titolo"
-						aria-describedby="basic-titolo"
-						bind:value={title}
-						required
-					/>
-				</div>
-			</section>
-
-			<section class="col-span-2 md:col-span-2">
-				<label for="price" class="form-label">
-					<p class="font-bold mb-2">Prezzo</p>
-				</label>
-				<div class="join join-horizontal w-full">
-					<button class="join-item bg-gray-300 px-3"><Calculator /></button>
-					<input
-						class="input input-bordered join-item w-full"
-						id="price"
-						type="number"
-						name="price"
-						placeholder="€"
-						aria-label="price"
-						aria-describedby="basic-price"
-						bind:value={price}
-						required
-					/>
-				</div>
-			</section>
-			<section class="col-span-2 md:col-span-2">
-				<label for="renewalLength" class="form-label">
-					<p class="font-bold mb-2">Durata giorni (max 36500 = 100 anni)</p>
-				</label>
-				<div class="join join-horizontal w-full">
-					<button class="join-item bg-gray-300 px-3"><Calendar /></button>
-					<input
-						class="input input-bordered join-item w-full"
-						id="renewalLength"
-						type="number"
-						name="renewalLength"
-						aria-label="renewalLength"
-						aria-describedby="renewalLength"
-						min="1"
-						max="36500"
-						bind:value={renewalLength}
-						required
-					/>
-				</div>
-			</section>
-
-			<section class="col-span-4">
-				<div class="mt-6">
-					<label for="descrShortN" class="form-label">
-						<p class="font-bold mb-2">Descrizione (opzionale)</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
-						<textarea
-							class="textarea textarea-bordered h-24 join-item w-full"
-							id="descrShortN"
-							name="descrShort"
-							placeholder="Descrizione"
-							aria-label="descrizione"
-							aria-describedby="basic-descrizione"
-							bind:value={descrShort}
-						></textarea>
-					</div>
-				</div>
-			</section>
-
-			<!-- ALtre informazione -->
-
-			<!-- registra corso button -->
-			<div class="col-span-4 mt-5 flex justify-center">
-				<div class="bg-gray-50 flex justify-center">
-					<button class="btn btn-error btn-sm mx-2" onclick={onClosenew}> Annulla </button>
-					<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
-				</div>
-				<!-- <button
-					class="btn btn-success rounded-lg hover:bg-accent hover:text-green-800hover:bg-accent hover:text-green-900"
-					type="submit"
-				>
-					<span class="flex items-center justify-center">
-						<FileDown class="mr-2" />
-						Regista Membro
-					</span>
-				</button> -->
+<Modal isOpen={isModalNew} header="Nuovo Membership" cssClass="max-w-4xl">
+	<form
+		method="POST"
+		action={`?/newMembership`}
+		use:enhance
+		class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+	>
+		<header class="col-span-4 text-center text-2xl font-bold text-green-800">
+			Nuovo membership
+		</header>
+		<section class="col-span-4">
+			<label for="titolo" class="form-label">
+				<p class="font-bold mb-2">Nome</p>
+			</label>
+			<div class="join join-horizontal w-full">
+				<button class="join-item bg-gray-300 px-3"><Pen /></button>
+				<input
+					class="input input-bordered join-item w-full"
+					id="titolo"
+					name="title"
+					type="text"
+					placeholder="Titolo"
+					aria-label="Titolo"
+					aria-describedby="basic-titolo"
+					bind:value={title}
+					required
+				/>
 			</div>
-		</form>
-	</div>
-</dialog>
-<!-- /modal New  -->
+		</section>
+
+		<section class="col-span-2 md:col-span-2">
+			<label for="price" class="form-label">
+				<p class="font-bold mb-2">Prezzo</p>
+			</label>
+			<div class="join join-horizontal w-full">
+				<button class="join-item bg-gray-300 px-3"><Calculator /></button>
+				<input
+					class="input input-bordered join-item w-full"
+					id="price"
+					type="number"
+					name="price"
+					placeholder="€"
+					aria-label="price"
+					aria-describedby="basic-price"
+					bind:value={price}
+					required
+				/>
+			</div>
+		</section>
+		<section class="col-span-2 md:col-span-2">
+			<label for="renewalLength" class="form-label">
+				<p class="font-bold mb-2">Durata giorni (max 36500 = 100 anni)</p>
+			</label>
+			<div class="join join-horizontal w-full">
+				<button class="join-item bg-gray-300 px-3"><Calendar /></button>
+				<input
+					class="input input-bordered join-item w-full"
+					id="renewalLength"
+					type="number"
+					name="renewalLength"
+					aria-label="renewalLength"
+					aria-describedby="renewalLength"
+					min="1"
+					max="36500"
+					bind:value={renewalLength}
+					required
+				/>
+			</div>
+		</section>
+
+		<section class="col-span-4">
+			<div class="mt-6">
+				<label for="descrShortN" class="form-label">
+					<p class="font-bold mb-2">Descrizione (opzionale)</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<textarea
+						class="textarea textarea-bordered h-24 join-item w-full"
+						id="descrShortN"
+						name="descrShort"
+						placeholder="Descrizione"
+						aria-label="descrizione"
+						aria-describedby="basic-descrizione"
+						bind:value={descrShort}
+					></textarea>
+				</div>
+			</div>
+		</section>
+		<!-- registra corso button -->
+		<div class="col-span-4 mt-5 flex justify-center">
+			<div class="bg-gray-50 flex justify-center">
+				<button class="btn btn-error btn-sm mx-2" onclick={onClosenew}> Annulla </button>
+				<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
+			</div>
+		</div>
+	</form>
+</Modal>

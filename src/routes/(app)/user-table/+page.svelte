@@ -4,8 +4,6 @@
 	import Modal from '$lib/components/Modal.svelte';
 	import Papa from 'papaparse';
 	import {
-		Pen,
-		Mail,
 		Filter,
 		Trash2,
 		Settings,
@@ -13,14 +11,8 @@
 		Eye,
 		XCircle,
 		EyeOff,
-		User,
-		MapPin,
 		Lock,
 		ShieldAlert,
-		Phone,
-		Building2,
-		Smartphone,
-		Globe,
 		RefreshCcw,
 		FileDown,
 		CopyPlus
@@ -357,8 +349,7 @@
 		// Release the URL object
 		URL.revokeObjectURL(link.href);
 	};
-
-	const countryList = $country_list;
+	
 	let level = $state('');
 	let membershipLevel = $state('');
 	let password1 = $state('');
@@ -955,7 +946,7 @@
 					required
 					bind:value={countryState}
 				>
-					<option selected disabled>Scegli</option>
+					<option value='' selected disabled>Scegli</option>
 					{#each provinceFilterate as provincia, i}
 						<option value={provincia.title}>
 							{provincia.title} ({provincia.region})
@@ -1043,7 +1034,7 @@
 					required
 					bind:value={country}
 				>
-					<option selected disabled>Scegli</option>
+					<option value='' selected disabled>Scegli</option>
 					{#each $country_list as country}
 						<option value={country}>
 							{country}
@@ -1194,6 +1185,7 @@
 				required
 				bind:value={level}
 			>
+				<option value='' selected disabled >Seleziona livello</option>
 				<option value="user">Utente base</option>
 				<option value="formatore">Formatore</option>
 				<option value="admin">Admin</option>

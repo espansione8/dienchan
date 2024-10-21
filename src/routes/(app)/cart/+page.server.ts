@@ -134,9 +134,8 @@ export const actions: Actions = {
 		const country = formData.get('country') || '';
 		const phone = formData.get('phone') || '';
 		const mobilePhone = formData.get('mobilePhone') || '';
-		const password1 = formData.get('password1') || '';
 
-		if (!name || !surname || !email || !address || !postalCode || !city || !countryState || !country || !phone || !mobilePhone || !password1) {
+		if (!name || !surname || !email || !address || !postalCode || !city || !countryState || !country || !phone || !mobilePhone ) {
 			return fail(400, { action: 'newUser', success: false, message: 'Dati mancanti' });
 		}
 
@@ -157,8 +156,7 @@ export const actions: Actions = {
 					countryState,
 					country,
 					phone,
-					mobilePhone,
-					password1
+					mobilePhone
 				})
 			});
 			const result = await response.json();
@@ -173,111 +171,9 @@ export const actions: Actions = {
 		}
 	}
 
-	// modifyDiscount: async ({ request, fetch }) => {
-	// 	const formData = await request.formData();
-	// 	const discountId = formData.get('discountId');
-	// 	const code = formData.get('code');
-	// 	const type = formData.get('type');
-	// 	const value = formData.get('value');
-	// 	const selectedApplicability = formData.get('applicability');
-	// 	const userId = formData.get('userId') || '';
-	// 	const membershipLevel = formData.get('membershipLevel') || '';
-	// 	const productId = formData.get('productId') || '';
-	// 	const layoutId = formData.get('layoutId') || '';
-	// 	const notes = formData.get('notes') || '';
+	// prima iscrizione
 
-	// 	if (!code || !type || !value || !discountId) {
-	// 		return fail(400, { action: 'modifyDiscount', success: false, message: 'Dati mancanti' });
-	// 	}
-
-	// 	// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
-	// 	try {
-	// 		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/modify`, {
-	// 			method: 'POST',
-	// 			headers: {
-	// 				'Content-Type': 'application/json'
-	// 			},
-	// 			body: JSON.stringify({
-	// 				discountId,
-	// 				code,
-	// 				type,
-	// 				value,
-	// 				selectedApplicability,
-	// 				userId,
-	// 				membershipLevel,
-	// 				productId,
-	// 				layoutId,
-	// 				notes
-	// 			})
-	// 		});
-	// 		const result = await response.json();
-	// 		if (response.ok) {
-	// 			return { action: 'modifyDiscount', success: true, message: result.message };
-	// 		} else {
-	// 			return { action: 'modifyDiscount', success: false, message: result.message };
-	// 		}
-	// 	} catch (error) {
-	// 		console.error('Error creating new modifyDiscount:', error);
-	// 		return { action: 'modifyDiscount', success: false, message: 'Errore creazione modifyDiscount' };
-	// 	}
-	// },
-
-	// disableDiscount: async ({ request, fetch }) => {
-	// 	const formData = await request.formData();
-	// 	const discountId = formData.get('discountId');
-	// 	const status = formData.get('status');
-	// 	if (!discountId) {
-	// 		return fail(400, { action: 'disableDiscount', success: false, message: 'Dati mancanti' });
-	// 	}
-
-	// 	// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
-	// 	try {
-	// 		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/status`, {
-	// 			method: 'POST',
-	// 			headers: {
-	// 				'Content-Type': 'application/json'
-	// 			},
-	// 			body: JSON.stringify({
-	// 				discountId,
-	// 				status
-	// 			})
-	// 		});
-	// 		const result = await response.json();
-	// 		if (response.status == 200) {
-	// 			return { action: 'disableDiscount', success: true, message: result.message };
-	// 		} else {
-	// 			return { action: 'disableDiscount', success: false, message: result.message };
-	// 		}
-	// 	} catch (error) {
-	// 		console.error('Error changing discount status:', error);
-	// 		return { action: 'disableDiscount', success: false, message: 'Errore modifica Discount' };
-	// 	}
-	// },
-
-	// deleteDiscount: async ({ request, fetch }) => {
-
-	// 	const formData = await request.formData();
-	// 	const discountId = formData.get('discountId');
-	// 	try {
-	// 		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/remove`, {
-	// 			method: 'DELETE',
-	// 			headers: {
-	// 				'Content-Type': 'application/json'
-	// 			},
-	// 			body: JSON.stringify({
-	// 				discountId
-	// 			})
-	// 		});
-	// 		const result = await response.json();
-	// 		if (response.ok) {
-	// 			return { action: 'deleteDiscount', success: true, message: result.message };
-	// 		} else {
-	// 			return { action: 'deleteDiscount', success: false, message: result.message };
-	// 		}
-	// 	} catch (error) {
-	// 		console.error('Error deleteDiscount:', error);
-	// 		return { action: 'deleteDiscount', success: false, message: 'Errore deleteDiscount' };
-	// 	}
-	// }
+	// modifica user
+	
 
 } satisfies Actions;

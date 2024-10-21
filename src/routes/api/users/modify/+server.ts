@@ -35,7 +35,7 @@ export const POST = async ({ request }) => {
 
     try {
         
-        console.log('body', body);
+        // console.log('body', body);
         // Connecting to DB
         // All database code can only run inside async functions as it uses await
         await dbConnect();

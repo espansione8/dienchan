@@ -66,8 +66,10 @@ export const actions: Actions = {
 		const phone = formData.get('phone') || '';
 		const mobilePhone = formData.get('mobilePhone') || '';
 		const password1 = formData.get('password1') || '';
+		const level = formData.get('level') || '';
 
-		if (!name || !surname || !email || !address || !postalCode || !city || !countryState || !country || !phone || !mobilePhone || !password1) {
+
+		if (!name || !surname || !email || !address || !postalCode || !city || !countryState || !country || !phone || !mobilePhone || !password1 || !level) {
 			return fail(400, { action: 'newUser', success: false, message: 'Dati mancanti' });
 		}
 
@@ -89,7 +91,8 @@ export const actions: Actions = {
 					country,
 					phone,
 					mobilePhone,
-					password1
+					password1,
+					level
 				})
 			});
 			const result = await response.json();
@@ -119,6 +122,18 @@ export const actions: Actions = {
 		const mobilePhone = formData.get('mobilePhone') || '';
 		const level = formData.get('level') || '';
 
+		//  cast boolean 
+		const namePublic = !!(formData.get('namePublic') || '');
+		const surnamePublic = !!(formData.get('surnamePublic') || '');
+		const emailPublic = !!(formData.get('emailPublic') || '');
+		const addressPublic = !!(formData.get('addressPublic') || '');
+		const cityPublic = !!(formData.get('cityPublic') || '');
+		const statePublic = !!(formData.get('statePublic') || '');
+		const postalCodePublic = !!(formData.get('postalCodePublic') || '');
+		const countryPublic = !!(formData.get('countryPublic') || '');
+		const phonePublic = !!(formData.get('phonePublic') || '');
+		const mobilePhonePublic = !!(formData.get('mobilePhonePublic') || '');
+
 		if (!name || !surname || !email || !address || !postalCode || !city || !countryState || !country || !phone || !mobilePhone || !level) {
 			return fail(400, { action: 'newUser', success: false, message: 'Dati mancanti' });
 		}
@@ -143,7 +158,17 @@ export const actions: Actions = {
 					country,
 					phone,
 					mobilePhone,
-					level
+					level,
+					namePublic,
+					surnamePublic,
+					emailPublic,
+					addressPublic,
+					cityPublic,
+					statePublic,
+					postalCodePublic,
+					countryPublic,
+					phonePublic,
+					mobilePhonePublic
 				})
 			});
 			const result = await response.json();

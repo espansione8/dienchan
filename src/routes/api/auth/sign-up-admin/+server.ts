@@ -19,6 +19,7 @@ export const POST = async ({ request }) => {
 		mobilePhone,
 		password1,
 		membershipLevel,
+		level
 	} = body;
 	const newPass = stringHash(password1);
 	const membershipExpiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
@@ -55,14 +56,15 @@ export const POST = async ({ request }) => {
 		newUser.surname = surname;
 		newUser.email = email;
 		newUser.address = address;
-		newUser.postalCode = city;
-		newUser.city = countryState;
-		newUser.countryState = postalCode;
+		newUser.postalCode = postalCode;
+		newUser.city = city;
+		newUser.countryState = countryState;
 		newUser.country = country;
 		newUser.phone = phone;
 		newUser.mobilePhone = mobilePhone;
 		newUser.password = newPass;
 		newUser.userId = id;
+		newUser.level = level;
 		newUser.cookieId = cookieId;
 		newUser.membership.membershipLevel = membershipLevel;
 		newUser.membership.membershipExpiry = membershipExpiry;

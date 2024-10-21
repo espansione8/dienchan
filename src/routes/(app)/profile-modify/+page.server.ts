@@ -71,7 +71,7 @@ export const actions: Actions = {
 			return fail(400, { action: 'newUser', success: false, message: 'Dati mancanti' });
 		}
 
-		console.log('namePublic', typeof namePublic, namePublic);
+		// console.log('namePublic', typeof namePublic, namePublic);
 		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
 		try {
 

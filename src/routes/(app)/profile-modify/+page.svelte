@@ -26,11 +26,12 @@
 	const openInput = () => (closedInput = false);
 	const closeInput = () => {
 		closedInput = true;
+		refreshFields();
+		invalidateAll();
 	};
 
 	let name = $state(userData.name || '');
 	let surname = $state(userData.surname || '');
-	let email = $state(userData.email || '');
 	let address = $state(userData.address || '');
 	let city = $state(userData.city || '');
 	let countryState = $state(userData.countryState || ''); // provincia
@@ -38,6 +39,7 @@
 	let country = $state(userData.country || '');
 	let phone = $state(userData.phone || '');
 	let mobilePhone = $state(userData.mobilePhone || '');
+	let email = $state(userData.email || '');
 	let membershipLevel = $state(userData.membership.membershipLevel || '');
 	let membershipStatus = $state(userData.membership.membershipStatus || '');
 	let membershipExpiry = $state(userData.membership.membershipExpiry || '');
@@ -56,7 +58,6 @@
 	let cityPublic = $state(userData.cityPublic || false);
 	let statePublic = $state(userData.statePublic || false);
 	let postalCodePublic = $state(userData.postalCodePublic || false);
-	// let regionPublic = userData.regionPublic || false;
 	let countryPublic = $state(userData.countryPublic || false);
 	let phonePublic = $state(userData.phonePublic || false);
 	let mobilePhonePublic = $state(userData.mobilePhonePublic || false);
@@ -213,21 +214,18 @@
 		}
 	};
 
-	// notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-		}, 3000); // 1000 milliseconds = 1 second
+	const refreshFields = () => {
+		namePublic = userData.namePublic;
+		surnamePublic = userData.surnamePublic;
+		emailPublic = userData.emailPublic;
+		addressPublic = userData.addressPublic;
+		cityPublic = userData.cityPublic;
+		statePublic = userData.statePublic;
+		postalCodePublic = userData.postalCodePublic;
+		countryPublic = userData.countryPublic;
+		phonePublic = userData.phonePublic;
+		mobilePhonePublic = userData.mobilePhonePublic;
 	};
-	//clearTimeout(startTimeout); // reset timer
-	if (!userData.name && !userData.surname) {
-		toastClosed = false;
-		notificationContent = 'Registrazione effettuta, completare il profilo';
-	}
 
 	const imgSrc = (value: string) => {
 		const src = $coursesInfo.filter((item: any) => item.id == value);
@@ -249,6 +247,22 @@
 			notificationContent = message;
 		}
 	}); // end effect
+
+	// notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+		}, 3000); // 1000 milliseconds = 1 second
+	};
+	//clearTimeout(startTimeout); // reset timer
+	if (!userData.name && !userData.surname) {
+		toastClosed = false;
+		notificationContent = 'Registrazione effettuta, completare il profilo';
+	}
 </script>
 
 <svelte:head>

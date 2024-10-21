@@ -224,6 +224,7 @@
 	totalCart();
 	subTotal = grandTotal;
 	let check1 = $state();
+
 	$effect(() => {
 		if (form != null) {
 			async () => await invalidateAll();
@@ -313,7 +314,6 @@
 						<!-- dalle x alle y -->
 						<h5 class="card-text">
 							Dalle <b>{item.timeStartDate}</b>
-							<!-- alle <b>{moment(item.eventEndDate).format(' HH:mm')}</b> -->
 						</h5>
 						<!-- price -->
 						<p class="card-text">
@@ -714,7 +714,8 @@
 								Annulla
 							</button>
 							<button
-								type="submit"
+								type="button"
+								onclick={onConfirmForm}
 								class="btn btn-sm rounded-lg w-32 {$cartProducts.length > 0
 									? 'btn-success bg-green-500 text-white hover:bg-green-600 hover:scale-105 transition-transform'
 									: 'btn-disabled bg-gray-200 text-gray-400'}"

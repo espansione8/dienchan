@@ -1,7 +1,6 @@
 <script lang="ts">
 	// @ts-nocheck
 	import { onMount } from 'svelte';
-	import moment from 'moment';
 	import {
 		ChevronDown,
 		ShieldAlert,
@@ -16,12 +15,9 @@
 	import Notification from '$lib/components/Notification.svelte';
 	import CartFloat from '$lib/components/CartFloat.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
-	//import { cart } from '$lib/stores/cart';
 	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
 	import { province, coursesInfo } from '$lib/stores/arrays.js';
-	// import 'moment/locale/it';
-	import 'moment/min/locales.js';
-	// moment.locale('it');
+
 
 	let { data } = $props();
 	let { getTable, getTableNames, getLayout, auth } = $derived(data);
@@ -528,7 +524,6 @@
 						<!-- dalle x alle y -->
 						<h5 class="card-text">
 							Dalle <b>{courseData.timeStartDate}</b>
-							<!-- alle <b>{moment(courseData.eventEndDate).format(' HH:mm')}</b> -->
 						</h5>
 						<!-- price -->
 						<p class="card-text">
