@@ -67,18 +67,6 @@
 		invalidateAll();
 	};
 
-	//notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-		}, 5000); // 1000 milliseconds = 1 second
-	};
-	//clearTimeout(startTimeout); // reset timer
-
 	const showLevel = (level: string) => {
 		if (level == 'user') {
 			return 'Utente base';
@@ -509,11 +497,32 @@
 			form = null;
 		}
 	}); // end effect
+
+	//notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+		}, 5000); // 1000 milliseconds = 1 second
+	};
+	//clearTimeout(startTimeout); // reset timer
 </script>
 
 <svelte:head>
 	<title>Lista utenti</title>
 </svelte:head>
+
+<noscript>
+	<h1 style="font-weight:700; text-align: center;">Please enable Javascript to continue.</h1>
+	<style type="text/css">
+		#main-content {
+			display: none;
+		}
+	</style>
+</noscript>
 
 <div class="overflow-x-auto mt-5 px-4 mb-5">
 	<div class="flex flex-col gap-4 mb-4">

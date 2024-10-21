@@ -2,7 +2,7 @@
 //https://github.com/sveltejs/kit/pull/3384
 //https://blog.logrocket.com/authentication-sveltekit-using-cookies/
 //https://www.youtube.com/watch?v=K1Tya6ovVOI // Protect SvelteKit Routes with Hooks
-
+import { redirect } from '@sveltejs/kit';
 import { User } from '$lib/models/Users.model';
 import dbConnect from '$lib/database';
 import type { Handle } from '@sveltejs/kit';
@@ -40,6 +40,15 @@ export const handle: Handle = async ({ event, resolve, }) => {
 			//         throw redirect(400, '/login');
 			//     }
 			// }
+			//////
+
+			// // Define routes that require authentication
+			// const protectedRoutes = ['/app', '/product-table'];
+			// // Check if the current route is protected and user is not authenticated
+			// if (protectedRoutes.some(route => event.url.pathname.startsWith(route)) && !event.locals.auth) {
+			// 	throw redirect(302, '/login');
+			// }
+
 		} catch (error) {
 			console.log('hook error:', error);
 			return resolve(event);

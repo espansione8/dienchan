@@ -14,7 +14,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 // const resLayout = await fetch(`/api/finds/0/0`, {
 // 	method: 'POST',
 // 	body: JSON.stringify({
-// 		schema: 'layout', // CHANGE FOR USE SCHEMA
+// 		schema: 'layout', //product | order | user | layout | discount
 // 		arrayField,
 // 		arrayValue
 // 	}),
