@@ -72,6 +72,7 @@
 	};
 
 	const onSwitchPublicProfile = async (type: string, value: boolean) => {
+		console.log('switch public profile', type, value);
 		if (type == 'namePublic') namePublic = !value;
 		if (type == 'surnamePublic') surnamePublic = !value;
 		if (type == 'emailPublic') emailPublic = !value;
@@ -82,7 +83,7 @@
 		if (type == 'countryPublic') countryPublic = !value;
 		if (type == 'phonePublic') phonePublic = !value;
 		if (type == 'mobilePhonePublic') mobilePhonePublic = !value;
-		//userData[type] = !value;
+		//userData[type] = !value;  const userdata = {type: value}  userdata.namePublic =  | value = namePublic
 		// console.log('onSwitchPublicProfile', type, value, typeof namePublic, namePublic);
 	};
 
@@ -349,7 +350,7 @@
 		// Release the URL object
 		URL.revokeObjectURL(link.href);
 	};
-	
+
 	let level = $state('');
 	let membershipLevel = $state('');
 	let password1 = $state('');
@@ -714,9 +715,7 @@
 							class="hidden"
 							id="btn-check8"
 							name="namePublic"
-							autocomplete="off"
-							checked={namePublic}
-							onclick={() => onSwitchPublicProfile('namePublic', namePublic)}
+							bind:checked={namePublic}
 						/>
 						<label
 							class={namePublic
@@ -755,9 +754,7 @@
 							class="hidden"
 							id="btn-check9"
 							name="surnamePublic"
-							autocomplete="off"
-							checked={surnamePublic}
-							onclick={() => onSwitchPublicProfile('surnamePublic', surnamePublic)}
+							bind:checked={surnamePublic}
 						/>
 						<label
 							class={surnamePublic
@@ -946,7 +943,7 @@
 					required
 					bind:value={countryState}
 				>
-					<option value='' selected disabled>Scegli</option>
+					<option value="" selected disabled>Scegli</option>
 					{#each provinceFilterate as provincia, i}
 						<option value={provincia.title}>
 							{provincia.title} ({provincia.region})
@@ -1034,7 +1031,7 @@
 					required
 					bind:value={country}
 				>
-					<option value='' selected disabled>Scegli</option>
+					<option value="" selected disabled>Scegli</option>
 					{#each $country_list as country}
 						<option value={country}>
 							{country}
@@ -1185,7 +1182,7 @@
 				required
 				bind:value={level}
 			>
-				<option value='' selected disabled >Seleziona livello</option>
+				<option value="" selected disabled>Seleziona livello</option>
 				<option value="user">Utente base</option>
 				<option value="formatore">Formatore</option>
 				<option value="admin">Admin</option>

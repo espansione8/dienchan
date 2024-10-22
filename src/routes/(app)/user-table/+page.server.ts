@@ -121,10 +121,8 @@ export const actions: Actions = {
 		const phone = formData.get('phone') || '';
 		const mobilePhone = formData.get('mobilePhone') || '';
 		const level = formData.get('level') || '';
-
-		//  cast boolean 
-		const namePublic = !!(formData.get('namePublic') || '');
-		const surnamePublic = !!(formData.get('surnamePublic') || '');
+		const namePublic = !!(formData.get('namePublic'));
+		const surnamePublic = !!(formData.get('surnamePublic'));
 		const emailPublic = !!(formData.get('emailPublic') || '');
 		const addressPublic = !!(formData.get('addressPublic') || '');
 		const cityPublic = !!(formData.get('cityPublic') || '');

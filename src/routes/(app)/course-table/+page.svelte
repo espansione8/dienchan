@@ -27,7 +27,6 @@
 	let { getTable, getTableNames, userData, getLayout } = $derived(data);
 	let tableList = $state(getTable);
 
-
 	const now = new Date();
 	let currentYear = now.getFullYear();
 	let currentMonth = now.getMonth() + 1; // getMonth() restituisce 0-11, quindi aggiungiamo 1
@@ -124,13 +123,7 @@
 			createdAt: obj.createdAt?.substring(0, 10),
 			birthdate: obj.birthdate?.substring(0, 10)
 		}));
-		//console.log('flattenedArray', flattenedArray);
-		newList = flattenedArray.map((obj: any) => ({
-			...obj,
-			createdAt: obj.createdAt?.substring(0, 10),
-			birthdate: obj.birthdate?.substring(0, 10)
-		}));
-		console.log('newList', newList);
+
 		newList.forEach((obj: any) => {
 			delete obj.__v;
 			delete obj.attribute1;
@@ -1179,8 +1172,7 @@
 			</div>
 
 			<div>
-				<label for="userId" class="block text-sm font-medium text-gray-700 mb-1"
-					>Riflessologo</label
+				<label for="userId" class="block text-sm font-medium text-gray-700 mb-1">Riflessologo</label
 				>
 				<select
 					id="userId"
@@ -1204,8 +1196,7 @@
 			>
 				Annulla
 			</button>
-			<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" 
-			type="submit">
+			<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit">
 				Applica Filtri
 			</button>
 		</div>

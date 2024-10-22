@@ -2,7 +2,7 @@
 //https://github.com/sveltejs/kit/pull/3384
 //https://blog.logrocket.com/authentication-sveltekit-using-cookies/
 //https://www.youtube.com/watch?v=K1Tya6ovVOI // Protect SvelteKit Routes with Hooks
-import { redirect } from '@sveltejs/kit';
+//import { redirect } from '@sveltejs/kit';
 import { User } from '$lib/models/Users.model';
 import dbConnect from '$lib/database';
 import type { Handle } from '@sveltejs/kit';
