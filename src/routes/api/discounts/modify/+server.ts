@@ -17,7 +17,8 @@ export const POST = async ({ request }) => {
         productId,
         layoutId,
         membershipLevel,
-        notes
+        notes,
+        selectId,
     } = body;
 
 
@@ -37,7 +38,8 @@ export const POST = async ({ request }) => {
             membershipLevel: membershipLevel,
             productId: productId,
             layoutId: layoutId,
-            notes: notes
+            notes: notes,
+            [selectedApplicability]: selectId
         };
 
 

@@ -55,6 +55,17 @@
 	let startDay = $state(currentDay);
 	let startHour = $state(currentHour);
 	let startMinute = $state(0);
+	let deleteId = $state('');
+	// filter Data
+	let sortDirection = $state('asc');
+	let sortColumn = $state('createdAt');
+	let currentDialog = $state('');
+	let isModalConfirmDelete = $state(false);
+	let isModal = $state(false);
+	let postAction = $state('');
+	let modalTitle = $state('');
+	let isModalFilterCourse = $state(false);
+	let resetActive = $state(false);
 
 	// year input
 	let max = new Date().getFullYear() + 2;
@@ -67,15 +78,10 @@
 		new Date(`${startYear} ${startMonth} ${startDay} ${startHour}:${startMinute}:00`)
 	);
 
-	let deleteId = $state('');
 	const onOpenConfirmDelete = (id: string) => {
 		isModalConfirmDelete = true;
 		deleteId = id;
 	};
-
-	// filter Data
-	let sortDirection = $state('asc');
-	let sortColumn = $state('createdAt');
 
 	const sortTable = (column: string) => {
 		if (sortColumn === column) {
@@ -445,9 +451,6 @@
 		URL.revokeObjectURL(link.href);
 	};
 
-	let isModalFilterCourse = $state(false);
-	let resetActive = $state(false);
-
 	const onCloseFilterSearch = () => {
 		isModalFilterCourse = false;
 		onFilterReset();
@@ -465,44 +468,6 @@
 		resetActive = false;
 		tableList = getTable;
 		invalidateAll();
-	};
-
-	let currentDialog = $state('');
-	let isModalConfirmDelete = $state(false);
-	let isModal = $state(false);
-	let postAction = $state('');
-	let modalTitle = $state('');
-
-	const onClickDialog = (type: string, item: any) => {
-		//console.log('item', item);
-		currentDialog = type;
-		isModal = true;
-		if (type == 'new') {
-			postAction = `?/newCourse`;
-			modalTitle = 'Nuovo Corso';
-		}
-		if (type == 'modify') {
-			modalTitle = 'Modifica Corso';
-			// console.log('item', item);
-			prodId = item.prodId;
-			layoutId = item.layoutId;
-			price = item.layoutView.price;
-			stockQty = item.stockQty;
-			countryState = item.countryState;
-			notificationEmail = item.notificationEmail;
-			tagArray = item.tag;
-			title = item.layoutView.title;
-			descrLong = item.layoutView.descr;
-			infoExtra = item.infoExtra;
-			location = item.location;
-			startYear = Number(item.eventStartDate.substring(0, 4));
-			startMonth = Number(item.eventStartDate.substring(5, 7));
-			startDay = Number(item.eventStartDate.substring(8, 10));
-			startHour = Number(item.eventStartDate.substring(11, 13));
-			startMinute = Number(item.eventStartDate.substring(14, 16));
-
-			postAction = `?/modifyCourse`;
-		}
 	};
 
 	const resetFields = () => {
@@ -585,17 +550,37 @@
 		}
 	};
 
-	//notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-		}, 3000); // 1000 milliseconds = 1 second
+	const onClickDialog = (type: string, item: any) => {
+		//console.log('item', item);
+		currentDialog = type;
+		isModal = true;
+		if (type == 'new') {
+			postAction = `?/newCourse`;
+			modalTitle = 'Nuovo Corso';
+		}
+		if (type == 'modify') {
+			modalTitle = 'Modifica Corso';
+			// console.log('item', item);
+			prodId = item.prodId;
+			layoutId = item.layoutId;
+			price = item.layoutView.price;
+			stockQty = item.stockQty;
+			countryState = item.countryState;
+			notificationEmail = item.notificationEmail;
+			tagArray = item.tag;
+			title = item.layoutView.title;
+			descrLong = item.layoutView.descr;
+			infoExtra = item.infoExtra;
+			location = item.location;
+			startYear = Number(item.eventStartDate.substring(0, 4));
+			startMonth = Number(item.eventStartDate.substring(5, 7));
+			startDay = Number(item.eventStartDate.substring(8, 10));
+			startHour = Number(item.eventStartDate.substring(11, 13));
+			startMinute = Number(item.eventStartDate.substring(14, 16));
+
+			postAction = `?/modifyCourse`;
+		}
 	};
-	//clearTimeout(startTimeout); // reset timer
 
 	$effect(() => {
 		if (form != null) {
@@ -611,6 +596,8 @@
 				if (action == 'filterCourse') {
 					resetActive = true;
 					tableList = filterTableList;
+				} else {
+					resetActive = false;
 				}
 			} else {
 				notificationError = true;
@@ -621,6 +608,18 @@
 			form = null;
 		}
 	}); // end effect
+
+	//notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+		}, 3000); // 1000 milliseconds = 1 second
+	};
+	//clearTimeout(startTimeout); // reset timer
 </script>
 
 <svelte:head>
@@ -831,7 +830,7 @@
 					required
 				>
 					<option value="" disabled selected>Giorno</option>
-					{#each days as day}
+					{#each $days as day}
 						<option value={day}>{day}</option>
 					{/each}
 				</select>
@@ -846,7 +845,7 @@
 					required
 				>
 					<option value="" disabled selected>Mese</option>
-					{#each months as month}
+					{#each $months as month}
 						<option value={month.value}>{month.title}</option>
 					{/each}
 				</select>
@@ -888,7 +887,7 @@
 					required
 				>
 					<option value="" disabled selected>Ore</option>
-					{#each hours as hour}
+					{#each $hours as hour}
 						<option value={hour}>{hour}</option>
 					{/each}
 				</select>
@@ -903,14 +902,14 @@
 					required
 				>
 					<option value="" disabled selected>Minuti</option>
-					{#each minutes as minute}
+					{#each $minutes as minute}
 						<option value={minute}>{minute}</option>
 					{/each}
 				</select>
 			</div>
-			<div id="data-inizio-orario-Help" class="text-gray-600 mt-2 text-sm">
+			<!-- <div id="data-inizio-orario-Help" class="text-gray-600 mt-2 text-sm">
 				Esempio orario: 23:59
-			</div>
+			</div> -->
 		</section>
 		<!-- Numero partecipanti -->
 		<section class="col-span-4 md:col-span-2">

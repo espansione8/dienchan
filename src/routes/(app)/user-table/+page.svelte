@@ -25,20 +25,48 @@
 	let { getTable } = $derived(data);
 	let tableList = $state(getTable);
 
-	// remove online in province
-	let provinceFilterate = $province.filter((p) => p.title !== 'Online');
-
+	let level = $state('');
+	let membershipLevel = $state('');
+	let password1 = $state('');
+	let password2 = $state('');
+	let name = $state('');
+	let surname = $state('');
+	let email = $state('');
+	let address = $state('');
+	let postalCode = $state('');
+	let city = $state('');
+	let countryState = $state('');
+	let country = $state('');
+	let phone = $state('');
+	let mobilePhone = $state('');
+	let checkPass = $state(false);
+	let checkSecondPass = $state(false);
+	let namePublic = $state(false);
+	let surnamePublic = $state(false);
+	let emailPublic = $state(false);
+	let addressPublic = $state(false);
+	let cityPublic = $state(false);
+	let statePublic = $state(false);
+	let postalCodePublic = $state(false);
+	let countryPublic = $state(false);
+	let phonePublic = $state(false);
+	let mobilePhonePublic = $state(false);
+	let error = $state();
+	let inputRef = $state();
+	let currentDialog = $state('');
+	let isModal = $state(false);
+	let postAction = $state('');
+	let modalTitle = $state('');
+	let deleteId = $state('');
 	let userId = $state('');
-
-	const onClickDetail = (id: number) => {
-		// console.log('ID', id);
-		goto(`/profile-public/${id}`);
-	};
-
 	let isModalFilterCourse = $state(false);
 	let isModalConfirmDelete = $state(false);
 	let isModalModify = $state(false);
 	let resetActive = $state(false);
+
+	// remove online in province
+	let provinceFilterate = $province.filter((p) => p.title !== 'Online');
+
 
 	const onCloseFilterSearch = () => {
 		isModalFilterCourse = false;
@@ -51,6 +79,11 @@
 		email = '';
 		postAction = `?/filterUser`;
 		isModalFilterCourse = true;
+	};
+
+	const onClickDetail = (id: number) => {
+		// console.log('ID', id);
+		goto(`/profile-public/${id}`);
 	};
 
 	const onFilterReset = () => {
@@ -351,41 +384,13 @@
 		URL.revokeObjectURL(link.href);
 	};
 
-	let level = $state('');
-	let membershipLevel = $state('');
-	let password1 = $state('');
-	let password2 = $state('');
-	let name = $state('');
-	let surname = $state('');
-	let email = $state('');
-	let address = $state('');
-	let postalCode = $state('');
-	let city = $state('');
-	let countryState = $state('');
-	let country = $state('');
-	let phone = $state('');
-	let mobilePhone = $state('');
-	let checkPass = $state(false);
-	let checkSecondPass = $state(false);
-	let namePublic = $state(false);
-	let surnamePublic = $state(false);
-	let emailPublic = $state(false);
-	let addressPublic = $state(false);
-	let cityPublic = $state(false);
-	let statePublic = $state(false);
-	let postalCodePublic = $state(false);
-	let countryPublic = $state(false);
-	let phonePublic = $state(false);
-	let mobilePhonePublic = $state(false);
-	let error = $state();
-	let inputRef = $state();
+
 	const testPass = () => {
 		checkPass = password1.length >= 8;
 		checkSecondPass = password1 === password2;
 	};
-	const testSecondPass = () => (checkSecondPass = password1 === password2);
 
-	let deleteId = $state('');
+	const testSecondPass = () => (checkSecondPass = password1 === password2);
 
 	const onOpenConfirmDelete = (id: string) => {
 		isModalConfirmDelete = true;
@@ -426,10 +431,7 @@
 		tableList = getTable;
 	};
 
-	let currentDialog = $state('');
-	let isModal = $state(false);
-	let postAction = $state('');
-	let modalTitle = $state('');
+
 
 	const onClickDialog = (type: string, item: any) => {
 		currentDialog = type;
@@ -480,6 +482,8 @@
 				if (action == 'filterUser') {
 					resetActive = true;
 					tableList = filterTableList;
+				} else {
+					resetActive = false;
 				}
 			} else {
 				notificationError = true;

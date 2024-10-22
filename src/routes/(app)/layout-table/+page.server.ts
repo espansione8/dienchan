@@ -7,15 +7,18 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		throw redirect(302, '/login');
 	}
 	let getTable = [];
-	//let getTableUser = [];
+	let getLayout = [];
+
+	let arrayField = [];
+	let arrayValue = [];
 
 	try {
 		// const userData = session.user;
 		//console.log('MY DOCS userData', userData);
 
 		// GET PRODUCTS
-		const arrayField = [];
-		const arrayValue = [];
+		arrayField = [];
+		arrayValue = [];
 		const res = await fetch(`/api/finds/0/0`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -34,6 +37,22 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		}));
 
 
+		// Layout list
+		arrayField = [];
+		arrayValue = [];
+		const resLayout = await fetch(`/api/finds/0/0`, {
+			method: 'POST',
+			body: JSON.stringify({
+				schema: 'layout',
+				arrayField,
+				arrayValue
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		getLayout = await resLayout.json();
+
 	} catch (error) {
 		console.log('layout fetch error:', error);
 	}
@@ -45,6 +64,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	}
 	return {
 		getTable,
+		getLayout,
 		auth: locals.auth,
 		userData: user,
 	};
@@ -159,6 +179,47 @@ export const actions: Actions = {
 			console.error('Error creating new deleteLayout:', error);
 			return { action: 'deleteLayout', success: false, message: 'Errore creazione deleteLayout' };
 		}
+	},
+
+	filterLayout: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const layoutId = formData.get('layoutId');
+		
+		// console.log('level', level);
+
+		const arrayField = ['layoutId'];
+		const arrayValue = [layoutId];
+
+		try {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
+				method: 'POST',
+				body: JSON.stringify({
+					schema: 'layout',
+					arrayField,
+					arrayValue
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			//console.log('response', response);
+			const result = await response.json();
+
+			if (response.status == 200) {
+				const filterTableList = result.map((obj: any) => ({
+					...obj,
+					createdAt: obj.createdAt.substring(0, 10)
+				}));
+				return { action: 'filterLayout', success: true, message: 'Filtro applicato', filterTableList };
+
+			} else {
+				return { action: 'filterLayout', success: false, message: 'Corso non trovato' };
+			}
+		} catch (error) {
+			console.error('Error filterLayout:', error);
+			return { action: 'filterLayout', success: false, message: 'Errore filterLayout' };
+		}
 	}
+
 
 } satisfies Actions;

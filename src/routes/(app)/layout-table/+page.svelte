@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Modal from '$lib/components/Modal.svelte';
-	import {  invalidateAll } from '$app/navigation';
+	import { invalidateAll } from '$app/navigation';
 	import {
 		CopyPlus,
 		Settings,
@@ -16,10 +16,11 @@
 		Filter
 	} from 'lucide-svelte';
 	import { enhance } from '$app/forms';
+	import Papa from 'papaparse';
 	import Notification from '$lib/components/Notification.svelte';
 
 	let { data, form } = $props();
-	let { getTable } = $derived(data);
+	let { getTable, getLayout } = $derived(data);
 	let tableList = $state(getTable);
 
 	let layoutId = $state('');
@@ -29,23 +30,32 @@
 	let bgColor = $state('');
 	let price = $state(0);
 	let bundleProduct = $state([]);
-
-	//	notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-		}, 5000); // 1000 milliseconds = 1 second
-	};
-	clearTimeout(startTimeout); // reset timer
-	//	end notification
-
+	let isModalFilter = $state(false);
+	let resetActive = $state(false);
+	let currentDialog = $state('');
+	let isModal = $state(false);
+	let postAction = $state('');
+	let modalTitle = $state('');
 	let isModalConfirmDelete = $state(false);
-
 	let deleteId = $state('');
+
+	const onOpenFilter = () => {
+		layoutId = '';
+		postAction = `?/filterLayout`;
+		isModalFilter = true;
+	};
+
+	const onCloseFilterSearch = () => {
+		isModalFilter = false;
+		onFilterReset();
+	};
+
+	const onFilterReset = () => {
+		resetActive = false;
+		tableList = getTable;
+		invalidateAll();
+	};
+
 	const onOpenConfirmDelete = (id: string) => {
 		isModalConfirmDelete = true;
 		deleteId = id;
@@ -66,10 +76,61 @@
 		resetFields();
 	};
 
-	let currentDialog = $state('');
-	let isModal = $state(false);
-	let postAction = $state('');
-	let modalTitle = $state('');
+	const csvCreate = () => {
+		let csv = $state('');
+		let newList: any = $state();
+
+		const flattenObject = (obj: any, prefix = '') => {
+			return Object.keys(obj).reduce((acc, k) => {
+				const pre = prefix.length ? prefix + '_' : '';
+				if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
+					Object.assign(acc, flattenObject(obj[k], pre + k));
+				} else {
+					acc[pre + k] = obj[k];
+				}
+				return acc;
+			}, {});
+		};
+
+		const flattenedArray = tableList.map((obj: any) => {
+			return flattenObject(obj);
+		});
+
+		newList = flattenedArray.map((obj: any) => ({
+			...obj,
+			createdAt: obj.createdAt?.substring(0, 10),
+			// birthdate: obj.birthdate?.substring(0, 10)
+		}));
+
+		newList.forEach((obj: any) => {
+			 delete obj.__v;
+			 delete obj.updatedAt;
+			
+		});
+		//console.log('newList user', newList);
+
+		//CSV UNPARSE
+		csv = Papa.unparse(newList, {
+			quotes: false,
+			quoteChar: '"',
+			escapeChar: '"',
+			delimiter: ';',
+			header: true,
+			skipEmptyLines: false
+		});
+
+		//DOWNLOAD file
+		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+		const link = document.createElement('a');
+		link.href = URL.createObjectURL(blob);
+		link.download = `TableExport_Layouts.csv`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+
+		// Release the URL object
+		URL.revokeObjectURL(link.href);
+	};
 
 	const onClickDialog = (type: string, item: any) => {
 		currentDialog = type;
@@ -92,20 +153,25 @@
 		}
 	};
 
-	let resetActive = $state(false);
-
 	$effect(() => {
 		// console.log({ form });
 
 		if (form != null) {
 			async () => await invalidateAll();
-			const { action, success, message } = form;
+			const { action, success, message, filterTableList } = form;
 			if (success) {
 				closeNotification();
 				//resetFieldsModalFilter();
 				isModal = false;
 				isModalConfirmDelete = false;
+				isModalFilter = false;
 				tableList = getTable;
+				if (action == 'filterLayout') {
+					resetActive = true;
+					tableList = filterTableList;
+				} else {
+					resetActive = false;
+				}
 			} else {
 				notificationError = true;
 			}
@@ -114,6 +180,19 @@
 			form = null;
 		}
 	}); // end effect
+
+	//	notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+		}, 5000); // 1000 milliseconds = 1 second
+	};
+	clearTimeout(startTimeout); // reset timer
+	//	end notification
 </script>
 
 <svelte:head>
@@ -133,22 +212,22 @@
 	<div class="flex flex-col gap-4 mb-4">
 		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Lista modelli</h1>
 		<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
-			<button class="btn btn-info text-white w-full sm:w-auto">
+			<button class="btn btn-info text-white w-full sm:w-auto" onclick={onFilterReset}>
 				<RefreshCcw />
 			</button>
 			{#if resetActive == true}
-				<button class="btn btn-error rounded-md text-white">
+				<button class="btn btn-error rounded-md text-white" onclick={onFilterReset}>
 					<XCircle class="mt-1" /> Reset Filtro
 				</button>
 			{:else}
-				<button class="btn btn-info rounded-md text-white">
+				<button class="btn btn-info rounded-md text-white" onclick={onOpenFilter}>
 					<Filter class="mt-1" /> Filtra
 				</button>
 			{/if}
 			<button class="btn btn-info rounded-md text-white" onclick={() => onClickDialog('new', null)}>
 				<CopyPlus /> Nuovo
 			</button>
-			<button class="btn btn-info text-white w-full sm:w-auto">
+			<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate()}>
 				<FileDown />CSV
 			</button>
 		</div>
@@ -361,6 +440,42 @@
 				>Annulla</button
 			>
 			<button class="btn btn-success btn-md text-white" type="submit"><Trash2 />Conferma</button>
+		</div>
+	</form>
+</Modal>
+
+<!-- Modal filter  -->
+<Modal isOpen={isModalFilter} header="Filtri di Ricerca">
+	<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
+		<div class="space-y-4">
+			<!-- Tipo sconto -->
+			<div>
+				<label for="layoutId" class="block text-sm font-medium text-gray-700 mb-1">Tipo Corso</label>
+				<select
+					id="layoutId"
+					name="layoutId"
+					bind:value={layoutId}
+					class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+				>
+					<option value="">Scegli un corso</option>
+					{#each getLayout as option}
+						<option value={option.layoutId}>{option.title}</option>
+					{/each}
+				</select>
+			</div>
+		</div>
+
+		<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
+			<button
+				class="btn btn-error btn-sm hover:bg-red-300"
+				onclick={onCloseFilterSearch}
+				type="button"
+			>
+				Annulla
+			</button>
+			<button class="btn btn-success btn-sm hover:bg-green-400" type="submit">
+				Applica Filtri
+			</button>
 		</div>
 	</form>
 </Modal>

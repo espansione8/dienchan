@@ -18,12 +18,19 @@
 	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
 	import { province, coursesInfo } from '$lib/stores/arrays.js';
 
-
 	let { data } = $props();
 	let { getTable, getTableNames, getLayout, auth } = $derived(data);
 	let coursesList = $state(getTable);
 
-	// console.log('coursesList', coursesList);
+	let resetActive = $state(false);
+	let currentSort = $state('dal più recente');
+
+	let filtriAttivi = $state({
+		mese: '',
+		provincia: '',
+		evento: '',
+		riflessologo: ''
+	});
 
 	const checkCart = (id) => {
 		const check = $cartProducts.some((item) => item.prodId == id);
@@ -32,12 +39,6 @@
 	// inizializzo ordinando visualizzanco prima quelli con giorno di svolgimento più recente
 	coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
-	function siglaToProvincia(provinciaSigla: any) {
-		console.log('provinciaSigla', provinciaSigla);
-		const findProvincia = $province.find((prov) => prov.sigla == provinciaSigla);
-		return findProvincia?.nome || '';
-	}
-
 	// cycle to count the number of courses in each province
 	const numCoursesInProvince = {};
 	coursesList.forEach((item) => {
@@ -45,19 +46,6 @@
 		numCoursesInProvince[countryState] = (numCoursesInProvince[countryState] || 0) + 1;
 		// key : value ---> es: numCoursesInProvince = {"Bologna": "1", "Firenze": "2", "Roma": "3"}
 	});
-
-	const sortAZconOnlineInCima = (a, b) => {
-		if ('Online' in a) {
-			return -1; // Metti sempre "Online" in cima
-		} else if ('Online' in b) {
-			return 1;
-		} else {
-			// Ordina le chiavi in ordine crescente A-Z
-			const chiaveA = Object.keys(a)[0];
-			const chiaveB = Object.keys(b)[0];
-			return chiaveA.localeCompare(chiaveB);
-		}
-	};
 
 	const nomiMesi = [
 		'Gennaio',
@@ -97,15 +85,6 @@
 			mese,
 			conteggio
 		};
-	});
-
-	let resetActive = $state(false);
-
-	let filtriAttivi = $state({
-		mese: '',
-		provincia: '',
-		evento: '',
-		riflessologo: ''
 	});
 
 	const onFilterReset = () => {
@@ -180,22 +159,12 @@
 		updateFilter();
 	};
 
-	// notification
-	let toastClosed = $state(true);
-	let notificationContent = $state('');
-	let notificationError = $state(false);
-	let startTimeout;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-		}, 5000); // 1000 milliseconds = 1 second
+	const onClickInfo = (idCourse: any) => {
+		//  console.log('idCourse', idCourse);
+		goto(`/course-detail/${idCourse}`);
 	};
-	//clearTimeout(startTimeout); // reset timer
 
-	let sortOption = $state('recent'); // Stato per l'opzione di ordinamento
-
-	// Funzione per ordinare i corsi in base all'opzione selezionata
-	let currentSort = $state('dal più recente');
+	// sort
 	const sortCourses = (option) => {
 		switch (option) {
 			case 'expensive':
@@ -216,10 +185,17 @@
 		}
 	};
 
-	const onClickInfo = (idCourse: any) => {
-		//  console.log('idCourse', idCourse);
-		goto(`/course-detail/${idCourse}`);
+	// notification
+	let toastClosed = $state(true);
+	let notificationContent = $state('');
+	let notificationError = $state(false);
+	let startTimeout;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+		}, 5000); // 1000 milliseconds = 1 second
 	};
+	//clearTimeout(startTimeout); // reset timer
 </script>
 
 <svelte:head>

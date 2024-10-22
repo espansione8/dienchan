@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
+	import Papa from 'papaparse';
 	import Modal from '$lib/components/Modal.svelte';
 	import {
 		CopyPlus,
@@ -22,10 +23,8 @@
 	let { getTable, getLayout } = $derived(data);
 	let tableList = $state(getTable);
 
-	console.log('tableList', tableList);
-
 	let code = $state('');
-	let type = $state('');
+	let typeDiscount = $state('');
 	let value = $state(0);
 	let userId = $state('');
 	let productId = $state('');
@@ -34,10 +33,93 @@
 	let notes = $state('');
 	let discountId = $state('');
 	let selectedApplicability = $state('userId');
+	let status = $state('');
 	let selectedId = $state('');
 	let isModalConfirmDelete = $state(false);
-
+	let isModalFilter = $state(false);
 	let deleteId = $state('');
+	let currentDialog = $state('');
+	let isModal = $state(false);
+	let postAction = $state('');
+	let resetActive = $state(false);
+	let modalTitle = $state('');
+
+
+	const csvCreate = () => {
+		let csv = $state('');
+		let newList: any = $state();
+
+		const flattenObject = (obj: any, prefix = '') => {
+			return Object.keys(obj).reduce((acc, k) => {
+				const pre = prefix.length ? prefix + '_' : '';
+				if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
+					Object.assign(acc, flattenObject(obj[k], pre + k));
+				} else {
+					acc[pre + k] = obj[k];
+				}
+				return acc;
+			}, {});
+		};
+
+		const flattenedArray = tableList.map((obj: any) => {
+			return flattenObject(obj);
+		});
+
+		newList = flattenedArray.map((obj: any) => ({
+			...obj,
+			createdAt: obj.createdAt?.substring(0, 10),
+			// birthdate: obj.birthdate?.substring(0, 10)
+		}));
+
+		newList.forEach((obj: any) => {
+			 delete obj.__v;
+			 delete obj.updatedAt;
+			
+		});
+		//console.log('newList user', newList);
+
+		//CSV UNPARSE
+		csv = Papa.unparse(newList, {
+			quotes: false,
+			quoteChar: '"',
+			escapeChar: '"',
+			delimiter: ';',
+			header: true,
+			skipEmptyLines: false
+		});
+
+		//DOWNLOAD file
+		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+		const link = document.createElement('a');
+		link.href = URL.createObjectURL(blob);
+		link.download = `TableExport_Discounts.csv`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+
+		// Release the URL object
+		URL.revokeObjectURL(link.href);
+	};
+
+	const onOpenFilter = () => {
+		status = '';
+		selectedApplicability = '';
+		code = '';
+		postAction = `?/filterDiscount`;
+		isModalFilter = true;
+	};
+
+	const onCloseFilterSearch = () => {
+		isModalFilter = false;
+		onFilterReset();
+	};
+
+	const onFilterReset = () => {
+		resetActive = false;
+		tableList = getTable;
+		invalidateAll();
+	};
+
 	const onOpenConfirmDelete = (id: string) => {
 		isModalConfirmDelete = true;
 		deleteId = id;
@@ -62,6 +144,58 @@
 		resetFields();
 	};
 
+	const onClickDialog = (type: string, item: any) => {
+		currentDialog = type;
+		isModal = true;
+		if (type == 'new') {
+			code = '';
+			value = 0;
+			notes = '';
+			typeDiscount = '';
+			selectedId = '';
+			selectedApplicability = 'userId';
+			postAction = `?/newDiscount`;
+			modalTitle = 'Nuovo Codice Sconto';
+		}
+		if (type == 'modify') {
+			modalTitle = 'Modifica Codice Sconto';
+			discountId = item.discountId;
+			code = item.code;
+			typeDiscount = item.type;
+			value = item.value;
+			selectedApplicability = item.selectedApplicability;
+			selectedId = item[selectedApplicability];
+			notes = item.notes;
+			postAction = `?/modifyDiscount`;
+		}
+	};
+
+	$effect(() => {
+		if (form != null) {
+			async () => await invalidateAll();
+			const { action, success, message, filterTableList } = form;
+			if (success) {
+				closeNotification();
+				//resetFieldsModalFilter();
+				isModal = false;
+				isModalConfirmDelete = false;
+				isModalFilter = false;
+				tableList = getTable;
+				if (action == 'filterDiscount') {
+					resetActive = true;
+					tableList = filterTableList;
+				} else {
+					resetActive = false;
+				}
+			} else {
+				notificationError = true;
+			}
+			toastClosed = false;
+			notificationContent = message;
+			form = null;
+		}
+	}); // end effect
+
 	//	notification
 	let toastClosed: boolean = $state(true);
 	let notificationContent: string = $state('');
@@ -73,52 +207,6 @@
 		}, 5000); // 1000 milliseconds = 1 second
 	};
 	clearTimeout(startTimeout); // reset timer
-
-	let currentDialog = $state('');
-	let isModal = $state(false);
-	let postAction = $state('');
-
-	const onClickDialog = (type: string, item: any) => {
-		currentDialog = type;
-		isModal = true;
-		if (type == 'new') {
-			postAction = `?/newDiscount`;
-			modalTitle = 'Nuovo Codice Sconto';
-		}
-		if (type == 'modify') {
-			modalTitle = 'Modifica Codice Sconto';
-			discountId = item.discountId;
-			code = item.code;
-			type = item.type;
-			value = item.value;
-			selectedApplicability = item.selectedApplicability;
-			selectedId = item[selectedApplicability];
-			notes = item.notes;
-			postAction = `?/modifyDiscount`;
-		}
-	};
-
-	let resetActive = $state(false);
-	let modalTitle = $state('');
-
-	$effect(() => {
-		if (form != null) {
-			async () => await invalidateAll();
-			const { action, success, message } = form;
-			if (success) {
-				closeNotification();
-				//resetFieldsModalFilter();
-				isModal = false;
-				isModalConfirmDelete = false;
-				tableList = getTable;
-			} else {
-				notificationError = true;
-			}
-			toastClosed = false;
-			notificationContent = message;
-			form = null;
-		}
-	}); // end effect
 </script>
 
 <svelte:head>
@@ -138,22 +226,22 @@
 	<div class="flex flex-col gap-4 mb-4">
 		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Lista codici sconto</h1>
 		<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
-			<button class="btn btn-info text-white w-full sm:w-auto">
+			<button class="btn btn-info text-white w-full sm:w-auto" onclick={onFilterReset}>
 				<RefreshCcw />
 			</button>
 			{#if resetActive}
-				<button class="btn btn-error rounded-md text-white">
+				<button class="btn btn-error rounded-md text-white" onclick={onFilterReset}>
 					<XCircle class="mt-1" /> Reset Filtro
 				</button>
 			{:else}
-				<button class="btn btn-info rounded-md text-white">
+				<button class="btn btn-info rounded-md text-white" onclick={onOpenFilter}>
 					<Filter class="mt-1" /> Filtra
 				</button>
 			{/if}
 			<button class="btn btn-info rounded-md text-white" onclick={() => onClickDialog('new', null)}>
 				<CopyPlus /> Nuovo
 			</button>
-			<button class="btn btn-info text-white w-full sm:w-auto">
+			<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate()}>
 				<FileDown />CSV
 			</button>
 		</div>
@@ -221,7 +309,6 @@
 
 <Notification {toastClosed} {notificationContent} {notificationError} />
 
-
 <!--Modal New and Modify  -->
 <Modal isOpen={isModal} header={modalTitle} cssClass="max-w-4xl">
 	<form
@@ -286,7 +373,7 @@
 					name="type"
 					aria-label="Categoria"
 					aria-describedby="basic-categoria"
-					bind:value={type}
+					bind:value={typeDiscount}
 					required
 				>
 					<option disabled value="">Scegli</option>
@@ -309,7 +396,7 @@
 					name="value"
 					aria-label="value"
 					aria-describedby="value"
-					bind:value
+					bind:value={value}
 					required
 				/>
 			</div>
@@ -461,6 +548,71 @@
 				>Annulla</button
 			>
 			<button class="btn btn-success btn-md text-white" type="submit"><Trash2 />Conferma</button>
+		</div>
+	</form>
+</Modal>
+
+<!-- Modal filter  -->
+<Modal isOpen={isModalFilter} header="Filtri di Ricerca">
+	<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
+		<div class="space-y-4">
+			<!-- Codice sconto -->
+			<div>
+				<label for="code" class="block text-sm font-medium text-gray-700 mb-1">Codice sconto</label>
+				<input
+					type="text"
+					id="code"
+					name="code"
+					placeholder="Scrivi il codice"
+					bind:value={code}
+					class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+				/>
+			</div>
+			<!-- Tipo Sconto -->
+			<div>
+				<label for="selectedApplicability" class="block text-sm font-medium text-gray-700 mb-1"
+					>Tipo Sconto</label
+				>
+				<select
+					id="selectedApplicability"
+					name="selectedApplicability"
+					bind:value={selectedApplicability}
+					class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+				>
+					<option value="" disabled>Seleziona il tipo di sconto</option>
+					<option value="userId">Utente</option>
+					<option value="productId">Prodotto</option>
+					<option value="layoutId">Corso</option>
+					<option value="membershipLevel">Associato</option>
+				</select>
+			</div>
+			<!-- Status -->
+			<div>
+				<label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+				<select
+					id="status"
+					name="status"
+					bind:value={status}
+					class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+				>
+					<option value="" disabled>Seleziona lo status</option>
+					<option value="enabled">Attivo</option>
+					<option value="disabled">Inattivo</option>
+				</select>
+			</div>
+		</div>
+
+		<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
+			<button
+				class="btn btn-error btn-sm hover:bg-red-300"
+				onclick={onCloseFilterSearch}
+				type="button"
+			>
+				Annulla
+			</button>
+			<button class="btn btn-success btn-sm hover:bg-green-400" type="submit">
+				Applica Filtri
+			</button>
 		</div>
 	</form>
 </Modal>

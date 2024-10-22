@@ -5,16 +5,11 @@
 	import Notification from '$lib/components/Notification.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import { enhance } from '$app/forms';
-	import { FileSearch , Filter, XCircle, ShieldAlert, RefreshCcw, FileDown } from 'lucide-svelte';
+	import { FileSearch, Filter, XCircle, ShieldAlert, RefreshCcw, FileDown } from 'lucide-svelte';
 
 	let { data, form } = $props();
 	let { getOrders, getTableNames, auth } = $derived(data);
 	let tableList = $state(getOrders || []);
-
-	const imgSrc = (value: string) => {
-		const src = $coursesInfo.filter((item: any) => item.id == value);
-		return src[0]?.urlPic || '/images/picture.png';
-	};
 
 	let postAction = $state('');
 	let isModalFilter = $state(false);
@@ -25,6 +20,9 @@
 	let userId = $state('');
 	let paymentMethod = $state('');
 	let status = $state('');
+	//modal detail
+	let isModalDetail = $state(false);
+	let orderDetail = $state(tableList[0]);
 
 	const onCloseFilterSearch = () => {
 		isModalFilter = false;
@@ -43,25 +41,15 @@
 		invalidateAll();
 	};
 
-	//modal detail
-	let isModalDetail = $state(false);
-	let orderDetail = $state(tableList[0]);
+	const imgSrc = (value: string) => {
+		const src = $coursesInfo.filter((item: any) => item.id == value);
+		return src[0]?.urlPic || '/images/picture.png';
+	};
+
 	const onModalDetail = (order: any) => {
 		orderDetail = order;
 		isModalDetail = true;
 	};
-
-	//notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-		}, 5000); // 1000 milliseconds = 1 second
-	};
-	//clearTimeout(startTimeout); // reset timer
 
 	//CSV file
 	const csvCreate = () => {
@@ -483,6 +471,18 @@
 			form = null;
 		}
 	}); // end effect
+
+	//notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+		}, 5000); // 1000 milliseconds = 1 second
+	};
+	//clearTimeout(startTimeout); // reset timer
 </script>
 
 <svelte:head>
@@ -590,8 +590,6 @@
 </div>
 
 <Notification {toastClosed} {notificationContent} {notificationError} />
-
-
 
 <!-- modal filter  -->
 <Modal isOpen={isModalFilter} header="Filtri di Ricerca">

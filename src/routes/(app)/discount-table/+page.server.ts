@@ -83,7 +83,7 @@ export const actions: Actions = {
 		const selectId = formData.get('selectId')
 		const notes = formData.get('notes') || '';
 
-		if (!code || !type || !value) {
+		if (!code || !type || !value || !selectedApplicability || !selectId) {
 			return fail(400, { action: 'newDiscount', success: false, message: 'Dati mancanti' });
 		}
 
@@ -99,7 +99,6 @@ export const actions: Actions = {
 					value,
 					selectedApplicability,
 					selectId,
-
 					notes
 				})
 			});
@@ -122,16 +121,32 @@ export const actions: Actions = {
 		const type = formData.get('type');
 		const value = formData.get('value');
 		const selectedApplicability = formData.get('applicability');
-		const userId = formData.get('userId') || '';
-		const membershipLevel = formData.get('membershipLevel') || '';
-		const productId = formData.get('productId') || '';
-		const layoutId = formData.get('layoutId') || '';
+		const selectId = formData.get('selectId');
 		const notes = formData.get('notes') || '';
+		// const code = formData.get('code');
+		// const type = formData.get('type');
+		// const value = formData.get('value');
+		// const selectedApplicability = formData.get('applicability');
+		// const userId = formData.get('userId') || '';
+		// const membershipLevel = formData.get('membershipLevel') || '';
+		// const productId = formData.get('productId') || '';
+		// const layoutId = formData.get('layoutId') || '';
+		// const notes = formData.get('notes') || '';
 
-		if (!code || !type || !value || !discountId) {
+		if (!discountId || !code || !type || !value || !selectedApplicability || !selectId) {
 			return fail(400, { action: 'modifyDiscount', success: false, message: 'Dati mancanti' });
 		}
 
+		// discountId,
+		// 			code,
+		// 			type,
+		// 			value,
+		// 			selectedApplicability,
+		// 			userId,
+		// 			membershipLevel,
+		// 			productId,
+		// 			layoutId,
+		// 			notes
 		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
 		try {
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/modify`, {
@@ -145,10 +160,7 @@ export const actions: Actions = {
 					type,
 					value,
 					selectedApplicability,
-					userId,
-					membershipLevel,
-					productId,
-					layoutId,
+					selectId,
 					notes
 				})
 			});
@@ -219,6 +231,48 @@ export const actions: Actions = {
 		} catch (error) {
 			console.error('Error deleteDiscount:', error);
 			return { action: 'deleteDiscount', success: false, message: 'Errore deleteDiscount' };
+		}
+	},
+
+	filterDiscount: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const code = formData.get('code');
+		const selectedApplicability = formData.get('selectedApplicability');
+		const status = formData.get('status');
+
+		// console.log('level', level);
+
+		const arrayField = ['code', 'selectedApplicability', 'status'];
+		const arrayValue = [code, selectedApplicability, status];
+
+		try {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
+				method: 'POST',
+				body: JSON.stringify({
+					schema: 'discount',
+					arrayField,
+					arrayValue
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			//console.log('response', response);
+			const result = await response.json();
+
+			if (response.status == 200) {
+				const filterTableList = result.map((obj: any) => ({
+					...obj,
+					createdAt: obj.createdAt.substring(0, 10)
+				}));
+				return { action: 'filterDiscount', success: true, message: 'Filtro applicato', filterTableList };
+
+			} else {
+				return { action: 'filterDiscount', success: false, message: 'Sconto non trovato' };
+			}
+		} catch (error) {
+			console.error('Error filterDiscount:', error);
+			return { action: 'filterDiscount', success: false, message: 'Errore filterDiscount' };
 		}
 	}
 
