@@ -14,7 +14,7 @@ export const POST = async ({ request }) => {
         value,
         selectedApplicability,
         userId,
-        productId,
+        prodId,
         layoutId,
         membershipLevel,
         notes,
@@ -36,7 +36,7 @@ export const POST = async ({ request }) => {
             selectedApplicability: selectedApplicability,
             userId: userId,
             membershipLevel: membershipLevel,
-            productId: productId,
+            prodId: prodId,
             layoutId: layoutId,
             notes: notes,
             [selectedApplicability]: selectId

@@ -27,7 +27,7 @@
 	let typeDiscount = $state('');
 	let value = $state(0);
 	let userId = $state('');
-	let productId = $state('');
+	let prodId = $state('');
 	let layoutId = $state('');
 	let membershipLevel = $state('');
 	let notes = $state('');
@@ -43,7 +43,6 @@
 	let postAction = $state('');
 	let resetActive = $state(false);
 	let modalTitle = $state('');
-
 
 	const csvCreate = () => {
 		let csv = $state('');
@@ -67,14 +66,13 @@
 
 		newList = flattenedArray.map((obj: any) => ({
 			...obj,
-			createdAt: obj.createdAt?.substring(0, 10),
+			createdAt: obj.createdAt?.substring(0, 10)
 			// birthdate: obj.birthdate?.substring(0, 10)
 		}));
 
 		newList.forEach((obj: any) => {
-			 delete obj.__v;
-			 delete obj.updatedAt;
-			
+			delete obj.__v;
+			delete obj.updatedAt;
 		});
 		//console.log('newList user', newList);
 
@@ -131,7 +129,7 @@
 		type = '';
 		value = 0;
 		userId = '';
-		productId = '';
+		prodId = '';
 		layoutId = '';
 		membershipLevel = '';
 		notes = '';
@@ -396,7 +394,7 @@
 					name="value"
 					aria-label="value"
 					aria-describedby="value"
-					bind:value={value}
+					bind:value
 					required
 				/>
 			</div>
@@ -432,7 +430,7 @@
 					<input
 						type="radio"
 						name="applicability"
-						value="productId"
+						value="prodId"
 						class="radio radio-primary mr-2"
 						bind:group={selectedApplicability}
 					/>
@@ -472,7 +470,7 @@
 						<option value="Socio contributore">Socio contributore</option>
 						<option value="Master Dien Chan">Master Dien Chan</option>
 					</select>
-				{:else if selectedApplicability == 'productId'}
+				{:else if selectedApplicability == 'prodId'}
 					<input
 						type="text"
 						name="selectId"
@@ -581,7 +579,7 @@
 				>
 					<option value="" disabled>Seleziona il tipo di sconto</option>
 					<option value="userId">Utente</option>
-					<option value="productId">Prodotto</option>
+					<option value="prodId">Prodotto</option>
 					<option value="layoutId">Corso</option>
 					<option value="membershipLevel">Associato</option>
 				</select>

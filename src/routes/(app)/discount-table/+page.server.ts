@@ -129,7 +129,7 @@ export const actions: Actions = {
 		// const selectedApplicability = formData.get('applicability');
 		// const userId = formData.get('userId') || '';
 		// const membershipLevel = formData.get('membershipLevel') || '';
-		// const productId = formData.get('productId') || '';
+		// const prodId = formData.get('prodId') || '';
 		// const layoutId = formData.get('layoutId') || '';
 		// const notes = formData.get('notes') || '';
 
@@ -144,10 +144,10 @@ export const actions: Actions = {
 		// 			selectedApplicability,
 		// 			userId,
 		// 			membershipLevel,
-		// 			productId,
+		// 			prodId,
 		// 			layoutId,
 		// 			notes
-		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
+		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/modify`, {
 				method: 'POST',
@@ -184,7 +184,7 @@ export const actions: Actions = {
 			return fail(400, { action: 'disableDiscount', success: false, message: 'Dati mancanti' });
 		}
 
-		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
+		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/status`, {
 				method: 'POST',

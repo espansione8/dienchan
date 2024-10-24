@@ -76,7 +76,7 @@ export const actions: Actions = {
 					let totalDiscount = 0;
 
 					cartArray.forEach((item: CartItem) => {
-						if (selectedApplicability == 'productId' || selectedApplicability == 'layoutId') {
+						if (selectedApplicability == 'prodId' || selectedApplicability == 'layoutId') {
 							if (item[selectedApplicability] == discount[selectedApplicability]) {
 								let itemDiscount = 0;
 								if (type == 'amount') {
@@ -135,11 +135,11 @@ export const actions: Actions = {
 		const phone = formData.get('phone') || '';
 		const mobilePhone = formData.get('mobilePhone') || '';
 
-		if (!name || !surname || !email || !address || !postalCode || !city || !countryState || !country || !phone || !mobilePhone ) {
+		if (!name || !surname || !email || !address || !postalCode || !city || !countryState || !country || !phone || !mobilePhone) {
 			return fail(400, { action: 'newUser', success: false, message: 'Dati mancanti' });
 		}
 
-		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
+		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-up-admin`, {
 				method: 'POST',
@@ -174,6 +174,6 @@ export const actions: Actions = {
 	// prima iscrizione
 
 	// modifica user
-	
+
 
 } satisfies Actions;

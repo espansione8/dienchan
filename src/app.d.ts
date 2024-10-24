@@ -1,3 +1,5 @@
+import type { AvailableLanguageTag } from "../../lib/paraglide/runtime"
+import type { ParaglideLocals } from "@inlang/paraglide-sveltekit"
 /// <reference types="@sveltejs/kit" />
 
 // See https://kit.svelte.dev/docs#typescript
@@ -187,6 +189,8 @@ declare namespace App {
 	}
 	/// start default
 	interface Locals {
+    paraglide: ParaglideLocals<AvailableLanguageTag>,
+
 		//user: string;
 		user: Partial<UserModel> | Record<string, never> | boolean;
 		auth: boolean;

@@ -127,7 +127,12 @@ const productSchema = new Schema(
                 fileUrl: { type: String, default: '' }
             }
         ],
-        type: { type: String, default: '' }, //types: course / product / membership / event
+        type: {
+            type: String,
+            enum: ['course', 'product', 'membership', 'event'],
+            default: 'product'
+        },
+        //type: { type: String, default: '' }, //types: course / product / membership / event
         /** new addons */
         // course
         infoExtra: { type: String, default: '' },

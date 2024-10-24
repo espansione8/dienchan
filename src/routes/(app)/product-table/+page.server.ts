@@ -33,30 +33,27 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 }
 
 export const actions: Actions = {
-	//new: async ({ request, fetch, locals }) => {
-	//TODO
+	//sampleAction: async ({ request, fetch, locals }) => {
 	new: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const title = formData.get('title') || '';
-		const cod = formData.get('cod') || '';
 		const descrShort = formData.get('descrShort') || '';
 		const stockQty = formData.get('stockQty');
 		const category = formData.get('category') || '';
 		const price = formData.get('price');
 
-		if (!title || !cod || !descrShort || !stockQty || !price) {
+		if (!title || !descrShort || !stockQty || !price) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
 
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/products/register-product`, {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/products/new`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
 					title,
-					cod,
 					descrShort,
 					stockQty,
 					category,
@@ -74,22 +71,20 @@ export const actions: Actions = {
 			return { action: 'new', success: false, message: 'Errore creazione' };
 		}
 	},
-	// TODO
+
 	modify: async ({ request, fetch }) => {
 		const formData = await request.formData();
-		const productId = formData.get('productId');
+		const prodId = formData.get('prodId');
 		const title = formData.get('title') || '';
-		const cod = formData.get('cod') || '';
 		const descrShort = formData.get('descrShort') || '';
 		const stockQty = formData.get('stockQty');
 		const category = formData.get('category') || '';
 		const price = formData.get('price');
 
-		if (!productId || !title || !cod || !descrShort || !stockQty || !category || !price) {
+		if (!prodId || !title || !descrShort || !stockQty || !category || !price) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
-		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
 		try {
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/products/modify`, {
 				method: 'POST',
@@ -97,9 +92,8 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					productId,
+					prodId,
 					title,
-					cod,
 					descrShort,
 					stockQty,
 					category,
@@ -107,7 +101,7 @@ export const actions: Actions = {
 				})
 			});
 			const result = await response.json();
-			if (response.ok) {
+			if (response.status == 200) {
 				return { action: 'modify', success: true, message: result.message };
 			} else {
 				return { action: 'modify', success: false, message: result.message };
@@ -117,13 +111,13 @@ export const actions: Actions = {
 			return { action: 'modify', success: false, message: 'Errore modify' };
 		}
 	},
-	// TODO
+
 	delete: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');
 		try {
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/products/remove`, {
-				method: 'DELETE',
+				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
@@ -132,7 +126,7 @@ export const actions: Actions = {
 				})
 			});
 			const result = await response.json();
-			if (response.ok) {
+			if (response.status == 200) {
 				return { action: 'delete', success: true, message: result.message };
 			} else {
 				return { action: 'delete', success: false, message: result.message };
@@ -184,24 +178,25 @@ export const actions: Actions = {
 			return { action: 'filter', success: false, message: 'Errore filter' };
 		}
 	},
-	//TODO
+
 	changeStatus: async ({ request, fetch }) => {
 		const formData = await request.formData();
-		const productId = formData.get('productId');
-		const status = formData.get('status');
-		if (!productId || !status) {
+		const prodId = formData.get('prodId');
+		let status = formData.get('status');
+		if (!prodId || !status) {
 			return fail(400, { action: 'changeStatus', success: false, message: 'Dati mancanti' });
 		}
+		status = status == 'enabled' ? 'disabled' : 'enabled';
 
-		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
+		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/products/status`, {
+			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/products/changeStatus`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					productId,
+					prodId,
 					status
 				})
 			});

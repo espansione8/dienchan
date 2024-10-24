@@ -1,3 +1,5 @@
+import { i18n } from '$lib/i18n'
+import { sequence } from '@sveltejs/kit/hooks'
 // TRAINING SOURCE
 //https://github.com/sveltejs/kit/pull/3384
 //https://blog.logrocket.com/authentication-sveltekit-using-cookies/
@@ -58,5 +60,8 @@ export const handle: Handle = async ({ event, resolve, }) => {
 	event.locals.user = false;
 	event.locals.auth = false;
 	//event.locals.session =''
+	sequence(i18n.handle())
 	return resolve(event);
 }
+
+//export const handle = sequence(i18n.handle())

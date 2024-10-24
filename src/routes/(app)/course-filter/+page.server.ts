@@ -8,12 +8,25 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	const user = locals.user
 
 	try {
-		const resProductsCorso = await fetch(
-			`${import.meta.env.VITE_BASE_URL}/api/products/find/type/course/0/0`
-		);
+		let arrayField: any[] = [];
+		let arrayValue: any[] = [];
+
+		// get courses
+		arrayField = ['status', 'type'];
+		arrayValue = ['enabled', 'course'];
+		const resProductsCorso = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
+			method: 'POST',
+			body: JSON.stringify({
+				schema: 'product',
+				arrayField,
+				arrayValue
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 
 		const resGetTable = await resProductsCorso.json();
-
 		getTable = resGetTable.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10),
@@ -22,14 +35,11 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			//timeEndDate: obj.eventEndDate.substring(11, 16),
 		}));
 
-		let arrayField = [];
-		let arrayValue = [];
-
-		// LISTA NOMI RIFLESSOLOGI
+		// user list
 		arrayField = ['status', 'level'];
 		arrayValue = ['enabled', 'superadmin'];
 		// arrayValue = ['enabled', 'formatore']; // REFACTOR
-		const resName = await fetch(`/api/finds/0/0`, {
+		const resName = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
 			method: 'POST',
 			body: JSON.stringify({
 				schema: 'user',
@@ -42,13 +52,10 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		});
 		getTableNames = await resName.json();
 
-
-		// Layout list
-		// arrayField: unknown[] = [];
-		// arrayValue: unknown[] = [];
+		// get layout
 		arrayField = [];
 		arrayValue = [];
-		const resLayout = await fetch(`/api/finds/0/0`, {
+		const resLayout = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
 			method: 'POST',
 			body: JSON.stringify({
 				schema: 'layout',

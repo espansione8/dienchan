@@ -7,11 +7,11 @@ export const imagesArray = writable(initial);
 export const relatedProd = writable(initial);
 export const isFetching = writable(initial);
 
-export async function getThisProd(productId) {
+export async function getThisProd(prodId) {
 	isFetching.set(true);
 	try {
-		//const responseProd = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/product/findId/${productId}`);
-		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/product/findId/${productId}`);
+		//const responseProd = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/product/findId/${prodId}`);
+		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/product/findId/${prodId}`);
 		const responseProd = await res.json();
 		//console.log('responseProd', responseProd);
 

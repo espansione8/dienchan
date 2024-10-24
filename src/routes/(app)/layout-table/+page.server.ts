@@ -81,7 +81,6 @@ export const actions: Actions = {
 		const price = formData.get('price') || '';
 		// const bundleProduct = formData.get('bundleProduct') || '';
 
-
 		if (!title || !descr || !price) {
 			return fail(400, { action: 'newLayout', success: false, message: 'Dati mancanti' });
 		}
@@ -128,7 +127,7 @@ export const actions: Actions = {
 			return fail(400, { action: 'modifyLayout', success: false, message: 'Dati mancanti' });
 		}
 
-		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
+		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/layouts/modify`, {
 				method: 'POST',
@@ -184,7 +183,7 @@ export const actions: Actions = {
 	filterLayout: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const layoutId = formData.get('layoutId');
-		
+
 		// console.log('level', level);
 
 		const arrayField = ['layoutId'];

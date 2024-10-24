@@ -73,7 +73,7 @@ export const actions: Actions = {
 			return fail(400, { action: 'newUser', success: false, message: 'Dati mancanti' });
 		}
 
-		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
+		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-up-admin`, {
 				method: 'POST',
@@ -136,7 +136,7 @@ export const actions: Actions = {
 			return fail(400, { action: 'newUser', success: false, message: 'Dati mancanti' });
 		}
 
-		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
+		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
 
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/modify`, {
@@ -189,7 +189,7 @@ export const actions: Actions = {
 			return fail(400, { action: 'disableUser', success: false, message: 'Dati mancanti' });
 		}
 
-		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
+		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/status`, {
 				method: 'POST',

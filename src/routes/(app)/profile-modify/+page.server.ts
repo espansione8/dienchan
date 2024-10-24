@@ -72,7 +72,7 @@ export const actions: Actions = {
 		}
 
 		// console.log('namePublic', typeof namePublic, namePublic);
-		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
+		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
 
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/modify`, {

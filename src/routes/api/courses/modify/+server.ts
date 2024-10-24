@@ -1,4 +1,4 @@
-
+// api/courses/modify
 import { json } from '@sveltejs/kit';
 import { Product } from '$lib/models/Products.model';
 import dbConnect from '$lib/database';

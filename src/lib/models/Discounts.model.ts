@@ -27,11 +27,11 @@ const discountSchema = new Schema(
 		},
 		selectedApplicability: {
 			type: String,
-			enum: ['userId', 'membershipLevel', 'productId', 'layoutId'],
+			enum: ['userId', 'membershipLevel', 'prodId', 'layoutId'],
 			default: 'userId'
 		},
 		userId: { type: String, default: '' },
-		productId: { type: String, default: '' },
+		prodId: { type: String, default: '' },
 		layoutId: { type: String, default: '' },
 		membershipLevel: { type: String, default: '' },
 		notes: { type: String, default: '' },

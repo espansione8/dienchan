@@ -168,7 +168,7 @@ export const actions: Actions = {
 			return fail(400, { action: 'newCourse', success: false, message: 'Dati mancanti' });
 		}
 
-		// console.log({ code, type, value, userId, membershipLevel, productId, layoutId, notes });
+		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/courses/modify`, {
 				method: 'POST',

@@ -41,7 +41,7 @@
 	let stockQty = $state(0);
 	let category = $state('');
 	let price = $state(0);
-	let productId = $state('');
+	let prodId = $state('');
 
 	const csvCreate = () => {
 		let csv = $state('');
@@ -108,11 +108,11 @@
 		// 		};
 		// 	});
 
-		newList = flattenedArray.map((obj: any) => ({
-			...obj,
-			createdAt: obj.createdAt?.substring(0, 10),
-			birthdate: obj.birthdate?.substring(0, 10)
-		}));
+		// newList = flattenedArray.map((obj: any) => ({
+		// 	...obj,
+		// 	createdAt: obj.createdAt?.substring(0, 10),
+		// 	birthdate: obj.birthdate?.substring(0, 10)
+		// }));
 
 		//console.log('newList', newList);
 		newList.forEach((obj: any) => {
@@ -425,7 +425,7 @@
 		//DOWNLOAD file
 		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
 		// create a link element to download the zip archive
-		const link = document.createElement('a');
+		const link = document.createElement('a'); //
 		link.href = URL.createObjectURL(blob);
 		link.download = `TableExport_prodotti.csv`;
 		document.body.appendChild(link);
@@ -464,23 +464,24 @@
 		if (type == 'new') {
 			postAction = `?/new`;
 			modalTitle = 'Nuovo prodotto';
-			productId = item.productId;
+			prodId = item.prodId;
 		}
 		if (type == 'modify') {
 			postAction = `?/modify`;
 			modalTitle = 'Modifica prodotto';
-			productId = item.productId;
+			prodId = item.prodId;
 			title = item.title;
-			cod = item.cod;
 			descrShort = item.descrShort;
 			stockQty = item.stockQty;
 			category = item.category;
 			price = item.price;
+			console.log('price.category', price, category);
 		}
 		if (type == 'delete') {
 			postAction = `?/delete`;
 			modalTitle = 'Elimina prodotto';
-			deleteId = item.productId;
+			deleteId = item.prodId;
+			console.log('deleteId', deleteId);
 		}
 		if (type == 'filter') {
 			postAction = `?/filter`;
@@ -514,7 +515,7 @@
 	const closeNotification = () => {
 		startTimeout = setTimeout(() => {
 			toastClosed = true;
-		}, 3000); // 1000 milliseconds = 1 second
+		}, 5000); // 1000 milliseconds = 1 second
 	};
 	//clearTimeout(startTimeout); // reset timer
 </script>
@@ -585,7 +586,7 @@
 					</td>
 					<td class="">
 						<form method="POST" action={`?/changeStatus`} use:enhance>
-							<input type="hidden" name="productId" value={row.productId} />
+							<input type="hidden" name="prodId" value={row.prodId} />
 							<input type="hidden" name="status" value={row.status} />
 							<span class="flex items-center">
 								{#if row.status == 'enabled'}
@@ -600,8 +601,8 @@
 						</form>
 					</td>
 					<td>{row.title}</td>
-					<td>{row.category}</td>
-					<td>{row.cost}</td>
+					<td>{row.category[0]}</td>
+					<td>{row.price}</td>
 					<td>{row.stockQty}</td>
 					<td><div class="badge badge-primary badge-md">0</div></td>
 					<td class="flex items-center justify-center space-x-4">
@@ -612,13 +613,12 @@
 							><Settings />
 						</button>
 						<button
-							onclick={() => goto(`/product-detail/${row.productId}`)}
+							onclick={() => goto(`/product-detail/${row.prodId}`)}
 							class="btn btn-sm bg-green-200 btn-green-400 text-green-800"
 							><FileSearch2 />
 						</button>
-						<button
-							class="btn btn-error btn-sm"
-							onclick={() => onClickDialog('delete', row.productId)}><Trash2 /></button
+						<button class="btn btn-error btn-sm" onclick={() => onClickDialog('delete', row)}
+							><Trash2 /></button
 						>
 					</td>
 				</tr>
@@ -716,7 +716,7 @@
 						bind:value={category}
 						required
 					>
-						<option selected disabled value="">Scegli</option>
+						<option disabled value="">Scegli</option>
 						<option value="strumenti">Strumenti</option>
 						<option value="materiali">Materiali</option>
 						<option value="altro">Altro</option>
@@ -846,7 +846,7 @@
 			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
 				Modifica Prodotto
 			</header>
-			<input type="hidden" name="productId" value={productId} />
+			<input type="hidden" name="prodId" value={prodId} />
 			<section class="col-span-4">
 				<label for="titolo" class="form-label">
 					<p class="font-bold mb-2">Titolo</p>
@@ -917,12 +917,13 @@
 						name="category"
 						aria-label="category"
 						aria-describedby="basic-category"
-						bind:value={category}
+						bind:value={category[0]}
 						required
 					>
-						<option selected disabled value="">Scegli</option>
+						<option disabled value="">Scegli</option>
 						<option value="strumenti">Strumenti</option>
 						<option value="materiali">Materiali</option>
+						<option value="altro">Altro</option>
 					</select>
 				</div>
 			</section>
@@ -1040,7 +1041,7 @@
 
 	{#if currentDialog == 'delete'}
 		<form action={postAction} method="POST" use:enhance>
-			<input type="hidden" name="productId" value={deleteId} />
+			<input type="hidden" name="prodId" value={deleteId} />
 			<div class="flex justify-center space-x-10 mt-4">
 				<button class="btn btn-error btn-md" type="button" onclick={onCloseModal}>Annulla</button>
 				<button class="btn btn-success btn-md text-white" type="submit"><Trash2 />Conferma</button>
