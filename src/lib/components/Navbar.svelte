@@ -116,15 +116,6 @@
 				>
 					<strong>Area personale</strong>
 				</a>
-				<a
-					class="btn btn-sm btn-primary border-black"
-					class:active={$page.url.pathname === `/profile-public/${userId}`}
-					href={`/profile-public/${userId}`}
-					aria-current="page"
-					onclick={onBurgerclick}
-				>
-					<strong>Profilo pubblico</strong>
-				</a>
 
 				{#if auth && userLevel == 'superadmin'}
 					<li>
@@ -266,15 +257,6 @@
 					onclick={onBurgerclick}
 				>
 					<strong>Area personale</strong>
-				</a>
-				<a
-					class="btn btn-sm btn-outline btn-accent"
-					class:active={$page.url.pathname === `/profile-public/${userId}`}
-					href={`/profile-public/${userId}`}
-					aria-current="page"
-					onclick={onBurgerclick}
-				>
-					<strong>Profilo pubblico</strong>
 				</a>
 				{#if auth && userLevel == 'superadmin'}
 					<div class="dropdown dropdown-end">

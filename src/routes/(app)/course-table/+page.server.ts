@@ -7,22 +7,41 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		throw redirect(302, '/login');
 	}
 
-	let getTable: any = [];
+	let getTable = [];
 	let getTableNames = [];
 	let getLayout = [];
 	const userId = locals.user.userId || ''
 
 	try {
-		let path = `${import.meta.env.VITE_BASE_URL}/api/products/find/type/course/0/0`
-		if (locals.user.level == 'formatore') path = `${import.meta.env.VITE_BASE_URL}/api/courses/user-id/${userId}`
+		let arrayField = [];
+		let arrayValue = [];
 
-		// ADMIN course
-		const res = await fetch(path);
+		// GET COURSES
+		// let path = `${import.meta.env.VITE_BASE_URL}/api/products/find/type/course/0/0`
+		// if (locals.user.level == 'formatore') path = `${import.meta.env.VITE_BASE_URL}/api/courses/user-id/${userId}`
 
-		const resGetTable = await res.json();
-		//console.log({ resGetTable })
+		if (locals.user.level == 'formatore') {
+			arrayField = ['type', 'userId'];
+			arrayValue = ['course', userId];
+		} else {
+			arrayField = ['type'];
+			arrayValue = ['course'];
+		}
+		const resCourse = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
+			method: 'POST',
+			body: JSON.stringify({
+				schema: 'product',
+				arrayField,
+				arrayValue
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		const resGetCourse = await resCourse.json();
+		//console.log(resGetCourse)
 
-		getTable = resGetTable.map((obj: any) => ({
+		getTable = resGetCourse.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10),
 			eventStartDate: obj.eventStartDate,
@@ -30,14 +49,11 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			//timeEndDate: obj.eventEndDate.substring(11, 16),
 		}));
 
-		let arrayField = [];
-		let arrayValue = [];
-
 		// LISTA NOMI RIFLESSOLOGI
 		arrayField = ['status', 'level'];
 		arrayValue = ['enabled', 'superadmin'];
 		// arrayValue = ['enabled', 'formatore']; // REFACTOR
-		const resName = await fetch(`/api/finds/0/0`, {
+		const resName = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
 			method: 'POST',
 			body: JSON.stringify({
 				schema: 'user',
@@ -49,6 +65,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			}
 		});
 		getTableNames = await resName.json();
+		//console.log('getTableNames', getTableNames);
 
 		// Layout list
 		arrayField = [];
@@ -65,6 +82,8 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			}
 		});
 		getLayout = await resLayout.json();
+		//console.log('getLayout', getLayout);
+
 
 	} catch (error) {
 		console.log('course table fetch error:', error);

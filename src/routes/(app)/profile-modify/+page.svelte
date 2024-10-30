@@ -4,7 +4,23 @@
 	import { cubicOut } from 'svelte/easing';
 	import { create_upload } from '$lib/stores/upload';
 	import Notification from '$lib/components/Notification.svelte';
-	import { Settings, X, Check, Eye, EyeOff, Trash2, Award } from 'lucide-svelte';
+	import {
+		Settings,
+		X,
+		Check,
+		Eye,
+		EyeOff,
+		Trash2,
+		Award,
+		Mail,
+		House,
+		Landmark,
+		Earth,
+		Phone,
+		Smartphone,
+		Hash,
+		Building2
+	} from 'lucide-svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { province } from '$lib/stores/arrays.js';
 	import { country_list } from '$lib/stores/arrays.js';
@@ -16,11 +32,7 @@
 	// remove online in province
 	let provinceFilterate = $province.filter((p) => p.title !== 'Online');
 
-	let picFilter = $derived(
-		userData.uploadfiles.filter((item: any) => {
-			return item.type == 'avatar';
-		})
-	);
+	let picFilter = $derived(userData.uploadfiles.filter((item: any) => item.type == 'avatar'));
 
 	let closedInput = $state(true);
 	const openInput = () => (closedInput = false);
@@ -272,6 +284,126 @@
 <div class="grid grid-cols-12 bg-gray-200 lg:gap-x-12 p-4 lg:p-8">
 	<!--section 1: profilo + dettagli fatturazione-->
 	<section class="card col-span-12 xl:col-span-6 gap-y-8 rounded-lg bg-white">
+		<div class="p-5">
+			<div class="flex flex-col sm:flex-row border-2 border-gray-300 rounded-lg">
+				<div class="card-body w-1/2 p-4 flex flex-col items-center">
+					<!-- img -->
+					<form class="card-body w-full" onsubmit={(e) => onFileUpload(e, 'avatar')}>
+						<div class="text-center font-bold">
+							<span>carica foto profilo</span>
+						</div>
+						{#if picFilter.length == 0}
+							<div class="form-control w-full mb-4">
+								<label class="form-control">
+									<input
+										type="file"
+										id="avatar"
+										name="avatar"
+										placeholder="logo"
+										accept=".jpg, .jpeg, .png, .webp"
+										class="file-input file-input-bordered file-input-sm"
+										required
+									/>
+								</label>
+							</div>
+							<button class="btn btn-primary btn-sm" type="submit">
+								{#if is_upload_submitting}
+									Uploading... {$upload.progress}%
+								{:else}
+									Upload
+								{/if}
+							</button>
+						{/if}
+
+						<figure class="mt-4">
+							{#if picFilter[0]?.type == 'avatar'}
+								<img
+									src={`/files/${userData.userId}/${picFilter[0].filename}`}
+									alt="avatar"
+									class="object-cover rounded-md"
+								/>
+							{/if}
+						</figure>
+					</form>
+					{#if picFilter.length > 0}
+						<button
+							class="btn btn-sm btn-error rounded-lg border-2 mt-4"
+							onclick={() => onPicDelete(picFilter[0].filename, 'avatar')}
+						>
+							<Trash2 size="24" />Elimina foto
+						</button>
+					{/if}
+					<!-- img end -->
+				</div>
+				<div class="card-body p-6 w-1/2">
+					<h1 class="text-2xl font-bold text-gray-800 mb-4">
+						{#if userData.namePublic === true}
+							{userData.name}
+						{/if}
+						{#if userData.surnamePublic === true}
+							{userData.surname}
+						{/if}
+						{#if userData.surnamePublic === false && userData.namePublic === false}
+							nome privato
+						{/if}
+					</h1>
+					<a href={`/profile-public/${userData.userId}`} class="btn btn-sm w-1/2 mb-4">
+						Anteprima profilo
+					</a>
+					<hr class="border-t-2 border-gray-300 my-4" />
+					<div class="space-y-2">
+						{#if userData.emailPublic === true}
+							<div class="flex items-center">
+								<Mail class="mr-2" color="gray" />
+								<h5 class="text-gray-600"><b>Email:</b> {userData.email}</h5>
+							</div>
+						{/if}
+						{#if userData.addressPublic === true}
+							<div class="flex items-center">
+								<House class="mr-2" color="gray" />
+								<h5 class="text-gray-600"><b>Indirizzo:</b> {userData.address}</h5>
+							</div>
+						{/if}
+						{#if userData.cityPublic === true}
+							<div class="flex items-center">
+								<Landmark class="mr-2" color="gray" />
+								<h5 class="text-gray-600"><b>Città:</b> {userData.city}</h5>
+							</div>
+						{/if}
+						{#if userData.postalCodePublic === true}
+							<div class="flex items-center">
+								<Hash class="mr-2" color="gray" />
+								<h5 class="text-gray-600"><b>CAP:</b> {userData.postalCode}</h5>
+							</div>
+						{/if}
+						{#if userData.statePublic === true}
+							<div class="flex items-center">
+								<Building2 class="mr-2" color="gray" />
+								<h5 class="text-gray-600"><b>Provincia:</b> {userData.countryState}</h5>
+							</div>
+						{/if}
+						{#if userData.countryPublic === true}
+							<div class="flex items-center">
+								<Earth class="mr-2" color="gray" />
+								<h5 class="text-gray-600"><b>Nazione:</b> {userData.country}</h5>
+							</div>
+						{/if}
+						{#if userData.phonePublic === true}
+							<div class="flex items-center">
+								<Phone class="mr-2" color="gray" />
+								<h5 class="text-gray-600"><b>Telefono:</b> {userData.phone}</h5>
+							</div>
+						{/if}
+						{#if userData.mobilePhonePublic === true}
+							<div class="flex items-center">
+								<Smartphone class="mr-2" color="gray" />
+								<h5 class="text-gray-600"><b>Cellulare:</b> {userData.mobilePhone}</h5>
+							</div>
+						{/if}
+					</div>
+				</div>
+			</div>
+		</div>
 		<!-- PROFILO -->
 		<form class="card-body pt-1" action="?/modifyUser" method="POST" use:enhance>
 			<div class="card-title bg-gray-400 glass font-bold flex justify-between p-3 my-4 rounded-lg">
@@ -770,57 +902,7 @@
 	</section>
 	<!-- section 2: immagine ecc -->
 	<section class="card col-span-12 xl:col-span-6 gap-y-4 rounded-lg bg-white">
-		<div
-			class="card-title bg-gray-400 glass font-bold flex justify-between p-3 mx-4 mt-4 rounded-lg"
-		>
-			<span> Immagine Profilo</span>
-			{#if picFilter.length > 0}
-				<button
-					class="btn btn-outline btn-sm btn-neutral rounded-lg border-2"
-					onclick={() => onPicDelete(picFilter[0].filename, 'avatar')}
-				>
-					<Trash2 size="24" />Elimina
-				</button>
-			{/if}
-		</div>
 		<div class="card-body pt-1">
-			<form class="card-body" onsubmit={(e) => onFileUpload(e, 'avatar')}>
-				{#if picFilter.length == 0}
-					<div class="form-control mx-auto">
-						<label class="form-control">
-							<div class="join">
-								<input
-									type="file"
-									id="avatar"
-									name="avatar"
-									placeholder="logo"
-									accept=".jpg, .jpeg, .png, .webp"
-									class="file-input file-input-bordered w-full max-w-xs join-item"
-									required
-								/>
-								<button class="btn join-item rounded-r-full bg-blue-600 text-white" type="submit"
-									>{#if is_upload_submitting}
-										Uploading... {$upload.progress}%
-									{:else}
-										Upload
-									{/if}
-								</button>
-							</div>
-						</label>
-					</div>
-				{/if}
-
-				<figure>
-					{#if picFilter[0]?.type == 'avatar'}
-						<img
-							src={`/files/${userData.userId}/${picFilter[0].filename}`}
-							alt="avatar"
-							class="object-cover rounded-md"
-						/>
-					{/if}
-				</figure>
-			</form>
-			<hr />
 			<div class="card-body">
 				<span class=" py-2 text-xl">
 					<strong>Associato:</strong> <br />

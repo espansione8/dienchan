@@ -11,7 +11,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 // INSTRUCTION
 // const arrayField = ['type', 'price'];
 // const arrayValue = ['course', 50]; // DEFINE TYPE "course|membership|product" FOR PRODUCT SCEMA
-// const resLayout = await fetch(`/api/finds/0/0`, {
+// const resLayout = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
 // 	method: 'POST',
 // 	body: JSON.stringify({
 // 		schema: 'layout', //product | order | user | layout | discount

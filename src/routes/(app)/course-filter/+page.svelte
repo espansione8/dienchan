@@ -1,6 +1,4 @@
 <script lang="ts">
-	// @ts-nocheck
-	import { onMount } from 'svelte';
 	import {
 		ChevronDown,
 		ShieldAlert,
@@ -16,7 +14,7 @@
 	import CartFloat from '$lib/components/CartFloat.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
-	import { province, coursesInfo } from '$lib/stores/arrays.js';
+	//import { province, coursesInfo } from '$lib/stores/arrays.js';
 
 	let { data } = $props();
 	let { getTable, getTableNames, getLayout, auth } = $derived(data);
@@ -260,8 +258,7 @@
 									{conteggio == 0 ? 'text-gray-400 pointer-events-none' : ''}"
 								onclick={() => onClickFilterMonth(mese)}
 							>
-								{'>'}
-								{mese} ({conteggio})
+								&gt; {mese} ({conteggio})
 							</li>
 						{/each}
 					</ul>

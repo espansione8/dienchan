@@ -1,4 +1,5 @@
 import { fail } from '@sveltejs/kit';
+import stringHash from 'string-hash';
 import { checkAuth } from '$lib/auth';
 import type { PageServerLoad, Actions } from './$types'
 
@@ -7,21 +8,23 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 
 	let getTable = [];
 	try {
-		// GET PRODUCTS
-		const arrayField = ['type'];
-		const arrayValue = ['product'];
-		const resName = await fetch(`/api/finds/0/0`, {
+		// NEW GET PROD
+		const query = { type: 'product' };
+		const limit = 1000;
+		const skip = 0;
+		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				schema: 'product', //product | order | user | layout | discount
-				arrayField,
-				arrayValue
+				query,
+				limit,
+				skip
 			}),
 			headers: {
 				'Content-Type': 'application/json'
 			}
 		});
-		getTable = await resName.json();
+		getTable = await res.json();
 
 	} catch (error) {
 		console.log('products-table fetch error:', error);
@@ -36,23 +39,43 @@ export const actions: Actions = {
 	//sampleAction: async ({ request, fetch, locals }) => {
 	new: async ({ request, fetch }) => {
 		const formData = await request.formData();
+		const prodId = stringHash(crypto.randomUUID());
 		const title = formData.get('title') || '';
 		const descrShort = formData.get('descrShort') || '';
 		const stockQty = formData.get('stockQty');
 		const category = formData.get('category') || '';
 		const price = formData.get('price');
+		const prodImage = formData.get('product-primary') || '';
+		const headers = { 'x-file-name': prodImage.name, 'x-folder-name': prodId }; // NOTE: change folder name to userid
+
+		console.log('prodImage', prodImage, headers);
 
 		if (!title || !descrShort || !stockQty || !price) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
 
 		try {
+			//const upload = create_upload();
+			//const uploadImg = await upload.start({ url: `${import.meta.env.VITE_BASE_URL}/api/uploads/files`, prodImage, headers });
+			//if (uploadImg.status == 200) return { action: 'new', success: true, message: 'file OK' };
+
+			const uploadImg = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'x-file-name': prodImage.name,
+					'x-folder-name': `product/${prodId}`
+				},
+				body: prodImage
+			});
+			if (uploadImg.status == 200) return { action: 'new', success: true, message: 'file OK' };
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/products/new`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
+					prodId,
 					title,
 					descrShort,
 					stockQty,
@@ -61,6 +84,9 @@ export const actions: Actions = {
 				})
 			});
 			const result = await response.json();
+
+
+
 			if (response.status == 200) {
 				return { action: 'new', success: true, message: result.message };
 			} else {

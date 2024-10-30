@@ -681,11 +681,12 @@
 					<!-- Nome Cognome Riflessologo -->
 					<td>{row.name} {row.surname}</td>
 					<!-- Email Riflessologo -->
-					<td>{row.notificationEmail[0]}</td>
+					<!-- <td>{row.notificationEmail[0]}</td> -->
 					<!-- Titolo -->
-					<td>{row.layoutView.title}</td>
+					<td>{row.layoutView?.title}</td>
 					<!-- Data -->
-					<td>{row.eventStartDate.substring(0, 10)}</td>
+					<!-- <td>{row.eventStartDate.substring(0, 10)}</td> -->
+					<td>{row.eventStartDate}</td>
 					<!-- Ora -->
 					<td>
 						Da {row.timeStartDate}

@@ -3,6 +3,7 @@
 	import { invalidateAll, goto } from '$app/navigation';
 	//import { page } from '$app/stores'; // $page.data.user $page.data.auth
 	import Notification from '$lib/components/Notification.svelte';
+	import DragDrop from '$lib/components/DragDrop.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import Papa from 'papaparse';
 	import {
@@ -19,7 +20,8 @@
 		Calculator,
 		List,
 		Users,
-		Pen
+		Pen,
+		FolderOpen
 	} from 'lucide-svelte';
 
 	let { data, form } = $props();
@@ -42,6 +44,54 @@
 	let category = $state('');
 	let price = $state(0);
 	let prodId = $state('');
+
+	const onPicDelete = async (fileName: any, inputId: any) => {
+		// remove from DB
+		const responseUpdate = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/update-photo`, {
+			method: 'POST',
+			body: JSON.stringify({
+				fileName,
+				prodId, // filter in DB
+				type: inputId,
+				action: 'delete'
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		if (responseUpdate.status == 200) {
+			let content = (await responseUpdate.json()).message;
+			toastClosed = false;
+			notificationContent = content;
+			closeNotification();
+			invalidateAll();
+			is_upload_submitting = false;
+		} else {
+			let error = (await responseUpdate.json()).message;
+			toastClosed = false;
+			notificationContent = error;
+			notificationError = true;
+			invalidateAll();
+			is_upload_submitting = false;
+		}
+		// remove from disk
+		const responseDelete = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
+			method: 'DELETE',
+			body: JSON.stringify({
+				prodId: prodId,
+				fileName: fileName
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		if (responseDelete.status != 200) {
+			let error = (await responseDelete.json()).message;
+			toastClosed = false;
+			notificationContent = error;
+			notificationError = true;
+		}
+	};
 
 	const csvCreate = () => {
 		let csv = $state('');
@@ -518,6 +568,52 @@
 		}, 5000); // 1000 milliseconds = 1 second
 	};
 	//clearTimeout(startTimeout); // reset timer
+
+	// DRAG & DROP FILE UPLOAD SNIPPET
+	// import { FolderOpen } from "lucide-svelte";
+	let fileInput = $state();
+	let previewUrl: string | null = $state(null);
+	let isDragging = $state(false);
+	let dragCounter = $state(0);
+
+	const handleDragEnter = (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		dragCounter++;
+		isDragging = true;
+	};
+
+	const handleDragLeave = (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		dragCounter--;
+		if (dragCounter === 0) {
+			isDragging = false;
+		}
+	};
+
+	const handleDragOver = (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		isDragging = true;
+	};
+
+	const handleDrop = (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		isDragging = false;
+		dragCounter = 0;
+
+		const files = e.dataTransfer.files;
+		if (files.length) {
+			const file = files[0];
+			// Check file type
+			if (file.type.match(/^image\/(jpg|jpeg|png|webp)$/)) {
+				fileInput.files = files; // Update the input's files
+				previewUrl = URL.createObjectURL(file);
+			}
+		}
+	};
 </script>
 
 <svelte:head>
@@ -637,6 +733,7 @@
 		<form
 			action={postAction}
 			method="POST"
+			enctype="multipart/form-data"
 			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 			use:enhance
 		>
@@ -744,87 +841,68 @@
 					/>
 				</div>
 			</section>
-			<!-- 
-	<section class="lg:col-span-4 mt-20">
-		<h4 class="text-center text-lg font-bold text-gray-900">Immagine Principale</h4>
-		<p class="text-center text-sm text-gray-600">(Solo un file)</p>
-		<div class="mb-6">
-			<div class="flex justify-center">
-				<label class="btn btn-primary btn-lg rounded-lg mt-2 hover:text-white">
-					<input
-						type="file"
-						name="file-to-upload"
-						accept="image/png, image/jpeg"
-						bind:files
-						bind:this={fileInput}
-						onchange={() => getBase64(files[0], 'primary')}
-						onclick={(event) => (event.target.value = null)}
-						class="hidden"
-					/>
-					<span class="flex items-center justify-center">
-						<CloudUpload class="mr-2" />
-						Carica JPG/PNG
-					</span>
+			<section class="col-span-4 md:col-span-2">
+				<label for="product-primary" class="form-label">
+					<p class="font-bold mb-2">foto prodotto</p>
 				</label>
-			</div>
-			<ul class="mt-6 list-none text-center">
-				{#each filesJpgPrimary as element}
-					<li class="mt-2">
+				{#if previewUrl}
+					<div class="flex flex-col items-center justify-center">
+						<img src={previewUrl} alt="Upload Preview" class="mt-2 max-h-40" />
 						<button
+							class="btn btn-error btn-sm mt-4"
 							type="button"
-							class="btn btn-error ml-6"
-							onclick={() => deleteFunctionPrimary(element)}
+							onclick={() => {
+								previewUrl = null;
+								fileInput.value = ''; // Reset the file input
+								URL.revokeObjectURL(previewUrl); // Clean up the object URL
+							}}
 						>
-							<SquareX />
+							cancella
 						</button>
-						{element}
-					</li>
-				{/each}
-			</ul>
-		</div>
-	</section>
-	<div class="col-span-4 mx-auto border-t border-blue-700 w-96 mt-2" />
-	<section class="lg:col-span-4">
-		<h4 class="text-center text-lg font-bold text-gray-900">Immagini galleria</h4>
-		<p class="text-center text-sm text-gray-600">
-			(Seleziona i files uno alla volta) <br />
-			Massimo 8 files
-		</p>
-		<div class="mb-6">
-			<div class="flex justify-center">
-				<label class="btn btn-primary btn-lg rounded-lg mt-2 hover:text-white">
-					<input
-						type="file"
-						name="file-to-upload"
-						accept=".jpg, .png"
-						bind:files
-						bind:this={fileInput}
-						onchange={() => getBase64(files[0], 'gallery')}
-						onclick={(event) => (event.target.value = null)}
-						class="hidden"
-					/>
-					<span class="flex items-center justify-center">
-						<CloudUpload class="mr-2" />
-						{filesJpgArray.length > 0 ? `Carica Ancora JPG/PNG…` : `Carica JPG/PNG`}
-					</span>
-				</label>
-			</div>
-			<ul class="mt-6 list-none text-center">
-				{#each filesJpgArray as element}
-					<li class="mt-2">
-						<button
-							type="button"
-							class="btn btn-error ml-6"
-							onclick={() => deleteFunctionJPG(element)}
+					</div>
+				{:else}
+					<div class="form-control w-full mb-4 cursor-pointer">
+						<div
+							role="region"
+							class="form-control w-full mb-4 relative h-48 rounded-lg border-2 transition-colors duration-200 {isDragging
+								? 'border-green-500 bg-green-50'
+								: 'border-dashed border-blue-700 bg-gray-100 hover:border-blue-500 hover:bg-gray-50'} flex justify-center items-center"
+							ondragenter={handleDragEnter}
+							ondragleave={handleDragLeave}
+							ondragover={handleDragOver}
+							ondrop={handleDrop}
 						>
-							<SquareX />
-						</button>
-						{element}
-					</li>
-				{/each}
-			</ul>
-		</div>
-	</section> -->
+							<label class="form-control w-full h-full" for="product-primary">
+								<div
+									class="flex flex-col items-center absolute inset-0 justify-center pointer-events-none"
+								>
+									<FolderOpen size={64} class={isDragging ? 'text-green-500' : 'text-blue-700'} />
+									<span class="block text-gray-600 font-normal text-center px-4">
+										{isDragging
+											? 'Rilascia il file qui'
+											: 'Drag & Drop oppure clicca per scegliere un file'}
+									</span>
+								</div>
+								<input
+									type="file"
+									id="product-primary"
+									name="product-primary"
+									placeholder="image"
+									accept=".jpg, .jpeg, .png, .webp"
+									class="h-full w-full opacity-0 absolute top-0 left-0"
+									bind:this={fileInput}
+									onchange={(event) => {
+										const file = event.target.files[0];
+										if (file) {
+											previewUrl = URL.createObjectURL(file);
+										}
+									}}
+								/>
+							</label>
+						</div>
+					</div>
+				{/if}
+			</section>
 			<section class="lg:col-span-4 mt-2">
 				<div class="col-span-4 mt-10 flex justify-center">
 					<button class="btn btn-error mx-1" type="button" onclick={onCloseModal}>Annulla</button>
@@ -832,6 +910,9 @@
 						<span class="flex items-center justify-center"> REGISTRA PRODOTTO </span>
 					</button>
 				</div>
+			</section>
+			<section class="lg:col-span-4 mt-2">
+				<DragDrop />
 			</section>
 		</form>
 	{/if}

@@ -36,9 +36,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	};
 }
 
-
 export const actions: Actions = {
-
 	modifyUser: async ({ request, fetch }) => {
 
 		const formData = await request.formData();
@@ -116,6 +114,4 @@ export const actions: Actions = {
 			return { action: 'modifyUser', success: false, message: 'Errore creazione modifyUser' };
 		}
 	}
-
-
 } satisfies Actions;

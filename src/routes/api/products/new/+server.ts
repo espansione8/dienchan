@@ -1,12 +1,12 @@
 // src/routes/api/products/new
 import { json } from '@sveltejs/kit';
-import stringHash from 'string-hash';
+//import stringHash from 'string-hash';
 import dbConnect from '$lib/database';
 import { Product } from '$lib/models/Products.model';
 
 export const POST = async ({ request }) => {
 	const body = await request.json();
-	const { title, descrShort, stockQty, category, price } = body;
+	const { prodId, title, descrShort, stockQty, category, price } = body;
 
 	try {
 		// Connecting to DB
@@ -14,7 +14,7 @@ export const POST = async ({ request }) => {
 		await dbConnect();
 
 		const newProd = new Product();
-		const prodId = stringHash(crypto.randomUUID());
+		//const prodId = stringHash(crypto.randomUUID());
 		newProd.prodId = prodId;
 		newProd.title = title;
 		newProd.descrShort = descrShort;
