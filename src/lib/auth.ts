@@ -12,9 +12,15 @@ const protectedRoutes = [
 ]
 
 const protectedPages = [
+    '/course-table',
+    '/discount-table',
+    '/layout-table',
+    '/membership-table',
+    '/order-table',
     '/product-table',
-    '/profile',
-    // prefix dir
+    '/profile-modify',
+    '/user-table',
+    // page dir
 ]
 
 export const checkAuth = (url: string, auth: boolean, mode: string) => {

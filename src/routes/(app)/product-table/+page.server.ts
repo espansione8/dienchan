@@ -46,9 +46,8 @@ export const actions: Actions = {
 		const category = formData.get('category') || '';
 		const price = formData.get('price');
 		const prodImage = formData.get('product-primary') || '';
-		const headers = { 'x-file-name': prodImage.name, 'x-folder-name': prodId }; // NOTE: change folder name to userid
-
-		console.log('prodImage', prodImage, headers);
+		// const headers = { 'x-file-name': prodImage.name, 'x-folder-name': prodId }; // NOTE: change folder name to userid
+		// console.log('prodImage', prodImage, headers);
 
 		if (!title || !descrShort || !stockQty || !price) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
@@ -69,6 +68,7 @@ export const actions: Actions = {
 				body: prodImage
 			});
 			if (uploadImg.status == 200) return { action: 'new', success: true, message: 'file OK' };
+
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/products/new`, {
 				method: 'POST',
 				headers: {

@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { tweened } from 'svelte/motion';
 	import { enhance } from '$app/forms';
-	import { cubicOut } from 'svelte/easing';
-	import { create_upload } from '$lib/stores/upload';
+	import { invalidateAll } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
 	import {
 		Settings,
@@ -19,9 +17,9 @@
 		Phone,
 		Smartphone,
 		Hash,
-		Building2
+		Building2,
+		FolderOpen
 	} from 'lucide-svelte';
-	import { invalidateAll } from '$app/navigation';
 	import { province } from '$lib/stores/arrays.js';
 	import { country_list } from '$lib/stores/arrays.js';
 	import { coursesInfo } from '$lib/stores/arrays.js';
@@ -101,82 +99,6 @@
 		// console.log('onSwitchPublicProfile', type, value, typeof namePublic, namePublic);
 	};
 
-	// profile pic upload
-	const upload = create_upload();
-	let is_upload_submitting = $state(false);
-	const progress = $state(
-		tweened(0, {
-			duration: 400,
-			easing: cubicOut
-		})
-	);
-	progress.set($upload.progress / 100);
-
-	/** @param {SubmitEvent} event */
-
-	const onFileUpload = async (event: SubmitEvent, inputId: string): Promise<void> => {
-		event.preventDefault();
-		is_upload_submitting = true;
-
-		const target: any = /** @type {EventTarget & HTMLFormElement} */ (event.target);
-		const file = /** @type {any} */ (target.elements)[inputId].files[0]; // NOTE: (target.elements).{INPUT ID}.files[0]
-		const headers = { 'x-file-name': file.name, 'x-folder-name': userData.userId }; // NOTE: change folder name to userid
-
-		// await upload.start({ url: '/api/uploads/files', file, headers });
-		const response: any = await upload.start({ url: '/api/uploads/files', file, headers });
-		// console.log('response up file', response);
-		// console.log('response.status:', typeof response.status, response.status);
-		if (response.status == 200) {
-			//// update DB with file path
-			const responseUpdate = await fetch(
-				`${import.meta.env.VITE_BASE_URL}/api/users/update-photo`,
-				{
-					method: 'POST',
-					body: JSON.stringify({
-						fileName: file.name,
-						email, // filter in DB
-						type: inputId,
-						action: 'new'
-					}),
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				}
-			);
-			const res = await responseUpdate.json();
-			// console.log('responseUpdate up db', responseUpdate);
-			// console.log('responseUpdate.status:', typeof responseUpdate.status, responseUpdate.status);
-			if (responseUpdate.status == 200) {
-				let content = res.message;
-				toastClosed = false;
-				notificationContent = content;
-				invalidateAll();
-				progress.set(0);
-				// Reset file input
-				target.reset();
-				is_upload_submitting = false;
-				closeNotification();
-			} else {
-				let error = res.message;
-				toastClosed = false;
-				notificationContent = error;
-				notificationError = true;
-				invalidateAll();
-				progress.set(0);
-				// Reset file input
-				target.reset();
-				is_upload_submitting = false;
-			}
-		}
-
-		invalidateAll();
-		progress.set(0);
-		// Reset file input
-		target.reset();
-		is_upload_submitting = false;
-	};
-	// end profile pic upload
-
 	// pic delete
 	const onPicDelete = async (fileName: any, inputId: any) => {
 		// remove from DB
@@ -249,12 +171,13 @@
 			async () => await invalidateAll();
 			const { action, success, message } = form;
 			if (success) {
-				closeNotification();
 				closedInput = true;
 				// console.log('userData', userData);
 			} else {
 				notificationError = true;
 			}
+			clearTimeout(startTimeout);
+			closeNotification();
 			toastClosed = false;
 			notificationContent = message;
 		}
@@ -275,6 +198,52 @@
 		toastClosed = false;
 		notificationContent = 'Registrazione effettuta, completare il profilo';
 	}
+
+	// DRAG & DROP FILE UPLOAD SNIPPET
+	// import { FolderOpen } from "lucide-svelte";
+	let fileInput = $state();
+	let previewUrl: string | null = $state(null);
+	let isDragging = $state(false);
+	let dragCounter = $state(0);
+
+	const handleDragEnter = (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		dragCounter++;
+		isDragging = true;
+	};
+
+	const handleDragLeave = (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		dragCounter--;
+		if (dragCounter === 0) {
+			isDragging = false;
+		}
+	};
+
+	const handleDragOver = (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		isDragging = true;
+	};
+
+	const handleDrop = (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		isDragging = false;
+		dragCounter = 0;
+
+		const files = e.dataTransfer.files;
+		if (files.length) {
+			const file = files[0];
+			// Check file type
+			if (file.type.match(/^image\/(jpg|jpeg|png|webp)$/)) {
+				fileInput.files = files; // Update the input's files
+				previewUrl = URL.createObjectURL(file);
+			}
+		}
+	};
 </script>
 
 <svelte:head>
@@ -288,50 +257,104 @@
 			<div class="flex flex-col sm:flex-row border-2 border-gray-300 rounded-lg">
 				<div class="card-body w-1/2 p-4 flex flex-col items-center">
 					<!-- img -->
-					<form class="card-body w-full" onsubmit={(e) => onFileUpload(e, 'avatar')}>
-						<div class="text-center font-bold">
-							<span>carica foto profilo</span>
-						</div>
-						{#if picFilter.length == 0}
-							<div class="form-control w-full mb-4">
-								<label class="form-control">
-									<input
-										type="file"
-										id="avatar"
-										name="avatar"
-										placeholder="logo"
-										accept=".jpg, .jpeg, .png, .webp"
-										class="file-input file-input-bordered file-input-sm"
-										required
-									/>
-								</label>
-							</div>
-							<button class="btn btn-primary btn-sm" type="submit">
-								{#if is_upload_submitting}
-									Uploading... {$upload.progress}%
-								{:else}
-									Upload
-								{/if}
-							</button>
-						{/if}
-
+					{#if picFilter.length > 0 && picFilter[0]?.type == 'avatar'}
 						<figure class="mt-4">
-							{#if picFilter[0]?.type == 'avatar'}
-								<img
-									src={`/files/${userData.userId}/${picFilter[0].filename}`}
-									alt="avatar"
-									class="object-cover rounded-md"
-								/>
-							{/if}
+							<img
+								src={`/files/user/${userData.userId}/${picFilter[0].filename}`}
+								alt="avatar"
+								class="object-cover rounded-md"
+							/>
 						</figure>
-					</form>
-					{#if picFilter.length > 0}
-						<button
-							class="btn btn-sm btn-error rounded-lg border-2 mt-4"
-							onclick={() => onPicDelete(picFilter[0].filename, 'avatar')}
+						<form class="card-body w-full" method="POST" action={`?/delProfilePic`} use:enhance>
+							<input type="hidden" name="userId" value={userData.userId} />
+							<input type="hidden" name="fileName" value={picFilter[0].filename} />
+							<button
+								class="btn btn-sm btn-error rounded-lg border-2"
+								type="submit"
+								onclick={() => {
+									previewUrl = null;
+									fileInput.value = ''; // Reset the file input
+									URL.revokeObjectURL(previewUrl); // Clean up the object URL
+								}}
+							>
+								<Trash2 size="24" />Elimina foto
+							</button>
+						</form>
+					{:else}
+						<form
+							action={`?/setProfilePic`}
+							method="POST"
+							enctype="multipart/form-data"
+							use:enhance
+							class="card-body w-full"
 						>
-							<Trash2 size="24" />Elimina foto
-						</button>
+							<input type="hidden" name="userId" value={userData.userId} />
+							<div class="form-control w-full cursor-pointer">
+								<div
+									role="region"
+									class="form-control w-full relative h-48 rounded-lg border-2 transition-colors duration-200 {isDragging
+										? 'border-green-500 bg-green-50'
+										: 'border-dashed border-blue-700 bg-gray-100 hover:border-blue-500 hover:bg-gray-50'} flex justify-center items-center"
+									ondragenter={handleDragEnter}
+									ondragleave={handleDragLeave}
+									ondragover={handleDragOver}
+									ondrop={handleDrop}
+								>
+									<label class="form-control w-full h-full" for="fileUpload">
+										{#if previewUrl}
+											<div class="flex flex-col items-center justify-center h-full">
+												<img src={previewUrl} alt="Upload Preview" class="mt-2 max-h-32" />
+											</div>
+										{:else}
+											<div
+												class="flex flex-col items-center absolute inset-0 justify-center pointer-events-none"
+											>
+												<FolderOpen
+													size={64}
+													class={isDragging ? 'text-green-500' : 'text-blue-700'}
+												/>
+												<span class="block text-gray-600 font-normal text-center px-4">
+													{isDragging
+														? 'Rilascia il file qui'
+														: 'Drag & Drop oppure clicca per scegliere un file'}
+												</span>
+											</div>
+										{/if}
+										<input
+											type="file"
+											id="fileUpload"
+											name="fileUpload"
+											placeholder="image"
+											accept=".jpg, .jpeg, .png, .webp"
+											class="h-full w-full opacity-0 absolute top-0 left-0"
+											bind:this={fileInput}
+											onchange={(event) => {
+												const file = event.target.files[0];
+												if (file) {
+													previewUrl = URL.createObjectURL(file);
+												}
+											}}
+										/>
+									</label>
+								</div>
+							</div>
+							{#if previewUrl}
+								<button
+									class="btn btn-error btn-sm mt-4"
+									type="button"
+									onclick={() => {
+										previewUrl = null;
+										fileInput.value = ''; // Reset the file input
+										URL.revokeObjectURL(previewUrl); // Clean up the object URL
+									}}
+								>
+									cancella
+								</button>
+							{/if}
+							<button class="btn btn-sm btn-info rounded-lg border-2" type="submit">
+								Upload foto
+							</button>
+						</form>
 					{/if}
 					<!-- img end -->
 				</div>
@@ -900,7 +923,7 @@
 			</button>
 		</div>
 	</section>
-	<!-- section 2: immagine ecc -->
+	<!-- section 2 -->
 	<section class="card col-span-12 xl:col-span-6 gap-y-4 rounded-lg bg-white">
 		<div class="card-body pt-1">
 			<div class="card-body">

@@ -1,11 +1,12 @@
 import { redirect, fail } from '@sveltejs/kit';
+import { checkAuth } from '$lib/auth';
 import type { PageServerLoad, Actions } from './$types'
 
-export const load: PageServerLoad = async ({ fetch, locals }) => {
-	//console.log('locals', locals);
-	if (!locals.auth) {
-		throw redirect(302, '/login');
-	}
+export const load: PageServerLoad = async ({ fetch, locals, url }) => {
+	checkAuth(url.pathname, locals.auth, 'page');
+	// if (!locals.auth) {
+	// 	throw redirect(302, '/login');
+	// }
 	let getOrderData = [];
 	let getOrder = [];
 	// console.log('locals.data', locals.user.userId);
@@ -38,7 +39,6 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 export const actions: Actions = {
 	modifyUser: async ({ request, fetch }) => {
-
 		const formData = await request.formData();
 		const userId = formData.get('userId');
 		const name = formData.get('name');
@@ -72,7 +72,6 @@ export const actions: Actions = {
 		// console.log('namePublic', typeof namePublic, namePublic);
 		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
-
 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/modify`, {
 				method: 'POST',
 				headers: {
@@ -113,5 +112,102 @@ export const actions: Actions = {
 			console.error('Error creating new modifyUser:', error);
 			return { action: 'modifyUser', success: false, message: 'Errore creazione modifyUser' };
 		}
-	}
+	},
+	setProfilePic: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const userId = formData.get('userId');
+		const file = formData.get('fileUpload');
+
+		if (!userId || !file) {
+			return fail(400, { action: 'setProfilePic', success: false, message: 'Dati mancanti' });
+		}
+
+		try {
+			const uploadImg = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'x-file-name': file.name,
+					'x-folder-name': `user/${userId}`
+				},
+				body: file
+			});
+			const resImg = await uploadImg.json();
+			if (uploadImg.status != 200) return { action: 'new', success: false, message: resImg.message };
+
+			const response = await fetch(
+				`${import.meta.env.VITE_BASE_URL}/api/users/update-photo`,
+				{
+					method: 'POST',
+					body: JSON.stringify({
+						fileName: file.name,
+						userId, // filter in DB
+						type: 'avatar',
+						action: 'new'
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				}
+			);
+			const result = await response.json();
+
+			if (response.status == 200) {
+				return { action: 'new', success: true, message: result.message };
+			} else {
+				return { action: 'new', success: false, message: result.message };
+			}
+		} catch (error) {
+			console.error('Error upload:', error);
+			return { action: 'new', success: false, message: 'Errore upload' };
+		}
+	},
+	delProfilePic: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const userId = formData.get('userId');
+		const fileName = formData.get('fileName');
+		console.log(fileName);
+
+		if (!userId || !fileName) {
+			return fail(400, { action: 'delProfilePic', success: false, message: 'Dati mancanti' });
+		}
+
+		try {
+			const responseDelete = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
+				method: 'DELETE',
+				body: JSON.stringify({
+					dir: `user/${userId}`,
+					fileName
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const resDel = await responseDelete.json();
+			if (responseDelete.status != 200) return { action: 'delProfilePic', success: false, message: resDel.message };
+
+			const responseUpdate = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/update-photo`, {
+				method: 'POST',
+				body: JSON.stringify({
+					fileName,
+					userId, // filter in DB
+					type: 'avatar',
+					action: 'delete'
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const result = await responseUpdate.json();
+
+			if (responseUpdate.status == 200) {
+				return { action: 'delProfilePic', success: true, message: result.message };
+			} else {
+				return { action: 'delProfilePic', success: false, message: result.message };
+			}
+		} catch (error) {
+			console.error('Error delProfilePic:', error);
+			return { action: 'delProfilePic', success: false, message: 'Errore rimozione' };
+		}
+	},
 } satisfies Actions;

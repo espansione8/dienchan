@@ -12,7 +12,7 @@ if (!fs.existsSync(FILES_DIR)) {
 
 /** @type {import('./$types').RequestHandler} */
 export async function GET({ params, request }) {
-    const file_path = path.normalize(path.join(FILES_DIR, params.folder, params.name));
+    const file_path = path.normalize(path.join(FILES_DIR, params.type, params.folder, params.name));
 
     if (!fs.existsSync(file_path)) {
         return new Response('not found', { status: 400 });

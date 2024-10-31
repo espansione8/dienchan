@@ -12,7 +12,7 @@ import { User } from '$lib/models/Users.model';
 
 export const POST = async ({ request }) => {
 	const body = await request.json();
-	const { type, email, fileName, action } = body
+	const { type, userId, fileName, action } = body
 	// debug(`body: ${JSON.stringify(body)}`);
 	// console.log('body', body);
 
@@ -21,7 +21,7 @@ export const POST = async ({ request }) => {
 
 		//check esisting users
 		const pageId = await User.exists(
-			{ email }
+			{ userId }
 			//{ _id: 1, documentPageId: 1 }
 		)
 			.limit(1)
@@ -41,7 +41,7 @@ export const POST = async ({ request }) => {
 
 		if (action === 'new') {
 			const userUpdate = await User.updateOne(
-				{ email },
+				{ userId },
 				{
 					$push: {
 						uploadfiles: {
@@ -70,7 +70,7 @@ export const POST = async ({ request }) => {
 
 		if (action === 'delete') {
 			const userUpdate = await User.updateOne(
-				{ email },
+				{ userId },
 				{
 					$pull: {
 						uploadfiles: {

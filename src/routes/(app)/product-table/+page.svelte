@@ -911,9 +911,6 @@
 					</button>
 				</div>
 			</section>
-			<section class="lg:col-span-4 mt-2">
-				<DragDrop />
-			</section>
 		</form>
 	{/if}
 
