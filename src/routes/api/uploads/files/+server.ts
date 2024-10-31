@@ -1,11 +1,8 @@
 import { json } from '@sveltejs/kit';
-//import { promises } from 'node:fs';
 import fs from 'node:fs';
-//import fs from 'node:fs/promises'
 
 // import { promises as fsPromises } from 'node:fs';
 // import * as fs from 'node:fs';
-
 
 import path from 'node:path';
 import { Readable } from 'node:stream';
@@ -61,18 +58,6 @@ export const DELETE = async ({ request }) => {
 
         const filePath = path.join(FILES_DIR, dir, fileName);
         const dirPath = path.join(FILES_DIR, dir);
-
-        // Check if file exists before attempting deletion
-        // try {
-        //     await fs.access(filePath);
-        // } catch {
-        //     return json({ message: 'File not found' }, { status: 404 });
-        // }
-
-        // Delete the file
-        // fs.unlink(filePath);
-
-        // remove empty directory
 
         fs.unlink(filePath, (err) => {
             if (err) {

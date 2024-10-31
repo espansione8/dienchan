@@ -199,7 +199,7 @@
 		notificationContent = 'Registrazione effettuta, completare il profilo';
 	}
 
-	// DRAG & DROP FILE UPLOAD SNIPPET
+	// DRAG & DROP FILE UPLOAD
 	// import { FolderOpen } from "lucide-svelte";
 	let fileInput = $state();
 	let previewUrl: string | null = $state(null);

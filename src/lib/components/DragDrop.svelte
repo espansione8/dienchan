@@ -2,6 +2,7 @@
 	import { FolderOpen } from 'lucide-svelte';
 
 	//let {children, fileInput = $bindable([]), previewUrl = $bindable(null) } = $props();
+	let { inputName = 'fileUpload' } = $props();
 
 	// DRAG & DROP FILE UPLOAD
 	let fileInput = $state();
@@ -79,12 +80,12 @@
 		ondragover={handleDragOver}
 		ondrop={handleDrop}
 	>
-		<label class="form-control w-full h-full" for="fileUpload">
+		<label class="form-control w-full h-full" for={inputName}>
 			{#if previewUrl}
 				<div class="flex flex-col items-center justify-center">
 					<img src={previewUrl} alt="Upload Preview" class="mt-2 max-h-32" />
 					<button
-						class="btn btn-error btn-sm mt-4"
+						class="btn btn-error btn-sm mt-4 z-index-10"
 						type="button"
 						onclick={() => {
 							previewUrl = null;
@@ -107,8 +108,8 @@
 			{/if}
 			<input
 				type="file"
-				id="fileUpload"
-				name="fileUpload"
+				id={inputName}
+				name={inputName}
 				placeholder="image"
 				accept=".jpg, .jpeg, .png, .webp"
 				class="h-full w-full opacity-0 absolute top-0 left-0"

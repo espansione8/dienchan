@@ -47,17 +47,13 @@ export const actions: Actions = {
 		const price = formData.get('price');
 		const prodImage = formData.get('product-primary') || '';
 		// const headers = { 'x-file-name': prodImage.name, 'x-folder-name': prodId }; // NOTE: change folder name to userid
-		// console.log('prodImage', prodImage, headers);
+		console.log('prodImage', prodImage);
 
 		if (!title || !descrShort || !stockQty || !price) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
 
 		try {
-			//const upload = create_upload();
-			//const uploadImg = await upload.start({ url: `${import.meta.env.VITE_BASE_URL}/api/uploads/files`, prodImage, headers });
-			//if (uploadImg.status == 200) return { action: 'new', success: true, message: 'file OK' };
-
 			const uploadImg = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
 				method: 'POST',
 				headers: {

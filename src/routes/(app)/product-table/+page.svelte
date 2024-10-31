@@ -569,51 +569,51 @@
 	};
 	//clearTimeout(startTimeout); // reset timer
 
-	// DRAG & DROP FILE UPLOAD SNIPPET
-	// import { FolderOpen } from "lucide-svelte";
-	let fileInput = $state();
-	let previewUrl: string | null = $state(null);
-	let isDragging = $state(false);
-	let dragCounter = $state(0);
+	// // DRAG & DROP FILE UPLOAD SNIPPET
+	// // import { FolderOpen } from "lucide-svelte";
+	// let fileInput = $state();
+	// let previewUrl: string | null = $state(null);
+	// let isDragging = $state(false);
+	// let dragCounter = $state(0);
 
-	const handleDragEnter = (e) => {
-		e.preventDefault();
-		e.stopPropagation();
-		dragCounter++;
-		isDragging = true;
-	};
+	// const handleDragEnter = (e) => {
+	// 	e.preventDefault();
+	// 	e.stopPropagation();
+	// 	dragCounter++;
+	// 	isDragging = true;
+	// };
 
-	const handleDragLeave = (e) => {
-		e.preventDefault();
-		e.stopPropagation();
-		dragCounter--;
-		if (dragCounter === 0) {
-			isDragging = false;
-		}
-	};
+	// const handleDragLeave = (e) => {
+	// 	e.preventDefault();
+	// 	e.stopPropagation();
+	// 	dragCounter--;
+	// 	if (dragCounter === 0) {
+	// 		isDragging = false;
+	// 	}
+	// };
 
-	const handleDragOver = (e) => {
-		e.preventDefault();
-		e.stopPropagation();
-		isDragging = true;
-	};
+	// const handleDragOver = (e) => {
+	// 	e.preventDefault();
+	// 	e.stopPropagation();
+	// 	isDragging = true;
+	// };
 
-	const handleDrop = (e) => {
-		e.preventDefault();
-		e.stopPropagation();
-		isDragging = false;
-		dragCounter = 0;
+	// const handleDrop = (e) => {
+	// 	e.preventDefault();
+	// 	e.stopPropagation();
+	// 	isDragging = false;
+	// 	dragCounter = 0;
 
-		const files = e.dataTransfer.files;
-		if (files.length) {
-			const file = files[0];
-			// Check file type
-			if (file.type.match(/^image\/(jpg|jpeg|png|webp)$/)) {
-				fileInput.files = files; // Update the input's files
-				previewUrl = URL.createObjectURL(file);
-			}
-		}
-	};
+	// 	const files = e.dataTransfer.files;
+	// 	if (files.length) {
+	// 		const file = files[0];
+	// 		// Check file type
+	// 		if (file.type.match(/^image\/(jpg|jpeg|png|webp)$/)) {
+	// 			fileInput.files = files; // Update the input's files
+	// 			previewUrl = URL.createObjectURL(file);
+	// 		}
+	// 	}
+	// };
 </script>
 
 <svelte:head>
@@ -845,7 +845,8 @@
 				<label for="product-primary" class="form-label">
 					<p class="font-bold mb-2">foto prodotto</p>
 				</label>
-				{#if previewUrl}
+				<DragDrop inputName="product-primary" />
+				<!-- {#if previewUrl}
 					<div class="flex flex-col items-center justify-center">
 						<img src={previewUrl} alt="Upload Preview" class="mt-2 max-h-40" />
 						<button
@@ -901,7 +902,7 @@
 							</label>
 						</div>
 					</div>
-				{/if}
+				{/if} -->
 			</section>
 			<section class="lg:col-span-4 mt-2">
 				<div class="col-span-4 mt-10 flex justify-center">
