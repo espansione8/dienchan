@@ -356,6 +356,7 @@
 							</button>
 						</form>
 					{/if}
+
 					<!-- img end -->
 				</div>
 				<div class="card-body p-6 w-1/2">

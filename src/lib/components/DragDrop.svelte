@@ -1,7 +1,24 @@
 <script lang="ts">
+	// INSTRUCTION server action
+	// const formData = await request.formData();
+	// const userId = formData.get('userId');
+	// const file = formData.get('setProfilePic') || '';
+
+	// const uploadImg = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
+	// 			method: 'POST',
+	// 			headers: {
+	// 				'Content-Type': 'application/json',
+	// 				'x-file-name': file.name,
+	// 				'x-folder-name': `user/${userId}`
+	// 			},
+	// 			body: file
+	// 		});
+	// if (uploadImg.status == 200) return { action: 'new', success: true, message: 'file OK' };
+
+	// INSTRUCTION frontend
+	// <DragDrop inputName="setProfilePic">
 	import { FolderOpen } from 'lucide-svelte';
 
-	//let {children, fileInput = $bindable([]), previewUrl = $bindable(null) } = $props();
 	let { inputName = 'fileUpload' } = $props();
 
 	// DRAG & DROP FILE UPLOAD
@@ -48,25 +65,6 @@
 			}
 		}
 	};
-
-	// INSTRUCTION server action
-	// const formData = await request.formData();
-	// const userId = formData.get('userId');
-	// const file = formData.get('setProfilePic') || '';
-
-	// const uploadImg = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
-	// 			method: 'POST',
-	// 			headers: {
-	// 				'Content-Type': 'application/json',
-	// 				'x-file-name': file.name,
-	// 				'x-folder-name': `user/${userId}`
-	// 			},
-	// 			body: file
-	// 		});
-	// if (uploadImg.status == 200) return { action: 'new', success: true, message: 'file OK' };
-
-	// INSTRUCTION frontend
-	// <DragDrop inputName="setProfilePic">
 </script>
 
 <div class="form-control w-full cursor-pointer">
@@ -84,17 +82,6 @@
 			{#if previewUrl}
 				<div class="flex flex-col items-center justify-center">
 					<img src={previewUrl} alt="Upload Preview" class="mt-2 max-h-32" />
-					<button
-						class="btn btn-error btn-sm mt-4 z-index-10"
-						type="button"
-						onclick={() => {
-							previewUrl = null;
-							fileInput.value = ''; // Reset the file input
-							URL.revokeObjectURL(previewUrl); // Clean up the object URL
-						}}
-					>
-						cancella
-					</button>
 				</div>
 			{:else}
 				<div class="flex flex-col items-center absolute inset-0 justify-center pointer-events-none">
@@ -123,4 +110,17 @@
 			/>
 		</label>
 	</div>
+	{#if previewUrl}
+		<button
+			class="btn btn-error btn-sm mt-4 mb-1"
+			type="button"
+			onclick={() => {
+				previewUrl = null;
+				fileInput.value = ''; // Reset the file input
+				URL.revokeObjectURL(previewUrl); // Clean up the object URL
+			}}
+		>
+			cancella
+		</button>
+	{/if}
 </div>
