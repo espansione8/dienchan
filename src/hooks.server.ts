@@ -59,7 +59,7 @@ export const handle: Handle = async ({ event, resolve, }) => {
 	//event.locals.user = '';
 	event.locals.user = false;
 	event.locals.auth = false;
-	//event.locals.session =''
+	// $page.data.user $page.data.auth DEFINE in +layout.server.ts in root
 	sequence(i18n.handle())
 	return resolve(event);
 }

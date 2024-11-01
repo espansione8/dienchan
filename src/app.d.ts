@@ -189,11 +189,12 @@ declare namespace App {
 	}
 	/// start default
 	interface Locals {
-    paraglide: ParaglideLocals<AvailableLanguageTag>,
+		paraglide: ParaglideLocals<AvailableLanguageTag>,
 
 		//user: string;
-		user: Partial<UserModel> | Record<string, never> | boolean;
-		auth: boolean;
+		// user: Partial<UserModel> | Record<string, never> | boolean;
+		// auth: boolean;
+
 		// extra not used
 		session: string;
 		otherData?: any; // You might want to define a more specific type for this

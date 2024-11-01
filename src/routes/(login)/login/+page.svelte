@@ -4,6 +4,8 @@
 	import Notification from '$lib/components/Notification.svelte';
 	// import LoginForm from '$lib/components/LoginForm.svelte';
 	// import RegisterForm from '$lib/components/RegisterForm.svelte';
+	import { page } from '$app/stores';
+	console.log('page.data requestId', $page.data);
 
 	// notification
 	let toastClosed: boolean = $state(true);
