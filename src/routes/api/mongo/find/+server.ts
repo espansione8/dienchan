@@ -11,9 +11,9 @@ import type { RequestHandler } from '@sveltejs/kit';
 // const email = emailToCheck.replace(/\s+/g, '').toLowerCase();
 // INSTRUCTION
 // const query = { type: 'product', price: { $gt: 50 } };
-// const projection = { _id: 0, password: 0 } 0: exclude | 1: include
-// const sort = { createdAt: 1 } // 1:Sort ascending | -1:Sort descending
-// const limit = 1000;
+// const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
+// const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
+// const limit = 1;
 // const skip = 0;
 // const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
 // 	method: 'POST',
@@ -21,7 +21,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 // 		schema: 'product', //product | order | user | layout | discount
 // 		query,
 // 		projection,
-//		sort,
+// 		sort,
 // 		limit,
 // 		skip
 // 	}),
@@ -72,6 +72,6 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	} catch (err) {
 		console.log('search ERROR:', err);
-		return json({ message: `search error: ${err}` }, { status: 500 });
+		return json({ message: `search ERROR: ${err}` }, { status: 500 });
 	}
 };

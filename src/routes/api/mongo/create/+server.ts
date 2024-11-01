@@ -12,10 +12,10 @@ import type { RequestHandler } from '@sveltejs/kit';
 // INSTRUCTION
 // import stringHash from 'string-hash';
 // const newId = stringHash(crypto.randomUUID());
-// const newDoc = { 
+// const newDoc = {
 // 	docId: newId,
-// 	title: 'product', 
-// 	price: { $gt: 50 } 
+// 	title: 'product',
+// 	price: { $gt: 50 }
 // };
 // const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
 // 	method: 'POST',
@@ -46,12 +46,13 @@ export const POST: RequestHandler = async ({ request }) => {
 	try {
 		await dbConnect();
 		const insert = await model.create(newDoc);
+		//console.log('insert', insert);
 
 		if (insert) return { message: 'insert ok', status: 200 };
 		return { message: 'insert error', status: 400 };
 
 	} catch (err) {
-		console.log('registerUser ERROR:', err);
-		return json({ message: 'Registrazione corso fallita' }, { status: 500 });
+		console.log('insert ERROR:', err);
+		return json({ message: 'insert ERROR' }, { status: 500 });
 	}
 };

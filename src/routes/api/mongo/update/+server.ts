@@ -8,25 +8,27 @@ import { Discount } from '$lib/models/Discounts.model';
 import dbConnect from '$lib/database';
 import type { RequestHandler } from '@sveltejs/kit';
 
-// const email = emailToCheck.replace(/\s+/g, '').toLowerCase();
+// const email = emailToCheck.replace(/\s+/g, '').toLowerCase(); | string.toLowerCase().trim()
 // INSTRUCTION
-// const query = { type: 'product' };
-// const update = { $set: {
-//     name: 'jake', 
-//     age: 30  
-// }};
+// const query = { type: 'agent', userId: '5f8d9f4d0a1f2c1c6e1b3d' };
+// const update = {
+//     $set: {
+//         name: 'jake',
+//         age: 30
+//     }
+// };
 // const options = { upsert: false, multi: false }
 // const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
-// 	method: 'POST',
-// 	body: JSON.stringify({
-// 		schema: 'product', //product | order | user | layout | discount
-//      query,
-//      update,
-//      options
-// 	}),
-// 	headers: {
-// 		'Content-Type': 'application/json'
-// 	}
+//     method: 'POST',
+//     body: JSON.stringify({
+//         schema: 'user', //product | order | user | layout | discount
+//         query,
+//         update,
+//         options
+//     }),
+//     headers: {
+//         'Content-Type': 'application/json'
+//     }
 // });
 // const response = await res.json();
 

@@ -10,18 +10,18 @@ import type { RequestHandler } from '@sveltejs/kit';
 
 // const email = emailToCheck.replace(/\s+/g, '').toLowerCase();
 // INSTRUCTION
-// const query = { type: 'product' };
-// const options = { justOne: true|false }
+// const query = { type: 'product', price: 0 };
+// const options = { justOne: true | false }
 // const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/remove`, {
-// 	method: 'POST',
-// 	body: JSON.stringify({
-// 		schema: 'product', //product | order | user | layout | discount
-//      query,
-//      options,
-// 	}),
-// 	headers: {
-// 		'Content-Type': 'application/json'
-// 	}
+//     method: 'POST',
+//     body: JSON.stringify({
+//         schema: 'product', //product | order | user | layout | discount
+//         query,
+//         options,
+//     }),
+//     headers: {
+//         'Content-Type': 'application/json'
+//     }
 // });
 // const response = await res.json();
 
