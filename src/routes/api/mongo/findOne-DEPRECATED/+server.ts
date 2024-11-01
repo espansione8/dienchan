@@ -8,13 +8,16 @@ import { Discount } from '$lib/models/Discounts.model';
 import dbConnect from '$lib/database';
 import type { RequestHandler } from '@sveltejs/kit';
 
+// const email = emailToCheck.replace(/\s+/g, '').toLowerCase();
 // INSTRUCTION
 // const query = { title: 'name' }; // for prods: type:'course' | 'product' | 'membership' | 'event'
+// const options = { _id: 0, password: 0 }
 // const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/findOne`, {
 // 	method: 'POST',
 // 	body: JSON.stringify({
 // 		schema: 'layout', //product | order | user | layout | discount
 // 		query,
+// 		options
 // 	}),
 // 	headers: {
 // 		'Content-Type': 'application/json'
@@ -22,13 +25,12 @@ import type { RequestHandler } from '@sveltejs/kit';
 // });
 // const response = await res.json();
 
-//const email = emailToCheck.replace(/\s+/g, '').toLowerCase();
-
 export const POST: RequestHandler = async ({ request }) => {
 	const body = await request.json();
 	const {
 		schema,
 		query,
+		options
 	} = body;
 
 	let model: any;
@@ -40,10 +42,9 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	try {
 		await dbConnect();
-		const doc = await model.findOne(query, { _id: 0, password: 0 })
+		const doc = await model.findOne(query, options)
 			.lean()
 			.exec();
-		console.log('one:', doc);
 
 		if (doc) {
 			return json(doc, { status: 200 });

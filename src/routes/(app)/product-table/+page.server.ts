@@ -10,6 +10,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	try {
 		// NEW GET PROD
 		const query = { type: 'product' };
+		const options = { _id: 0, password: 0 }
 		const limit = 1000;
 		const skip = 0;
 		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
@@ -17,6 +18,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			body: JSON.stringify({
 				schema: 'product', //product | order | user | layout | discount
 				query,
+				options,
 				limit,
 				skip
 			}),
