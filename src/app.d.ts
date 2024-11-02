@@ -192,8 +192,8 @@ declare namespace App {
 		paraglide: ParaglideLocals<AvailableLanguageTag>,
 
 		//user: string;
-		// user: Partial<UserModel> | Record<string, never> | boolean;
-		// auth: boolean;
+		user: Partial<UserModel> | Record<string, never> | boolean;
+		auth: boolean;
 
 		// extra not used
 		session: string;

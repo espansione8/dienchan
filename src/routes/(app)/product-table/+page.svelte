@@ -45,54 +45,6 @@
 	let price = $state(0);
 	let prodId = $state('');
 
-	const onPicDelete = async (fileName: any, inputId: any) => {
-		// remove from DB
-		const responseUpdate = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/update-photo`, {
-			method: 'POST',
-			body: JSON.stringify({
-				fileName,
-				prodId, // filter in DB
-				type: inputId,
-				action: 'delete'
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		if (responseUpdate.status == 200) {
-			let content = (await responseUpdate.json()).message;
-			toastClosed = false;
-			notificationContent = content;
-			closeNotification();
-			invalidateAll();
-			is_upload_submitting = false;
-		} else {
-			let error = (await responseUpdate.json()).message;
-			toastClosed = false;
-			notificationContent = error;
-			notificationError = true;
-			invalidateAll();
-			is_upload_submitting = false;
-		}
-		// remove from disk
-		const responseDelete = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
-			method: 'DELETE',
-			body: JSON.stringify({
-				prodId: prodId,
-				fileName: fileName
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		if (responseDelete.status != 200) {
-			let error = (await responseDelete.json()).message;
-			toastClosed = false;
-			notificationContent = error;
-			notificationError = true;
-		}
-	};
-
 	const csvCreate = () => {
 		let csv = $state('');
 		let newList: any = $state();
@@ -542,11 +494,15 @@
 	$effect(() => {
 		if (form != null) {
 			async () => await invalidateAll(); // MUST be async/await or tableList = getTable will trigger infinite loop
-			const { action, success, message } = form;
+			const { action, success, message, filterTableList } = form;
 			if (success) {
 				//fieldReset();
 				isModal = false;
-				tableList = getTable;
+				if (filterTableList) {
+					tableList = filterTableList;
+				} else {
+					tableList = getTable;
+				}
 			} else {
 				notificationError = true;
 			}
@@ -568,6 +524,9 @@
 		}, 5000); // 1000 milliseconds = 1 second
 	};
 	//clearTimeout(startTimeout); // reset timer
+
+	// import * as m from '$lib/paraglide/messages.js';
+	// import { languageTag } from '$lib/paraglide/runtime';
 </script>
 
 <svelte:head>
@@ -584,6 +543,8 @@
 </noscript>
 
 <div class="overflow-x-auto mt-5 px-4 mb-5">
+	<!-- {languageTag()}
+	{m.home} -->
 	<div class="flex flex-col gap-4 mb-4">
 		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Lista prodotti</h1>
 		<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
@@ -632,7 +593,13 @@
 				<tr class="hover:bg-gray-100">
 					<td>{row.prodId}</td>
 					<td>
-						<img class="max-h-20" src={row.urlPic || '/images/picture.png'} alt={row.title} />
+						<img
+							class="max-h-20"
+							src={row.uploadfiles[0]?.type == 'product-primary'
+								? `files/${row.uploadfiles[0]?.fileUrl}`
+								: '/images/picture.png'}
+							alt={row.title}
+						/>
 					</td>
 					<td class="">
 						<form method="POST" action={`?/changeStatus`} use:enhance>
@@ -924,86 +891,7 @@
 					/>
 				</div>
 			</section>
-			<!-- 	<section class="lg:col-span-4 mt-20">
-		<h4 class="text-center text-lg font-bold text-gray-900">Immagine Principale</h4>
-		<p class="text-center text-sm text-gray-600">(Solo un file)</p>
-		<div class="mb-6">
-			<div class="flex justify-center">
-				<label class="btn btn-primary btn-lg rounded-lg mt-2 hover:text-white">
-					<input
-						type="file"
-						name="file-to-upload"
-						accept="image/png, image/jpeg"
-						bind:files
-						bind:this={fileInput}
-						onchange={() => getBase64(files[0], 'primary')}
-						onclick={(event) => (event.target.value = null)}
-						class="hidden"
-					/>
-					<span class="flex items-center justify-center">
-						<CloudUpload class="mr-2" />
-						Carica JPG/PNG
-					</span>
-				</label>
-			</div>
-			<ul class="mt-6 list-none text-center">
-				{#each filesJpgPrimary as element}
-					<li class="mt-2">
-						<button
-							type="button"
-							class="btn btn-error ml-6"
-							onclick={() => deleteFunctionPrimary(element)}
-						>
-							<SquareX />
-						</button>
-						{element}
-					</li>
-				{/each}
-			</ul>
-		</div>
-	</section>
-	<div class="col-span-4 mx-auto border-t border-blue-700 w-96 mt-2" />
-	<section class="lg:col-span-4">
-		<h4 class="text-center text-lg font-bold text-gray-900">Immagini galleria</h4>
-		<p class="text-center text-sm text-gray-600">
-			(Seleziona i files uno alla volta) <br />
-			Massimo 8 files
-		</p>
-		<div class="mb-6">
-			<div class="flex justify-center">
-				<label class="btn btn-primary btn-lg rounded-lg mt-2 hover:text-white">
-					<input
-						type="file"
-						name="file-to-upload"
-						accept=".jpg, .png"
-						bind:files
-						bind:this={fileInput}
-						onchange={() => getBase64(files[0], 'gallery')}
-						onclick={(event) => (event.target.value = null)}
-						class="hidden"
-					/>
-					<span class="flex items-center justify-center">
-						<CloudUpload class="mr-2" />
-						{filesJpgArray.length > 0 ? `Carica Ancora JPG/PNG…` : `Carica JPG/PNG`}
-					</span>
-				</label>
-			</div>
-			<ul class="mt-6 list-none text-center">
-				{#each filesJpgArray as element}
-					<li class="mt-2">
-						<button
-							type="button"
-							class="btn btn-error ml-6"
-							onclick={() => deleteFunctionJPG(element)}
-						>
-							<SquareX />
-						</button>
-						{element}
-					</li>
-				{/each}
-			</ul>
-		</div>
-	</section> -->
+
 			<section class="lg:col-span-4 mt-2">
 				<div class="col-span-4 mt-10 flex justify-center">
 					<button class="btn btn-error mx-1" type="button" onclick={onCloseModal}>Annulla</button>
@@ -1040,7 +928,7 @@
 					/>
 				</div>
 
-				<div>
+				<!-- <div>
 					<label for="price" class="block text-sm font-medium text-gray-700 mb-1">Prezzo</label>
 					<input
 						class="input input-bordered join-item w-full"
@@ -1050,7 +938,7 @@
 						placeholder="Prezzo"
 						bind:value={price}
 					/>
-				</div>
+				</div> -->
 
 				<div>
 					<label for="category" class="block text-sm font-medium text-gray-700 mb-1"

@@ -1,9 +1,14 @@
 import { redirect } from '@sveltejs/kit';
 
-// in +page.server.ts
-// import { checkAuth } from '$lib/auth';
+// STANDARD MODE in +page.server.ts
+// import { pageAuth } from '$lib/pageAuth';
 // export const load: PageServerLoad = async ({ fetch, locals, url }) => {
-// checkAuth(url.pathname, locals.auth, 'route|page'); 
+// pageAuth(url.pathname, locals.auth, 'route|page'); 
+
+// MANUAL MODE +page.server.ts
+// if (!locals.auth) {
+// 		throw redirect(302, '/login');
+// 	}
 
 const protectedRoutes = [
     '/app',
@@ -23,7 +28,7 @@ const protectedPages = [
     // page dir
 ]
 
-export const checkAuth = (url: string, auth: boolean, mode: string) => {
+export const pageAuth = (url: string, auth: boolean, mode: string) => {
     let checkPath = false;
     if (mode == 'route') checkPath = protectedRoutes.some(route => url.startsWith(route))
     if (mode == 'page') checkPath = protectedPages.some(route => url == route)

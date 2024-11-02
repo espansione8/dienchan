@@ -12,6 +12,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 // INSTRUCTION
 // import stringHash from 'string-hash';
 // const newId = stringHash(crypto.randomUUID());
+// const returnObj = false // return new Doc instead of String
 // const newDoc = {
 // 	docId: newId,
 // 	title: 'product',
@@ -21,7 +22,8 @@ import type { RequestHandler } from '@sveltejs/kit';
 // 	method: 'POST',
 // 	body: JSON.stringify({
 // 		schema: 'product', //product | order | user | layout | discount
-// 		newDoc
+// 		newDoc,
+//		returnObj
 // 	}),
 // 	headers: {
 // 		'Content-Type': 'application/json'
@@ -34,6 +36,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	const {
 		schema,
 		newDoc,
+		returnObj
 	} = body;
 
 	let model: any;
@@ -46,13 +49,17 @@ export const POST: RequestHandler = async ({ request }) => {
 	try {
 		await dbConnect();
 		const insert = await model.create(newDoc);
-		//console.log('insert', insert);
+		//console.log('insert API', insert._id);
 
-		if (insert) return { message: 'insert ok', status: 200 };
-		return { message: 'insert error', status: 400 };
+		if (insert._id) {
+			if (returnObj) { return json(insert, { status: 200 }); }
+			else { return json({ message: 'insert ok', status: 200 }); }
+		}
+
+		return json({ message: 'insert error', status: 400 });
 
 	} catch (err) {
 		console.log('insert ERROR:', err);
-		return json({ message: 'insert ERROR' }, { status: 500 });
+		return json({ message: 'insert ERROR' }, { status: 505 });
 	}
 };

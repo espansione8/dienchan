@@ -1,12 +1,10 @@
 import { redirect, fail } from '@sveltejs/kit';
-import { checkAuth } from '$lib/auth';
+import { pageAuth } from '$lib/pageAuth';
 import type { PageServerLoad, Actions } from './$types'
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
-	checkAuth(url.pathname, locals.auth, 'page');
-	// if (!locals.auth) {
-	// 	throw redirect(302, '/login');
-	// }
+	pageAuth(url.pathname, locals.auth, 'page');
+
 	let getOrderData = [];
 	let getOrder = [];
 	// console.log('locals.data', locals.user.userId);

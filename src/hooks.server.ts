@@ -35,31 +35,17 @@ export const handle: Handle = async ({ event, resolve, }) => {
 				return response;
 			}
 
-			//route protection DEBUG: event.url detect API URL in +page.server, not the current page
-			// if (event.url.pathname.startsWith('/app')) {
-			//     if (!event.locals.auth) {
-			//         console.log('not logged');
-			//         throw redirect(400, '/login');
-			//     }
-			// }
-			//////
-
-			// // Define routes that require authentication
-			// const protectedRoutes = ['/app', '/product-table'];
-			// // Check if the current route is protected and user is not authenticated
-			// if (protectedRoutes.some(route => event.url.pathname.startsWith(route)) && !event.locals.auth) {
-			// 	throw redirect(302, '/login');
-			// }
-
 		} catch (error) {
 			console.log('hook error:', error);
 			return resolve(event);
 		}
 	}
-	//event.locals.user = '';
+	// DEFINE in +layout.server.ts in root
 	event.locals.user = false;
 	event.locals.auth = false;
-	// $page.data.user $page.data.auth DEFINE in +layout.server.ts in root
+	// FRONTEND USE
+	// import { page } from '$app/stores';
+	// $page.data.user $page.data.auth 
 	sequence(i18n.handle())
 	return resolve(event);
 }

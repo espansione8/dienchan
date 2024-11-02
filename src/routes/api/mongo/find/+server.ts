@@ -65,9 +65,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			})
 			.lean().exec();
 
-		if (find) {
-			return json(find, { status: 200 });
-		}
+		if (find) return json(find, { status: 200 });
 		return json({ message: 'search error' }, { status: 400 });
 
 	} catch (err) {

@@ -1,16 +1,17 @@
 import { fail } from '@sveltejs/kit';
 import stringHash from 'string-hash';
-import { checkAuth } from '$lib/auth';
+import { pageAuth } from '$lib/pageAuth';
 import type { PageServerLoad, Actions } from './$types'
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
-	checkAuth(url.pathname, locals.auth, 'page');
+	pageAuth(url.pathname, locals.auth, 'page');
 
 	let getTable = [];
 	try {
 		// NEW GET PROD
 		const query = { type: 'product' };
-		const options = { _id: 0, password: 0 }
+		const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
+		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 		const limit = 1000;
 		const skip = 0;
 		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
@@ -18,7 +19,8 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			body: JSON.stringify({
 				schema: 'product', //product | order | user | layout | discount
 				query,
-				options,
+				projection,
+				sort,
 				limit,
 				skip
 			}),
@@ -48,7 +50,26 @@ export const actions: Actions = {
 		const category = formData.get('category') || '';
 		const price = formData.get('price');
 		const prodImage = formData.get('product-primary') || '';
-		//console.log('prodImage', prodImage);
+
+		const returnObj = false
+		const newDoc = {
+			prodId,
+			title,
+			descrShort,
+			stockQty,
+			category: [category],
+			price,
+			uploadfiles: [
+				{
+					_id: false,
+					type: 'product-primary',
+					filetype: prodImage.type,
+					filename: prodImage.name,
+					fileUrl: `product/${prodId}/${prodImage.name}`
+				}
+			],
+		};
+		//console.log('newDoc', newDoc);
 
 		if (!title || !descrShort || !stockQty || !price) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
@@ -64,35 +85,34 @@ export const actions: Actions = {
 				},
 				body: prodImage
 			});
-			if (uploadImg.status == 200) return { action: 'new', success: true, message: 'file OK' };
+			if (uploadImg.status != 200) return { action: 'new', success: fail, message: 'errore file upload' };
 
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/products/new`, {
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
 				method: 'POST',
+				body: JSON.stringify({
+					schema: 'product', //product | order | user | layout | discount
+					newDoc,
+					returnObj
+				}),
 				headers: {
 					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					prodId,
-					title,
-					descrShort,
-					stockQty,
-					category,
-					price,
-				})
+				}
 			});
-			const result = await response.json();
+			const response = await res.json();
+			// console.log('res', res);
+			// console.log('response', response);
 
-			if (response.status == 200) {
-				return { action: 'new', success: true, message: result.message };
+			if (res.status == 200) {
+				return { action: 'new', success: true, message: response.message };
 			} else {
-				return { action: 'new', success: false, message: result.message };
+				return { action: 'new', success: false, message: response.message };
 			}
 		} catch (error) {
 			console.error('Error creating new prod:', error);
 			return { action: 'new', success: false, message: 'Errore creazione' };
 		}
 	},
-
+	// TODO
 	modify: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');
@@ -132,7 +152,7 @@ export const actions: Actions = {
 			return { action: 'modify', success: false, message: 'Errore modify' };
 		}
 	},
-
+	// TODO
 	delete: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');
@@ -157,37 +177,45 @@ export const actions: Actions = {
 			return { action: 'delete', success: false, message: 'Errore delete' };
 		}
 	},
-	//TODO
+	// TODO
 	filter: async ({ request, fetch }) => {
 		const formData = await request.formData();
-		const countryState = formData.get('countryState');
-		const layoutId = formData.get('layoutId');
-		const userId = formData.get('userId');
+		const title = formData.get('title');
+		//const price = formData.get('price');
+		const category = formData.get('category');
 		// console.log('layoutId', layoutId);
 
-		const arrayField = ['countryState', 'layoutId', 'userId', 'type'];
-		const arrayValue = [countryState, layoutId, userId, 'course'];
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
+			const query = {
+				...(title && { title }),
+				...(category && { category }),
+			};
+			console.log('query', query);
+
+			const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
+			const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
+			const limit = 100;
+			const skip = 0;
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
 				method: 'POST',
 				body: JSON.stringify({
-					schema: 'product',
-					arrayField,
-					arrayValue
+					schema: 'product', //product | order | user | layout | discount
+					query,
+					projection,
+					sort,
+					limit,
+					skip
 				}),
 				headers: {
 					'Content-Type': 'application/json'
 				}
 			});
-			//console.log('response', response);
-			const result = await response.json();
+			const response = await res.json();
 
-			if (response.status == 200) {
-				const filterTableList = result.map((obj: any) => ({
+			if (res.status == 200) {
+				const filterTableList = response.map((obj: any) => ({
 					...obj,
-					createdAt: obj.createdAt.substring(0, 10),
-					eventStartDate: obj.eventStartDate.substring(0, 10),
-					timeStartDate: obj.eventStartDate.substring(11, 16)
+					createdAt: obj.createdAt.substring(0, 10)
 				}));
 				return { action: 'filter', success: true, message: 'Filtro applicato', filterTableList };
 
@@ -199,7 +227,7 @@ export const actions: Actions = {
 			return { action: 'filter', success: false, message: 'Errore filter' };
 		}
 	},
-
+	// TODO
 	changeStatus: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');
