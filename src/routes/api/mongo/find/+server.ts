@@ -10,6 +10,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 
 // const email = emailToCheck.replace(/\s+/g, '').toLowerCase();
 // INSTRUCTION
+// const apiKey = import.meta.env.VITE_APIKEY;
 // const query = { type: 'product', price: { $gt: 50 } };
 // const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
 // const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
@@ -18,6 +19,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 // const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
 // 	method: 'POST',
 // 	body: JSON.stringify({
+// 		apiKey,
 // 		schema: 'product', //product | order | user | layout | discount
 // 		query,
 // 		projection,
@@ -34,6 +36,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 export const POST: RequestHandler = async ({ request }) => {
 	const body = await request.json();
 	const {
+		apiKey,
 		schema,
 		query,
 		projection,
@@ -41,6 +44,10 @@ export const POST: RequestHandler = async ({ request }) => {
 		limit,
 		skip
 	} = body;
+
+	if (apiKey !== import.meta.env.VITE_APIKEY) {
+		return json({ message: 'api error' }, { status: 401 });
+	}
 
 	let model: any;
 	if (schema == 'product') model = Product;
@@ -64,6 +71,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				options: { strictPopulate: false }
 			})
 			.lean().exec();
+		//console.log('find', find);
 
 		if (find) return json(find, { status: 200 });
 		return json({ message: 'search error' }, { status: 400 });

@@ -2,11 +2,17 @@ import { fail } from '@sveltejs/kit';
 import stringHash from 'string-hash';
 import { pageAuth } from '$lib/pageAuth';
 import type { PageServerLoad, Actions } from './$types'
+/// test
+// import dbConnect from '$lib/database';
+// import { Product } from '$lib/models/Products.model';
+
+const apiKey = import.meta.env.VITE_APIKEY;
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
 
 	let getTable = [];
+	let categories = [];
 	try {
 		// NEW GET PROD
 		const query = { type: 'product' };
@@ -17,6 +23,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
+				apiKey,
 				schema: 'product', //product | order | user | layout | discount
 				query,
 				projection,
@@ -29,6 +36,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			}
 		});
 		getTable = await res.json();
+		categories = [...new Set(getTable.flatMap((item: any) => item.category))];
 
 	} catch (error) {
 		console.log('products-table fetch error:', error);
@@ -36,11 +44,11 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 
 	return {
 		getTable,
+		categories
 	};
 }
 
 export const actions: Actions = {
-	//sampleAction: async ({ request, fetch, locals }) => {
 	new: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const prodId = stringHash(crypto.randomUUID());
@@ -69,6 +77,7 @@ export const actions: Actions = {
 				}
 			],
 		};
+
 		//console.log('newDoc', newDoc);
 
 		if (!title || !descrShort || !stockQty || !price) {
@@ -90,6 +99,7 @@ export const actions: Actions = {
 			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
 				method: 'POST',
 				body: JSON.stringify({
+					apiKey,
 					schema: 'product', //product | order | user | layout | discount
 					newDoc,
 					returnObj
@@ -112,7 +122,7 @@ export const actions: Actions = {
 			return { action: 'new', success: false, message: 'Errore creazione' };
 		}
 	},
-	// TODO
+
 	modify: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');
@@ -126,58 +136,80 @@ export const actions: Actions = {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
+		const query = { prodId, type: 'product' };
+		const update = {
+			$set: {
+				prodId,
+				title,
+				descrShort,
+				stockQty,
+				category,
+				price,
+			}
+		};
+		const options = { upsert: false }
+		const multi = false
+
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/products/modify`, {
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
 				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'product', //product | order | user | layout | discount
+					query,
+					update,
+					options,
+					multi
+				}),
 				headers: {
 					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					prodId,
-					title,
-					descrShort,
-					stockQty,
-					category,
-					price,
-				})
+				}
 			});
-			const result = await response.json();
-			if (response.status == 200) {
-				return { action: 'modify', success: true, message: result.message };
+			const response = await res.json();
+			if (res.status == 200) {
+				return { action: 'modify', success: true, message: response.message };
 			} else {
-				return { action: 'modify', success: false, message: result.message };
+				return { action: 'modify', success: false, message: response.message };
 			}
 		} catch (error) {
 			console.error('Error modify:', error);
 			return { action: 'modify', success: false, message: 'Errore modify' };
 		}
 	},
-	// TODO
+
 	delete: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');
+
+		const apiKey = import.meta.env.VITE_APIKEY;
+		const query = { prodId: prodId };
+		const multi = false
+
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/products/remove`, {
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/remove`, {
 				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'product', //product | order | user | layout | discount
+					query,
+					multi,
+				}),
 				headers: {
 					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					prodId
-				})
+				}
 			});
-			const result = await response.json();
-			if (response.status == 200) {
-				return { action: 'delete', success: true, message: result.message };
+			const response = await res.json();
+			if (res.status == 200) {
+				return { action: 'delete', success: true, message: response.message };
 			} else {
-				return { action: 'delete', success: false, message: result.message };
+				return { action: 'delete', success: false, message: response.message };
 			}
 		} catch (error) {
 			console.error('Error delete:', error);
 			return { action: 'delete', success: false, message: 'Errore delete' };
 		}
 	},
-	// TODO
+
 	filter: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const title = formData.get('title');
@@ -187,10 +219,10 @@ export const actions: Actions = {
 
 		try {
 			const query = {
-				...(title && { title }),
+				type: 'product',
+				...(title && { title: { $regex: `.*${title}.*`, $options: 'i' } }),
 				...(category && { category }),
 			};
-			console.log('query', query);
 
 			const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
 			const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
@@ -199,6 +231,7 @@ export const actions: Actions = {
 			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
 				method: 'POST',
 				body: JSON.stringify({
+					apiKey,
 					schema: 'product', //product | order | user | layout | discount
 					query,
 					projection,
@@ -211,6 +244,7 @@ export const actions: Actions = {
 				}
 			});
 			const response = await res.json();
+			//console.log('response', response);
 
 			if (res.status == 200) {
 				const filterTableList = response.map((obj: any) => ({
@@ -220,14 +254,14 @@ export const actions: Actions = {
 				return { action: 'filter', success: true, message: 'Filtro applicato', filterTableList };
 
 			} else {
-				return { action: 'filter', success: false, message: 'nessun risultato' };
+				return { action: 'filter', success: false, message: 'Errore filtro' };
 			}
 		} catch (error) {
 			console.error('Error filter:', error);
 			return { action: 'filter', success: false, message: 'Errore filter' };
 		}
 	},
-	// TODO
+
 	changeStatus: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');
@@ -236,24 +270,42 @@ export const actions: Actions = {
 			return fail(400, { action: 'changeStatus', success: false, message: 'Dati mancanti' });
 		}
 		status = status == 'enabled' ? 'disabled' : 'enabled';
-
+		const query = { prodId: prodId };
+		const update = {
+			$set: {
+				status: status,
+			}
+		};
+		const options = { upsert: false }
+		const multi = false
 		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/products/changeStatus`, {
+			// await dbConnect();
+			// const res = await Product.updateOne(query, update, options).lean().exec();
+			// if (res.matchedCount > 0) {
+			// 	return { action: 'changeStatus', success: true, message: 'update ok' };
+			// } else {
+			// 	return { action: 'changeStatus', success: false, message: 'update error' };
+			// }
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
 				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'product', //product | order | user | layout | discount
+					query,
+					update,
+					options,
+					multi
+				}),
 				headers: {
 					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					prodId,
-					status
-				})
+				}
 			});
-			const result = await response.json();
-			if (response.status == 200) {
-				return { action: 'changeStatus', success: true, message: result.message };
+			const response = await res.json();
+			if (res.status == 200) {
+				return { action: 'changeStatus', success: true, message: response.message };
 			} else {
-				return { action: 'changeStatus', success: false, message: result.message };
+				return { action: 'changeStatus', success: false, message: response.message };
 			}
 		} catch (error) {
 			console.error('Error changing status:', error);

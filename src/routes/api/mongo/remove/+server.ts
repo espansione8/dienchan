@@ -10,14 +10,16 @@ import type { RequestHandler } from '@sveltejs/kit';
 
 // const email = emailToCheck.replace(/\s+/g, '').toLowerCase();
 // INSTRUCTION
+// const apiKey = import.meta.env.VITE_APIKEY;
 // const query = { type: 'product', price: 0 };
-// const options = { justOne: true | false }
+// const multi = false | true
 // const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/remove`, {
 //     method: 'POST',
 //     body: JSON.stringify({
+//         apiKey,
 //         schema: 'product', //product | order | user | layout | discount
 //         query,
-//         options,
+//         multi,
 //     }),
 //     headers: {
 //         'Content-Type': 'application/json'
@@ -28,10 +30,15 @@ import type { RequestHandler } from '@sveltejs/kit';
 export const POST: RequestHandler = async ({ request }) => {
     const body = await request.json();
     const {
+        apiKey,
         schema,
         query,
-        options,
+        multi,
     } = body;
+
+    if (apiKey !== import.meta.env.VITE_APIKEY) {
+        return json({ message: 'api error' }, { status: 401 });
+    }
 
     let model: any;
     if (schema == 'product') model = Product;
@@ -42,9 +49,15 @@ export const POST: RequestHandler = async ({ request }) => {
 
     try {
         await dbConnect();
-        const result = await model.remove(query, options).lean().exec();
+        //const result = await model.remove(query, options).lean().exec();
+        let result
+        if (multi) {
+            result = await model.deleteMany(query).exec();
+        } else {
+            result = await model.deleteOne(query).exec();
+        }
 
-        if (result.matchedCount == 1) return json({ message: 'delete ok' }, { status: 200 });
+        if (result.deletedCount > 0) return json({ message: 'delete ok' }, { status: 200 });
         return json({ message: 'delete error' }, { status: 400 });
 
     } catch (err) {

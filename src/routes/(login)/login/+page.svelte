@@ -1,5 +1,6 @@
 <script lang="ts">
 	//import { goto, invalidateAll } from '$app/navigation';
+	import { browser } from '$app/environment';
 	import { LogIn, UserPlus, Mail, Lock, RefreshCw } from 'lucide-svelte';
 	import Notification from '$lib/components/Notification.svelte';
 	// import LoginForm from '$lib/components/LoginForm.svelte';
@@ -118,6 +119,16 @@
 	let TransferStateContent = $state('');
 	let resetNotification = $state('');
 
+	let browserLanguage: string = $state('');
+	if (browser) {
+		const getStringBeforeDash = (inputString: string) => {
+			const parts = inputString.split('-');
+			return parts[0];
+		};
+		const lang = navigator.language || navigator.languages[0];
+		browserLanguage = getStringBeforeDash(lang);
+	}
+
 	// RESET PASS
 	// const onSendReset = async (newData: any) => {
 	// 	//console.log('reser data', newData);
@@ -156,6 +167,7 @@
 	<!-- Navbar -->
 	<section class="container mx-auto text-center">
 		<!-- Header -->
+		<p>(browser language: {browserLanguage})</p>
 		<h1 class="text-center text-white text-2xl font-semibold pb-2">
 			{isLogin ? 'LOGIN' : 'REGISTRAZIONE'}
 		</h1>

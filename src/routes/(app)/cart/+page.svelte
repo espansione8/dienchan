@@ -10,7 +10,7 @@
 	let { userData, auth } = $derived(data);
 
 	let cart = $state($cartProducts);
-	//console.log('cart', cart);
+	console.log('cart', cart[0]);
 
 	let error: string = $state('');
 	let password1 = $state('');
@@ -28,8 +28,12 @@
 	// reset cart - original price
 	const totalCart = () => {
 		grandTotal = 0;
-		$cartProducts.forEach((element: { price: number }) => {
-			grandTotal += element.layoutView.price;
+		$cartProducts.forEach((element: any) => {
+			if (element.type == 'course') {
+				grandTotal += element.layoutView.price;
+			} else {
+				grandTotal += element.price;
+			}
 		});
 		//return grandTotal;
 	};
@@ -286,7 +290,7 @@
 					<!-- src={imgSrc(item.category[0])} -->
 					<figure class="px-4 pt-4">
 						<img
-							src={item.layoutView.urlPic}
+							src={item.layoutView?.urlPic || '/images/picture.png'}
 							alt="tipo corso"
 							class="h-full w-full object-cover border-2 rounded-lg"
 						/>
@@ -294,7 +298,7 @@
 					<div class="card-body items-center text-center">
 						<!-- data giorno -->
 						<h2 class="card-title text-2xl">
-							{item.eventStartDate.substring(0, 10)}
+							{item.eventStartDate}
 						</h2>
 						<!-- provincia -->
 						<p class="card-text text-xl">
@@ -303,9 +307,9 @@
 						<!-- title -->
 						<h5
 							class="card-text text-xl bg-base-200 border rounded-md shadow-sm font-semibold p-2 {item
-								.layoutView.bgColor}"
+								.layoutView?.bgColor || 'bg-primary'}"
 						>
-							{item.layoutView.title}
+							{item.layoutView?.title}
 						</h5>
 						<!-- riflessologo -->
 						<p class="card-text">
@@ -317,7 +321,7 @@
 						</h5>
 						<!-- price -->
 						<p class="card-text">
-							Prezzo: <b>{item.layoutView.price}</b>
+							Prezzo: <b>{item.layoutView?.price}</b>
 							<br />
 							{#if !auth}
 								+ 25 solo al primo corso
@@ -692,9 +696,9 @@
 
 								{#each cart as item, i}
 									<div class="divider">--check item {i}--</div>
-									<p class="text-xl font-bold text-gray-800">Titolo: {item.layoutView.title}</p>
+									<p class="text-xl font-bold text-gray-800">Titolo: {item.layoutView?.title}</p>
 									<p class="text-xl font-bold text-gray-800">Quantità: {item.orderQuantity}</p>
-									<p class="text-xl font-bold text-gray-800">Prezzo: {item.layoutView.price}</p>
+									<p class="text-xl font-bold text-gray-800">Prezzo: {item.layoutView?.price}</p>
 								{/each}
 							{:else}
 								<p class="text-xl font-semibold text-red-500">Nessun prodotto nel carrello</p>
@@ -780,15 +784,15 @@
 				>
 					<div class="w-1/3 p-3">
 						<img
-							src={item.layoutView.urlPic}
+							src={item.layoutView?.urlPic}
 							alt="Immagine corso"
 							class="w-full h-full object-cover"
 						/>
 					</div>
 					<div class="w-2/3 p-4 flex items-center justify-center">
 						<h2 class="text-center text-md font-semibold">
-							{item.layoutView.title} <br /><br />
-							{item.layoutView.price}€
+							{item.layoutView?.title} <br /><br />
+							{item.layoutView?.price}€
 						</h2>
 					</div>
 				</div>

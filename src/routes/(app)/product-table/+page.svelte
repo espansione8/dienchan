@@ -27,7 +27,7 @@
 	let { data, form } = $props();
 	//let auth = $state($page.data.auth);
 	//let userData = $state($page.data.user);
-	let { getTable } = $derived(data);
+	let { getTable, categories } = $derived(data);
 	let tableList = $state(getTable);
 
 	let resetActive = $state(false);
@@ -944,14 +944,17 @@
 					<label for="category" class="block text-sm font-medium text-gray-700 mb-1"
 						>Categoria</label
 					>
-					<input
+					<select
 						class="input input-bordered join-item w-full"
 						id="category"
 						name="category"
-						type="text"
-						placeholder="categoria"
 						bind:value={category}
-					/>
+					>
+						<option value="">Seleziona una categoria</option>
+						{#each categories as category}
+							<option value={category}>{category}</option>
+						{/each}
+					</select>
 				</div>
 			</div>
 			<section class="lg:col-span-4 mt-2">
