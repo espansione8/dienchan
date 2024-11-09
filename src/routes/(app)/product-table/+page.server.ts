@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	let categories = [];
 	try {
 		// NEW GET PROD
-		const query = { type: 'product' };
+		const query = { type: 'product' }; //types: course / product / membership / event
 		const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
 		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 		const limit = 1000;
@@ -70,7 +70,7 @@ export const actions: Actions = {
 			uploadfiles: [
 				{
 					_id: false,
-					type: 'product-primary',
+					type: 'product-primary', //'product-primary', 'product-gallery', 'membership', 'course'
 					filetype: prodImage.type,
 					filename: prodImage.name,
 					fileUrl: `product/${prodId}/${prodImage.name}`
