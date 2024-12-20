@@ -126,7 +126,7 @@
 	const resetFields = () => {
 		invalidateAll();
 		code = '';
-		type = '';
+		typeDiscount = '';
 		value = 0;
 		userId = '';
 		prodId = '';
@@ -394,7 +394,7 @@
 					name="value"
 					aria-label="value"
 					aria-describedby="value"
-					bind:value
+					bind:value={value}
 					required
 				/>
 			</div>

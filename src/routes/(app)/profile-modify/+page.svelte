@@ -120,14 +120,14 @@
 			notificationContent = content;
 			closeNotification();
 			invalidateAll();
-			is_upload_submitting = false;
+			// is_upload_submitting = false;
 		} else {
 			let error = (await responseUpdate.json()).message;
 			toastClosed = false;
 			notificationContent = error;
 			notificationError = true;
 			invalidateAll();
-			is_upload_submitting = false;
+			// is_upload_submitting = false;
 		}
 		// remove from disk
 		const responseDelete = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
@@ -962,10 +962,11 @@
 								>
 							</div>
 						</div>
+						<!-- src={imgSrc(course.category[0])} -->
 						{#each order.cart as course}
 							<div class="flex items-center space-x-4 mb-3">
 								<img
-									src={imgSrc(course.category[0])}
+									src={imgSrc(course.category)}
 									alt="Immagine corso"
 									class="w-16 h-16 object-cover rounded-md"
 								/>

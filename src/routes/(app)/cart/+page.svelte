@@ -9,6 +9,8 @@
 	let { data, form } = $props();
 	let { userData, auth } = $derived(data);
 
+	console.log('form', form);
+
 	let cart = $state($cartProducts);
 	console.log('cart', cart[0]);
 
@@ -18,6 +20,34 @@
 	let checkPass = $state(false);
 	let checkSecondPass = $state(false);
 	let inputRef: any = $state(null);
+
+	let isModalConfirm = $state(false);
+	let isModalSuccess = $state(false);
+	let isModalSuccessLogin = $state(false);
+
+	let name = $state(userData.name || '');
+	let surname = $state(userData.surname || '');
+	let email = $state(userData.email || '');
+	let address = $state(userData.address || '');
+	let city = $state(userData.city || '');
+	let countryState = $state(userData.countryState || 'AG'); // provincia
+	let postalCode = $state(userData.postalCode || '');
+	let country = $state(userData.country || 'Italy');
+	let phone = $state(userData.phone || '');
+	let mobilePhone = $state(userData.mobilePhone || '');
+	let paymentType = $state('bonifico');
+	let closedInput = $state(false);
+
+	let discountCode = $state('');
+	let discountApplied = $state(false);
+	let discountError = $state(false);
+	// questa è la lista degli sconti attivi?
+	let discountList: any[] = $state([]);
+	let discountArray: any[] = $state([]);
+	let discountErr = $state('');
+	let totalDiscount = $state(0);
+	
+	let grandTotal = $state(0);
 
 	const testPass = () => {
 		checkPass = password1.length >= 8;
@@ -38,18 +68,7 @@
 		//return grandTotal;
 	};
 
-	let name = $state(userData.name || '');
-	let surname = $state(userData.surname || '');
-	let email = $state(userData.email || '');
-	let address = $state(userData.address || '');
-	let city = $state(userData.city || '');
-	let countryState = $state(userData.countryState || 'AG'); // provincia
-	let postalCode = $state(userData.postalCode || '');
-	let country = $state(userData.country || 'Italy');
-	let phone = $state(userData.phone || '');
-	let mobilePhone = $state(userData.mobilePhone || '');
-	let paymentType = $state('bonifico');
-	let closedInput = $state(false);
+	// reset cart - original price
 
 	if (auth) {
 		closedInput = true;
@@ -99,10 +118,6 @@
 		}
 	};
 
-	let isModalConfirm = $state(false);
-	let isModalSuccess = $state(false);
-	let isModalSuccessLogin = $state(false);
-
 	const onConfirmForm = async () => {
 		if (!auth) {
 			if (!checkPass || !checkSecondPass) {
@@ -116,25 +131,8 @@
 
 	let stringList: string = $state('[]');
 
-	const addDiscount = (title: string) => {
-		discountList.push(title);
-		stringList = JSON.stringify(discountList);
-	};
 	const discountTostring = () => {
 		stringList = JSON.stringify(discountList);
-	};
-
-	const removeDiscount = (badge: any) => {
-		console.log('badge', badge);
-
-		// if (discountList.length == 0) {
-		// 	discountApplied = false;
-		// }
-		// let index = discountList.indexOf(badge);
-		// if (index != -1) {
-		// 	discountList.splice(index, 1);
-		// 	//discountList = discountList;
-		// }
 	};
 
 	const onConfirmCart = async () => {
@@ -167,7 +165,7 @@
 		const res = await response.json();
 		//console.log('res cart', res);
 		if (response.status == 200) {
-			fieldReset();
+			// fieldReset();
 			isModalConfirm = false;
 			toastClosed = false;
 			notificationContent = res.message;
@@ -189,9 +187,12 @@
 
 	const onRemoveFromCart = (item: any) => {
 		removeFromCart($cartProducts, item);
-		totalDiscount = 0;
-		totalCart();
+		totalDiscountActive();
+		stringList = '[]';
+		discountList = [];
 		cart = $cartProducts;
+		discountCode = '';
+		totalCart();
 	};
 
 	const fieldReset = () => {
@@ -215,40 +216,53 @@
 		goto(`/course-detail/${idCourse}`);
 	};
 
-	let discountCode = $state('');
-	let discountApplied = $state(false);
-	let discountError = $state(false);
-	let discountList: any[] = $state([]);
-	let discountArray: any[] = $state([]);
-	let discountErr = $state('');
-	let totalDiscount = $state(0);
-	let subTotal = $state(0);
-	let grandTotal = $state(0);
-
 	totalCart();
-	subTotal = grandTotal;
-	let check1 = $state();
+	// subTotal = grandTotal;
+	let discountActive = $state();
+
+	const totalDiscountActive = () => {
+		totalDiscount = 0;
+		discountActive.forEach((element: any) => {
+			totalDiscount += element.totalDiscount;
+		});
+	};
+
+	let subTotal = $derived(grandTotal - totalDiscount);
 
 	$effect(() => {
 		if (form != null) {
 			async () => await invalidateAll();
 			const { action, success, message, payload } = form;
-			// console.log('discount', payload?.discount);
-			// console.log('newCart', payload?.newCart);
-			// console.log('newCartTotal', payload?.newCartTotal);
 
 			if (success) {
-				subTotal = 0;
-				totalDiscount = 0;
-				check1 = payload?.discountApplied ?? [];
+				name = userData.name;
+				surname = userData.surname;
+				email = userData.email;
+				address = userData.address;
+				city = userData.city;
+				countryState = userData.countryState;
+				postalCode = userData.postalCode;
+				country = userData.country;
+				phone = userData.phone;
+				mobilePhone = userData.mobilePhone;
+				// subTotal = 0;
+				// totalDiscount = 0;
+				discountActive = payload?.discountApplied ?? [];
 				isModalConfirm = false;
-				//console.log('cart EFFECT', cart);
-				// if (action != 'applyDiscount') fieldReset();
 
-				if (action == 'applyDiscount') {
+				if (action == 'applyDiscount' || 'removeDiscount') {
 					discountList = payload?.discountArray;
 					discountTostring();
+					discountErr = '';
+					totalDiscountActive();
+					// subTotal;
 				}
+
+				// if (action == 'removeDiscount') {
+				// 	discountList = payload?.discountArray;
+				// 	discountTostring();
+				// 	// console.log('discountList', discountList);
+				// }
 			} else {
 				notificationError = true;
 				discountErr = message;
@@ -259,7 +273,6 @@
 			toastClosed = false;
 			notificationContent = message;
 			form = null;
-			console.log('list front', discountList);
 		}
 	}); // end effect
 
@@ -379,7 +392,7 @@
 					{/if}
 				</div>
 
-				<form class="pt-2" method="POST" action={`?/confirmCart`} use:enhance>
+				<form class="pt-2" method="POST" use:enhance>
 					<fieldset disabled={closedInput} class="grid grid-cols-12 gap-2">
 						<!-- Nome -->
 						<div class="form-control col-span-12 md:col-span-6 w-full">
@@ -616,11 +629,13 @@
 							<label class="label">
 								<span class="label-text text-md sm:text-xl font-semibold">Codice Sconto</span>
 							</label>
-							{#if discountErr}
-								<span class="text-error">{discountErr}</span>
-							{/if}
+							<div class="h-4">
+								{#if discountErr}
+									<span class="text-error">{discountErr}</span>
+								{/if}
+							</div>
 
-							<div class="flex space-x-2">
+							<div class="flex space-x-2 pt-2">
 								<input
 									type="text"
 									id="discountCode"
@@ -631,7 +646,7 @@
 								/>
 								<input type="hidden" name="cart" value={JSON.stringify(cart)} />
 								<input type="hidden" name="grandTotal" value={grandTotal} />
-								<input type="hidden" name="discountList" bind:value={stringList} />
+								<input type="hidden" name="discountList" value={stringList} />
 								<button
 									class="btn"
 									class:btn-primary={discountCode}
@@ -642,25 +657,21 @@
 								</button>
 							</div>
 						</div>
-						<!-- onclick={() => {
-											if (discountList.length == 0) {
-												discountApplied = false;
-											}
-											let index = discountList.indexOf(badgeCode);
-											if (index != -1) {
-												discountList.splice(index, 1);
-												discountList = discountList;
-											}
-										}} -->
 						{#if discountList.length != 0}
-							{#each discountList as badgeCode}
-								<div class="badge h-10 mx-1">
+							{#each discountList as badgeCode, i}
+								<div class="badge h-10 m-1">
 									{badgeCode}
 									{' '}
+									<input type="hidden" name="cart" value={JSON.stringify(cart)} />
+									<input type="hidden" name="grandTotal" value={grandTotal} />
+									<input type="hidden" name="discountList" value={stringList} />
+									<!-- <input type="hidden" name="removeCode" value={discountList[i]} /> -->
 									<button
-										type="button"
+										type="submit"
+										name="removeCode"
+										value={badgeCode}
+										formaction="?/removeDiscount"
 										class="badge badge-error felx items-center ml-2"
-										onclick={() => removeDiscount(badgeCode)}
 									>
 										X
 									</button>
@@ -684,22 +695,26 @@
 								{#if !auth}
 									<p class="text-gray-800 font-semibold">+25 € solo per il primo corso</p>
 								{/if}
-								Totale sconto: {totalDiscount} €
-								<div class="divider"></div>
-								<p class="text-xl font-bold text-gray-800">Totale da pagare:{subTotal} €</p>
-
-								{#each check1 as item}
+								{#if discountList.length != 0}
+									Totale sconto: {totalDiscount} €
+								{/if}
+								{#if discountList.length != 0}
+									<div class="divider"></div>
+									<p class="text-xl font-bold text-gray-800">Totale da pagare (con sconto):</p>
+									<p class="text-xl font-bold text-gray-800">{subTotal} €</p>
+								{/if}
+								<!-- {#each discountActive as item}
 									code: {item.code}
 									discount: {item.totalDiscount}
 									<br />
-								{/each}
-
+								{/each} -->
+								<!-- 
 								{#each cart as item, i}
 									<div class="divider">--check item {i}--</div>
 									<p class="text-xl font-bold text-gray-800">Titolo: {item.layoutView?.title}</p>
 									<p class="text-xl font-bold text-gray-800">Quantità: {item.orderQuantity}</p>
 									<p class="text-xl font-bold text-gray-800">Prezzo: {item.layoutView?.price}</p>
-								{/each}
+								{/each} -->
 							{:else}
 								<p class="text-xl font-semibold text-red-500">Nessun prodotto nel carrello</p>
 							{/if}
@@ -799,12 +814,15 @@
 			{/each}
 		</div>
 		<div class="col-span-2 text-center mt-3">
-			<h2 class="text-lg font-bold">Totale Carrello:</h2>
-			{#if $cartProducts.length > 0}
-				<p class="text-xl font-semibold text-black-800">{subTotal} €</p>
-				{#if auth}
+			<h2 class="text-lg font-bold">Totale da pagare:</h2>
+
+			<p class="text-xl font-semibold text-black-800">{subTotal} €</p>
+			<!-- TODO: sconto tesserato c'è sempre se uno è già un socio, per ogni corso o sul totale -->
+			<!-- {#if auth}
 					<p class="text-gray-800">-25 € sconto tesserati</p>
-				{/if}
+				{/if} -->
+			{#if discountList.length != 0}
+				Sconto applicato: {totalDiscount} €
 			{/if}
 		</div>
 		<p class=" col-span-2 font-bold text-lg text-center mt-6">Scegli il metodo di pagamento:</p>
