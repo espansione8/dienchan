@@ -360,7 +360,7 @@
 				</button>
 				<ul
 					id="dropdownSortContent"
-					class="dropdown-content menu z-[1] bg-gray-100 p-2 rounded-lg shadow w-max gap-2 absolute"
+					class="dropdown-content menu z-1 bg-gray-100 p-2 rounded-lg shadow-sm w-max gap-2 absolute"
 					style="left: 50%; transform: translateX(-50%); top: 100%;"
 				>
 					<li>

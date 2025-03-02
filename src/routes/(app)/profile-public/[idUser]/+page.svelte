@@ -29,7 +29,7 @@
 <div class="flex justify-center items-center py-20 px-4 sm:px-6 lg:px-8">
 	<div class="card bg-indigo-50 shadow-lg rounded-2xl border border-gray-200 max-w-4xl w-full">
 		<div class="flex flex-col sm:flex-row">
-			<figure class="flex-shrink-0 sm:w-1/3 p-4">
+			<figure class="shrink-0 sm:w-1/3 p-4">
 				{#if findAvatar.length > 0}
 					<img
 						src={`/files/${getUser.userId}/${picFilter[0].filename}`}
@@ -38,7 +38,7 @@
 					/>
 				{/if}
 			</figure>
-			<div class="card-body p-6 flex-grow">
+			<div class="card-body p-6 grow">
 				<h1 class="text-2xl font-bold text-gray-800 mb-4">
 					{#if getUser.namePublic === true}
 						{getUser.name}

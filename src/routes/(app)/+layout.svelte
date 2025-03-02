@@ -11,7 +11,7 @@
 <div data-theme="dienchan" class="flex-col flex min-h-screen">
 	<Navbar {user} {auth} />
 
-	<main class="flex-grow">
+	<main class="grow">
 		<!-- <slot /> -->
 		{@render children()}
 	</main>

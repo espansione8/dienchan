@@ -25,8 +25,6 @@ async function dbConnect() {
 		.set('strictQuery', false)
 		.connect(MONGODB_URI, {
 			//.connect('mongodb://dienadmin:zjuaq66b33iis6d@185.220.247.161:27099/dienchandb', {
-			// .connect('mongodb://fastadmin:2Jgsds87VTasAnL@185.220.247.161:27099/fasttrack', {
-			// .connect('mongodb://uniadmin:saBZZ3MxvVXU@161.97.69.158:27099/unipromo', {
 			bufferCommands: false
 		})
 		.then((mongoose) => {

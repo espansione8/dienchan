@@ -454,7 +454,7 @@
 									</p>
 								</label>
 								<div
-									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-200 bg-white px-2 text-gray-900 shadow-sm"
+									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-200 bg-white px-2 text-gray-900 shadow-xs"
 								>
 									<span class="flex items-center p-3 -m-2 rounded-l-md bg-indigo-200">
 										<Lock color={checkPass ? 'green' : 'black'} />
@@ -483,7 +483,7 @@
 									</p>
 								</label>
 								<div
-									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-200 bg-white px-2 text-gray-900 shadow-sm"
+									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-200 bg-white px-2 text-gray-900 shadow-xs"
 								>
 									<span class="flex items-center p-3 -m-2 rounded-l-md bg-indigo-200">
 										<Lock color={checkSecondPass && checkPass ? 'green' : 'black'} />

@@ -261,7 +261,7 @@
 <!-- modal filter  -->
 <dialog id="modal_filter" class="modal" class:modal-open={isModalFilter}>
 	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-2xl">
-		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
+		<div class="bg-linear-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
 			<h2 class="text-2xl font-bold text-white mb-1">Filtri di Ricerca</h2>
 			<p class="text-blue-100">Personalizza la tua ricerca selezionando i criteri desiderati</p>
 		</div>
@@ -335,7 +335,7 @@
 <!-- modal New  -->
 <dialog id="modal_filter" class="modal" class:modal-open={isModalNew}>
 	<div class="modal-box bg-white p-0 rounded-lg shadow-xl max-w-2xl">
-		<div class="bg-gradient-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
+		<div class="bg-linear-to-r from-blue-500 to-blue-600 p-5 rounded-t-lg glass">
 			<h2 class="text-2xl font-bold text-white mb-1">Nuovo Membership</h2>
 		</div>
 

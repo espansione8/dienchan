@@ -8,7 +8,7 @@
 <div data-theme="corporate" class="flex-col flex min-h-screen">
 	<Navbar />
 
-	<main class="flex-grow">
+	<main class="grow">
 		<!-- <slot /> -->
 		{@render children()}
 	</main>

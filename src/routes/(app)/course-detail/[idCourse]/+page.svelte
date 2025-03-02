@@ -123,7 +123,7 @@
 						<strong>Tag:</strong>
 						{#each getCourse.tag as tag}
 							<div
-								class="badge text-lg font-semibold py-3 px-5 rounded-full flex items-center gap-2 shadow-lg bg-gradient-to-r from-blue-400 via-blue-500 to-blue-500 text-blue-900 hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-600 hover:text-white cursor-pointer transform transition-transform duration-300 hover:scale-105"
+								class="badge text-lg font-semibold py-3 px-5 rounded-full flex items-center gap-2 shadow-lg bg-linear-to-r from-blue-400 via-blue-500 to-blue-500 text-blue-900 hover:bg-linear-to-r hover:from-blue-500 hover:to-blue-600 hover:text-white cursor-pointer transform transition-transform duration-300 hover:scale-105"
 							>
 								{tag}
 							</div>

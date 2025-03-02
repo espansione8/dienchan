@@ -162,7 +162,7 @@
 	// };
 </script>
 
-<!-- <div class="bg-gradient-to-r from-cyan-500 to-blue-500 pt-2 pb-3"> -->
+<!-- <div class="bg-linear-to-r from-cyan-500 to-blue-500 pt-2 pb-3"> -->
 <div class="animate-color-fade pt-2 pb-3">
 	<!-- Navbar -->
 	<section class="container mx-auto text-center">
@@ -222,7 +222,7 @@
 									<p class="font-bold">Email</p>
 								</label>
 								<div
-									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-400 bg-white px-2 text-gray-900 shadow-sm"
+									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-400 bg-white px-2 text-gray-900 shadow-xs"
 								>
 									<span class="flex items-center p-3 -m-2 rounded-l-md bg-gray-400">
 										<Mail />
@@ -245,7 +245,7 @@
 									<p class="font-bold">Password</p>
 								</label>
 								<div
-									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-400 bg-white px-2 text-gray-900 shadow-sm"
+									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-400 bg-white px-2 text-gray-900 shadow-xs"
 								>
 									<span class="flex items-center p-3 -m-2 rounded-l-md bg-gray-400">
 										<Lock />
@@ -293,7 +293,7 @@
 									<p class="font-bold">Email</p>
 								</label>
 								<div
-									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-400 bg-white px-2 text-gray-900 shadow-sm"
+									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-400 bg-white px-2 text-gray-900 shadow-xs"
 								>
 									<span class="flex items-center p-3 -m-2 rounded-l-md bg-gray-400">
 										<Mail />
@@ -321,7 +321,7 @@
 									</p>
 								</label>
 								<div
-									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-400 bg-white px-2 text-gray-900 shadow-sm"
+									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-400 bg-white px-2 text-gray-900 shadow-xs"
 								>
 									<span class="flex items-center p-3 -m-2 rounded-l-md bg-gray-400">
 										<Lock color={checkPass ? 'green' : 'black'} />
@@ -350,7 +350,7 @@
 									</p>
 								</label>
 								<div
-									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-400 bg-white px-2 text-gray-900 shadow-sm"
+									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-400 bg-white px-2 text-gray-900 shadow-xs"
 								>
 									<span class="flex items-center p-3 -m-2 rounded-l-md bg-gray-400">
 										<Lock color={checkSecondPass && checkPass ? 'green' : 'black'} />

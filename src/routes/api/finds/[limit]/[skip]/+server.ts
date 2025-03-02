@@ -82,10 +82,11 @@ export const POST: RequestHandler = async ({ request, params }) => {
 			.exec();
 
 		//console.log('find', find);
-		if (find.length > 0) {
-			return json(find, { status: 200 });
-		}
-		return json({ message: 'no result' }, { status: 400 });
+		return json(find, { status: 200 });
+		// if (find.length > 0) {
+		// 	return json(find, { status: 200 });
+		// }
+		// return json({ message: 'no result' }, { status: 400 });
 
 		// return {
 		// 	body: find

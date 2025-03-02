@@ -1,7 +1,51 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@plugin 'daisyui';
+
+@theme {
+  --z-index-9999: 9999;
+
+  --animate-color-fade: colorFade 25s ease-in-out infinite;
+
+  @keyframes colorFade {
+
+    0%,
+    100% {
+      background-color: rgba(26, 147, 220, 0.5);
+    }
+
+    25% {
+      background-color: rgba(41, 47, 167, 0.5);
+    }
+
+    50% {
+      background-color: rgba(26, 147, 220, 0.5);
+    }
+
+    75% {
+      background-color: rgba(41, 47, 167, 0.5);
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
 
 svg {
-    display: inline;
+  display: inline;
 }

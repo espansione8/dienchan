@@ -64,7 +64,7 @@
 
 		<ul
 			tabindex="-1"
-			class=" dropdown-content menu z-[99] bg-indigo-200 p-2 rounded-box shadow w-max gap-2"
+			class=" dropdown-content menu z-99 bg-indigo-200 p-2 rounded-box shadow-sm w-max gap-2"
 		>
 			<li>
 				<a
@@ -266,7 +266,7 @@
 								<ChevronDown class="-mt-1" /></span
 							>
 						</button>
-						<ul class="dropdown-content menu z-[1] bg-base-100 p-2 rounded-lg shadow w-max gap-2">
+						<ul class="dropdown-content menu z-1 bg-base-100 p-2 rounded-lg shadow-sm w-max gap-2">
 							<li>
 								<a
 									class="btn btn-sm btn-accent btn-outline"
@@ -324,7 +324,7 @@
 								<ChevronDown class="-mt-1" /></span
 							>
 						</button>
-						<ul class="dropdown-content menu z-[1] bg-gray-200 p-2 rounded-lg shadow w-max gap-2">
+						<ul class="dropdown-content menu z-1 bg-gray-200 p-2 rounded-lg shadow-sm w-max gap-2">
 							<li>
 								<a
 									class="btn btn-sm btn-primary btn-outline"

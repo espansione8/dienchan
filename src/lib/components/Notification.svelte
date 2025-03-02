@@ -29,7 +29,7 @@
 
 {#if !toastClosed}
 	<div
-		class="toast toast-top toast-center z-[9999]"
+		class="toast toast-top toast-center z-9999"
 		transition:slide={{ axis: 'x', duration: 300 }}
 	>
 		<div class={notificationError ? 'alert alert-error rounded-lg' : 'alert alert-info rounded-lg'}>

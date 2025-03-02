@@ -173,10 +173,10 @@
 		<div class="space-y-5">
 			<!-- Blocco 1 -->
 			<div class="flex items-center">
-				<div class="flex-shrink-0 flex items-center justify-center">
+				<div class="shrink-0 flex items-center justify-center">
 					<CircleCheckBig size="28" color="red" strokeWidth={4} />
 				</div>
-				<div class="flex-grow flex items-center ml-5">
+				<div class="grow flex items-center ml-5">
 					<p class="text-blue-900 font-semibold text-lg leading-tight w-96">
 						Accedi al servizio di mappatura punti online e disegna schemi personalizzati per i tuoi
 						trattamenti
@@ -185,10 +185,10 @@
 			</div>
 			<!-- Blocco 2 -->
 			<div class="flex items-center">
-				<div class="flex-shrink-0 flex items-center justify-center">
+				<div class="shrink-0 flex items-center justify-center">
 					<CircleCheckBig size="28" color="red" strokeWidth={4} />
 				</div>
-				<div class="flex-grow flex items-center ml-5">
+				<div class="grow flex items-center ml-5">
 					<p class="text-blue-900 font-semibold text-lg leading-tight w-96">
 						Accedi gratuitamente ai video del corso base registrato da My Le dopo aver frequentato
 						il corso con uno dei nostri riflessologi
@@ -197,10 +197,10 @@
 			</div>
 			<!-- Blocco 3 -->
 			<div class="flex items-center">
-				<div class="flex-shrink-0 flex items-center justify-center">
+				<div class="shrink-0 flex items-center justify-center">
 					<CircleCheckBig size="28" color="red" strokeWidth={4} />
 				</div>
-				<div class="flex-grow flex items-center ml-5">
+				<div class="grow flex items-center ml-5">
 					<p class="text-blue-900 font-semibold text-lg leading-tight w-96">
 						Acquista strumenti e materiale didattico con lo sconto del 10% grazie al codice fornito
 						dal tuo riflessologo
@@ -209,10 +209,10 @@
 			</div>
 			<!-- Blocco 4 -->
 			<div class="flex items-center">
-				<div class="flex-shrink-0 flex items-center justify-center">
+				<div class="shrink-0 flex items-center justify-center">
 					<CircleCheckBig size="28" color="red" strokeWidth={4} />
 				</div>
-				<div class="flex-grow flex items-center ml-5">
+				<div class="grow flex items-center ml-5">
 					<p class="text-blue-900 font-semibold text-lg leading-tight w-96">
 						Partecipa agli incontri in diretta online organizzati annualmente con il nostro
 						professore Bui Quoc Chau
@@ -221,10 +221,10 @@
 			</div>
 			<!-- Blocco 5 -->
 			<div class="flex items-center">
-				<div class="flex-shrink-0 flex items-center justify-center">
+				<div class="shrink-0 flex items-center justify-center">
 					<CircleCheckBig size="28" color="red" strokeWidth={4} />
 				</div>
-				<div class="flex-grow flex items-center ml-5">
+				<div class="grow flex items-center ml-5">
 					<p class="text-blue-900 font-semibold text-lg leading-tight w-96">
 						Frequenta incontri di pratica o di aggiornamento organizzati dal tuo riflessologo di
 						riferimento
@@ -238,7 +238,7 @@
 			<!-- Card per Socio Ordinario -->
 			<div class="flex justify-center space-x-6 my-8">
 				<div
-					class="bg-gradient-to-b from-indigo-700 via-indigo-600 to-indigo-500 rounded-xl p-6 w-80 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+					class="bg-linear-to-b from-indigo-700 via-indigo-600 to-indigo-500 rounded-xl p-6 w-80 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
 				>
 					<div class="text-center">
 						<h2
@@ -281,7 +281,7 @@
 		<!-- Card per Socio Vitalizio -->
 		<div class="flex justify-center space-x-6 my-8">
 			<div
-				class="bg-gradient-to-b from-yellow-600 via-yellow-500 to-yellow-400 rounded-xl p-6 w-80 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+				class="bg-linear-to-b from-yellow-600 via-yellow-500 to-yellow-400 rounded-xl p-6 w-80 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
 			>
 				<div class="text-center">
 					<h2

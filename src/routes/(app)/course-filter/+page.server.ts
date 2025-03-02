@@ -27,6 +27,8 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		});
 
 		const resGetTable = await resProductsCorso.json();
+		console.log('resGetTable', resGetTable);
+
 		getTable = resGetTable.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10),
@@ -73,7 +75,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	}
 	//console.log('getTableCorsi', getTableCorsi);
 	return {
-		getTable,
+		getTable: [],
 		getTableNames,
 		getLayout,
 		auth: locals.auth,
