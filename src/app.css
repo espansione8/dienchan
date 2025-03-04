@@ -1,6 +1,41 @@
 @import 'tailwindcss';
 @plugin 'daisyui';
 
+@plugin "daisyui/theme" {
+  name: "dienchan";
+  default: false;
+  prefersdark: false;
+  color-scheme: "light";
+  --color-base-100: oklch(98% 0 0);
+  --color-base-200: oklch(96% 0.001 286.375);
+  --color-base-300: oklch(92% 0.004 286.32);
+  --color-base-content: oklch(21% 0.006 285.885);
+  --color-primary: #1a93dc;
+  --color-primary-content: oklch(97% 0.013 236.62);
+  --color-secondary: #f50101;
+  --color-secondary-content: oklch(97% 0.014 343.198);
+  --color-accent: #292fa7;
+  --color-accent-content: oklch(98% 0.014 180.72);
+  --color-neutral: oklch(37% 0.013 285.805);
+  --color-neutral-content: oklch(98% 0 0);
+  --color-info: #0090e0;
+  --color-info-content: oklch(29% 0.066 243.157);
+  --color-success: #00b050;
+  --color-success-content: oklch(26% 0.051 172.552);
+  --color-warning: #ff9900;
+  --color-warning-content: oklch(26% 0.079 36.259);
+  --color-error: #e81123;
+  --color-error-content: oklch(25% 0.092 26.042);
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 1;
+}
+
 @theme {
   --z-index-9999: 9999;
 

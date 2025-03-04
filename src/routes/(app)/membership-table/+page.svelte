@@ -15,8 +15,8 @@
 		RefreshCcw
 	} from 'lucide-svelte';
 
-	let { data, form } = $props();
-	const { getTable } = $derived(data);
+	let { data, form } = $props(); // pull data from server
+	const { getTable } = $derived(data); // deconstruct data from server
 	let tableList = $state(getTable);
 
 	let prodId = $state(null);
@@ -70,13 +70,13 @@
 	// };
 
 	const resetFieldsModalFilter = () => {
+		currentModal = '';
 		prodId = null;
 		status = '';
 		title = '';
 		descrShort = '';
 		price = null;
 		renewalLength = 365;
-		currentModal = '';
 		modalTitle = '';
 		postAction = '?/';
 	};
@@ -100,9 +100,9 @@
 
 	const onCloseModal = () => {
 		resetFieldsModalFilter();
-		currentModal = '';
-		invalidateAll();
-		isModal = false;
+		//invalidateAll();
+		//currentModal = '';
+		//isModal = false;
 	};
 
 	const onClickModal = (type: string, item: any) => {
@@ -113,17 +113,15 @@
 			modalTitle = 'Nuovo tipo Membership';
 			//prodId = item.prodId;
 		}
-		// if (type == 'modify') {
-		// 	postAction = `?/modify`;
-		// 	modalTitle = 'Modifica prodotto';
-		// 	prodId = item.prodId;
-		// 	title = item.title;
-		// 	descrShort = item.descrShort;
-		// 	stockQty = item.stockQty;
-		// 	category = item.category;
-		// 	price = item.price;
-		// 	console.log('price.category', price, category);
-		// }
+		if (type == 'modify') {
+			postAction = `?/modify`;
+			modalTitle = 'Modifica prodotto';
+			prodId = item.prodId;
+			title = item.title;
+			price = item.price;
+			renewalLength = item.renewalLength;
+			descrShort = item.descrShort;
+		}
 		// if (type == 'delete') {
 		// 	postAction = `?/delete`;
 		// 	modalTitle = 'Elimina prodotto';
@@ -137,11 +135,13 @@
 	};
 
 	$effect(() => {
+		console.log('effect triggered');
 		if (form != null) {
+			console.log('form triggered');
 			async () => await invalidateAll(); // MUST be async/await or tableList = getTable will trigger infinite loop
 			const { action, success, message, filterTableList } = form;
 			if (success) {
-				isModal = false;
+				currentModal = '';
 				if (filterTableList?.length > 0) {
 					tableList = filterTableList;
 				} else {
@@ -150,6 +150,7 @@
 			} else {
 				notificationError = true;
 			}
+			resetFieldsModalFilter();
 			clearTimeout(startTimeout);
 			closeNotification();
 			toastClosed = false;
@@ -319,7 +320,7 @@
 
 			<section class="col-span-2 md:col-span-2">
 				<label for="renewalLength" class="form-label">
-					<p class="font-bold mb-2">Durata giorni (max 36500 = 100 anni)</p>
+					<p class="font-bold mb-2">Durata giorni</p>
 				</label>
 				<div class="join join-horizontal w-full">
 					<button class="join-item bg-gray-300 px-3"><Calendar /></button>
@@ -336,6 +337,9 @@
 						required
 					/>
 				</div>
+				<label for="renewalLength" class="form-label">
+					<p class="font-bold mb-2">(max 36500 = 100 anni)</p>
+				</label>
 			</section>
 
 			<section class="col-span-4">
@@ -364,6 +368,113 @@
 						Annulla
 					</button>
 					<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
+				</div>
+			</div>
+		</form>
+	{/if}
+
+	{#if currentModal == 'modify'}
+		<form
+			method="POST"
+			action={postAction}
+			use:enhance
+			class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+		>
+			<input type="hidden" name="prodId" value={prodId} />
+			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
+				Modifica membership
+			</header>
+
+			<section class="col-span-4">
+				<label for="titolo" class="form-label">
+					<p class="font-bold mb-2">Nome</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="titolo"
+						name="title"
+						type="text"
+						placeholder="Titolo"
+						aria-label="Titolo"
+						aria-describedby="basic-titolo"
+						bind:value={title}
+						required
+					/>
+				</div>
+			</section>
+
+			<section class="col-span-2 md:col-span-2">
+				<label for="price" class="form-label">
+					<p class="font-bold mb-2">Prezzo</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-gray-300 px-3"><Calculator /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="price"
+						type="number"
+						name="price"
+						placeholder="€"
+						aria-label="price"
+						aria-describedby="basic-price"
+						bind:value={price}
+						required
+					/>
+				</div>
+			</section>
+
+			<section class="col-span-2 md:col-span-2">
+				<label for="renewalLength" class="form-label">
+					<p class="font-bold mb-2">Durata giorni</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-gray-300 px-3"><Calendar /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="renewalLength"
+						type="number"
+						name="renewalLength"
+						aria-label="renewalLength"
+						aria-describedby="renewalLength"
+						min="1"
+						max="36500"
+						bind:value={renewalLength}
+						required
+					/>
+				</div>
+				<label for="renewalLength" class="form-label">
+					<p class="font-bold mb-2">(max 36500 = 100 anni)</p>
+				</label>
+			</section>
+
+			<section class="col-span-4">
+				<div class="mt-6">
+					<label for="descrShort" class="form-label">
+						<p class="font-bold mb-2">Descrizione (opzionale)</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button class="join-item bg-gray-300 px-3"><Pen /></button>
+						<textarea
+							class="textarea textarea-bordered h-24 join-item w-full"
+							id="descrShort"
+							name="descrShort"
+							placeholder="Descrizione"
+							aria-label="descrizione"
+							aria-describedby="basic-descrizione"
+							bind:value={descrShort}
+						></textarea>
+					</div>
+				</div>
+			</section>
+
+			<div class="col-span-4 mt-5 flex justify-center">
+				<div class="bg-gray-50 flex justify-center">
+					<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}>
+						Annulla
+					</button>
+					<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Modifica </button>
 				</div>
 			</div>
 		</form>

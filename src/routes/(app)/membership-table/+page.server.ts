@@ -132,59 +132,58 @@ export const actions: Actions = {
 		}
 	},
 
-	// modify: async ({ request, fetch }) => {
-	// 	const formData = await request.formData();
-	// 	const prodId = formData.get('prodId');
-	// 	const title = formData.get('title') || '';
-	// 	const descrShort = formData.get('descrShort') || '';
-	// 	const stockQty = formData.get('stockQty');
-	// 	const category = formData.get('category') || '';
-	// 	const price = formData.get('price');
+	modify: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const prodId = formData.get('prodId');
+		const title = formData.get('title') || '';
+		const price = formData.get('price');
+		const renewalLength = formData.get('renewalLength');
+		const descrShort = formData.get('descrShort') || '';
 
-	// 	if (!prodId || !title || !descrShort || !stockQty || !category || !price) {
-	// 		return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
-	// 	}
+		if (!prodId || !title || !price || !renewalLength) {
+			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
+		}
 
-	// 	const query = { prodId, type: 'product' };
-	// 	const update = {
-	// 		$set: {
-	// 			prodId,
-	// 			title,
-	// 			descrShort,
-	// 			stockQty,
-	// 			category,
-	// 			price,
-	// 		}
-	// 	};
-	// 	const options = { upsert: false }
-	// 	const multi = false
+		const query = { prodId, type: 'membership' };
+		const update = {
+			$set: {
+				prodId,
+				title,
+				descrShort,
+				price,
+			}
+		};
+		const options = { upsert: false }
+		const multi = false
 
-	// 	try {
-	// 		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
-	// 			method: 'POST',
-	// 			body: JSON.stringify({
-	// 				apiKey,
-	// 				schema: 'product', //product | order | user | layout | discount
-	// 				query,
-	// 				update,
-	// 				options,
-	// 				multi
-	// 			}),
-	// 			headers: {
-	// 				'Content-Type': 'application/json'
-	// 			}
-	// 		});
-	// 		const response = await res.json();
-	// 		if (res.status == 200) {
-	// 			return { action: 'modify', success: true, message: response.message };
-	// 		} else {
-	// 			return { action: 'modify', success: false, message: response.message };
-	// 		}
-	// 	} catch (error) {
-	// 		console.error('Error modify:', error);
-	// 		return { action: 'modify', success: false, message: 'Errore modify' };
-	// 	}
-	// },
+		try {
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'product', //product | order | user | layout | discount
+					query,
+					update,
+					options,
+					multi
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const response = await res.json();
+			console.log('response.message', response);
+
+			if (res.status == 200) {
+				return { action: 'modify', success: true, message: response.message };
+			} else {
+				return { action: 'modify', success: false, message: response.message };
+			}
+		} catch (error) {
+			console.error('Error modify:', error);
+			return { action: 'modify', success: false, message: 'Errore modify' };
+		}
+	},
 
 	// delete: async ({ request, fetch }) => {
 	// 	const formData = await request.formData();
