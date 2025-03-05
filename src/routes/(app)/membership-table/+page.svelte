@@ -7,12 +7,15 @@
 	import {
 		ListPlus,
 		XCircle,
+		Check,
 		Filter,
 		Pen,
 		Calendar,
 		Calculator,
 		FileDown,
-		RefreshCcw
+		RefreshCcw,
+		Trash2,
+		X
 	} from 'lucide-svelte';
 
 	let { data, form } = $props(); // pull data from server
@@ -227,32 +230,25 @@
 			{#each tableList as row}
 				<tr class="hover:bg-gray-300">
 					<td class="">
-						<span class="flex items-center">
-							<input
-								type="checkbox"
-								class=" mr-2 border-gray-500 bg-gray-500 hover:bg-black toggle toggle-md"
-								checked={row.status == 'enabled'}
-								onclick={() => {
-									onClickModal('changeStatus', row);
-								}}
-							/>
-							{#if row.status == 'enabled'}
-								<span class="text-green-600 font-semibold">ATTIVO</span>
-							{:else}
-								<span class="text-red-600 font-semibold">INATTIVO</span>
-							{/if}
-						</span>
+						<input
+							type="checkbox"
+							checked={row.status == 'enabled'}
+							onclick={() => {
+								onClickModal('changeStatus', row);
+							}}
+							class="toggle toggle-success"
+						/>
 					</td>
 					<td>{row.title}</td>
 					<td>{row.price} €</td>
 					<td>{row.renewalLength} giorni</td>
 					<td>{row.descrShort}</td>
 					<td class="space-4">
-						<button
-							onclick={() => onClickModal('modify', row)}
-							class="btn btn-sm bg-gray-200 btn-neutral text-gray-700 hover:bg-gray-300 hover:text-gray-800 hover:bg-gray-400 mt-2"
-						>
+						<button onclick={() => onClickModal('modify', row)} class="btn btn-sm">
 							Modifica
+						</button>
+						<button class="btn btn-sm">
+							<Trash2 />
 						</button>
 					</td>
 				</tr>

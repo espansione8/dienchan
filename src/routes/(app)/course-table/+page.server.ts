@@ -13,8 +13,8 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	const userId = locals.user.userId || ''
 
 	try {
-		let arrayField = [];
-		let arrayValue = [];
+		let arrayField: any[] = [];
+		let arrayValue: any[] = [];
 
 		// GET COURSES
 		// let path = `${import.meta.env.VITE_BASE_URL}/api/products/find/type/course/0/0`
@@ -117,9 +117,9 @@ export const actions: Actions = {
 		const location = formData.get('location');
 		const layoutId = formData.get('layoutId');
 		const price = formData.get('price');
-		const tagArray = formData.get('tagArray') || [];
+		const tagArray = formData.get('tagArray') || "";
 		const tag = tagArray.split(",");
-		const arrayEmail = formData.get('notificationEmail') || [];
+		const arrayEmail = formData.get('notificationEmail') || "";
 		const notificationEmail = arrayEmail.split(",");
 		const infoExtra = formData.get('infoExtra');
 		//console.log({ name }, { surname }, { title }, { descrLong }, { eventStartDate }, { stockQty }, { countryState }, { location }, { price }, { notificationEmail }, { tag }, { infoExtra });
@@ -176,9 +176,9 @@ export const actions: Actions = {
 		const location = formData.get('location');
 		const layoutId = formData.get('layoutId');
 		const price = formData.get('price');
-		const tagArray = formData.get('tagArray') || [];
+		const tagArray = formData.get('tagArray') || "";
 		const tag = tagArray.split(",");
-		const arrayEmail = formData.get('notificationEmail') || [];
+		const arrayEmail = formData.get('notificationEmail') || "";
 		const notificationEmail = arrayEmail.split(",");
 		const infoExtra = formData.get('infoExtra');
 		const prodId = formData.get('prodId');

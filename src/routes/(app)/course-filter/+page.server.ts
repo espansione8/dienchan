@@ -75,7 +75,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	}
 	//console.log('getTableCorsi', getTableCorsi);
 	return {
-		getTable: [],
+		getTable,
 		getTableNames,
 		getLayout,
 		auth: locals.auth,

@@ -1,7 +1,7 @@
 <script lang="ts">
 	//import { goto, invalidateAll } from '$app/navigation';
 	import { browser } from '$app/environment';
-	import { LogIn, UserPlus, Mail, Lock, RefreshCw } from 'lucide-svelte';
+	import { LogIn, UserPlus, Mail, KeyRound, RefreshCw } from 'lucide-svelte';
 	import Notification from '$lib/components/Notification.svelte';
 	// import LoginForm from '$lib/components/LoginForm.svelte';
 	// import RegisterForm from '$lib/components/RegisterForm.svelte';
@@ -167,7 +167,7 @@
 	<!-- Navbar -->
 	<section class="container mx-auto text-center">
 		<!-- Header -->
-		<p>(browser language: {browserLanguage})</p>
+		<!-- <p>(browser language: {browserLanguage})</p> -->
 		<h1 class="text-center text-white text-2xl font-semibold pb-2">
 			{isLogin ? 'LOGIN' : 'REGISTRAZIONE'}
 		</h1>
@@ -200,7 +200,7 @@
 		<hr class="bg-white h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
 		<!-- Info Text -->
 		<p class="text-white my-1 text-md">
-			{isLogin ? 'Fill data to Sign IN.' : 'New account? Sign UP in 10 seconds!'}
+			<!-- {isLogin ? 'Fill data to Sign IN.' : 'New account? Sign UP in 10 seconds!'} -->
 		</p>
 		<!-- Card  -->
 		<div class="mb-3 bg-base-100 p-4 md:p-6 lg:p-1 max-w-sm mx-auto rounded-lg">
@@ -218,17 +218,9 @@
 						<form class="">
 							<!-- email -->
 							<div class="mb-2">
-								<label for="email" class="label">
-									<p class="font-bold">Email</p>
-								</label>
-								<div
-									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-400 bg-white px-2 text-gray-900 shadow-xs"
-								>
-									<span class="flex items-center p-3 -m-2 rounded-l-md bg-gray-400">
-										<Mail />
-									</span>
+								<label class="input validator">
+									<Mail />
 									<input
-										class="input rounded-md w-full"
 										id="email"
 										type="email"
 										placeholder="Insert Email"
@@ -237,21 +229,13 @@
 										bind:value={loginEmail}
 										required
 									/>
-								</div>
+								</label>
 							</div>
 							<!-- Password -->
 							<div class="mb-2">
-								<label for="password" class="label">
-									<p class="font-bold">Password</p>
-								</label>
-								<div
-									class="relative flex items-center space-x-2 rounded-r-md rounded-l-lg border border-gray-400 bg-white px-2 text-gray-900 shadow-xs"
-								>
-									<span class="flex items-center p-3 -m-2 rounded-l-md bg-gray-400">
-										<Lock />
-									</span>
+								<label class="input validator">
+									<KeyRound />
 									<input
-										class="input rounded-md w-full"
 										id="password"
 										type="password"
 										placeholder="Insert Password"
@@ -260,7 +244,7 @@
 										bind:value={loginPassword}
 										required
 									/>
-								</div>
+								</label>
 							</div>
 							<!-- error message -->
 							{#if error}

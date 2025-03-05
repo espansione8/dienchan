@@ -5,7 +5,7 @@
 	let { children } = $props();
 </script>
 
-<div data-theme="corporate" class="flex-col flex min-h-screen">
+<div data-theme="dienchan" class="flex-col flex min-h-screen">
 	<Navbar />
 
 	<main class="grow">
