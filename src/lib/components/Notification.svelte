@@ -18,8 +18,10 @@
 	// let startTimeout: any;
 	// const closeNotification = () => {
 	// 	startTimeout = setTimeout(() => {
-	// 		toastClosed = true;
-	// 	}, 5000); // 1000 milliseconds = 1 second
+	// toastClosed = true;
+	// notificationContent = '';
+	// notificationError = false;
+	// 	}, 3000); // 1000 milliseconds = 1 second
 	// };
 	//clearTimeout(startTimeout); // reset timer
 	//
@@ -28,10 +30,7 @@
 </script>
 
 {#if !toastClosed}
-	<div
-		class="toast toast-top toast-center z-9999"
-		transition:slide={{ axis: 'x', duration: 300 }}
-	>
+	<div class="toast toast-top toast-center z-9999" transition:slide={{ axis: 'x', duration: 300 }}>
 		<div class={notificationError ? 'alert alert-error rounded-lg' : 'alert alert-info rounded-lg'}>
 			<span>
 				<button

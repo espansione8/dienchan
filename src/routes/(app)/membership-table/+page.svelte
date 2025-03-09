@@ -26,7 +26,7 @@
 	let status = $state('');
 	let title = $state('');
 	let descrShort = $state('');
-	let price: number | null = $state(null);
+	let price: number | null = $state(0);
 	let renewalLength: number = $state(365);
 	let isModal = $state(false);
 	let resetActive = $state(false);
@@ -34,11 +34,9 @@
 	let modalTitle = $state('');
 	let postAction = $state('?/');
 
-	// const onClickModify = (id: any) => {
-	// 	//console.log('idCourse', idCourse);
-	// 	goto(`/membership-modify/${id}`);
-	// };
+	let isChecked = $state(false);
 
+	// OLD FETCH
 	// const onChangeStatus = async (prodId: string, status: string) => {
 	// 	const data = {
 	// 		prodId,
@@ -90,17 +88,6 @@
 		tableList = getTable;
 	};
 
-	// const onCloseFilterSearch = () => {
-	// 	isModalFilter = false;
-	// 	resetFieldsModalFilter();
-	// 	onFilterReset();
-	// };
-	// const onClosenew = () => {
-	// 	isModalNew = false;
-	// 	resetFieldsModalFilter();
-	// 	onFilterReset();
-	// };
-
 	const onCloseModal = () => {
 		resetFieldsModalFilter();
 		//invalidateAll();
@@ -118,34 +105,42 @@
 		}
 		if (type == 'modify') {
 			postAction = `?/modify`;
-			modalTitle = 'Modifica prodotto';
+			modalTitle = 'Modifica Membership';
 			prodId = item.prodId;
 			title = item.title;
 			price = item.price;
 			renewalLength = item.renewalLength;
 			descrShort = item.descrShort;
 		}
-		// if (type == 'delete') {
-		// 	postAction = `?/delete`;
-		// 	modalTitle = 'Elimina prodotto';
-		// 	deleteId = item.prodId;
-		// 	console.log('deleteId', deleteId);
-		// }
+		if (type == 'delete') {
+			postAction = `?/delete`;
+			modalTitle = 'Elimina Membership';
+			prodId = item.prodId;
+			//console.log('deleteId', prodId);
+		}
 		if (type == 'filter') {
 			postAction = `?/filter`;
 			modalTitle = 'Filtri di Ricerca';
 		}
 	};
 
+	const changeStatus = (event: any) => {
+		if (event.target.form) {
+			event.preventDefault();
+			event.target.form.requestSubmit();
+		}
+	};
+
 	$effect(() => {
-		console.log('effect triggered');
+		//console.log('form', form);
 		if (form != null) {
-			console.log('form triggered');
+			//console.log('form triggered');
 			async () => await invalidateAll(); // MUST be async/await or tableList = getTable will trigger infinite loop
 			const { action, success, message, filterTableList } = form;
 			if (success) {
+				//console.log('filterTableList effect', filterTableList);
 				currentModal = '';
-				if (filterTableList?.length > 0) {
+				if (filterTableList) {
 					tableList = filterTableList;
 				} else {
 					tableList = getTable;
@@ -169,7 +164,9 @@
 	const closeNotification = () => {
 		startTimeout = setTimeout(() => {
 			toastClosed = true;
-		}, 5000); // 1000 milliseconds = 1 second
+			notificationContent = '';
+			notificationError = false;
+		}, 3000); // 1000 milliseconds = 1 second
 	};
 	//clearTimeout(startTimeout); // reset timer
 </script>
@@ -230,14 +227,25 @@
 			{#each tableList as row}
 				<tr class="hover:bg-gray-300">
 					<td class="">
-						<input
+						<form method="POST" action="?/changeStatus" use:enhance>
+							<div>
+								<input type="hidden" name="prodId" value={row.prodId} />
+								<input type="hidden" name="status" value={row.status} />
+								<input
+									type="checkbox"
+									id="setting"
+									checked={row.status == 'enabled'}
+									onchange={changeStatus}
+									class="toggle toggle-success"
+								/>
+							</div>
+						</form>
+						<!-- <input
 							type="checkbox"
 							checked={row.status == 'enabled'}
-							onclick={() => {
-								onClickModal('changeStatus', row);
-							}}
+							onclick={() => toggleVisibility(row.status, row.prodId)}
 							class="toggle toggle-success"
-						/>
+						/> -->
 					</td>
 					<td>{row.title}</td>
 					<td>{row.price} €</td>
@@ -247,7 +255,7 @@
 						<button onclick={() => onClickModal('modify', row)} class="btn btn-sm">
 							Modifica
 						</button>
-						<button class="btn btn-sm">
+						<button onclick={() => onClickModal('delete', row)} class="btn btn-sm">
 							<Trash2 />
 						</button>
 					</td>
@@ -268,7 +276,7 @@
 			method="POST"
 			action={postAction}
 			use:enhance
-			class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 		>
 			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
 				Nuovo membership
@@ -476,14 +484,35 @@
 		</form>
 	{/if}
 
+	{#if currentModal == 'delete'}
+		<form
+			method="POST"
+			action={postAction}
+			use:enhance
+			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+		>
+			<input type="hidden" name="prodId" value={prodId} />
+			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
+				Conferma eliminazione
+			</header>
+			<div class="col-span-4 mt-5 flex justify-center">
+				<div class="bg-gray-50 flex justify-center">
+					<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
+					<button type="submit" class="btn btn-error btn-sm mx-2 text-white"> Elimina </button>
+				</div>
+			</div>
+		</form>
+	{/if}
+
 	{#if currentModal == 'filter'}
 		<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
-			<input type="hidden" name="prodId" value={prodId} />
+			<!-- <input type="hidden" name="prodId" value={prodId} /> -->
 			<div class="space-y-4">
 				<div>
-					<label for="level" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+					<label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
 					<select
-						id="level"
+						id="status"
+						name="status"
 						bind:value={status}
 						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
@@ -499,17 +528,19 @@
 					<input
 						type="text"
 						id="title"
+						name="title"
 						bind:value={title}
 						placeholder="titolo"
 						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					/>
 				</div>
 
-				<div>
+				<!-- <div>
 					<label for="price" class="block text-sm font-medium text-gray-700 mb-1">Prezzo</label>
 					<input
 						type="number"
 						id="price"
+						name="price"
 						bind:value={price}
 						placeholder="€"
 						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
@@ -526,7 +557,7 @@
 						placeholder="Giorni"
 						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					/>
-				</div>
+				</div> -->
 			</div>
 
 			<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">

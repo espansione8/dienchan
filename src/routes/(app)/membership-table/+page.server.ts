@@ -185,57 +185,59 @@ export const actions: Actions = {
 		}
 	},
 
-	// delete: async ({ request, fetch }) => {
-	// 	const formData = await request.formData();
-	// 	const prodId = formData.get('prodId');
+	delete: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const prodId = formData.get('prodId');
 
-	// 	const apiKey = import.meta.env.VITE_APIKEY;
-	// 	const query = { prodId: prodId };
-	// 	const multi = false
+		const apiKey = import.meta.env.VITE_APIKEY;
+		const query = { prodId: prodId, type: 'membership' };
+		const multi = false
 
-	// 	try {
-	// 		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/remove`, {
-	// 			method: 'POST',
-	// 			body: JSON.stringify({
-	// 				apiKey,
-	// 				schema: 'product', //product | order | user | layout | discount
-	// 				query,
-	// 				multi,
-	// 			}),
-	// 			headers: {
-	// 				'Content-Type': 'application/json'
-	// 			}
-	// 		});
-	// 		const response = await res.json();
-	// 		if (res.status == 200) {
-	// 			return { action: 'delete', success: true, message: response.message };
-	// 		} else {
-	// 			return { action: 'delete', success: false, message: response.message };
-	// 		}
-	// 	} catch (error) {
-	// 		console.error('Error delete:', error);
-	// 		return { action: 'delete', success: false, message: 'Errore delete' };
-	// 	}
-	// },
+		try {
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/remove`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'product', //product | order | user | layout | discount
+					query,
+					multi,
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const response = await res.json();
+			console.log('response', response);
+
+			if (res.status == 200) {
+				return { action: 'delete', success: true, message: response.message };
+			} else {
+				return { action: 'delete', success: false, message: response.message };
+			}
+		} catch (error) {
+			console.error('Error delete:', error);
+			return { action: 'delete', success: false, message: 'Errore delete' };
+		}
+	},
 
 	filter: async ({ request, fetch }) => {
 		const formData = await request.formData();
-		const prodId = formData.get('prodId');
+		//const prodId = formData.get('prodId');
 		const status = formData.get('status');
 		const title = formData.get('title');
 		const price = formData.get('price');
 
-		if (!prodId && !status && !title && !price) {
+		if (!status && !title) {
 			return fail(400, { action: 'filterSearch', success: false, message: 'Dati mancanti' });
 		}
 
 		try {
 			const query = {
 				type: 'membership',
-				...(prodId && { prodId }),
+				//...(prodId && { prodId }),
 				...(status && { status }),
 				...(title && { title: { $regex: `.*${title}.*`, $options: 'i' } }),
-				...(price && { price }),
+				//...(price && { price }),
 			};
 
 			const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
@@ -264,9 +266,10 @@ export const actions: Actions = {
 					...obj,
 					createdAt: obj.createdAt.substring(0, 10)
 				}));
-				return { action: 'filterSearch', success: true, message: response.message, filterTableList };
+				console.log('response', response);
+				return { action: 'filterSearch', success: true, message: 'filtro attivato', filterTableList };
 			} else {
-				return { action: 'filterSearch', success: false, message: response.message };
+				return { action: 'filterSearch', success: false, message: 'errore filtro' };
 			}
 		} catch (error) {
 			console.error('Error filter membership:', error);
@@ -274,54 +277,55 @@ export const actions: Actions = {
 		}
 	},
 
-	// changeStatus: async ({ request, fetch }) => {
-	// 	const formData = await request.formData();
-	// 	const prodId = formData.get('prodId');
-	// 	let status = formData.get('status');
-	// 	if (!prodId || !status) {
-	// 		return fail(400, { action: 'changeStatus', success: false, message: 'Dati mancanti' });
-	// 	}
-	// 	status = status == 'enabled' ? 'disabled' : 'enabled';
-	// 	const query = { prodId: prodId };
-	// 	const update = {
-	// 		$set: {
-	// 			status: status,
-	// 		}
-	// 	};
-	// 	const options = { upsert: false }
-	// 	const multi = false
-	// 	// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
-	// 	try {
-	// 		// await dbConnect();
-	// 		// const res = await Product.updateOne(query, update, options).lean().exec();
-	// 		// if (res.matchedCount > 0) {
-	// 		// 	return { action: 'changeStatus', success: true, message: 'update ok' };
-	// 		// } else {
-	// 		// 	return { action: 'changeStatus', success: false, message: 'update error' };
-	// 		// }
-	// 		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
-	// 			method: 'POST',
-	// 			body: JSON.stringify({
-	// 				apiKey,
-	// 				schema: 'product', //product | order | user | layout | discount
-	// 				query,
-	// 				update,
-	// 				options,
-	// 				multi
-	// 			}),
-	// 			headers: {
-	// 				'Content-Type': 'application/json'
-	// 			}
-	// 		});
-	// 		const response = await res.json();
-	// 		if (res.status == 200) {
-	// 			return { action: 'changeStatus', success: true, message: response.message };
-	// 		} else {
-	// 			return { action: 'changeStatus', success: false, message: response.message };
-	// 		}
-	// 	} catch (error) {
-	// 		console.error('Error changing status:', error);
-	// 		return { action: 'changeStatus', success: false, message: 'Errore changeStatus' };
-	// 	}
-	// },
+	changeStatus: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const prodId = formData.get('prodId');
+		const status = formData.get('status');
+		if (!prodId || !status) {
+			return fail(400, { action: 'changeStatus', success: false, message: 'Dati mancanti' });
+		}
+		const newStatus = status == 'enabled' ? 'disabled' : 'enabled';
+		const query = { prodId: prodId, type: 'membership' };
+		const update = {
+			$set: {
+				status: newStatus,
+			}
+		};
+		const options = { upsert: false }
+		const multi = false
+		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
+		try {
+			// await dbConnect();
+			// const res = await Product.updateOne(query, update, options).lean().exec();
+			// if (res.matchedCount > 0) {
+			// 	return { action: 'changeStatus', success: true, message: 'update ok' };
+			// } else {
+			// 	return { action: 'changeStatus', success: false, message: 'update error' };
+			// }
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'product', //product | order | user | layout | discount
+					query,
+					update,
+					options,
+					multi
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const response = await res.json();
+			//console.log('res', res);
+			if (res.status == 200) {
+				return { action: 'changeStatus', success: true, message: response.message };
+			} else {
+				return { action: 'changeStatus', success: false, message: response.message };
+			}
+		} catch (error) {
+			console.error('Error changing status:', error);
+			return { action: 'changeStatus', success: false, message: 'Errore changeStatus' };
+		}
+	},
 } satisfies Actions;
