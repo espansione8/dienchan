@@ -529,38 +529,6 @@
 		}
 	};
 
-	// const onClickDialog = (type: string, item: any) => {
-	// 	//console.log('item', item);
-	// 	currentDialog = type;
-	// 	openModal = true;
-	// 	if (type == 'new') {
-	// 		postAction = `?/newCourse`;
-	// 		modalTitle = 'Nuovo Corso';
-	// 	}
-	// 	if (type == 'modify') {
-	// 		modalTitle = 'Modifica Corso';
-	// 		// console.log('item', item);
-	// 		prodId = item.prodId;
-	// 		layoutId = item.layoutId;
-	// 		price = item.layoutView.price;
-	// 		stockQty = item.stockQty;
-	// 		countryState = item.countryState;
-	// 		notificationEmail = item.notificationEmail;
-	// 		tagArray = item.tag;
-	// 		title = item.layoutView.title;
-	// 		descrLong = item.layoutView.descr;
-	// 		infoExtra = item.infoExtra;
-	// 		location = item.location;
-	// 		startYear = Number(item.eventStartDate.substring(0, 4));
-	// 		startMonth = Number(item.eventStartDate.substring(5, 7));
-	// 		startDay = Number(item.eventStartDate.substring(8, 10));
-	// 		startHour = Number(item.eventStartDate.substring(11, 13));
-	// 		startMinute = Number(item.eventStartDate.substring(14, 16));
-
-	// 		postAction = `?/modifyCourse`;
-	// 	}
-	// };
-
 	const onClickModal = (type: string, item: any) => {
 		currentModal = type;
 		currentDialog = type;
