@@ -1,6 +1,8 @@
 import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
 
+const apiKey = import.meta.env.VITE_APIKEY;
+
 export const load: PageServerLoad = async ({ fetch, locals }) => {
 	// console.log('locals', locals);
 	if (!locals.auth) {
@@ -104,7 +106,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 }
 
 export const actions: Actions = {
-	newCourse: async ({ request, fetch, locals }) => {
+	new: async ({ request, fetch, locals }) => {
 		const formData = await request.formData();
 		const userId = locals.user.userId;
 		const name = locals.user.name;
@@ -163,7 +165,7 @@ export const actions: Actions = {
 		}
 	},
 
-	modifyCourse: async ({ request, fetch, locals }) => {
+	modify: async ({ request, fetch, locals }) => {
 		const formData = await request.formData();
 		const userId = locals.user.userId;
 		const name = locals.user.name;
@@ -224,32 +226,40 @@ export const actions: Actions = {
 		}
 	},
 
-	deleteCourse: async ({ request, fetch }) => {
+	delete: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');
+
+		const query = { prodId: prodId, type: 'course' };//'course', 'product', 'membership', 'event'
+		const multi = false
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/courses/remove`, {
-				method: 'DELETE',
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/remove`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'product', //product | order | user | layout | discount
+					query,
+					multi,
+				}),
 				headers: {
 					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					prodId
-				})
+				}
 			});
-			const result = await response.json();
-			if (response.ok) {
-				return { action: 'deleteCourse', success: true, message: result.message };
+			const response = await res.json();
+			console.log('response', response);
+
+			if (res.status == 200) {
+				return { action: 'delete', success: true, message: response.message };
 			} else {
-				return { action: 'deleteCourse', success: false, message: result.message };
+				return { action: 'delete', success: false, message: response.message };
 			}
 		} catch (error) {
-			console.error('Error deleteCourse:', error);
-			return { action: 'deleteCourse', success: false, message: 'Errore deleteCourse' };
+			console.error('Error delete:', error);
+			return { action: 'deleteCoudeleterse', success: false, message: 'Errore delete' };
 		}
 	},
 
-	filterCourse: async ({ request, fetch }) => {
+	filter: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const countryState = formData.get('countryState');
 		const layoutId = formData.get('layoutId');
@@ -280,14 +290,14 @@ export const actions: Actions = {
 					eventStartDate: obj.eventStartDate.substring(0, 10),
 					timeStartDate: obj.eventStartDate.substring(11, 16)
 				}));
-				return { action: 'filterCourse', success: true, message: 'Filtro applicato', filterTableList };
+				return { action: 'filter', success: true, message: 'Filtro applicato', filterTableList };
 
 			} else {
-				return { action: 'filterCourse', success: false, message: 'Corso non trovato' };
+				return { action: 'filter', success: false, message: 'Corso non trovato' };
 			}
 		} catch (error) {
-			console.error('Error filterCourse:', error);
-			return { action: 'filterCourse', success: false, message: 'Errore filterCourse' };
+			console.error('Error filter:', error);
+			return { action: 'filter', success: false, message: 'Errore filter' };
 		}
 	}
 } satisfies Actions;

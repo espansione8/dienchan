@@ -189,7 +189,6 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');
 
-		const apiKey = import.meta.env.VITE_APIKEY;
 		const query = { prodId: prodId, type: 'membership' };
 		const multi = false
 
@@ -207,7 +206,7 @@ export const actions: Actions = {
 				}
 			});
 			const response = await res.json();
-			console.log('response', response);
+			//console.log('response', response);
 
 			if (res.status == 200) {
 				return { action: 'delete', success: true, message: response.message };

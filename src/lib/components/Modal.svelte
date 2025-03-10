@@ -1,6 +1,6 @@
 <script lang="ts">
 	let {
-		isOpen = $bindable(''), // custom Dienchan, default use $bindable(false)
+		isOpen = $bindable(false), // custom Dienchan, default use $bindable(false)
 		header = '',
 		headerBg = 'bg-primary',
 		children,
