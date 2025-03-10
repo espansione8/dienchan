@@ -715,8 +715,8 @@
 					<!-- Titolo -->
 					<td>{row.layoutView?.title}</td>
 					<!-- Data -->
-					<!-- <td>{row.eventStartDate.substring(0, 10)}</td> -->
-					<td>{row.eventStartDate}</td>
+					<td>{row.eventStartDate?.substring(0, 10)}</td>
+					<!-- <td>{row.eventStartDate}</td> -->
 					<!-- Luogo -->
 					<td>
 						<p class="card-text">
