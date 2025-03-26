@@ -146,7 +146,7 @@
 								<a
 									class="btn btn-sm btn-accent btn-outline"
 									href="/layout-table"
-									aria-current="page"><strong>Modelli</strong></a
+									aria-current="page"><strong>Modelli corsi</strong></a
 								>
 							</li>
 							<li>
@@ -292,7 +292,7 @@
 								<a
 									class="btn btn-sm btn-accent btn-outline"
 									href="/layout-table"
-									aria-current="page"><strong>Modelli</strong></a
+									aria-current="page"><strong>Modelli corsi</strong></a
 								>
 							</li>
 							<li>

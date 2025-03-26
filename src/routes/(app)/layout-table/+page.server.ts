@@ -72,7 +72,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 
 export const actions: Actions = {
-	newLayout: async ({ request, fetch }) => {
+	new: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const title = formData.get('title');
 		const descr = formData.get('descr');
@@ -82,7 +82,7 @@ export const actions: Actions = {
 		// const bundleProduct = formData.get('bundleProduct') || '';
 
 		if (!title || !descr || !price) {
-			return fail(400, { action: 'newLayout', success: false, message: 'Dati mancanti' });
+			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
 
 		// console.log({ title, descr, urlPic, price, bundleProduct });
@@ -102,17 +102,17 @@ export const actions: Actions = {
 			});
 			const result = await response.json();
 			if (response.ok) {
-				return { action: 'newLayout', success: true, message: result.message };
+				return { action: 'new', success: true, message: result.message };
 			} else {
-				return { action: 'newLayout', success: false, message: result.message };
+				return { action: 'new', success: false, message: result.message };
 			}
 		} catch (error) {
-			console.error('Error creating new newLayout:', error);
-			return { action: 'newLayout', success: false, message: 'Errore creazione newLayout' };
+			console.error('Error creating new:', error);
+			return { action: 'new', success: false, message: 'Errore creazione new' };
 		}
 	},
 
-	modifyLayout: async ({ request, fetch }) => {
+	modify: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const layoutId = formData.get('layoutId');
 		const title = formData.get('title') || '';
@@ -122,9 +122,9 @@ export const actions: Actions = {
 		const price = formData.get('price') || '';
 
 
-		console.log('layoutId', layoutId);
+		//console.log('layoutId', layoutId);
 		if (!layoutId || !title) {
-			return fail(400, { action: 'modifyLayout', success: false, message: 'Dati mancanti' });
+			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
 		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
@@ -145,17 +145,17 @@ export const actions: Actions = {
 			});
 			const result = await response.json();
 			if (response.ok) {
-				return { action: 'modifyLayout', success: true, message: result.message };
+				return { action: 'modify', success: true, message: result.message };
 			} else {
-				return { action: 'modifyLayout', success: false, message: result.message };
+				return { action: 'modify', success: false, message: result.message };
 			}
 		} catch (error) {
-			console.error('Error creating new modifyLayout:', error);
-			return { action: 'modifyLayout', success: false, message: 'Errore creazione modifyLayout' };
+			console.error('Error modify:', error);
+			return { action: 'modify', success: false, message: 'Errore creazione modify' };
 		}
 	},
 
-	deleteLayout: async ({ request, fetch }) => {
+	delete: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const layoutId = formData.get('layoutId');
 		try {
@@ -170,17 +170,17 @@ export const actions: Actions = {
 			});
 			const result = await response.json();
 			if (response.ok) {
-				return { action: 'deleteLayout', success: true, message: result.message };
+				return { action: 'delete', success: true, message: result.message };
 			} else {
-				return { action: 'deleteLayout', success: false, message: result.message };
+				return { action: 'delete', success: false, message: result.message };
 			}
 		} catch (error) {
-			console.error('Error creating new deleteLayout:', error);
-			return { action: 'deleteLayout', success: false, message: 'Errore creazione deleteLayout' };
+			console.error('Error delete:', error);
+			return { action: 'delete', success: false, message: 'Errore creazione delete' };
 		}
 	},
 
-	filterLayout: async ({ request, fetch }) => {
+	filter: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const layoutId = formData.get('layoutId');
 
@@ -209,14 +209,14 @@ export const actions: Actions = {
 					...obj,
 					createdAt: obj.createdAt.substring(0, 10)
 				}));
-				return { action: 'filterLayout', success: true, message: 'Filtro applicato', filterTableList };
+				return { action: 'filter', success: true, message: 'Filtro applicato', filterTableList };
 
 			} else {
-				return { action: 'filterLayout', success: false, message: 'Corso non trovato' };
+				return { action: 'filter', success: false, message: 'Corso non trovato' };
 			}
 		} catch (error) {
-			console.error('Error filterLayout:', error);
-			return { action: 'filterLayout', success: false, message: 'Errore filterLayout' };
+			console.error('Error filter:', error);
+			return { action: 'filter', success: false, message: 'Errore filter' };
 		}
 	}
 

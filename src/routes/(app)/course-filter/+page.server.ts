@@ -27,7 +27,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		});
 
 		const resGetTable = await resProductsCorso.json();
-		console.log('resGetTable', resGetTable);
+		//console.log('resGetTable', resGetTable);
 
 		getTable = resGetTable.map((obj: any) => ({
 			...obj,

@@ -8,7 +8,7 @@
 		ListPlus,
 		XCircle,
 		Check,
-		Filter,
+		Funnel,
 		Pen,
 		Calendar,
 		Calculator,
@@ -445,16 +445,11 @@
 		openModal = true;
 		if (type == 'new') {
 			postAction = `?/new`;
-			modalTitle = 'Nuovo tipo Membership';
-			//prodId = item.prodId;
-			// title = '';
-			// price = 0;
-			// renewalLength = 365;
-			// descrShort = '';
+			modalTitle = 'Nuovo';
 		}
 		if (type == 'modify') {
 			postAction = `?/modify`;
-			modalTitle = 'Modifica Membership';
+			modalTitle = 'Modifica';
 			prodId = item.prodId;
 			title = item.title;
 			price = item.price;
@@ -463,15 +458,12 @@
 		}
 		if (type == 'delete') {
 			postAction = `?/delete`;
-			modalTitle = 'Elimina Membership';
+			modalTitle = 'Elimina';
 			prodId = item.prodId;
-			//console.log('deleteId', prodId);
 		}
 		if (type == 'filter') {
 			postAction = `?/filter`;
-			modalTitle = 'Filtri di Ricerca';
-			// title = '';
-			// status = '';
+			modalTitle = 'Filtra';
 		}
 	};
 
@@ -491,9 +483,11 @@
 			if (success) {
 				//console.log('filterTableList effect', filterTableList);
 				currentModal = '';
-				if (filterTableList) {
+				if (action == 'filter') {
+					resetActive = true;
 					tableList = filterTableList;
 				} else {
+					resetActive = false;
 					tableList = getTable;
 				}
 			} else {
@@ -527,6 +521,15 @@
 	<title>Lista Membership</title>
 </svelte:head>
 
+<noscript>
+	<h1 style="font-weight:700; text-align: center;">Please enable Javascript to continue.</h1>
+	<style type="text/css">
+		#main-content {
+			display: none;
+		}
+	</style>
+</noscript>
+
 <div class="overflow-x-auto table-zebra mt-5 px-4 mb-5">
 	<div class="flex flex-col gap-4 mb-4">
 		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Lista Membership</h1>
@@ -543,7 +546,7 @@
 					class="btn btn-info text-white w-full sm:w-auto"
 					onclick={() => onClickModal('filter', null)}
 				>
-					<Filter /> Filtra
+					<Funnel /> Filtra
 				</button>
 			{/if}
 			<button
@@ -720,10 +723,10 @@
 
 			<div class="col-span-4 mt-5 flex justify-center">
 				<div class="bg-gray-50 flex justify-center">
-					<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}>
-						Annulla
-					</button>
-					<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
+					<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}
+						>Annulla</button
+					>
+					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">Registra</button>
 				</div>
 			</div>
 		</form>
@@ -835,7 +838,7 @@
 					<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}>
 						Annulla
 					</button>
-					<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Modifica </button>
+					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">Modifica</button>
 				</div>
 			</div>
 		</form>
@@ -859,8 +862,8 @@
 			</header>
 			<div class="col-span-4 mt-5 flex justify-center">
 				<div class="bg-gray-50 flex justify-center">
-					<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
-					<button type="submit" class="btn btn-error btn-sm mx-2 text-white"> Elimina </button>
+					<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
+					<button type="submit" class="btn btn-error btn-sm mx-2 text-white">Elimina</button>
 				</div>
 			</div>
 		</form>
@@ -907,9 +910,7 @@
 				<button type="button" class="btn btn-error btn-sm hover:bg-red-300" onclick={onCloseModal}>
 					Annulla
 				</button>
-				<button type="submit" class="btn btn-success btn-sm hover:bg-green-400">
-					Applica Filtri
-				</button>
+				<button type="submit" class="btn btn-success btn-sm hover:bg-green-400"> Filtra </button>
 			</div>
 		</form>
 	</Modal>

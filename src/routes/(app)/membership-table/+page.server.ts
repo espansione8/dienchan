@@ -227,7 +227,7 @@ export const actions: Actions = {
 		const price = formData.get('price');
 
 		if (!status && !title) {
-			return fail(400, { action: 'filterSearch', success: false, message: 'Dati mancanti' });
+			return fail(400, { action: 'filter', success: false, message: 'Dati mancanti' });
 		}
 
 		try {
@@ -266,13 +266,13 @@ export const actions: Actions = {
 					createdAt: obj.createdAt.substring(0, 10)
 				}));
 				console.log('response', response);
-				return { action: 'filterSearch', success: true, message: 'filtro attivato', filterTableList };
+				return { action: 'filter', success: true, message: 'filtro attivato', filterTableList };
 			} else {
-				return { action: 'filterSearch', success: false, message: 'errore filtro' };
+				return { action: 'filter', success: false, message: 'errore filtro' };
 			}
 		} catch (error) {
 			console.error('Error filter membership:', error);
-			return { action: 'filterSearch', success: false, message: 'Errore filtro membership' };
+			return { action: 'filter', success: false, message: 'Errore filtro membership' };
 		}
 	},
 

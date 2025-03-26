@@ -485,8 +485,7 @@
 						</p>
 						<!-- title -->
 						<h5
-							class="card-text text-xl bg-base-200 border rounded-md shadow-sm font-semibold p-2
-						 {courseData.layoutView.bgColor}"
+							class="card-text text-xl border rounded-md shadow-sm font-semibold p-2 bg-neutral-200"
 						>
 							{courseData.layoutView.title}
 						</h5>
