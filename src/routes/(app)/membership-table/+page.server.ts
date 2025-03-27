@@ -264,7 +264,7 @@ export const actions: Actions = {
 					...obj,
 					createdAt: obj.createdAt.substring(0, 10)
 				}));
-				console.log('response', response);
+				//console.log('response', response);
 				return { action: 'filter', success: true, message: 'filtro attivato', filterTableList };
 			} else {
 				return { action: 'filter', success: false, message: 'errore filtro' };
@@ -283,23 +283,16 @@ export const actions: Actions = {
 			return fail(400, { action: 'changeStatus', success: false, message: 'Dati mancanti' });
 		}
 		const newStatus = status == 'enabled' ? 'disabled' : 'enabled';
-		const query = { prodId: prodId, type: 'membership' };
-		const update = {
-			$set: {
-				status: newStatus,
-			}
-		};
-		const options = { upsert: false }
-		const multi = false
 		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
-			// await dbConnect();
-			// const res = await Product.updateOne(query, update, options).lean().exec();
-			// if (res.matchedCount > 0) {
-			// 	return { action: 'changeStatus', success: true, message: 'update ok' };
-			// } else {
-			// 	return { action: 'changeStatus', success: false, message: 'update error' };
-			// }
+			const query = { prodId: prodId, type: 'membership' };
+			const update = {
+				$set: {
+					status: newStatus,
+				}
+			};
+			const options = { upsert: false }
+			const multi = false
 			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({

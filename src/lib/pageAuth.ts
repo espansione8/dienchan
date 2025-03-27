@@ -28,7 +28,7 @@ const protectedPages = [
     // page dir
 ]
 
-export const pageAuth = (url: string, auth: boolean, mode: string) => {
+export const pageAuth = (url: string, auth: boolean | null, mode: string) => {
     let checkPath = false;
     if (mode == 'route') checkPath = protectedRoutes.some(route => url.startsWith(route))
     if (mode == 'page') checkPath = protectedPages.some(route => url == route)

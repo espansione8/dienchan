@@ -595,12 +595,6 @@
 								/>
 							</div>
 						</form>
-						<!-- <input
-							type="checkbox"
-							checked={row.status == 'enabled'}
-							onclick={() => toggleVisibility(row.status, row.prodId)}
-							class="toggle toggle-success"
-						/> -->
 					</td>
 					<td>{row.title}</td>
 					<td>{row.price} €</td>

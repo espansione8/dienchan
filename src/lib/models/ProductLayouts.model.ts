@@ -13,7 +13,7 @@ const LayoutSchema = new Schema(
         descr: { type: String, default: '' },
         urlPic: { type: String, default: '' },
         bgColor: { type: String, default: '' },
-        price: { type: Number, default: 0 }, // in days
+        price: { type: Number, default: 0 },
 
         bundleProduct: [{
             _id: false,  // This prevents MongoDB from adding _id to array elements
@@ -23,6 +23,11 @@ const LayoutSchema = new Schema(
             // add product category
         }],
 
+        status: {
+            type: String,
+            enum: ['enabled', 'disabled'],
+            default: 'enabled'
+        },
     },
     {
         collection: 'layouts',

@@ -190,38 +190,21 @@ export const actions: Actions = {
 
 	filter: async ({ request, fetch }) => {
 		const formData = await request.formData();
-		//const layoutId = formData.get('layoutId');
+		const status = formData.get('status');
 		const title = formData.get('title');
 		const descr = formData.get('descr');
 		//const price = formData.get('price');
 		//console.log('layoutId', layoutId);
 
-		if (!title && !descr) {
+		if (!status && !title && !descr) {
 			return fail(400, { action: 'filter', success: false, message: 'Dati mancanti' });
 		}
 
 		try {
-			// const arrayField = ['layoutId'];
-			// const arrayValue = [layoutId];
-			// const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
-			// 	method: 'POST',
-			// 	body: JSON.stringify({
-			// 		schema: 'layout',
-			// 		arrayField,
-			// 		arrayValue
-			// 	}),
-			// 	headers: {
-			// 		'Content-Type': 'application/json'
-			// 	}
-			// });
-			// //console.log('response', response);
-			// const result = await response.json();
-
 			const query = {
-				//type: 'membership',
+				...(status && { status }),
 				...(title && { title: { $regex: `.*${title}.*`, $options: 'i' } }),
 				...(descr && { descr: { $regex: `.*${descr}.*`, $options: 'i' } }),
-				//...(price && { price }),
 				//...(layoutId && { layoutId: layoutId }),
 				//...(title && { title: { $regex: `.*${title}.*`, $options: 'i' } }),
 				//...(price && { price }),
@@ -247,7 +230,7 @@ export const actions: Actions = {
 				}
 			});
 			const response = await res.json();
-			console.log('response', response);
+			//console.log('response', response);
 
 			if (res.status == 200) {
 				const filterTableList = response.map((obj: any) => ({
@@ -257,13 +240,56 @@ export const actions: Actions = {
 				return { action: 'filter', success: true, message: 'Filtro applicato', filterTableList };
 
 			} else {
-				return { action: 'filter', success: false, message: 'Corso non trovato' };
+				return { action: 'filter', success: false, message: 'Modello non trovato' };
 			}
 		} catch (error) {
 			console.error('Error filter:', error);
 			return { action: 'filter', success: false, message: 'Errore filter' };
 		}
-	}
+	},
 
-
+	changeStatus: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const layoutId = formData.get('layoutId');
+		const status = formData.get('status');
+		if (!layoutId || !status) {
+			return fail(400, { action: 'changeStatus', success: false, message: 'Dati mancanti' });
+		}
+		const newStatus = status == 'enabled' ? 'disabled' : 'enabled';
+		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
+		try {
+			const query = { layoutId: layoutId };
+			const update = {
+				$set: {
+					status: newStatus,
+				}
+			};
+			const options = { upsert: false }
+			const multi = false
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'layout', //product | order | user | layout | discount
+					query,
+					update,
+					options,
+					multi
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const response = await res.json();
+			//console.log('res', res);
+			if (res.status == 200) {
+				return { action: 'changeStatus', success: true, message: response.message };
+			} else {
+				return { action: 'changeStatus', success: false, message: response.message };
+			}
+		} catch (error) {
+			console.error('Error status:', error);
+			return { action: 'changeStatus', success: false, message: 'Errore changeStatus' };
+		}
+	},
 } satisfies Actions;

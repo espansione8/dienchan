@@ -36,6 +36,13 @@
 	let modalTitle = $state('');
 	let deleteId = $state('');
 
+	const changeStatus = (event: any) => {
+		if (event.target.form) {
+			event.preventDefault();
+			event.target.form.requestSubmit();
+		}
+	};
+
 	const onFilterReset = () => {
 		invalidateAll();
 		resetActive = false;
@@ -225,7 +232,7 @@
 		<!-- head -->
 		<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">
 			<tr>
-				<th>Data inserimento</th>
+				<th>Status</th>
 				<th>Foto</th>
 				<th>Titolo</th>
 				<th>Descrizione</th>
@@ -239,16 +246,30 @@
 			<!-- row 1 -->
 			{#each tableList as row}
 				<tr class="hover:bg-gray-100">
-					<!-- Date created -->
-					<td>{row.createdAt}</td>
+					<!-- status -->
+					<td class="">
+						<form method="POST" action="?/changeStatus" use:enhance>
+							<div>
+								<input type="hidden" name="layoutId" value={row.layoutId} />
+								<input type="hidden" name="status" value={row.status} />
+								<input
+									type="checkbox"
+									id="changeStatus"
+									checked={row.status == 'enabled'}
+									onchange={changeStatus}
+									class="toggle toggle-success"
+								/>
+							</div>
+						</form>
+					</td>
 					<!-- picture -->
 					{#if row.urlPic}
 						<td>
-							<img class="w-64" src={row.urlPic} alt={row.urlPic} />
+							<img class="w-3xs" src={row.urlPic} alt={row.urlPic} />
 						</td>
 					{:else}
 						<td>
-							<img class="w-64" src="/images/no_img.jpg" alt="no pic" />
+							<img class="w-3xs" src="/images/no_img.jpg" alt="no pic" />
 						</td>
 					{/if}
 
@@ -446,7 +467,7 @@
 		>
 		<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
 			<div class="space-y-4">
-				<!-- <div>
+				<div>
 					<label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
 					<select
 						id="status"
@@ -457,7 +478,7 @@
 						<option value="enabled">attivo</option>
 						<option value="disabled">inattivo</option>
 					</select>
-				</div> -->
+				</div>
 
 				<!-- <div>
 					<label for="layoutId" class="block text-sm font-medium text-gray-700 mb-1"
