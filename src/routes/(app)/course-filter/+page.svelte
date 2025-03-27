@@ -521,7 +521,7 @@
 								{:else}
 									<!-- non in carello -->
 									<button
-										class="btn btn-sm bg-green-200 w-48 btn-success rounded-md text-green-700 hover:text-green-300 inline-flex items-center justify-center space-x-2"
+										class="btn btn-sm w-48 btn-success rounded-md inline-flex items-center justify-center space-x-2"
 										onclick={() => addToCart($cartProducts, courseData, false)}
 										><ShoppingCart /> Aggiungi al Carrello</button
 									>

@@ -1,72 +1,56 @@
-import { redirect, fail } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
+import stringHash from 'string-hash';
+import { pageAuth } from '$lib/pageAuth';
 
-export const load: PageServerLoad = async ({ fetch, locals }) => {
-	//console.log('locals', locals);
-	if (!locals.auth) {
-		throw redirect(302, '/login');
-	}
+const apiKey = import.meta.env.VITE_APIKEY;
+
+export const load: PageServerLoad = async ({ fetch, locals, url }) => {
+	pageAuth(url.pathname, locals.auth, 'page');
+	// if (!locals.auth) {
+	// 	throw redirect(302, '/login');
+	// }
+
 	let getTable = [];
-	let getLayout = [];
-
-	let arrayField = [];
-	let arrayValue = [];
-
 	try {
-		// const userData = session.user;
-		//console.log('MY DOCS userData', userData);
-
-		// GET PRODUCTS
-		arrayField = [];
-		arrayValue = [];
-		const res = await fetch(`/api/finds/0/0`, {
+		const query = {}; //IF USE Products.model -> types: course / product / membership / event
+		const projection = {} // 0: exclude | 1: include
+		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
+		const limit = 1000;
+		const skip = 0;
+		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
-				schema: 'layout',
-				arrayField,
-				arrayValue
+				apiKey,
+				schema: 'layout', //product | order | user | layout | discount
+				query,
+				projection,
+				sort,
+				limit,
+				skip
 			}),
 			headers: {
 				'Content-Type': 'application/json'
 			}
 		});
-		const resGetTable = await res.json();
-		getTable = resGetTable.map((obj) => ({
+		const response = await res.json();
+		getTable = response.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10)
 		}));
 
-
-		// Layout list
-		arrayField = [];
-		arrayValue = [];
-		const resLayout = await fetch(`/api/finds/0/0`, {
-			method: 'POST',
-			body: JSON.stringify({
-				schema: 'layout',
-				arrayField,
-				arrayValue
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		getLayout = await resLayout.json();
-
 	} catch (error) {
 		console.log('layout fetch error:', error);
 	}
-	const user = locals.user
-	if (locals.auth) {
-		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
-		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
-		user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
-	}
+	// const user = locals.user
+	// if (locals.auth) {
+	// 	user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
+	// 	user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
+	// 	user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
+	// }
 	return {
 		getTable,
-		getLayout,
-		auth: locals.auth,
-		userData: user,
+		//userData: user,
 	};
 }
 
@@ -77,38 +61,46 @@ export const actions: Actions = {
 		const title = formData.get('title');
 		const descr = formData.get('descr');
 		const urlPic = formData.get('urlPic');
-		const bgColor = formData.get('bgColor');
+		//const bgColor = formData.get('bgColor');
 		const price = formData.get('price') || '';
 		// const bundleProduct = formData.get('bundleProduct') || '';
 
 		if (!title || !descr || !price) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
-
 		// console.log({ title, descr, urlPic, price, bundleProduct });
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/layouts/register`, {
+			const layoutId = stringHash(crypto.randomUUID());
+			const returnObj = false
+			const newDoc = {
+				layoutId,
+				title,
+				descr,
+				urlPic,
+				price,
+			};
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
 				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'layout', //product | order | user | layout | discount
+					newDoc,
+					returnObj
+				}),
 				headers: {
 					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					title,
-					descr,
-					urlPic,
-					bgColor,
-					price
-				})
+				}
 			});
-			const result = await response.json();
-			if (response.ok) {
-				return { action: 'new', success: true, message: result.message };
+			const response = await res.json();
+
+			if (res.status == 200) {
+				return { action: 'new', success: true, message: response.message };
 			} else {
-				return { action: 'new', success: false, message: result.message };
+				return { action: 'new', success: false, message: response.message };
 			}
 		} catch (error) {
-			console.error('Error creating new:', error);
-			return { action: 'new', success: false, message: 'Errore creazione new' };
+			console.error('Error new:', error);
+			return { action: 'new', success: false, message: 'Errore new' };
 		}
 	},
 
@@ -118,94 +110,147 @@ export const actions: Actions = {
 		const title = formData.get('title') || '';
 		const descr = formData.get('descr') || '';
 		const urlPic = formData.get('urlPic') || '';
-		const bgColor = formData.get('bgColor') || '';
 		const price = formData.get('price') || '';
 
-
-		//console.log('layoutId', layoutId);
 		if (!layoutId || !title) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
-		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/layouts/modify`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					layoutId,
+			const query = { layoutId: layoutId };
+			const update = {
+				$set: {
 					title,
 					descr,
 					urlPic,
-					bgColor,
 					price
-				})
+				}
+			};
+			const options = { upsert: false }
+			const multi = false
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'layout', //product | order | user | layout | discount
+					query,
+					update,
+					options,
+					multi
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
 			});
-			const result = await response.json();
-			if (response.ok) {
-				return { action: 'modify', success: true, message: result.message };
+			const response = await res.json();
+			if (res.status == 200) {
+				return { action: 'modify', success: true, message: response.message };
 			} else {
-				return { action: 'modify', success: false, message: result.message };
+				return { action: 'modify', success: false, message: response.message };
 			}
 		} catch (error) {
 			console.error('Error modify:', error);
-			return { action: 'modify', success: false, message: 'Errore creazione modify' };
+			return { action: 'modify', success: false, message: 'Errore modify' };
 		}
 	},
 
 	delete: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const layoutId = formData.get('layoutId');
-		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/layouts/remove`, {
-				method: 'DELETE',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					layoutId
-				})
-			});
-			const result = await response.json();
-			if (response.ok) {
-				return { action: 'delete', success: true, message: result.message };
-			} else {
-				return { action: 'delete', success: false, message: result.message };
-			}
-		} catch (error) {
-			console.error('Error delete:', error);
-			return { action: 'delete', success: false, message: 'Errore creazione delete' };
-		}
-	},
-
-	filter: async ({ request, fetch }) => {
-		const formData = await request.formData();
-		const layoutId = formData.get('layoutId');
-
-		// console.log('level', level);
-
-		const arrayField = ['layoutId'];
-		const arrayValue = [layoutId];
 
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
+			const query = { layoutId: layoutId };
+			const multi = false
+
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/remove`, {
 				method: 'POST',
 				body: JSON.stringify({
-					schema: 'layout',
-					arrayField,
-					arrayValue
+					apiKey,
+					schema: 'layout', //product | order | user | layout | discount
+					query,
+					multi,
 				}),
 				headers: {
 					'Content-Type': 'application/json'
 				}
 			});
-			//console.log('response', response);
-			const result = await response.json();
+			const response = await res.json();
 
-			if (response.status == 200) {
-				const filterTableList = result.map((obj: any) => ({
+			//console.log('response', response);
+			if (res.status == 200) {
+				return { action: 'delete', success: true, message: response.message };
+			} else {
+				return { action: 'delete', success: false, message: response.message };
+			}
+		} catch (error) {
+			console.error('Error delete:', error);
+			return { action: 'delete', success: false, message: 'Errore delete' };
+		}
+	},
+
+	filter: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		//const layoutId = formData.get('layoutId');
+		const title = formData.get('title');
+		const descr = formData.get('descr');
+		//const price = formData.get('price');
+		//console.log('layoutId', layoutId);
+
+		if (!title && !descr) {
+			return fail(400, { action: 'filter', success: false, message: 'Dati mancanti' });
+		}
+
+		try {
+			// const arrayField = ['layoutId'];
+			// const arrayValue = [layoutId];
+			// const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
+			// 	method: 'POST',
+			// 	body: JSON.stringify({
+			// 		schema: 'layout',
+			// 		arrayField,
+			// 		arrayValue
+			// 	}),
+			// 	headers: {
+			// 		'Content-Type': 'application/json'
+			// 	}
+			// });
+			// //console.log('response', response);
+			// const result = await response.json();
+
+			const query = {
+				//type: 'membership',
+				...(title && { title: { $regex: `.*${title}.*`, $options: 'i' } }),
+				...(descr && { descr: { $regex: `.*${descr}.*`, $options: 'i' } }),
+				//...(price && { price }),
+				//...(layoutId && { layoutId: layoutId }),
+				//...(title && { title: { $regex: `.*${title}.*`, $options: 'i' } }),
+				//...(price && { price }),
+			};
+
+			const projection = { _id: 0 } // 0: exclude | 1: include
+			const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
+			const limit = 1000;
+			const skip = 0;
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'layout', //product | order | user | layout | discount
+					query,
+					projection,
+					sort,
+					limit,
+					skip
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const response = await res.json();
+			console.log('response', response);
+
+			if (res.status == 200) {
+				const filterTableList = response.map((obj: any) => ({
 					...obj,
 					createdAt: obj.createdAt.substring(0, 10)
 				}));

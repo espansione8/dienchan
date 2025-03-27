@@ -19,10 +19,11 @@
 	} from 'lucide-svelte';
 
 	let { data, form } = $props();
-	let { getTable, getLayout } = $derived(data);
+	let { getTable } = $derived(data);
 	let tableList = $state(getTable);
 
 	let layoutId = $state('');
+	let status = $state('');
 	let title = $state('');
 	let descr = $state('');
 	let urlPic = $state('');
@@ -144,9 +145,9 @@
 			async () => await invalidateAll();
 			const { action, success, message, filterTableList } = form;
 			if (success) {
-				//resetFieldsModalFilter();
+				onFilterReset();
 				currentModal = '';
-				openModal = true;
+				openModal = false;
 				if (action == 'filter') {
 					resetActive = true;
 					tableList = filterTableList;
@@ -241,9 +242,16 @@
 					<!-- Date created -->
 					<td>{row.createdAt}</td>
 					<!-- picture -->
-					<td>
-						<img class="w-96" src={row.urlPic} alt={row.urlPic} />
-					</td>
+					{#if row.urlPic}
+						<td>
+							<img class="w-64" src={row.urlPic} alt={row.urlPic} />
+						</td>
+					{:else}
+						<td>
+							<img class="w-64" src="/images/no_img.jpg" alt="no pic" />
+						</td>
+					{/if}
+
 					<!-- title -->
 					<td>{row.title}</td>
 					<!-- descr -->
@@ -424,9 +432,7 @@
 		<form method="POST" action={postAction} use:enhance class="">
 			<input type="hidden" name="layoutId" value={deleteId} />
 			<div class="flex justify-center space-x-10 mt-4">
-				<button type="button" class="btn btn-error btn-md" onclick={onCloseConfirmDelete}
-					>Annulla</button
-				>
+				<button type="button" class="btn btn-error btn-md" onclick={onCloseModal}>Annulla</button>
 				<button type="submit" class="btn btn-success btn-md text-white"><Trash2 />Rimuovi</button>
 			</div>
 		</form>
@@ -440,8 +446,20 @@
 		>
 		<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
 			<div class="space-y-4">
-				<!-- Tipo sconto -->
-				<div>
+				<!-- <div>
+					<label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+					<select
+						id="status"
+						name="status"
+						bind:value={status}
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					>
+						<option value="enabled">attivo</option>
+						<option value="disabled">inattivo</option>
+					</select>
+				</div> -->
+
+				<!-- <div>
 					<label for="layoutId" class="block text-sm font-medium text-gray-700 mb-1"
 						>Tipo Corso</label
 					>
@@ -452,11 +470,46 @@
 						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
 						<option value="">Scegli un corso</option>
-						{#each getLayout as option}
+						{#each getTable as option}
 							<option value={option.layoutId}>{option.title}</option>
 						{/each}
 					</select>
+				</div> -->
+
+				<div>
+					<label for="title" class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+					<input
+						type="text"
+						id="title"
+						name="title"
+						bind:value={title}
+						placeholder="titolo"
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
 				</div>
+				<div>
+					<label for="descr" class="block text-sm font-medium text-gray-700 mb-1">Descrizione</label
+					>
+					<input
+						type="text"
+						id="descr"
+						name="descr"
+						bind:value={descr}
+						placeholder="Descrizione"
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<!-- <div>
+					<label for="price" class="block text-sm font-medium text-gray-700 mb-1">Prezzo</label>
+					<input
+						type="number"
+						id="price"
+						name="price"
+						bind:value={price}
+						placeholder="Prezzo"
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div> -->
 			</div>
 
 			<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">

@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 
 	let getTable = [];
 	try {
-		const query = { type: 'membership' }; //types: course / product / membership / event
+		const query = { type: 'membership' }; //IF USE Products.model -> types: course / product / membership / event
 		const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
 		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 		const limit = 1000;
@@ -44,16 +44,16 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		console.log('membershipfetch error:', error);
 	}
 
-	const user = locals.user
-	if (locals.auth) {
-		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
-		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
-		user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
-	}
+	// const user = locals.user
+	// if (locals.auth) {
+	// 	user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
+	// 	user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
+	// 	user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
+	// }
 	return {
 		getTable,
-		auth: locals.auth,
-		userData: user,
+		// auth: locals.auth,
+		// userData: user,
 	};
 }
 
@@ -69,11 +69,10 @@ export const actions: Actions = {
 		const renewalLength = formData.get('renewalLength');
 
 		if (!title || !price || !renewalLength || !userId) {
-			return fail(400, { action: 'newMembership', success: false, message: 'Dati mancanti' });
+			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
-		//console.log('newMembership', title, descrShort, price, renewalLength, userId);
+		//console.log('new', title, descrShort, price, renewalLength, userId);
 		try {
-
 			const prodId = stringHash(crypto.randomUUID());
 			const returnObj = false
 			const newDoc = {
@@ -105,7 +104,7 @@ export const actions: Actions = {
 				},
 				body: prodImage
 			});
-			if (uploadImg.status != 200) return { action: 'newMembership', success: fail, message: 'errore file upload' };
+			if (uploadImg.status != 200) return { action: 'new', success: fail, message: 'errore file upload' };
 
 			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
 				method: 'POST',
@@ -122,13 +121,13 @@ export const actions: Actions = {
 			const response = await res.json();
 
 			if (res.status == 200) {
-				return { action: 'newMembership', success: true, message: response.message };
+				return { action: 'new', success: true, message: response.message };
 			} else {
-				return { action: 'newMembership', success: false, message: response.message };
+				return { action: 'new', success: false, message: response.message };
 			}
 		} catch (error) {
 			console.error('Error creating new membership:', error);
-			return { action: 'newMembership', success: false, message: 'Errore creazione membership' };
+			return { action: 'new', success: false, message: 'Errore creazione membership' };
 		}
 	},
 
@@ -144,19 +143,19 @@ export const actions: Actions = {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
-		const query = { prodId, type: 'membership' };
-		const update = {
-			$set: {
-				prodId,
-				title,
-				descrShort,
-				price,
-			}
-		};
-		const options = { upsert: false }
-		const multi = false
-
 		try {
+			const query = { prodId, type: 'membership' };
+			const update = {
+				$set: {
+					prodId,
+					title,
+					descrShort,
+					price,
+				}
+			};
+			const options = { upsert: false }
+			const multi = false
+
 			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
@@ -172,7 +171,7 @@ export const actions: Actions = {
 				}
 			});
 			const response = await res.json();
-			console.log('response.message', response);
+			//console.log('response.message', response);
 
 			if (res.status == 200) {
 				return { action: 'modify', success: true, message: response.message };
@@ -189,10 +188,10 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');
 
-		const query = { prodId: prodId, type: 'membership' };
-		const multi = false
-
 		try {
+			const query = { prodId: prodId, type: 'membership' };
+			const multi = false
+
 			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/remove`, {
 				method: 'POST',
 				body: JSON.stringify({
@@ -224,7 +223,7 @@ export const actions: Actions = {
 		//const prodId = formData.get('prodId');
 		const status = formData.get('status');
 		const title = formData.get('title');
-		const price = formData.get('price');
+		//const price = formData.get('price');
 
 		if (!status && !title) {
 			return fail(400, { action: 'filter', success: false, message: 'Dati mancanti' });

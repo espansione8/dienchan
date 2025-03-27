@@ -892,9 +892,7 @@
 				</div>
 
 				<div>
-					<label for="membershipLevel" class="block text-sm font-medium text-gray-700 mb-1"
-						>Nome</label
-					>
+					<label for="title" class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
 					<input
 						type="text"
 						id="title"

@@ -4,7 +4,7 @@
 	import { enhance } from '$app/forms';
 	import Notification from '$lib/components/Notification.svelte';
 	import {
-		Filter,
+		Funnel,
 		XCircle,
 		Trash2,
 		Calendar,
@@ -26,6 +26,8 @@
 	let { data, form } = $props();
 	let { getTable, getTableNames, userData, getLayout } = $derived(data);
 	let tableList = $state(getTable);
+
+	console.log('tableList1', tableList);
 
 	const now = new Date();
 	let currentYear = now.getFullYear();
@@ -639,7 +641,7 @@
 					class="btn btn-info rounded-md text-white"
 					onclick={() => onClickModal('filter', null)}
 				>
-					<Filter class="mt-1" /> Filtra
+					<Funnel class="mt-1" /> Filtra
 				</button>
 			{/if}
 			<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('new', null)}>
@@ -671,41 +673,42 @@
 				<tr class="hover:bg-gray-300">
 					<td> </td>
 				</tr>
+			{:else}
+				{#each tableList as row}
+					<tr class="hover:bg-gray-300">
+						<!-- Data inserimento -->
+						<td>{row.createdAt}</td>
+						<!-- Nome Cognome Riflessologo -->
+						<td>{row.name} {row.surname}</td>
+						<!-- Email Riflessologo -->
+						<!-- <td>{row.notificationEmail[0]}</td> -->
+						<!-- Titolo -->
+						<td>{row.layoutView?.title}</td>
+						<!-- Data -->
+						<td>{row.eventStartDate?.substring(0, 10)}</td>
+						<!-- <td>{row.eventStartDate}</td> -->
+						<!-- Luogo -->
+						<td>
+							<p class="card-text">
+								{row.countryState}
+							</p>
+						</td>
+						<!-- Prezzo -->
+						<td>{row.layoutView.price} €</td>
+						<!-- Azione -->
+						<td class="flex items-center space-x-4">
+							<button
+								onclick={() => onClickModal('modify', row)}
+								class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:bg-gray-300 hover:text-gray-800"
+								><Settings />
+							</button>
+							<button class="btn btn-error btn-sm" onclick={() => onClickModal('delete', row)}
+								><Trash2 /></button
+							>
+						</td>
+					</tr>
+				{/each}
 			{/if}
-			{#each tableList as row}
-				<tr class="hover:bg-gray-300">
-					<!-- Data inserimento -->
-					<td>{row.createdAt}</td>
-					<!-- Nome Cognome Riflessologo -->
-					<td>{row.name} {row.surname}</td>
-					<!-- Email Riflessologo -->
-					<!-- <td>{row.notificationEmail[0]}</td> -->
-					<!-- Titolo -->
-					<td>{row.layoutView?.title}</td>
-					<!-- Data -->
-					<td>{row.eventStartDate?.substring(0, 10)}</td>
-					<!-- <td>{row.eventStartDate}</td> -->
-					<!-- Luogo -->
-					<td>
-						<p class="card-text">
-							{row.countryState}
-						</p>
-					</td>
-					<!-- Prezzo -->
-					<td>{row.layoutView.price} €</td>
-					<!-- Azione -->
-					<td class="flex items-center space-x-4">
-						<button
-							onclick={() => onClickModal('modify', row)}
-							class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:bg-gray-300 hover:text-gray-800"
-							><Settings />
-						</button>
-						<button class="btn btn-error btn-sm" onclick={() => onClickModal('delete', row)}
-							><Trash2 /></button
-						>
-					</td>
-				</tr>
-			{/each}
 		</tbody>
 	</table>
 	{#if tableList.length == 0}
@@ -757,12 +760,12 @@
 			<!-- Categoria  -->
 			<section class="col-span-4 md:col-span-2">
 				<label for="layoutId" class="form-label">
-					<p class="font-bold mb-2">Tipo corso</p>
+					<p class="font-bold">Tipo corso</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
 					<button class="join-item bg-gray-300 px-3"><Pen /></button>
 					<select
-						class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
+						class="select select-bordered w-full rounded-md rounded-l-none"
 						id="layoutId"
 						name="layoutId"
 						bind:value={layoutId}
@@ -920,7 +923,7 @@
 				<div class="join join-horizontal rounded-md w-full">
 					<button class="join-item bg-gray-300 px-3"><Building2 /></button>
 					<select
-						class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
+						class="select select-bordered w-full rounded-md rounded-l-none"
 						id="countryState"
 						name="countryState"
 						placeholder="Scegli"
