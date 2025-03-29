@@ -882,30 +882,30 @@ export const province = readable(
 )
 
 export const hours = readable([
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
+    "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"
 ])
 
 export const minutes = readable([
-    0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55
+    "00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"
 ])
 
 export const days = readable([
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31
+    "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"
 ])
 
 export const months = readable([
-    { title: 'Gennaio', value: 1 },
-    { title: 'Febbraio', value: 2 },
-    { title: 'Marzo', value: 3 },
-    { title: 'Aprile', value: 4 },
-    { title: 'Maggio', value: 5 },
-    { title: 'Giugno', value: 6 },
-    { title: 'Luglio', value: 7 },
-    { title: 'Agosto', value: 8 },
-    { title: 'Settembre', value: 9 },
-    { title: 'Ottobre', value: 10 },
-    { title: 'Novembre', value: 11 },
-    { title: 'Dicembre', value: 12 }
+    { title: 'Gennaio', value: "01" },
+    { title: 'Febbraio', value: "02" },
+    { title: 'Marzo', value: "03" },
+    { title: 'Aprile', value: "04" },
+    { title: 'Maggio', value: "05" },
+    { title: 'Giugno', value: "06" },
+    { title: 'Luglio', value: "07" },
+    { title: 'Agosto', value: "08" },
+    { title: 'Settembre', value: "09" },
+    { title: 'Ottobre', value: "10" },
+    { title: 'Novembre', value: "11" },
+    { title: 'Dicembre', value: "12" }
 ])
 
 export const monthsShort = readable([

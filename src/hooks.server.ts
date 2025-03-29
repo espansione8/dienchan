@@ -26,7 +26,7 @@ export const handle: Handle = async ({ event, resolve, }) => {
 
 			if (getSession) {
 				//event.locals.user = getSession.email;
-				event.locals.user = getSession;
+				event.locals.user = getSession || {};
 				event.locals.auth = true;
 				//event.locals.session = session_id;
 				const response = await resolve(event);

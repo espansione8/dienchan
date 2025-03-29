@@ -5,7 +5,7 @@
 	let { data } = $props();
 	let { getCourse, userData } = $derived(data);
 
-	console.log('getCourse',getCourse)
+	//console.log('getCourse',getCourse)
 
 	const checkCart = (id: any) => {
 		const check = $cartProducts.some((item) => item.prodId == id);

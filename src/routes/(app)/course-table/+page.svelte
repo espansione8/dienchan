@@ -3,6 +3,8 @@
 	import Papa from 'papaparse';
 	import { enhance } from '$app/forms';
 	import Notification from '$lib/components/Notification.svelte';
+	import { province, months, days, hours, minutes } from '$lib/stores/arrays';
+	import Modal from '$lib/components/Modal.svelte';
 	import {
 		Funnel,
 		XCircle,
@@ -20,21 +22,17 @@
 		FileDown,
 		ShieldAlert
 	} from 'lucide-svelte';
-	import { province, months, days, hours, minutes } from '$lib/stores/arrays';
-	import Modal from '$lib/components/Modal.svelte';
 
 	let { data, form } = $props();
 	let { getTable, getTableNames, userData, getLayout } = $derived(data);
 	let tableList = $state(getTable);
 
-	console.log('tableList1', tableList);
-
 	const now = new Date();
-	let currentYear = now.getFullYear();
-	let currentMonth = now.getMonth() + 1; // getMonth() restituisce 0-11, quindi aggiungiamo 1
-	let currentDay = now.getDate();
-	let currentHour = now.getHours();
-	let currentMinute = now.getMinutes(); // for now force to 0
+	let currentYear = now.getFullYear().toString();
+	let currentMonth = (now.getMonth() + 1).toString().padStart(2, '0'); // getMonth() restituisce 0-11, quindi aggiungiamo 1
+	let currentDay = now.getDate().toString().padStart(2, '0');
+	let currentHour = now.getHours().toString().padStart(2, '0');
+	//let currentMinute = now.getMinutes();
 
 	let title = $state('');
 	let prodId = $state('');
@@ -56,19 +54,16 @@
 	let startMonth = $state(currentMonth);
 	let startDay = $state(currentDay);
 	let startHour = $state(currentHour);
-	let startMinute = $state(0);
-	let deleteId = $state('');
+	let startMinute = $state('00');
 	// filter Data
 	let sortDirection = $state('asc');
 	let sortColumn = $state('createdAt');
 	let currentDialog = $state('');
 	let currentModal = $state('');
 
-	let isModalConfirmDelete = $state(false);
 	let openModal = $state(false);
-	let postAction = $state('');
+	let postAction = $state('?/');
 	let modalTitle = $state('');
-	let isModalFilterCourse = $state(false);
 	let resetActive = $state(false);
 
 	// year input
@@ -76,10 +71,11 @@
 	let min = max - 3;
 	let years = [];
 	for (let i = max; i >= min; i--) {
-		years.push(i);
+		years.push(i.toString());
 	}
+
 	let eventStartDate = $derived(
-		new Date(`${startYear} ${startMonth} ${startDay} ${startHour}:${startMinute}:00`)
+		new Date(`${startYear}-${startMonth}-${startDay}T${startHour}:${startMinute}:00.000+00:00`)
 	);
 
 	// const sortTable = (column: string) => {
@@ -450,22 +446,15 @@
 		URL.revokeObjectURL(link.href);
 	};
 
-	const onFilterReset = () => {
-		resetActive = false;
-		tableList = getTable;
-		invalidateAll();
-	};
-
 	const resetFields = () => {
-		invalidateAll();
 		layoutId = '';
 		price = 1;
 		startYear = currentYear;
 		startMonth = currentMonth;
 		startDay = currentDay;
 		startHour = currentHour;
-		startMinute = 0;
-		stockQty = 0;
+		startMinute = '00';
+		stockQty = 1;
 		countryState = '';
 		inputEmail = '';
 		title = '';
@@ -477,13 +466,20 @@
 		notificationEmail = [userData.email];
 		tag = '';
 		tagArray = [];
-		if (resetActive != true) {
-			tableList = getTable;
-		}
+		modalTitle = '';
+		postAction = '?/';
+		form = null;
+	};
+
+	const resetData = () => {
+		invalidateAll();
+		resetFields();
+		resetActive = false;
+		tableList = getTable;
 	};
 
 	const selectLayout = (layout: any) => {
-		const course = getLayout.find((item: any) => item.layoutId == layoutId);
+		const course = getLayout.find((item: any) => item.layoutId == layout); // layoutId
 		//console.log('course', course, layoutId);
 		title = course.title;
 		descrLong = course.descr;
@@ -553,11 +549,11 @@
 			descrLong = item.layoutView.descr;
 			infoExtra = item.infoExtra;
 			location = item.location;
-			startYear = Number(item.eventStartDate.substring(0, 4));
-			startMonth = Number(item.eventStartDate.substring(5, 7));
-			startDay = Number(item.eventStartDate.substring(8, 10));
-			startHour = Number(item.eventStartDate.substring(11, 13));
-			startMinute = Number(item.eventStartDate.substring(14, 16));
+			startYear = item.eventStartDate.substring(0, 4);
+			startMonth = item.eventStartDate.substring(5, 7);
+			startDay = item.eventStartDate.substring(8, 10);
+			startHour = item.eventStartDate.substring(11, 13);
+			startMinute = item.eventStartDate.substring(14, 16);
 		}
 		if (type == 'delete') {
 			postAction = `?/delete`;
@@ -579,7 +575,6 @@
 		currentModal = '';
 		currentDialog = '';
 		resetFields();
-		//invalidateAll();
 	};
 
 	$effect(() => {
@@ -589,17 +584,18 @@
 			if (success) {
 				openModal = false;
 				resetActive = false;
-				tableList = getTable;
 				if (action == 'filter') {
 					resetActive = true;
 					tableList = filterTableList;
 				} else {
 					resetActive = false;
+					tableList = getTable;
 				}
 			} else {
 				notificationError = true;
 				// errMessage = message;
 			}
+			resetFields();
 			clearTimeout(startTimeout);
 			closeNotification();
 			toastClosed = false;
@@ -629,11 +625,11 @@
 	<div class="flex flex-col gap-4 mb-4">
 		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Lista corsi</h1>
 		<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
-			<button class="btn btn-info text-white w-full sm:w-auto" onclick={onFilterReset}>
+			<button class="btn btn-info text-white w-full sm:w-auto" onclick={resetData}>
 				<RefreshCcw />
 			</button>
 			{#if resetActive == true}
-				<button class="btn btn-error rounded-md text-white" onclick={onFilterReset}>
+				<button class="btn btn-error rounded-md text-white" onclick={resetData}>
 					<XCircle class="mt-1" /> Reset Filtro
 				</button>
 			{:else}
@@ -730,6 +726,9 @@
 
 {#if currentModal == 'modify' || currentModal == 'new'}
 	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-4xl">
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+			>✕</button
+		>
 		<form
 			method="POST"
 			action={postAction}
@@ -1113,7 +1112,7 @@
 
 {#if currentModal == 'delete'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick={onCloseModal}
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
 			>✕</button
 		>
 		<form
@@ -1138,6 +1137,9 @@
 
 {#if currentModal == 'filter'}
 	<Modal isOpen={openModal} header={modalTitle}>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+			>✕</button
+		>
 		<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
 			<div class="space-y-4">
 				<div>

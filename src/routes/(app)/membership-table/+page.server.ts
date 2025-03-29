@@ -144,7 +144,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			const query = { prodId, type: 'membership' };
+			const query = { prodId, type: 'membership' }; // 'course', 'product', 'membership', 'event'
 			const update = {
 				$set: {
 					prodId,

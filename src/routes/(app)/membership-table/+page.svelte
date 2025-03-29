@@ -55,7 +55,7 @@
 	// 			openModal = false;
 	// 			toastClosed = false;
 	// 			notificationContent = 'status cambiato';
-	// 			resetFieldsModalFilter();
+	// 			resetFields();
 	// 			closeNotification();
 	// 		} else {
 	// 			toastClosed = false;
@@ -415,14 +415,7 @@
 	// 	URL.revokeObjectURL(link.href);
 	// };
 
-	const changeStatus = (event: any) => {
-		if (event.target.form) {
-			event.preventDefault();
-			event.target.form.requestSubmit();
-		}
-	};
-
-	const resetFieldsModalFilter = () => {
+	const resetFields = () => {
 		openModal = false;
 		prodId = null;
 		status = '';
@@ -434,10 +427,18 @@
 		postAction = '?/';
 	};
 
-	const onFilterReset = () => {
+	const resetData = () => {
 		invalidateAll();
+		resetFields();
 		resetActive = false;
 		tableList = getTable;
+	};
+
+	const changeStatus = (event: any) => {
+		if (event.target.form) {
+			event.preventDefault();
+			event.target.form.requestSubmit();
+		}
 	};
 
 	const onClickModal = (type: string, item: any) => {
@@ -469,7 +470,7 @@
 
 	const onCloseModal = () => {
 		openModal = false;
-		resetFieldsModalFilter();
+		resetFields();
 		currentModal = '';
 		//invalidateAll();
 	};
@@ -493,7 +494,7 @@
 			} else {
 				notificationError = true;
 			}
-			resetFieldsModalFilter();
+			resetFields();
 			clearTimeout(startTimeout);
 			closeNotification();
 			toastClosed = false;
@@ -534,11 +535,11 @@
 	<div class="flex flex-col gap-4 mb-4">
 		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Lista Membership</h1>
 		<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
-			<button class="btn btn-info text-white w-full sm:w-auto" onclick={onFilterReset}>
+			<button class="btn btn-info text-white w-full sm:w-auto" onclick={resetData}>
 				<RefreshCcw />
 			</button>
 			{#if resetActive}
-				<button class="btn btn-error text-white w-full sm:w-auto" onclick={onFilterReset}>
+				<button class="btn btn-error text-white w-full sm:w-auto" onclick={resetData}>
 					<XCircle /> Reset Filtro
 				</button>
 			{:else}
@@ -618,7 +619,7 @@
 
 {#if currentModal == 'new'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick={onCloseModal}
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
 			>✕</button
 		>
 		<form
@@ -729,7 +730,7 @@
 
 {#if currentModal == 'modify'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick={onCloseModal}
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
 			>✕</button
 		>
 		<form
@@ -841,7 +842,7 @@
 
 {#if currentModal == 'delete'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick={onCloseModal}
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
 			>✕</button
 		>
 		<form
@@ -866,7 +867,7 @@
 
 {#if currentModal == 'filter'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick={onCloseModal}
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
 			>✕</button
 		>
 		<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">

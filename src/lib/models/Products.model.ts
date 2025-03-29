@@ -138,6 +138,7 @@ const productSchema = new Schema(
         infoExtra: { type: String, default: '' },
         name: { type: String, default: '' },
         surname: { type: String, default: '' },
+        //eventStartDate: { type: String, default: '' },
         eventStartDate: { type: Date, default: Date.now },
         // eventStartTime: { type: Date, default: Date.now }, //deprecated
         //eventEndDate: { type: Date, default: Date.now }, // deprecated
