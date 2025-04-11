@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { createEventDispatcher } from 'svelte';
 
@@ -55,7 +55,7 @@
 			handleWin(actualDeg);
 		});
 	});
-	const handleWin = (actualDeg) => {
+	const handleWin = (actualDeg: any) => {
 		const winningSymbolNr = Math.ceil(actualDeg / zoneSize);
 		if (display.innerHTML === symbolSegments[winningSymbolNr]) {
 			display.innerHTML = `+${winAmount}`;
