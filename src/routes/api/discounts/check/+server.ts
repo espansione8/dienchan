@@ -1,7 +1,7 @@
 // src/routes/api/discounts/check
 import { json } from '@sveltejs/kit';
-import dbConnect from '$lib/database';
-import { Discount } from '$lib/models/Discounts.model.js';
+import dbConnect from '$lib/db/mongo/database';
+import { Discount } from '$lib/db/mongo/schema/Discounts.model.js';
 
 export const POST = async ({ request }) => {
 	const body = await request.json();

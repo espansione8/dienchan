@@ -1,11 +1,11 @@
 ///BASE_URL/api/finds/:limit/:skip
 import { json } from '@sveltejs/kit';
-import { Product } from '$lib/models/Products.model';
-import { Order } from '$lib/models/Orders.model';
-import { User } from '$lib/models/Users.model';
-import { Layout } from '$lib/models/ProductLayouts.model';
-import { Discount } from '$lib/models/Discounts.model';
-import dbConnect from '$lib/database';
+import { Product } from '$lib/db/mongo/schema/Products.model';
+import { Order } from '$lib/db/mongo/schema/Orders.model';
+import { User } from '$lib/db/mongo/schema/Users.model';
+import { Layout } from '$lib/db/mongo/schema/ProductLayouts.model';
+import { Discount } from '$lib/db/mongo/schema/Discounts.model';
+import dbConnect from '$lib/db/mongo/database';
 import type { RequestHandler } from '@sveltejs/kit';
 
 // INSTRUCTION
@@ -26,13 +26,15 @@ import type { RequestHandler } from '@sveltejs/kit';
 
 export const POST: RequestHandler = async ({ request, params }) => {
 	const body = await request.json();
+	//console.log('body', body);
+
 	const {
 		schema,
 		arrayField,
 		arrayValue,
 	} = body;
 
-	let model: unknown;
+	let model: any;
 	if (schema == 'product') model = Product;
 	if (schema == 'order') model = Order;
 	if (schema == 'user') model = User;
@@ -42,6 +44,8 @@ export const POST: RequestHandler = async ({ request, params }) => {
 	// filter
 	let i = 0
 	const filter = {}
+	//console.log('filter', filter);
+
 
 	for (i = 0; i < arrayField.length; i++) {
 		if (arrayField[i] != '' && arrayValue[i] != '' && arrayValue[i] != false && arrayValue[i] != null) {

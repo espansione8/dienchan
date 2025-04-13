@@ -4,8 +4,8 @@ import nodemailer from 'nodemailer';
 // import { loadStripe } from '@stripe/stripe-js';
 // import Stripe from 'stripe';
 import stringHash from 'string-hash';
-import dbConnect from '$lib/database';
-import { Order } from '$lib/models/Orders.model';
+import dbConnect from '$lib/db/mongo/database';
+import { Order } from '$lib/db/mongo/schema/Orders.model';
 //import { User } from '$lib/models/Users.model';
 export const POST = async ({ request }) => {
 	const body = await request.json();

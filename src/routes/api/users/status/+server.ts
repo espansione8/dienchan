@@ -1,7 +1,7 @@
 // src/routes/api/users/status
 import { json } from '@sveltejs/kit';
-import dbConnect from '$lib/database';
-import { User } from '$lib/models/Users.model';
+import dbConnect from '$lib/db/mongo/database';
+import { User } from '$lib/db/mongo/schema/Users.model';
 
 //import { File } from 'nft.storage';
 

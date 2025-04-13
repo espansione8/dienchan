@@ -1,11 +1,11 @@
 // src/routes/api/orders/purchase
 import { json } from '@sveltejs/kit';
-import dbConnect from '$lib/database';
+import dbConnect from '$lib/db/mongo/database';
 //import nodemailer from 'nodemailer';
 // const Stripe = require('stripe');
 import stringHash from 'string-hash';
 
-import { Order } from '$lib/models/Orders.model';
+import { Order } from '$lib/db/mongo/schema/Orders.model';
 // import Stripe from 'stripe';
 
 // const stripe = new Stripe(

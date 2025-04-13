@@ -1,18 +1,19 @@
 ///BASE_URL/api/fbtest/
 import { json } from '@sveltejs/kit';
-import dbConnect from '$lib/database';
-import { User } from '$lib/models/Users.model';
+import dbConnectMongo from '$lib/db/mongo/database';
+import { User } from '$lib/db/mongo/schema/Users.model';
+import { dbConnect } from '$lib/db/sqlite/database';
+import { Message } from '$lib/db/sqlite/schema/messages';
 import type { RequestHandler } from '@sveltejs/kit';
 import fs from 'fs';
 import path from 'path'
 
-const DATA_DIR = 'uploads';
+const DATA_DIR = 'uploads/whatsapp';
 const MESSAGES_FILE = path.join(DATA_DIR, 'messages.json');
 const DEBUG_FILE = path.join(DATA_DIR, 'debug.json');
 
-
-const WEBHOOK_VERIFY_TOKEN = '0CmwKKAjolM1';//cert?
-const GRAPH_API_TOKEN = 'EAANixdumps4BO904Ig36yaMhZBiiFsnZBgsqsvwAHTtqTVaMqmZC6kAvEbt5IDo0Skyi2g1TFAZCRd1RqzjXmzuqeYdRQL7ZCB2AR1DRADqv7ZBznx5ZCMYAHaH3dp0W4zHjqqtLXv9zMaEwM6V5L6ZA3xhy2qqiNQmcBxF1KKTZBJiChgBj5mx3esDT9tBMKR7OsKAZDZD'; // temp from https://developers.facebook.com/apps/953026863343310/whatsapp-business/wa-dev-console/?business_id=1778609712700379
+const WEBHOOK_VERIFY_TOKEN = import.meta.env.VITE_WEBHOOK_VERIFY_TOKEN
+const GRAPH_API_TOKEN = import.meta.env.VITE_GRAPH_API_TOKEN
 
 if (!fs.existsSync(DATA_DIR)) { // Ensure data directory exists
 	fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -30,16 +31,14 @@ const saveMessageToFile = async (messageData: any) => {
 
 		// Add new message with ID and timestamp
 		const newMessage = {
-			id: Date.now().toString(),
 			...messageData,
-			savedAt: new Date().toISOString()
 		};
 
 		messages.push(newMessage);
 
 		// Write back to file
 		fs.writeFileSync(MESSAGES_FILE, JSON.stringify(messages, null, 2));
-		console.log('Message saved to file:', newMessage.id);
+		console.log('Message saved to file');
 
 		return newMessage;
 	} catch (error) {
@@ -48,6 +47,16 @@ const saveMessageToFile = async (messageData: any) => {
 	}
 };
 
+// Queries
+///////////
+// INSERT
+//const resInsert = await insertData(idWhatsapp, from, text, date);
+const insertData = async (idWhatsapp: string, from: string, text: string, date: number) => {
+	return await dbConnect.insert(Message)
+		.values({
+			idWhatsapp, from, text, date
+		});
+};
 export const GET: RequestHandler = async ({ url }) => {
 	// https://www.your-clever-domain-name.com/webhooks?
 	// hub.mode=subscribe&
@@ -69,42 +78,18 @@ export const GET: RequestHandler = async ({ url }) => {
 };
 
 export const POST: RequestHandler = async ({ request }) => {
+	const body = await request.json();
 	try {
-		const body = await request.json();
-		const debugData = {
-			timestamp: new Date().toISOString(),
-			body: body
-		};
 
-		// Save message to JSON file
+		//fs.writeFileSync(DEBUG_FILE, JSON.stringify(body, null, 2));
 
-		try {
-			await saveMessageToFile({ body });
-			await dbConnect();
-			const query = { userId: '4184122015', email: 'admin@admin.admin' };
-			const update = {
-				$set: {
-					extraFieldText1: JSON.stringify(body),
-				}
-			};
-			const options = { upsert: false }
-			const result = await User.updateOne(query, update, options).lean().exec();
-
-			if (result.matchedCount < 1) {
-				return json({ message: 'insert error', status: 500 });
-			}
-
-		} catch (err) {
-			console.log('insert ERROR:', err);
-			return json({ message: 'insert ERROR' }, { status: 505 });
-		}
-		//fs.writeFileSync(DEBUG_FILE, JSON.stringify(debugData, null, 2));
-
-		console.log('Incoming webhook message:', JSON.stringify(body, null, 2));
 		//throw new Error(`WEBHOOK BODY DEBUG: ${JSON.stringify(body, null, 2)}`);
 		// check if the webhook request contains a message: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples#text-messages
 		const message = body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+		const message1 = body.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+		console.log('message1', message1);
 		console.log('message', message);
+		//console.log('Incoming webhook message:', JSON.stringify(body, null, 2));
 
 		// check if the incoming message contains text
 		if (message?.type === 'text') {
@@ -118,86 +103,83 @@ export const POST: RequestHandler = async ({ request }) => {
 				'Content-Type': 'application/json',
 			};
 
-			console.log('business_phone_number_id', business_phone_number_id);
-			console.log('apiUrl', apiUrl);
-			console.log('headers', headers);
+			// console.log('business_phone_number_id', business_phone_number_id);
+			// console.log('apiUrl', apiUrl);
+			// console.log('headers', headers);
 
 			// send a reply message
-			const res = await fetch(apiUrl, {
-				method: 'POST',
-				headers: headers,
-				body: JSON.stringify({
-					messaging_product: 'whatsapp',
-					to: message.from,
-					text: { body: 'Echo: ' + body },
-					//text: { body: 'Echo: ' + message.text.body },
-					// context: {
-					// 	message_id: message.id, // shows the message as a reply to the original user message
-					// },
-				}),
-				// body: JSON.stringify({
-				// 	messaging_product: "whatsapp",
-				// 	to: "393407288501",
-				// 	type: "template",
-				// 	template: {
-				// 		name: "hello_world",
-				// 		language: { "code": "en_US" }
-				// 	}
-				// }),
-			});
-			const response = await res.json();
-			console.log('res', res);
-			console.log('response', response);
+			//const res = await fetch(apiUrl, {
+			// //////// STOP POST
+			// await fetch(apiUrl, {
+			// 	method: 'POST',
+			// 	headers: headers,
+			// 	body: JSON.stringify({
+			// 		messaging_product: 'whatsapp',
+			// 		to: message.from,
+			// 		//text: { body: 'Echo: ' + JSON.stringify(body, null, 2) },
+			// 		//text: { body: 'ricevuto: ' + message.text.body + '\n' + "hai vinto/non hai vinto" },
+			// 		text: { body: "Complimeti hai vinto / Ci dispiace non hai vinto" },
+			// 		context: {
+			// 			message_id: message.id, // shows the message as a reply to the original user message
+			// 		},
+			// 	}),
+			// });
 
+			// const response = await res.json();
+			// console.log('res', res);
+			// console.log('response', response);
 
+			//SQLITE
+			const idWhatsapp = message.id;
+			const from = message.from;
+			const text = message.text.body;
+			const date = Number(message.timestamp)
+			const resInsert = await insertData(idWhatsapp, from, text, date);
+			console.log('resInsert', resInsert);
+
+			if (resInsert?.changes == 1) {
+				console.log('success submit', resInsert);
+				fs.writeFileSync(DEBUG_FILE, JSON.stringify(body, null, 2));
+			} else {
+				console.log('fail submit', resInsert);
+				fs.writeFileSync(DEBUG_FILE, JSON.stringify(body, null, 2));
+			}
+
+			// save to JSON file
+			await saveMessageToFile({ body });
+
+			//MONGO
+			await dbConnectMongo();
+			const query = { userId: '4184122015', email: 'admin@admin.admin' };
+			const update = {
+				$set: {
+					extraFieldText1: JSON.stringify(body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0].text.body),
+				}
+			};
+			const options = { upsert: false }
+			const result = await User.updateOne(query, update, options).lean().exec();
+
+			if (result.matchedCount < 1) {
+				return json({ message: 'insert error', status: 500 });
+			}
+
+			// //////// STOP UPDATE
 			// mark incoming message as read
-			await fetch(apiUrl, {
-				method: 'POST',
-				headers: headers,
-				body: JSON.stringify({
-					messaging_product: 'whatsapp',
-					status: 'read',
-					message_id: message.id,
-				}),
-			});
-
-			// ORIGINAL
-			// // send a reply message as per the docs here https://developers.facebook.com/docs/whatsapp/cloud-api/reference/messages
-			// await axios({
-			// 	method: "POST",
-			// 	url: `https://graph.facebook.com/v18.0/${business_phone_number_id}/messages`,
-			// 	headers: {
-			// 	  Authorization: `Bearer ${GRAPH_API_TOKEN}`,
-			// 	},
-			// 	data: {
-			// 	  messaging_product: "whatsapp",
-			// 	  to: message.from,
-			// 	  text: { body: "Echo: " + message.text.body },
-			// 	  context: {
-			// 		message_id: message.id, // shows the message as a reply to the original user message
-			// 	  },
-			// 	},
-			//   });
-
-			//   // mark incoming message as read
-			//   await axios({
-			// 	method: "POST",
-			// 	url: `https://graph.facebook.com/v18.0/${business_phone_number_id}/messages`,
-			// 	headers: {
-			// 	  Authorization: `Bearer ${GRAPH_API_TOKEN}`,
-			// 	},
-			// 	data: {
-			// 	  messaging_product: "whatsapp",
-			// 	  status: "read",
-			// 	  message_id: message.id,
-			// 	},
-			//   });
+			// await fetch(apiUrl, {
+			// 	method: 'POST',
+			// 	headers: headers,
+			// 	body: JSON.stringify({
+			// 		messaging_product: 'whatsapp',
+			// 		status: 'read',
+			// 		message_id: message.id,
+			// 	}),
+			// });			
 		}
-		return json({ status: 200 });
-		//return new Response(null, { status: 200 }); // Respond with 200 OK
+		//return json({ status: 200 });
+		return new Response(null, { status: 200 }); // Respond with 200 OK
 	} catch (error) {
 		console.error('Error handling webhook:', error);
-		return json({ status: 500 });
-		//return new Response(null, { status: 500 }); // Respond with 500 for errors
+		//return json({ status: 500 });
+		return new Response(null, { status: 500 }); // Respond with 500 for errors
 	}
 };

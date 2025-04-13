@@ -1,7 +1,7 @@
 // src/routes/api/users/modify
 import { json } from '@sveltejs/kit';
-import dbConnect from '$lib/database';
-import { User } from '$lib/models/Users.model';
+import dbConnect from '$lib/db/mongo/database';
+import { User } from '$lib/db/mongo/schema/Users.model';
 
 //import { File } from 'nft.storage';
 
@@ -34,7 +34,7 @@ export const POST = async ({ request }) => {
 
 
     try {
-        
+
         // console.log('body', body);
         // Connecting to DB
         // All database code can only run inside async functions as it uses await

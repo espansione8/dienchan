@@ -1,8 +1,8 @@
 // src/routes/api/auth/sign-in
 import { json } from '@sveltejs/kit';
 import stringHash from 'string-hash';
-import dbConnect from '$lib/database';
-import { User } from '$lib/models/Users.model';
+import dbConnect from '$lib/db/mongo/database';
+import { User } from '$lib/db/mongo/schema/Users.model';
 
 export const POST = async ({ request, cookies }) => {
 	const body = await request.json();

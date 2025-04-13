@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
-import { User } from '$lib/models/Users.model';
-import dbConnect from '$lib/database';
+import { User } from '$lib/db/mongo/schema/Users.model';
+import dbConnect from '$lib/db/mongo/database';
 //import type { RequestHandler } from '@sveltejs/kit';
 
 ///BASE_URL/api/users/findId/:value

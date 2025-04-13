@@ -30,7 +30,7 @@
 		riflessologo: ''
 	});
 
-	const checkCart = (id) => {
+	const checkCart = (id: any) => {
 		const check = $cartProducts.some((item) => item.prodId == id);
 		return check;
 	};
@@ -38,7 +38,7 @@
 	coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
 	// cycle to count the number of courses in each province
-	const numCoursesInProvince = {};
+	const numCoursesInProvince: any = {};
 	coursesList.forEach((item) => {
 		const countryState = item.countryState;
 		numCoursesInProvince[countryState] = (numCoursesInProvince[countryState] || 0) + 1;

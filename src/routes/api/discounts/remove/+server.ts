@@ -1,8 +1,8 @@
 
 // src/routes/api/discounts/remove
 import { json } from '@sveltejs/kit';
-import dbConnect from '$lib/database';
-import { Discount } from '$lib/models/Discounts.model';
+import dbConnect from '$lib/db/mongo/database';
+import { Discount } from '$lib/db/mongo/schema/Discounts.model';
 
 export const DELETE = async ({ request }) => {
     const body = await request.json();

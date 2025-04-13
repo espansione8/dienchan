@@ -1,11 +1,11 @@
 // `${import.meta.env.VITE_BASE_URL}api/mongo/update`
 import { json } from '@sveltejs/kit';
-import { Product } from '$lib/models/Products.model';
-import { Order } from '$lib/models/Orders.model';
-import { User } from '$lib/models/Users.model';
-import { Layout } from '$lib/models/ProductLayouts.model';
-import { Discount } from '$lib/models/Discounts.model';
-import dbConnect from '$lib/database';
+import { Product } from '$lib/db/mongo/schema/Products.model';
+import { Order } from '$lib/db/mongo/schema/Orders.model';
+import { User } from '$lib/db/mongo/schema/Users.model';
+import { Layout } from '$lib/db/mongo/schema/ProductLayouts.model';
+import { Discount } from '$lib/db/mongo/schema/Discounts.model';
+import dbConnect from '$lib/db/mongo/database';
 import type { RequestHandler } from '@sveltejs/kit';
 
 // const email = emailToCheck.replace(/\s+/g, '').toLowerCase(); | string.toLowerCase().trim()

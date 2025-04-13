@@ -1,7 +1,7 @@
 // /api/products/changeStatus
 import { json } from '@sveltejs/kit';
-import dbConnect from '$lib/database';
-import { Product } from '$lib/models/Products.model';
+import dbConnect from '$lib/db/mongo/database';
+import { Product } from '$lib/db/mongo/schema/Products.model';
 
 export const POST = async ({ request }) => {
 	const body = await request.json();

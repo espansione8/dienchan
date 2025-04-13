@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
-import { Order } from '$lib/models/Orders.model';
-import { User } from '$lib/models/Users.model'; // neeed for populate userView
-import dbConnect from '$lib/database';
+import { Order } from '$lib/db/mongo/schema/Orders.model';
+import { User } from '$lib/db/mongo/schema/Users.model'; // neeed for populate userView
+import dbConnect from '$lib/db/mongo/database';
 import type { RequestHandler } from '@sveltejs/kit';
 
 ///BASE_URL/api/orders/all/:limit/:skip
