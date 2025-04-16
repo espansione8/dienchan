@@ -1,7 +1,7 @@
 ///BASE_URL/api/fbtest/
-import { json } from '@sveltejs/kit';
-import dbConnectMongo from '$lib/db/mongo/database';
-import { User } from '$lib/db/mongo/schema/Users.model';
+// import { json } from '@sveltejs/kit';
+// import dbConnectMongo from '$lib/db/mongo/database';
+// import { User } from '$lib/db/mongo/schema/Users.model';
 import { dbConnect } from '$lib/db/sqlite/database';
 import { Message } from '$lib/db/sqlite/schema/messages';
 import type { RequestHandler } from '@sveltejs/kit';
@@ -50,7 +50,7 @@ const saveMessageToFile = async (messageData: any) => {
 // Queries
 ///////////
 // INSERT
-//const resInsert = await insertData(idWhatsapp, from, text, date);
+
 const insertData = async (idWhatsapp: string, from: string, text: string, date: number) => {
 	return await dbConnect.insert(Message)
 		.values({
@@ -86,14 +86,49 @@ export const POST: RequestHandler = async ({ request }) => {
 		//throw new Error(`WEBHOOK BODY DEBUG: ${JSON.stringify(body, null, 2)}`);
 		// check if the webhook request contains a message: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples#text-messages
 		const message = body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
-		const message1 = body.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
-		console.log('message1', message1);
 		console.log('message', message);
 		//console.log('Incoming webhook message:', JSON.stringify(body, null, 2));
 
 		// check if the incoming message contains text
 		if (message?.type === 'text') {
-			// extract the business number to send the reply from it
+			//SQLITE
+			const idWhatsapp = message.id;
+			const from = message.from;
+			const text = message.text.body;
+			const date = Number(message.timestamp)
+			await insertData(idWhatsapp, from, text, date);
+
+			// OLD
+			// const resInsert = await insertData(idWhatsapp, from, text, date);
+			// console.log('resInsert', resInsert);
+
+			// if (resInsert?.changes == 1) {
+			// 	console.log('success submit', resInsert);
+			// 	fs.writeFileSync(DEBUG_FILE, JSON.stringify(body, null, 2));
+			// } else {
+			// 	console.log('fail submit', resInsert);
+			// 	fs.writeFileSync(DEBUG_FILE, JSON.stringify(body, null, 2));
+			// }			
+
+			//MONGO
+			// await dbConnectMongo();
+			// const query = { userId: '4184122015', email: 'admin@admin.admin' };
+			// const update = {
+			// 	$set: {
+			// 		extraFieldText1: JSON.stringify(body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0].text.body),
+			// 	}
+			// };
+			// const options = { upsert: false }
+			// const result = await User.updateOne(query, update, options).lean().exec();
+
+			// if (result.matchedCount < 1) {
+			// 	return json({ message: 'insert error', status: 500 });
+			// }
+
+			// save to JSON file
+			await saveMessageToFile({ body });
+
+			//  extract the business number to send the reply from it
 			const business_phone_number_id =
 				body?.entry?.[0]?.changes?.[0]?.value?.metadata?.phone_number_id;
 
@@ -103,67 +138,32 @@ export const POST: RequestHandler = async ({ request }) => {
 				'Content-Type': 'application/json',
 			};
 
-			// console.log('business_phone_number_id', business_phone_number_id);
-			// console.log('apiUrl', apiUrl);
-			// console.log('headers', headers);
-
-			// send a reply message
-			//const res = await fetch(apiUrl, {
-			// //////// STOP POST
-			// await fetch(apiUrl, {
-			// 	method: 'POST',
-			// 	headers: headers,
-			// 	body: JSON.stringify({
-			// 		messaging_product: 'whatsapp',
-			// 		to: message.from,
-			// 		//text: { body: 'Echo: ' + JSON.stringify(body, null, 2) },
-			// 		//text: { body: 'ricevuto: ' + message.text.body + '\n' + "hai vinto/non hai vinto" },
-			// 		text: { body: "Complimeti hai vinto / Ci dispiace non hai vinto" },
-			// 		context: {
-			// 			message_id: message.id, // shows the message as a reply to the original user message
-			// 		},
-			// 	}),
-			// });
-
-			// const response = await res.json();
-			// console.log('res', res);
-			// console.log('response', response);
-
-			//SQLITE
-			const idWhatsapp = message.id;
-			const from = message.from;
-			const text = message.text.body;
-			const date = Number(message.timestamp)
-			const resInsert = await insertData(idWhatsapp, from, text, date);
-			console.log('resInsert', resInsert);
-
-			if (resInsert?.changes == 1) {
-				console.log('success submit', resInsert);
-				fs.writeFileSync(DEBUG_FILE, JSON.stringify(body, null, 2));
+			//////// SEND MESSAGE
+			let resposeMessage = 'per partecipare scrivi: "123"'
+			if (message.text.body == "123") {
+				resposeMessage = "inserisci il codice di partecipazione"
+			}
+			if (message.text.body == "456") {
+				resposeMessage = "Complimeti hai vinto"
 			} else {
-				console.log('fail submit', resInsert);
-				fs.writeFileSync(DEBUG_FILE, JSON.stringify(body, null, 2));
+				resposeMessage = "Ci dispiace non hai vinto"
 			}
+			await fetch(apiUrl, {
+				method: 'POST',
+				headers: headers,
+				body: JSON.stringify({
+					messaging_product: 'whatsapp',
+					to: message.from,
+					//text: { body: 'Echo: ' + JSON.stringify(body, null, 2) },
+					//text: { body: 'ricevuto: ' + message.text.body + '\n' + "hai vinto/non hai vinto" },
+					text: { body: resposeMessage },
+					context: {
+						message_id: message.id, // shows the message as a reply to the original user message
+					},
+				}),
+			});
 
-			// save to JSON file
-			await saveMessageToFile({ body });
-
-			//MONGO
-			await dbConnectMongo();
-			const query = { userId: '4184122015', email: 'admin@admin.admin' };
-			const update = {
-				$set: {
-					extraFieldText1: JSON.stringify(body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0].text.body),
-				}
-			};
-			const options = { upsert: false }
-			const result = await User.updateOne(query, update, options).lean().exec();
-
-			if (result.matchedCount < 1) {
-				return json({ message: 'insert error', status: 500 });
-			}
-
-			// //////// STOP UPDATE
+			// //////// SEND UPDATE
 			// mark incoming message as read
 			// await fetch(apiUrl, {
 			// 	method: 'POST',
@@ -177,9 +177,10 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 		//return json({ status: 200 });
 		return new Response(null, { status: 200 }); // Respond with 200 OK
-	} catch (error) {
+	} catch (error: any) {
 		console.error('Error handling webhook:', error);
+		fs.writeFileSync(DEBUG_FILE, JSON.stringify(error, null, 2));
 		//return json({ status: 500 });
-		return new Response(null, { status: 500 }); // Respond with 500 for errors
+		return new Response(error, { status: 500 }); // Respond with 500 for errors
 	}
 };
