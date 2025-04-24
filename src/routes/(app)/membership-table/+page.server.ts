@@ -1,10 +1,12 @@
 import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
-import stringHash from 'string-hash';
+//import stringHash from 'string-hash';
+import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
 //import type { Locals, MembershipProduct } from '$lib/types';
 
 const apiKey = import.meta.env.VITE_APIKEY;
+const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
@@ -73,7 +75,8 @@ export const actions: Actions = {
 		}
 		//console.log('new', title, descrShort, price, renewalLength, userId);
 		try {
-			const prodId = stringHash(crypto.randomUUID());
+
+			const prodId = nanoid() // OLD stringHash(crypto.randomUUID());
 			const returnObj = false
 			const newDoc = {
 				prodId,

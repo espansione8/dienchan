@@ -21,6 +21,7 @@
 	let { data, form } = $props(); // pull data from server
 	const { getTable } = $derived(data); // deconstruct data from server
 	let tableList = $state(getTable);
+	let formState = $derived(form);
 
 	let prodId = $state(null);
 	let status = $state('');
@@ -475,6 +476,20 @@
 		//invalidateAll();
 	};
 
+	//notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+			notificationContent = '';
+			notificationError = false;
+		}, 3000); // 1000 milliseconds = 1 second
+	};
+	//clearTimeout(startTimeout); // reset timer
+
 	$effect(() => {
 		//console.log('form', form);
 		if (form != null) {
@@ -502,20 +517,6 @@
 			form = null; // reset form TESTING
 		}
 	}); // end effect
-
-	//notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-			notificationContent = '';
-			notificationError = false;
-		}, 3000); // 1000 milliseconds = 1 second
-	};
-	//clearTimeout(startTimeout); // reset timer
 </script>
 
 <svelte:head>
