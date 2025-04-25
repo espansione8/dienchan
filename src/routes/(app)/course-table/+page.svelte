@@ -693,14 +693,12 @@
 						<td>{row.layoutView.price} €</td>
 						<!-- Azione -->
 						<td class="flex items-center space-x-4">
-							<button
-								onclick={() => onClickModal('modify', row)}
-								class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:bg-gray-300 hover:text-gray-800"
+							<button class="btn btn-sm" onclick={() => onClickModal('modify', row)}
 								><Settings />
 							</button>
 							<button class="btn btn-error btn-sm" onclick={() => onClickModal('delete', row)}
-								><Trash2 /></button
-							>
+								><Trash2 />
+							</button>
 						</td>
 					</tr>
 				{/each}

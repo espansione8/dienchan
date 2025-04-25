@@ -1,6 +1,6 @@
 <script lang="ts">
 	//import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { LogOut, ChevronDown, Menu, Megaphone, LogIn } from 'lucide-svelte';
 	import { cartProducts, emptyCart } from '$lib/stores/cart';
 
@@ -12,7 +12,7 @@
 	let menuActive = $state(false);
 	let userName = $state(user?.name || '');
 	let userSurname = $state(user?.surname || '');
-	let userId = $state(user?.userId || '');
+	//let userId = $state(user?.userId || '');
 
 	const onBurgerclick = () => {
 		menuActive = !menuActive;
@@ -69,7 +69,7 @@
 			<li>
 				<a
 					class="btn btn-sm h-12 mt-1 btn-outline btn-accent rounded-full"
-					class:active={$page.url.pathname === '/membership-new/'}
+					class:active={page.url.pathname === '/membership-new/'}
 					href="/membership-new"
 					aria-current="page"
 					onclick={onBurgerclick}
@@ -80,7 +80,7 @@
 			<li>
 				<a
 					class="btn btn-sm btn-primary border-black"
-					class:active={$page.url.pathname === '/course-filter/'}
+					class:active={page.url.pathname === '/course-filter/'}
 					href="/course-filter"
 					aria-current="page"
 					onclick={onBurgerclick}
@@ -91,7 +91,7 @@
 			<li>
 				<a
 					class="btn btn-sm btn-primary border-black"
-					class:active={$page.url.pathname === '/cart/'}
+					class:active={page.url.pathname === '/cart/'}
 					href="/cart"
 					aria-current="page"
 					onclick={onBurgerclick}
@@ -109,7 +109,7 @@
 			{#if auth}
 				<a
 					class="btn btn-sm btn-primary border-black"
-					class:active={$page.url.pathname === '/profile-modify/'}
+					class:active={page.url.pathname === '/profile-modify/'}
 					href="/profile-modify"
 					aria-current="page"
 					onclick={onBurgerclick}
@@ -218,7 +218,7 @@
 		<ul class="hidden menu sm:menu-horizontal gap-3">
 			<a
 				class="btn btn-sm btn-outline btn-accent"
-				class:active={$page.url.pathname === '/membership-new/'}
+				class:active={page.url.pathname === '/membership-new/'}
 				href="/membership-new"
 				aria-current="page"
 				onclick={onBurgerclick}
@@ -227,7 +227,7 @@
 			</a>
 			<a
 				class="btn btn-sm btn-outline btn-accent"
-				class:active={$page.url.pathname === '/course-filter/'}
+				class:active={page.url.pathname === '/course-filter/'}
 				href="/course-filter"
 				aria-current="page"
 				onclick={onBurgerclick}
@@ -237,7 +237,7 @@
 
 			<a
 				class="btn btn-sm btn-outline btn-accent"
-				class:active={$page.url.pathname === '/cart/'}
+				class:active={page.url.pathname === '/cart/'}
 				href="/cart"
 				aria-current="page"
 				onclick={onBurgerclick}
@@ -251,7 +251,7 @@
 			{#if auth}
 				<a
 					class="btn btn-sm btn-outline btn-accent"
-					class:active={$page.url.pathname === '/profile-modify/'}
+					class:active={page.url.pathname === '/profile-modify/'}
 					href="/profile-modify"
 					aria-current="page"
 					onclick={onBurgerclick}

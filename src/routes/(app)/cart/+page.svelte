@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
+	import Modal from '$lib/components/Modal.svelte';
 	import { enhance } from '$app/forms';
 	import { cartProducts, removeFromCart, emptyCart } from '$lib/stores/cart';
 	import Notification from '$lib/components/Notification.svelte';
@@ -46,8 +47,13 @@
 	let discountArray: any[] = $state([]);
 	let discountErr = $state('');
 	let totalDiscount = $state(0);
-	
+
 	let grandTotal = $state(0);
+
+	let currentModal = $state('');
+	let openModal = $state(false);
+	let modalTitle = $state('');
+	let postAction = $state('?/');
 
 	const testPass = () => {
 		checkPass = password1.length >= 8;
@@ -195,27 +201,6 @@
 		totalCart();
 	};
 
-	const fieldReset = () => {
-		name = '';
-		surname = '';
-		email = '';
-		address = '';
-		city = '';
-		countryState = 'AG';
-		postalCode = '';
-		country = 'Italy';
-		phone = '';
-		mobilePhone = '';
-		discountErr = '';
-		form = null;
-		emptyCart();
-	};
-
-	const onClickInfo = (idCourse: any) => {
-		//  console.log('idCourse', idCourse);
-		goto(`/course-detail/${idCourse}`);
-	};
-
 	totalCart();
 	// subTotal = grandTotal;
 	let discountActive = $state();
@@ -228,6 +213,87 @@
 	};
 
 	let subTotal = $derived(grandTotal - totalDiscount);
+	////// STANDARD FUNCTIONS //////
+	const resetFields = () => {
+		openModal = false;
+		name = '';
+		surname = '';
+		email = '';
+		address = '';
+		city = '';
+		countryState = 'AG';
+		postalCode = '';
+		country = 'Italy';
+		phone = '';
+		mobilePhone = '';
+		discountErr = '';
+		form = null;
+		modalTitle = '';
+		postAction = '?/';
+		emptyCart();
+	};
+
+	const resetData = () => {
+		invalidateAll();
+		resetFields();
+		//resetActive = false;
+		//tableList = getTable;
+	};
+
+	const changeStatus = (event: any) => {
+		if (event.target.form) {
+			event.preventDefault();
+			event.target.form.requestSubmit();
+		}
+	};
+
+	const onClickModal = (type: string, item: any) => {
+		currentModal = type;
+		openModal = true;
+		if (type == 'new') {
+			postAction = `?/new`;
+			modalTitle = 'Nuovo';
+		}
+		if (type == 'modify') {
+			postAction = `?/modify`;
+			modalTitle = 'Modifica';
+			// prodId = item.prodId;
+			// title = item.title;
+			// price = item.price;
+			// renewalLength = item.renewalLength;
+			// descrShort = item.descrShort;
+		}
+		if (type == 'delete') {
+			postAction = `?/delete`;
+			modalTitle = 'Elimina';
+			//orderId = item.orderId;
+		}
+		if (type == 'filter') {
+			postAction = `?/filter`;
+			modalTitle = 'Filtra';
+		}
+	};
+
+	const onCloseModal = () => {
+		openModal = false;
+		resetFields();
+		currentModal = '';
+		//invalidateAll();
+	};
+
+	//notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+			notificationContent = '';
+			notificationError = false;
+		}, 3000); // 1000 milliseconds = 1 second
+	};
+	//clearTimeout(startTimeout); // reset timer
 
 	$effect(() => {
 		if (form != null) {
@@ -275,18 +341,6 @@
 			form = null;
 		}
 	}); // end effect
-
-	// notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-		}, 3000); // 1000 milliseconds = 1 second
-	};
-	//clearTimeout(startTimeout); // reset timer
 </script>
 
 <svelte:head>
@@ -343,10 +397,12 @@
 
 						<div class="card-actions">
 							<span class="flex justify-between gap-10 my-3">
-								<button
+								<a
 									class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:text-gray-300"
-									onclick={() => onClickInfo(item.prodId)}>Info</button
+									href={`/course-detail/${item.prodId}`}
 								>
+									Info
+								</a>
 								<button
 									class="btn btn-sm bg-red-200 w-40 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400"
 									onclick={() => onRemoveFromCart(item)}>Rimuovi dal Carrello</button
@@ -753,6 +809,117 @@
 	</section>
 </div>
 <Notification {toastClosed} {notificationContent} {notificationError} />
+
+{#if currentModal == 'new'}
+	<!-- <Modal isOpen={openModal} header={modalTitle}>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+			>✕</button
+		>
+		<form
+			method="POST"
+			action={postAction}
+			use:enhance
+			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+		>
+			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
+				Nuovo membership
+			</header>
+
+			<section class="col-span-4">
+				<label for="titolo" class="form-label">
+					<p class="font-bold mb-2">Nome</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="titolo"
+						name="title"
+						type="text"
+						placeholder="Titolo"
+						aria-label="Titolo"
+						aria-describedby="basic-titolo"
+						bind:value={title}
+						required
+					/>
+				</div>
+			</section>
+
+			<section class="col-span-2 md:col-span-2">
+				<label for="price" class="form-label">
+					<p class="font-bold mb-2">Prezzo</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-gray-300 px-3"><Calculator /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="price"
+						type="number"
+						name="price"
+						placeholder="€"
+						aria-label="price"
+						aria-describedby="basic-price"
+						bind:value={price}
+						required
+					/>
+				</div>
+			</section>
+
+			<section class="col-span-2 md:col-span-2">
+				<label for="renewalLength" class="form-label">
+					<p class="font-bold mb-2">Durata giorni</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-gray-300 px-3"><Calendar /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="renewalLength"
+						type="number"
+						name="renewalLength"
+						aria-label="renewalLength"
+						aria-describedby="renewalLength"
+						min="1"
+						max="36500"
+						bind:value={renewalLength}
+						required
+					/>
+				</div>
+				<label for="renewalLength" class="form-label">
+					<p class="font-bold mb-2">(max 36500 = 100 anni)</p>
+				</label>
+			</section>
+
+			<section class="col-span-4">
+				<div class="mt-6">
+					<label for="descrShortN" class="form-label">
+						<p class="font-bold mb-2">Descrizione (opzionale)</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button class="join-item bg-gray-300 px-3"><Pen /></button>
+						<textarea
+							class="textarea textarea-bordered h-24 join-item w-full"
+							id="descrShortN"
+							name="descrShort"
+							placeholder="Descrizione"
+							aria-label="descrizione"
+							aria-describedby="basic-descrizione"
+							bind:value={descrShort}
+						></textarea>
+					</div>
+				</div>
+			</section>
+
+			<div class="col-span-4 mt-5 flex justify-center">
+				<div class="bg-gray-50 flex justify-center">
+					<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}
+						>Annulla</button
+					>
+					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">Registra</button>
+				</div>
+			</div>
+		</form>
+	</Modal> -->
+{/if}
 
 <!-- modal CART -->
 <dialog id="my_modal_2" class="modal" class:modal-open={isModalConfirm}>

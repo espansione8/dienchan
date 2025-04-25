@@ -1,10 +1,7 @@
-import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
-//import stringHash from 'string-hash';
+import { fail } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
-//import type { Locals, MembershipProduct } from '$lib/types';
-
 const apiKey = import.meta.env.VITE_APIKEY;
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 
@@ -41,7 +38,6 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10)
 		}));
-
 	} catch (error) {
 		console.log('membershipfetch error:', error);
 	}
@@ -268,13 +264,13 @@ export const actions: Actions = {
 					createdAt: obj.createdAt.substring(0, 10)
 				}));
 				//console.log('response', response);
-				return { action: 'filter', success: true, message: 'filtro attivato', filterTableList };
+				return { action: 'filter', success: true, message: 'Filtro attivato', filterTableList };
 			} else {
-				return { action: 'filter', success: false, message: 'errore filtro' };
+				return { action: 'filter', success: false, message: 'Errore filtro' };
 			}
 		} catch (error) {
 			console.error('Error filter membership:', error);
-			return { action: 'filter', success: false, message: 'Errore filtro membership' };
+			return { action: 'filter', success: false, message: 'Errore filtro 500' };
 		}
 	},
 

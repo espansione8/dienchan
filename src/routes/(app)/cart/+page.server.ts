@@ -1,5 +1,8 @@
-import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
+import { fail } from '@sveltejs/kit';
+import { customAlphabet } from 'nanoid'
+const apiKey = import.meta.env.VITE_APIKEY;
+const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 
 type CartItem = {
 	layoutView: { price: number };
@@ -16,9 +19,7 @@ type DiscountResult = {
 	totalDiscount: number;
 };
 
-
 export const load: PageServerLoad = async ({ locals }) => {
-
 	return {
 		userData: locals.user,
 		auth: locals.auth
@@ -26,9 +27,61 @@ export const load: PageServerLoad = async ({ locals }) => {
 }
 
 export const actions: Actions = {
+	new: async ({ request, fetch, locals }) => {
+		const userId = locals.user.userId
+		const formData = await request.formData();
+		const title = formData.get('title');
+		const descrShort = formData.get('descrShort');
+		const category = formData.get('category') || '';
+		const price = formData.get('price');
+		const prodImage = formData.get('image') || '';
+		const renewalLength = formData.get('renewalLength');
+
+		if (!title || !price || !renewalLength || !userId) {
+			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
+		}
+		//console.log('new', title, descrShort, price, renewalLength, userId);
+		try {
+
+			const prodId = nanoid() // OLD stringHash(crypto.randomUUID());
+			const returnObj = false
+			const newDoc = {
+				prodId,
+				title,
+				descrShort,
+				stockQty: 1,
+				category: [category],
+				price,
+				renewalLength,
+				userId,
+			};
+
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'order', //product | order | user | layout | discount
+					newDoc,
+					returnObj
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const response = await res.json();
+
+			if (res.status == 200) {
+				return { action: 'new', success: true, message: response.message };
+			} else {
+				return { action: 'new', success: false, message: response.message };
+			}
+		} catch (error) {
+			console.error('Error creating new membership:', error);
+			return { action: 'new', success: false, message: 'Errore creazione membership' };
+		}
+	},
 
 	applyDiscount: async ({ request, fetch, event, locals }) => {
-
 		const formData = await request.formData();
 		const discountCode = formData.get('discountCode');
 		const grandTotal = formData.get('grandTotal');
@@ -40,7 +93,6 @@ export const actions: Actions = {
 		const checkCode = discountArray.some((item: any) => item == discountCode);
 		// butto sempre il codice nell'array 
 		discountArray.push(discountCode);
-
 
 		if (!discountCode || checkCode) {
 			return fail(400, { action: 'applyDiscount', success: false, message: checkCode ? 'Sconto già applicato' : 'Dati mancanti' });
@@ -68,7 +120,6 @@ export const actions: Actions = {
 			if (!discountItem) {
 				return fail(400, { action: 'applyDiscount', success: false, message: 'Sconto non trovato' });
 			}
-
 
 			// controllo se il codice è applicabile, separato per poter controllare singolarmente
 			if (discountItem.selectedApplicability == 'userId' && discountItem.userId != locals?.user?.userId) {
@@ -128,7 +179,6 @@ export const actions: Actions = {
 						totalDiscount += itemDiscount;
 					}
 
-
 					// 3. aggiungo il codice con il suo sconto
 					discountApplied.push({
 						//discountId,
@@ -160,7 +210,6 @@ export const actions: Actions = {
 		const discountList = formData.get('discountList');
 		let discountArray = JSON.parse(discountList)  //[]  
 		discountArray = discountArray.filter(item => item !== removeCode);
-
 		// console.log('formData', formData);
 
 		try {
@@ -282,7 +331,5 @@ export const actions: Actions = {
 			return { action: 'newUser', success: false, message: 'Errore creazione newUser' };
 		}
 	},
-
-
 
 } satisfies Actions;

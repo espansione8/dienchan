@@ -5,7 +5,20 @@ declare global {
 		// interface Error {}
 		interface Locals {
 			userData: User | null;
-			user: object | null;
+			user: User | null;
+			auth: boolean | null;
+			status: string;
+		}
+		interface User {
+			membership: {
+				membershipExpiry: Date | string;
+				membershipSignUp: Date | string;
+				membershipActivation: Date | string;
+			}
+		}
+		interface Locals {
+			userData: User | null;
+			user: User | null;
 			auth: boolean | null;
 			status: string;
 		}

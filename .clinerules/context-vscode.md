@@ -22,11 +22,11 @@ This document outlines the core coding standards and preferred technologies for 
 
 ## Svelte Frontend Conventions
 
-- When using `export let data`, always use:
+- When using `export let data` in +page.svelte file, always use:
   ```svelte
   let { data } = $props();
   ```
-- When declaring a `let` in the Svelte frontend, use:
+- When declaring a `let` in +page.svelte file, always use:
   ```svelte
   $state()
   ```

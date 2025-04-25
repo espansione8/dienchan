@@ -193,3 +193,38 @@ export type MembershipProduct = {
     renewalLength: number;
     // Add other membership
 };
+
+export interface Order {
+    orderDate: string;
+    orderId: string;
+    userView?: {
+        email: string;
+        name: string;
+        surname: string;
+        city: string;
+        address: string;
+        postalCode: string;
+        countryState: string;
+        country: string;
+        phone: string;
+        mobile: string;
+    };
+    cart: {
+        title: string;
+        price: number;
+        category: string[];
+    }[];
+    totalCart: number;
+    totalValue: number;
+    payment: {
+        method: string;
+        statusPayment: string;
+    };
+    status: string;
+}
+
+export interface TableNames {
+    userId: string;
+    surname: string;
+    name: string;
+}
