@@ -1,6 +1,8 @@
 //import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types'
 
+const apiKey = import.meta.env.VITE_APIKEY;
+
 export const load: PageServerLoad = async ({ fetch, locals }) => {
 	let getTable = [];
 	let getTableNames = [];
@@ -8,18 +10,26 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	const user = locals.user
 
 	try {
-		let arrayField: any[] = [];
-		let arrayValue: any[] = [];
-
 		// get courses
-		arrayField = ['status', 'type'];
-		arrayValue = ['enabled', 'course'];
-		const resProductsCorso = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
+		const queryCourses = {
+			status: 'enabled',
+			type: 'course'
+		};
+		const projectionCourses = { _id: 0 };
+		const sortCourses = { createdAt: -1 };
+		const limitCourses = 1000;
+		const skipCourses = 0;
+
+		const resProductsCorso = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
+				apiKey,
 				schema: 'product',
-				arrayField,
-				arrayValue
+				query: queryCourses,
+				projection: projectionCourses,
+				sort: sortCourses,
+				limit: limitCourses,
+				skip: skipCourses
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -27,26 +37,34 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		});
 
 		const resGetTable = await resProductsCorso.json();
-		//console.log('resGetTable', resGetTable);
 
 		getTable = resGetTable.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10),
 			eventStartDate: obj.eventStartDate.substring(0, 10),
 			timeStartDate: obj.eventStartDate.substring(11, 16),
-			//timeEndDate: obj.eventEndDate.substring(11, 16),
 		}));
 
 		// user list
-		arrayField = ['status', 'level'];
-		arrayValue = ['enabled', 'superadmin'];
-		// arrayValue = ['enabled', 'formatore']; // REFACTOR
-		const resName = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
+		const queryUsers = {
+			status: 'enabled',
+			level: 'superadmin'
+		};
+		const projectionUsers = { _id: 0 };
+		const sortUsers = { surname: 1 };
+		const limitUsers = 1000;
+		const skipUsers = 0;
+
+		const resName = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
+				apiKey,
 				schema: 'user',
-				arrayField,
-				arrayValue
+				query: queryUsers,
+				projection: projectionUsers,
+				sort: sortUsers,
+				limit: limitUsers,
+				skip: skipUsers
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -55,14 +73,22 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		getTableNames = await resName.json();
 
 		// get layout
-		arrayField = [];
-		arrayValue = [];
-		const resLayout = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
+		const queryLayout = {};
+		const projectionLayout = { _id: 0 };
+		const sortLayout = { createdAt: -1 };
+		const limitLayout = 1000;
+		const skipLayout = 0;
+
+		const resLayout = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
+				apiKey,
 				schema: 'layout',
-				arrayField,
-				arrayValue
+				query: queryLayout,
+				projection: projectionLayout,
+				sort: sortLayout,
+				limit: limitLayout,
+				skip: skipLayout
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -73,7 +99,6 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	} catch (error) {
 		console.log('course filter fetch error:', error);
 	}
-	//console.log('getTableCorsi', getTableCorsi);
 	return {
 		getTable,
 		getTableNames,
