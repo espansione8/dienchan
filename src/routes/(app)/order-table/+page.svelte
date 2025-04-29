@@ -149,11 +149,7 @@
 		if (type == 'modify') {
 			postAction = `?/modify`;
 			modalTitle = 'Modifica';
-			// 	prodId = item.prodId;
-			// 	title = item.title;
-			// 	price = item.price;
-			// 	renewalLength = item.renewalLength;
-			// 	descrShort = item.descrShort;
+			status = item.status;
 		}
 		if (type == 'delete') {
 			postAction = `?/delete`;
@@ -191,25 +187,30 @@
 	//clearTimeout(startTimeout); // reset timer
 
 	$effect(() => {
+		//console.log('form', form);
 		if (form != null) {
-			async () => await invalidateAll();
+			//console.log('form triggered');
+			async () => await invalidateAll(); // MUST be async/await or tableList = getTable will trigger infinite loop
 			const { action, success, message, filterTableList } = form;
 			if (success) {
-				closeNotification();
-				isModalFilter = false;
-				resetActive = false;
-				tableList = getTable;
-				if (action == 'filterOrder') {
+				//console.log('filterTableList effect', filterTableList);
+				currentModal = '';
+				if (action == 'filter') {
 					resetActive = true;
 					tableList = filterTableList;
+				} else {
+					resetActive = false;
+					tableList = getTable;
 				}
 			} else {
 				notificationError = true;
-				// errMessage = message;
 			}
+			resetFields();
+			clearTimeout(startTimeout);
+			closeNotification();
 			toastClosed = false;
 			notificationContent = message;
-			form = null;
+			form = null; // reset form
 		}
 	}); // end effect
 </script>
@@ -327,6 +328,70 @@
 </div>
 
 <Notification {toastClosed} {notificationContent} {notificationError} />
+
+{#if currentModal == 'modify'}
+	<Modal isOpen={openModal} header={modalTitle}>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+			>✕</button
+		>
+		<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
+			<div class="space-y-4">
+				<div>
+					<label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+					<select
+						id="status"
+						name="status"
+						bind:value={status}
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					>
+						<option value="">Scegli uno status</option>
+						<option value="requested">Richiesta in corso</option>
+						<option value="confirmed">Confermato</option>
+						<option value="cancelled">Cancellato</option>
+						<option value="exported">Processato</option>
+					</select>
+				</div>
+			</div>
+			<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
+				<button
+					class="btn btn-error btn-sm rounded-md hover:bg-red-300"
+					type="button"
+					onclick={onCloseModal}
+				>
+					Annulla
+				</button>
+				<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit">
+					Modifica
+				</button>
+			</div>
+		</form>
+	</Modal>
+{/if}
+
+{#if currentModal == 'delete'}
+	<Modal isOpen={openModal} header={modalTitle}>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+			>✕</button
+		>
+		<form
+			method="POST"
+			action={postAction}
+			use:enhance
+			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+		>
+			<input type="hidden" name="orderId" value={orderId} />
+			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
+				Conferma rimozione
+			</header>
+			<div class="col-span-4 mt-5 flex justify-center">
+				<div class="bg-gray-50 flex justify-center">
+					<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
+					<button type="submit" class="btn btn-error btn-sm mx-2 text-white">Elimina</button>
+				</div>
+			</div>
+		</form>
+	</Modal>
+{/if}
 
 {#if currentModal == 'filter'}
 	<Modal isOpen={openModal} header={modalTitle}>

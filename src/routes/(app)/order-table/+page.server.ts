@@ -83,27 +83,20 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 
 
 export const actions: Actions = {
-
 	modify: async ({ request, fetch }) => {
 		const formData = await request.formData();
-		const prodId = formData.get('prodId');
-		const title = formData.get('title') || '';
-		const price = formData.get('price');
-		const renewalLength = formData.get('renewalLength');
-		const descrShort = formData.get('descrShort') || '';
+		const orderId = formData.get('orderId');
+		const status = formData.get('status');
 
-		if (!prodId || !title || !price || !renewalLength) {
+		if (!orderId || !status) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
 		try {
-			const query = { prodId, type: 'membership' }; // 'course', 'product', 'membership', 'event'
+			const query = { orderId: orderId };
 			const update = {
 				$set: {
-					prodId,
-					title,
-					descrShort,
-					price,
+					status: status,
 				}
 			};
 			const options = { upsert: false }
@@ -113,7 +106,7 @@ export const actions: Actions = {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
-					schema: 'product', //product | order | user | layout | discount
+					schema: 'order', //product | order | user | layout | discount
 					query,
 					update,
 					options,
@@ -124,7 +117,6 @@ export const actions: Actions = {
 				}
 			});
 			const response = await res.json();
-			//console.log('response.message', response);
 
 			if (res.status == 200) {
 				return { action: 'modify', success: true, message: response.message };
