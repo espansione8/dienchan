@@ -19,23 +19,61 @@ type DiscountResult = {
 	totalDiscount: number;
 };
 
-export const load: PageServerLoad = async ({ locals }) => {
-	return {
-		userData: locals.user,
-		auth: locals.auth
-	};
-}
+export const load: PageServerLoad = async ({ locals, fetch }) => {
+	try {
+		const query = {};
+		const projection = {};
+		const sort = {};
+		const limit = 1000;
+		const skip = 0;
+
+		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				apiKey: import.meta.env.VITE_APIKEY,
+				schema: 'product', // Assuming you want to fetch cart items from the 'product' schema
+				query,
+				projection,
+				sort,
+				limit,
+				skip
+			})
+		});
+
+		if (!res.ok) {
+			throw new Error(`Failed to fetch data: ${res.status} ${res.statusText}`);
+		}
+
+		const response = await res.json();
+
+		return {
+			userData: locals.user || null,
+			auth: locals.auth,
+			cartItems: response // Adjust property name as needed
+		};
+	} catch (error) {
+		console.error('Error fetching data in load function:', error);
+		return {
+			userData: locals.user || null,
+			auth: locals.auth,
+			cartItems: [] // Provide a default value in case of error
+		};
+	}
+};
 
 export const actions: Actions = {
 	new: async ({ request, fetch, locals }) => {
-		const userId = locals.user.userId
+		const userId = locals.user?.userId ?? '';
 		const formData = await request.formData();
-		const title = formData.get('title');
-		const descrShort = formData.get('descrShort');
-		const category = formData.get('category') || '';
-		const price = formData.get('price');
-		const prodImage = formData.get('image') || '';
-		const renewalLength = formData.get('renewalLength');
+		const title = formData.get('title') as string;
+		const descrShort = formData.get('descrShort') as string;
+		const category = formData.get('category') as string || '';
+		const price = formData.get('price') as string;
+		const prodImage = formData.get('image') as string || '';
+		const renewalLength = formData.get('renewalLength') as string;
 
 		if (!title || !price || !renewalLength || !userId) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
@@ -81,14 +119,14 @@ export const actions: Actions = {
 		}
 	},
 
-	applyDiscount: async ({ request, fetch, event, locals }) => {
+	applyDiscount: async ({ request, fetch, locals }) => {
 		const formData = await request.formData();
-		const discountCode = formData.get('discountCode');
-		const grandTotal = formData.get('grandTotal');
+		const discountCode = formData.get('discountCode') as string;
+		const grandTotal = formData.get('grandTotal') as string;
 		const originalTotal = Number(grandTotal)
-		const cart = formData.get('cart');
+		const cart = formData.get('cart') as string;
 		const cartArray = JSON.parse(cart)
-		const discountList = formData.get('discountList');
+		const discountList = formData.get('discountList') as string;
 		const discountArray = JSON.parse(discountList)  //[]   
 		const checkCode = discountArray.some((item: any) => item == discountCode);
 		// butto sempre il codice nell'array 
@@ -122,10 +160,10 @@ export const actions: Actions = {
 			}
 
 			// controllo se il codice è applicabile, separato per poter controllare singolarmente
-			if (discountItem.selectedApplicability == 'userId' && discountItem.userId != locals?.user?.userId) {
+			if (discountItem.selectedApplicability == 'userId' && discountItem.userId != locals.user?.userId) {
 				return fail(400, { action: 'applyDiscount', success: false, message: 'Sconto non applicabile' });
 			}
-			else if (discountItem.selectedApplicability == 'membershipLevel' && discountItem.membershipLevel != locals?.user?.membership?.membershipLevel) {
+			else if (discountItem.selectedApplicability == 'membershipLevel' && discountItem.membershipLevel != locals.user?.membership?.membershipLevel) {
 				return fail(400, { action: 'applyDiscount', success: false, message: 'Sconto non applicabile' });
 			}
 			else if (discountItem.selectedApplicability == 'prodId') {
@@ -200,14 +238,14 @@ export const actions: Actions = {
 		}
 	},
 
-	removeDiscount: async ({ request, fetch, event, locals }) => {
+	removeDiscount: async ({ request, fetch, locals }) => {
 		const formData = await request.formData();
-		const removeCode = formData.get('removeCode');
-		const grandTotal = formData.get('grandTotal');
+		const removeCode = formData.get('removeCode') as string;
+		const grandTotal = formData.get('grandTotal') as string;
 		const originalTotal = Number(grandTotal)
-		const cart = formData.get('cart');
+		const cart = formData.get('cart') as string;
 		const cartArray = JSON.parse(cart)
-		const discountList = formData.get('discountList');
+		const discountList = formData.get('discountList') as string;
 		let discountArray = JSON.parse(discountList)  //[]  
 		discountArray = discountArray.filter(item => item !== removeCode);
 		// console.log('formData', formData);

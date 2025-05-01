@@ -1,5 +1,5 @@
 # Svelte 5 / SvelteKit Coding Standard
-## Backend page.server.ts
+## this is the sample code for the Backend coding page.server.ts, variable names, values and strings may vary for different files
  ```js
 import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
@@ -323,7 +323,7 @@ export const actions: Actions = {
 } satisfies Actions;
 ```
 
-## Frontend page.svelte
+## this is the sample code for the Frontend coding for page.svelte, variable names, values and strings may vary for different files
  ```js
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';

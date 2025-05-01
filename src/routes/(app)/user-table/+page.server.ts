@@ -1,54 +1,45 @@
 import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
+import { pageAuth } from '$lib/pageAuth';
 
-export const load: PageServerLoad = async ({ fetch, locals }) => {
-	//console.log('locals', locals);
-	// if (!locals.auth) {
-	// 	throw redirect(302, '/login');
-	// }
+const apiKey = import.meta.env.VITE_APIKEY;
+
+export const load: PageServerLoad = async ({ fetch, locals, url }) => {
+	pageAuth(url.pathname, locals.auth, 'page');
+
 	let getTable = [];
 	try {
-		//const userData = session.user;
-		//console.log('MY DOCS userData', userData);
-		const arrayField = [];
-		const arrayValue = [];
-		// view all users
-		// const arrayField = ['status'];
-		// const arrayValue = ['enabled'];
-		const response = await fetch(`/api/finds/0/0`, {
+		const query = {};
+		const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
+		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
+		const limit = 1000;
+		const skip = 0;
+		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
-				schema: 'user',
-				arrayField,
-				arrayValue
+				apiKey,
+				schema: 'user', //product | order | user | layout | discount
+				query,
+				projection,
+				sort,
+				limit,
+				skip
 			}),
 			headers: {
 				'Content-Type': 'application/json'
 			}
 		});
-		const resGetTableUser = await response.json();
-		//console.log('MY DOCS res.ok', res.ok);
-		//console.log('res getTableData', resGetTableData)
-		getTable = resGetTableUser.map((obj: any) => ({
+		const response = await res.json();
+		getTable = response.map((obj: any) => ({
 			...obj,
-			createdAt: obj.createdAt.substring(0, 10),
-			// membershipExpiry = membership.membershipExpiry.toISOString().substring(0, 10)
+			createdAt: obj.createdAt.substring(0, 10)
 		}));
 	} catch (error) {
-		console.log('fetch error:', error);
+		console.log('userfetch error:', error);
 	}
-	const user = locals.user
-	if (locals.auth) {
-		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
-		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
-		user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
-	}
-	//console.log('res getTableData', getTableData);
+
 	return {
 		getTable,
-		userData: user,
-		auth: locals.auth,
-		//userData
 	};
 }
 
