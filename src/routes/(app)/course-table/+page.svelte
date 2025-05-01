@@ -55,6 +55,8 @@
 	let startDay = $state(currentDay);
 	let startHour = $state(currentHour);
 	let startMinute = $state('00');
+	let mode = $state('');
+	let provinceArray = $state([]);
 	// filter Data
 	let sortDirection = $state('asc');
 	let sortColumn = $state('createdAt');
@@ -468,6 +470,7 @@
 		tagArray = [];
 		modalTitle = '';
 		postAction = '?/';
+		mode = '';
 		form = null;
 	};
 
@@ -490,11 +493,14 @@
 		if (type == 'email') {
 			var mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,6})$/;
 			if (item.match(mailformat)) {
-				// notificationError = false;
-				// notificationContent = 'Email valida';
-				// toastClosed = false;
-				notificationEmail.push(item);
-				// closeNotification();
+				if (!notificationEmail.includes(item)) {
+					notificationEmail.push(item);
+				} else {
+					notificationError = true;
+					notificationContent = 'Email già inserita';
+					toastClosed = false;
+					closeNotification();
+				}
 			} else {
 				notificationError = true;
 				notificationContent = 'Email NON valida';
@@ -504,26 +510,50 @@
 		}
 		if (type == 'tag')
 			if (tag != '') {
-				// notificationError = false;
-				// notificationContent = 'Tag valido';
-				// toastClosed = false;
-				// closeNotification();
-				tagArray.push(item);
+				if (!tagArray.includes(item)) {
+					tagArray.push(item);
+				} else {
+					notificationError = true;
+					notificationContent = 'Tag già inserito';
+					toastClosed = false;
+					closeNotification();
+				}
 			} else {
 				notificationError = true;
 				notificationContent = 'Tag NON valido';
 				toastClosed = false;
 				closeNotification();
 			}
+		if (type == 'province') {
+			if (countryState != '') {
+				if (!provinceArray.includes(item)) {
+					provinceArray.push(item);
+					countryState = '';
+				} else {
+					notificationError = true;
+					notificationContent = 'Provincia già inserita';
+					toastClosed = false;
+					closeNotification();
+				}
+			} else {
+				notificationError = true;
+				notificationContent = 'Provincia NON valida';
+				toastClosed = false;
+				closeNotification();
+			}
+		}
 
 		inputEmail = '';
 		tag = '';
+		countryState = '';
 	};
 
 	const removeItem = (index: number, type: string) => {
+		console.log(type);
 		if (index !== -1) {
 			if (type == 'email') notificationEmail.splice(index, 1);
 			if (type == 'tag') tagArray.splice(index, 1); /// TAG
+			if (type == 'province') provinceArray.splice(index, 1); /// PROVINCE
 		}
 	};
 
@@ -545,6 +575,7 @@
 			countryState = item.countryState;
 			notificationEmail = item.notificationEmail;
 			tagArray = item.tag;
+			provinceArray = item.countryState;
 			title = item.layoutView.title;
 			descrLong = item.layoutView.descr;
 			infoExtra = item.infoExtra;
@@ -554,6 +585,12 @@
 			startDay = item.eventStartDate.substring(8, 10);
 			startHour = item.eventStartDate.substring(11, 13);
 			startMinute = item.eventStartDate.substring(14, 16);
+
+			if (countryState[0] == 'Online') {
+				mode = 'ONLINE';
+			} else {
+				mode = 'IN_PRESENZA';
+			}
 		}
 		if (type == 'delete') {
 			postAction = `?/delete`;
@@ -577,11 +614,17 @@
 		resetFields();
 	};
 
+	const onChangeRadioMode = () => {
+		location = '';
+		provinceArray = [];
+	};
+
 	$effect(() => {
 		if (form != null) {
 			async () => await invalidateAll();
 			const { action, success, message, filterTableList } = form;
 			if (success) {
+				notificationError = false;
 				openModal = false;
 				resetActive = false;
 				if (action == 'filter') {
@@ -893,7 +936,7 @@
 			</div> -->
 			</section>
 			<!-- Numero partecipanti -->
-			<section class="col-span-4 md:col-span-2">
+			<section class="col-span-4 md:col-span-4">
 				<label for="stockQty" class="form-label">
 					<p class="font-bold mb-2">Numero partecipanti</p>
 				</label>
@@ -912,8 +955,129 @@
 					/>
 				</div>
 			</section>
+
+			<!-- Modalità corso -->
+			<section class="col-span-4">
+				<p class="font-bold mb-2">Modalità corso</p>
+				<div class="flex gap-4">
+					<label class="label cursor-pointer flex gap-2">
+						<input
+							type="radio"
+							name="mode"
+							value="ONLINE"
+							bind:group={mode}
+							class="radio"
+							onchange={() => onChangeRadioMode()}
+							required
+						/>
+						<span class="label-text">Online</span>
+					</label>
+					<label class="label cursor-pointer flex gap-2">
+						<input
+							type="radio"
+							name="mode"
+							value="IN_PRESENZA"
+							bind:group={mode}
+							class="radio"
+							onchange={() => onChangeRadioMode()}
+						/>
+						<span class="label-text">In presenza</span>
+					</label>
+				</div>
+			</section>
+
+			{#if mode == 'IN_PRESENZA'}
+				<!-- Provincia -->
+				<section class="col-span-4 md:col-span-2">
+					<label for="countryState" class="form-label">
+						<p class="font-bold mb-2">Provincia</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full mb-2">
+						<button class="join-item bg-gray-300 px-3"><Building2 /></button>
+						<input type="hidden" name="provinceArray" bind:value={provinceArray} />
+						<select
+							class="select select-bordered w-full rounded-md rounded-l-none"
+							id="countryState"
+							name="countryState"
+							bind:value={countryState}
+						>
+							<option disabled value="">Scegli</option>
+							{#each $province as provincia}
+								<option value={provincia.title}>
+									{provincia.title} ({provincia.region})
+								</option>
+							{/each}
+						</select>
+						<button
+							type="button"
+							class="join-item btn btn-primary"
+							onclick={() => addItem(countryState, 'province')}
+						>
+							Aggiungi
+						</button>
+					</div>
+
+					{#if provinceArray.length > 0}
+						{#each provinceArray as prov, i}
+							<div class="btn btn-primary btn-sm m-1 rounded-md">
+								{prov}
+								<button
+									type="button"
+									class="badge badge-error ml-2"
+									onclick={() => removeItem(i, 'province')}
+								>
+									X
+								</button>
+							</div>
+						{/each}
+					{/if}
+				</section>
+
+				<!-- Luogo -->
+				<section class="col-span-4 md:col-span-2">
+					<label for="location" class="form-label">
+						<p class="font-bold mb-2">Luogo (indirizzo, città, CAP)</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button class="join-item bg-gray-300 px-3"><Pen /></button>
+						<input
+							class="input input-bordered join-item w-full"
+							id="location"
+							name="location"
+							type="text"
+							placeholder="es: via Roma, 1, Vigasio, 37069"
+							bind:value={location}
+							required
+						/>
+					</div>
+				</section>
+			{/if}
+
+			{#if mode == 'ONLINE'}
+				<!-- Luogo -->
+
+				<section class="col-span-4 md:col-span-4">
+					<input type="hidden" name="provinceArray" value="Online" />
+					<label for="location" class="form-label">
+						<p class="font-bold mb-2">Luogo</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button class="join-item bg-gray-300 px-3"><Pen /></button>
+						<input
+							class="input input-bordered join-item w-full"
+							id="location"
+							name="location"
+							type="text"
+							placeholder="es: via Roma, 1, Vigasio, 37069"
+							value="Online"
+							readonly
+						/>
+					</div>
+				</section>
+			{/if}
+
 			<!-- Provincia -->
-			<section class="col-span-4 md:col-span-2">
+			<!-- <section class="col-span-4 md:col-span-2">
 				<label for="countryState" class="form-label">
 					<p class="font-bold mb-2">Provincia</p>
 				</label>
@@ -935,9 +1099,9 @@
 						{/each}
 					</select>
 				</div>
-			</section>
+			</section> -->
 			<!-- place -->
-			<section class="col-span-4 md:col-span-2">
+			<!-- <section class="col-span-4 md:col-span-2">
 				<label for="location" class="form-label">
 					<p class="font-bold mb-2">Luogo (indirizzo, citta, CAP)</p></label
 				>
@@ -953,7 +1117,7 @@
 						required
 					/>
 				</div>
-			</section>
+			</section> -->
 			<!-- Tag -->
 			<section class="col-span-4 md:col-span-2">
 				<label for="tag" class="form-label">

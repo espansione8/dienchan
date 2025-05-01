@@ -139,7 +139,9 @@ export const actions: Actions = {
 		console.log('eventStartDate new', eventStartDate);
 
 		const stockQty = formData.get('stockQty') || 0;
-		const countryState = formData.get('countryState') || '';
+		const provinceArray = formData.get('provinceArray') || '';
+		const province = provinceArray.split(",");
+		// const countryState = formData.get('countryState') || '';
 		const location = formData.get('location');
 		const layoutId = formData.get('layoutId');
 		//const price = formData.get('price');
@@ -148,9 +150,10 @@ export const actions: Actions = {
 		const arrayEmail = formData.get('notificationEmail') || "";
 		const notificationEmail = arrayEmail.split(",");
 		const infoExtra = formData.get('infoExtra');
-		//console.log({ name }, { surname }, { title }, { descrLong }, { eventStartDate }, { stockQty }, { countryState }, { location }, { price }, { notificationEmail }, { tag }, { infoExtra });
 
-		if (!name || !surname || !eventStartDate || !stockQty || !countryState || !location) {
+		// console.log({ name }, { surname }, { eventStartDate }, { stockQty }, { provinceArray }, { stockQty }, { location });
+
+		if (!name || !surname || !eventStartDate || !stockQty || !provinceArray || !location) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
 
@@ -167,7 +170,7 @@ export const actions: Actions = {
 				//descrLong,
 				eventStartDate,
 				stockQty,
-				countryState,
+				countryState: province,
 				location,
 				notificationEmail,
 				tag,
@@ -207,10 +210,12 @@ export const actions: Actions = {
 		//const title = formData.get('title') || '';
 		//const descrLong = formData.get('descrLong') || '';
 		const eventStartDate = formData.get('eventStartDate');
-		console.log('eventStartDate mod', eventStartDate);
+		// console.log('eventStartDate mod', eventStartDate);
 
 		const stockQty = formData.get('stockQty') || 0;
-		const countryState = formData.get('countryState') || '';
+		// const countryState = formData.get('countryState') || '';
+		const provinceArray = formData.get('provinceArray') || '';
+		const province = provinceArray.split(",");
 		const location = formData.get('location');
 		const layoutId = formData.get('layoutId');
 		//const price = formData.get('price');
@@ -221,7 +226,7 @@ export const actions: Actions = {
 		const infoExtra = formData.get('infoExtra');
 		const prodId = formData.get('prodId');
 
-		if (!eventStartDate || !stockQty || !countryState || !location || !layoutId) {
+		if (!eventStartDate || !stockQty || !provinceArray || !location || !layoutId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
@@ -232,7 +237,7 @@ export const actions: Actions = {
 				$set: {
 					eventStartDate,
 					stockQty,
-					countryState,
+					countryState: province,
 					location,
 					layoutId,
 					notificationEmail,
@@ -310,7 +315,8 @@ export const actions: Actions = {
 		try {
 			const query = {
 				type: 'course',
-				...(countryState && { countryState }),
+				// ...(countryState && { countryState }),
+				...(countryState && { countryState: { $in: [countryState] } }),
 				...(layoutId && { layoutId }),
 				...(userId && { userId }),
 				//...(title && { title: { $regex: `.*${title}.*`, $options: 'i' } }),

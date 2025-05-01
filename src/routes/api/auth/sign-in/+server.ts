@@ -17,10 +17,10 @@ export const POST = async ({ request, cookies }) => {
 			.lean()
 			.exec();
 
-		//console.log('user', user);
-		//const hashed = stringHash(body.loginPassword);
-		//console.log('stringHash(body.loginPassword)', typeof hashed.toString());
-		//console.log('pass test', user.password === stringHash(body.loginPassword).toString());
+		// console.log('user', user);
+		// const hashed = stringHash(body.loginPassword);
+		// console.log('stringHash(body.loginPassword)', typeof hashed.toString());
+		// console.log('pass test', user.password === stringHash(body.loginPassword).toString());
 
 		if (!user || user.password !== stringHash(body.loginPassword).toString()) {
 			return json({ message: 'Incorrect user or password' }, { status: 400 });
