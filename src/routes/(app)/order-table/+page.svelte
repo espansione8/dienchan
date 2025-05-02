@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { coursesInfo, orderKeysToDelete } from '$lib/stores/arrays';
+	import { coursesInfo, orderKeysToDelete, province } from '$lib/stores/arrays';
 	import { goto, invalidateAll } from '$app/navigation';
 	import Papa from 'papaparse';
 	import Notification from '$lib/components/Notification.svelte';
@@ -352,7 +352,7 @@
 						type="text"
 						id="name"
 						name="name"
-						value={`${orderDetail.shipping?.name}`}
+						value={orderDetail.shipping?.name}
 						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					/>
 				</div>
@@ -362,7 +362,7 @@
 						type="text"
 						id="surname"
 						name="surname"
-						value={`${orderDetail.shipping?.surname}`}
+						value={orderDetail.shipping?.surname}
 						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					/>
 				</div>
@@ -397,21 +397,23 @@
 						type="text"
 						id="postalCode"
 						name="postalCode"
-						value={`${orderDetail.shipping?.postalCode}`}
+						value={orderDetail.shipping?.postalCode}
 						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					/>
 				</div>
 				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="postalCode" class="block text-sm font-medium text-gray-700 mb-1"
-						>Provincia</label
-					>
-					<input
-						type="text"
+					<label for="county" class="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
+					<select
 						id="county"
 						name="county"
-						value={`${orderDetail.shipping?.county}`}
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
+						value={orderDetail.shipping.county}
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					>
+						<option value="">Scegli una Provincia {orderDetail.shipping.county}</option>
+						{#each $province as provincia}
+							<option value={provincia.title}>{provincia.title}</option>
+						{/each}
+					</select>
 				</div>
 				<div class="w-full md:w-1/2 px-2 mb-4">
 					<label for="country" class="block text-sm font-medium text-gray-700 mb-1">Paese</label>

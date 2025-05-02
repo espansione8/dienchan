@@ -123,10 +123,9 @@ export const actions: Actions = {
 					...(statusPayment && { 'payment.statusPayment': statusPayment }),
 				}
 			};
-			console.log('update', update);
-
 			const options = { upsert: false }
 			const multi = false
+			console.log('update', update);
 
 			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
 				method: 'POST',
