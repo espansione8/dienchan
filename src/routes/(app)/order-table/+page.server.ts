@@ -86,9 +86,21 @@ export const actions: Actions = {
 	modify: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const orderId = formData.get('orderId');
+		const email = formData.get('email');
+		const name = formData.get('name');
+		const surname = formData.get('surname');
+		const city = formData.get('city');
+		const address = formData.get('address');
+		const postalCode = formData.get('postalCode');
+		const county = formData.get('county');
+		const country = formData.get('country');
+		const phone = formData.get('phone');
+		const mobile = formData.get('mobile');
+		const paymentMethod = formData.get('paymentMethod');
 		const status = formData.get('status');
+		const statusPayment = formData.get('statusPayment');
 
-		if (!orderId || !status) {
+		if (!orderId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
@@ -96,9 +108,23 @@ export const actions: Actions = {
 			const query = { orderId: orderId };
 			const update = {
 				$set: {
-					status: status,
+					...(email && { 'shipping.email': email }),
+					...(name && { 'shipping.name': name }),
+					...(surname && { 'shipping.surname': surname }),
+					...(city && { 'shipping.city': city }),
+					...(address && { 'shipping.address': address }),
+					...(postalCode && { 'shipping.postalCode': postalCode }),
+					...(county && { 'shipping.county': county }),
+					...(country && { 'shipping.country': country }),
+					...(phone && { 'shipping.phone': phone }),
+					...(mobile && { 'shipping.mobile': mobile }),
+					...(status && { status }),
+					...(paymentMethod && { 'payment.method': paymentMethod }),
+					...(statusPayment && { 'payment.statusPayment': statusPayment }),
 				}
 			};
+			console.log('update', update);
+
 			const options = { upsert: false }
 			const multi = false
 
@@ -106,7 +132,7 @@ export const actions: Actions = {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
-					schema: 'order', //product | order | user | layout | discount
+					schema: 'order',
 					query,
 					update,
 					options,
@@ -167,33 +193,25 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const orderId = formData.get('orderId');
 		const userId = formData.get('userId');
+		const surname = formData.get('surname');
+		const email = formData.get('email');
 		const paymentMethod = formData.get('paymentMethod');
 		const status = formData.get('status');
+		const statusPayment = formData.get('statusPayment');
 
-		// console.log('orderId', orderId);
+		if (!orderId && !userId && !surname && !email && !paymentMethod && !status && !statusPayment) {
+			return fail(400, { action: 'filter', success: false, message: 'Dati mancanti' });
+		}
 
-		// const arrayField = ['orderId', 'userId', 'payment.method', 'status'];
-		// const arrayValue = [orderId, userId, paymentMethod, status];
 		try {
-			// const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
-			// 	method: 'POST',
-			// 	body: JSON.stringify({
-			// 		schema: 'order',
-			// 		arrayField,
-			// 		arrayValue
-			// 	}),
-			// 	headers: {
-			// 		'Content-Type': 'application/json'
-			// 	}
-			// });
 			const query = {
-				type: 'membership',
 				...(orderId && { orderId }),
 				...(userId && { userId }),
+				...(surname && { 'shipping.surname': { $regex: `.*${surname}.*`, $options: 'i' } }),
+				...(email && { 'shipping.email': { $regex: `.*${email}.*`, $options: 'i' } }),
 				...(paymentMethod && { 'payment.method': paymentMethod }),
 				...(status && { status }),
-				//...(title && { title: { $regex: `.*${title}.*`, $options: 'i' } }),
-				//...(price && { price }),
+				...(statusPayment && { 'payment.statusPayment': statusPayment }),
 			};
 
 			const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
@@ -204,7 +222,7 @@ export const actions: Actions = {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
-					schema: 'product', //product | order | user | layout | discount
+					schema: 'order', //product | order | user | layout | discount
 					query,
 					projection,
 					sort,
@@ -223,8 +241,6 @@ export const actions: Actions = {
 					...obj,
 					orderDate: obj.createdAt.substring(0, 10),
 					totalCart: obj.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(0)
-					// eventStartDate: obj.eventStartDate.substring(0, 10),
-					// timeStartDate: obj.eventStartDate.substring(11, 16)
 				}));
 				return { action: 'filter', success: true, message: 'Filtro attivato', filterTableList };
 

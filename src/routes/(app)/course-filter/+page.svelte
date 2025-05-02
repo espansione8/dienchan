@@ -40,7 +40,7 @@
 	// cycle to count the number of courses in each province
 	const numCoursesInProvince: any = {};
 	coursesList.forEach((item) => {
-		const countryState = item.countryState;
+		const countryState = item.county;
 		numCoursesInProvince[countryState] = (numCoursesInProvince[countryState] || 0) + 1;
 		// key : value ---> es: numCoursesInProvince = {"Bologna": "1", "Firenze": "2", "Roma": "3"}
 	});
@@ -110,7 +110,7 @@
 		coursesList = getTable;
 		// provincia
 		if (filtriAttivi.provincia) {
-			coursesList = coursesList.filter((item) => item.countryState == filtriAttivi.provincia);
+			coursesList = coursesList.filter((item) => item.county == filtriAttivi.provincia);
 		}
 		// riflessologo
 		if (filtriAttivi.riflessologo) {
@@ -481,7 +481,7 @@
 						</h2>
 						<!-- luogo -->
 						<p class="card-text text-xl">
-							<b>{courseData.countryState}</b>
+							<b>{courseData.county}</b>
 						</p>
 						<!-- title -->
 						<h5

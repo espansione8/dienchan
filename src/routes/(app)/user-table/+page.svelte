@@ -67,7 +67,6 @@
 	// remove online in province
 	let provinceFilterate = $province.filter((p) => p.title !== 'Online');
 
-
 	const onCloseFilterSearch = () => {
 		isModalFilterCourse = false;
 		onFilterReset();
@@ -384,7 +383,6 @@
 		URL.revokeObjectURL(link.href);
 	};
 
-
 	const testPass = () => {
 		checkPass = password1.length >= 8;
 		checkSecondPass = password1 === password2;
@@ -431,8 +429,6 @@
 		tableList = getTable;
 	};
 
-
-
 	const onClickDialog = (type: string, item: any) => {
 		currentDialog = type;
 		isModal = true;
@@ -449,7 +445,7 @@
 			address = item.address;
 			postalCode = item.postalCode;
 			city = item.city;
-			countryState = item.countryState;
+			countryState = item.county;
 			country = item.country;
 			phone = item.phone;
 			mobilePhone = item.mobilePhone;
@@ -460,7 +456,7 @@
 			emailPublic = item.emailPublic;
 			addressPublic = item.addressPublic;
 			cityPublic = item.cityPublic;
-			statePublic = item.statePublic;
+			statePublic = item.countyPublic;
 			postalCodePublic = item.postalCodePublic;
 			countryPublic = item.countryPublic;
 			phonePublic = item.phonePublic;
@@ -630,7 +626,7 @@
 							</li>
 							<li>
 								<strong>Provincia:</strong>
-								{row.countryState}
+								{row.county}
 							</li>
 							<li>
 								<strong>Nazione:</strong>

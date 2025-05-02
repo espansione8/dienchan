@@ -572,10 +572,10 @@
 			layoutId = item.layoutId;
 			price = item.layoutView.price;
 			stockQty = item.stockQty;
-			countryState = item.countryState;
+			countryState = item.county;
 			notificationEmail = item.notificationEmail;
 			tagArray = item.tag;
-			provinceArray = item.countryState;
+			provinceArray = item.county;
 			title = item.layoutView.title;
 			descrLong = item.layoutView.descr;
 			infoExtra = item.infoExtra;
@@ -729,7 +729,7 @@
 						<!-- Luogo -->
 						<td>
 							<p class="card-text">
-								{row.countryState}
+								{row.county}
 							</p>
 						</td>
 						<!-- Prezzo -->

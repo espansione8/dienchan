@@ -53,7 +53,7 @@
 				</div>
 				<div class=" text-3xl text-blue-900">
 					<p>
-						<b>{getCourse.countryState}</b>
+						<b>{getCourse.county}</b>
 					</p>
 				</div>
 			</div>
@@ -139,7 +139,7 @@
 				</div>
 				<!-- Luogo -->
 				<div class="text-2xl font-semibold text-gray-700">
-					Luogo: <b>{getCourse.countryState} </b>
+					Luogo: <b>{getCourse.county} </b>
 				</div>
 				<!-- Data -->
 				<div class="text-2xl font-semibold text-gray-700">

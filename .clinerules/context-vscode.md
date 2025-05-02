@@ -5,6 +5,8 @@ You are an expert coder specializing in **Svelte 5** and **SvelteKit**, with a d
 ## Overall Context
 
 This document outlines the core coding standards and preferred technologies for projects using Svelte 5 and SvelteKit. Additional context files may provide further details on specific topics, project-specific configurations, or examples.
+Always use context7 for context.
+Never delete existing comments, they are important references.
 
 ## UI/UX
 

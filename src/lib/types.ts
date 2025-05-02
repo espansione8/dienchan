@@ -46,8 +46,8 @@ export type Users = {
     cityPublic: boolean;
     postalCode: string;
     postalCodePublic: boolean;
-    countryState: string;
-    statePublic: boolean;
+    county: string;
+    countyPublic: boolean;
     region: string;
     regionPublic: boolean;
     country: string;
@@ -208,11 +208,15 @@ export interface Order {
         country: string;
         phone: string;
         mobile: string;
+        county: string;
     };
     cart: {
-        title: string;
-        price: number;
-        category: string[];
+        layoutView: {
+            title: string;
+            urlPic: string;
+            price: number;
+        };
+        orderQuantity: number;
     }[];
     totalCart: number;
     totalValue: number;
@@ -221,10 +225,53 @@ export interface Order {
         statusPayment: string;
     };
     status: string;
+    invoicing: {
+        name: string;
+        surname: string;
+        businessName: string;
+        vatNumber: string;
+        address: string;
+        city: string;
+        postalCode: string;
+        county: string;
+        state: string;
+        region: string;
+        country: string;
+        invoiceNotes: string;
+        email: string;
+        phone: string;
+        mobile: string;
+    },
+
+    shipping: {
+        name: string;
+        surname: string;
+        address: string;
+        city: string;
+        postalCode: string;
+        county: string;
+        state: string;
+        region: string;
+        country: string;
+        deliveryNotes: string;
+        email: string;
+        phone: string;
+        mobile: string;
+        tracking: {
+            company: string;
+            trackingNumber: string;
+            trackingLink: string;
+            status: string;
+            estimatedDelivery: Date
+        }
+    },
 }
 
 export interface TableNames {
     userId: string;
     surname: string;
     name: string;
+    layoutView: {
+        title: string;
+    };
 }

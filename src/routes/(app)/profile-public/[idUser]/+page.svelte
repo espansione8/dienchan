@@ -76,10 +76,10 @@
 							<h5 class="text-gray-600"><b>CAP:</b> {getUser.postalCode}</h5>
 						</div>
 					{/if}
-					{#if getUser.statePublic === true}
+					{#if getUser.countyPublic === true}
 						<div class="flex items-center">
 							<Building2 class="mr-2" color="gray" />
-							<h5 class="text-gray-600"><b>Provincia:</b> {getUser.countryState}</h5>
+							<h5 class="text-gray-600"><b>Provincia:</b> {getUser.county}</h5>
 						</div>
 					{/if}
 					{#if getUser.countryPublic === true}

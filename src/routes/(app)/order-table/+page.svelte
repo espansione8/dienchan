@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { coursesInfo, orderKeysToDelete } from '$lib/stores/arrays';
 	import { goto, invalidateAll } from '$app/navigation';
 	import Papa from 'papaparse';
@@ -13,7 +14,7 @@
 		RefreshCcw,
 		FileDown,
 		Trash2,
-		FileSearch
+		FileCog
 	} from 'lucide-svelte';
 	import type { Order, TableNames } from '$lib/types';
 
@@ -27,41 +28,19 @@
 	let openModal = $state(false);
 	let modalTitle = $state('');
 	let postAction = $state('?/');
-
-	let isModalFilter = $state(false);
 	let resetActive = $state(false);
-	let quickSearch = $state('data'); // radio button
 	//filter
 	let orderId = $state('');
 	let userId = $state('');
 	let paymentMethod = $state('');
 	let status = $state('');
+	let statusPayment = $state('');
+	let surname = $state('');
+	let email = $state('');
+
 	//modal detail
 	let orderDetail = $state(tableList[0]);
 
-	// const onCloseFilterSearch = () => {
-	// 	isModalFilter = false;
-	// 	onFilterReset();
-	// };
-
-	// const onOpenFilter = () => {
-	// 	isModalFilter = true;
-	// 	postAction = `?/filter`;
-	// 	quickSearch = 'location';
-	// };
-
-	const onFilterReset = () => {
-		resetActive = false;
-		tableList = getTable;
-		invalidateAll();
-	};
-
-	const imgSrc = (value: string) => {
-		const src = $coursesInfo.filter((item: any) => item.id == value);
-		return src[0]?.urlPic || '/images/picture.png';
-	};
-
-	//CSV file
 	const csvCreate = () => {
 		let csv = $state('');
 		let newList: any = $state<any>([]);
@@ -121,15 +100,15 @@
 	};
 
 	const resetFields = () => {
-		openModal = false;
-		// prodId = null;
-		// status = '';
-		// title = '';
-		// descrShort = '';
-		// price = null;
-		// renewalLength = 365;
 		modalTitle = '';
 		postAction = '?/';
+		orderId = '';
+		userId = '';
+		paymentMethod = '';
+		status = '';
+		statusPayment = '';
+		surname = '';
+		email = '';
 	};
 
 	const resetData = () => {
@@ -148,7 +127,8 @@
 		}
 		if (type == 'modify') {
 			postAction = `?/modify`;
-			modalTitle = 'Modifica';
+			modalTitle = `Ordine (ID: ${item.orderId})`;
+			orderDetail = item;
 			status = item.status;
 		}
 		if (type == 'delete') {
@@ -159,19 +139,17 @@
 		if (type == 'filter') {
 			postAction = `?/filter`;
 			modalTitle = 'Filtra';
-			quickSearch = 'location';
 		}
 		if (type == 'detail') {
 			orderDetail = item;
-			modalTitle = `Ordine (ID: ${orderDetail.orderId})`;
+			modalTitle = `Ordine (ID: ${item.orderId})`;
 		}
 	};
 
 	const onCloseModal = () => {
-		openModal = false;
 		resetFields();
+		openModal = false;
 		currentModal = '';
-		//invalidateAll();
 	};
 
 	//notification
@@ -182,7 +160,7 @@
 	const closeNotification = () => {
 		startTimeout = setTimeout(() => {
 			toastClosed = true;
-		}, 5000); // 1000 milliseconds = 1 second
+		}, 3000); // 1000 milliseconds = 1 second
 	};
 	//clearTimeout(startTimeout); // reset timer
 
@@ -219,6 +197,15 @@
 	<title>Ordini</title>
 </svelte:head>
 
+<noscript>
+	<h1 style="font-weight:700; text-align: center;">Please enable Javascript to continue.</h1>
+	<style type="text/css">
+		#main-content {
+			display: none;
+		}
+	</style>
+</noscript>
+
 <div class="overflow-x-auto mt-5 px-4 mb-5">
 	<div class="flex flex-col gap-4 mb-4">
 		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Ordini</h1>
@@ -251,10 +238,10 @@
 				<th>ID ordine</th>
 				<th>Email</th>
 				<th>Associato</th>
-				<th>Ordine</th>
+				<th>Carrello</th>
 				<th>Totale</th>
 				<th>Tipo pagamento</th>
-				<th>Stato</th>
+				<th>Stato Ordine</th>
 				<th>Azione</th>
 				<th>Elimina</th>
 			</tr>
@@ -275,22 +262,22 @@
 					<!-- ID ordine-->
 					<td>{row.orderId}</td>
 					<!-- Email-->
-					<td>{row.userView?.email}</td>
+					<td>{row.shipping?.email}</td>
 					<!-- Nome-->
-					<td>{row.userView?.name} {row.userView?.surname}</td>
+					<td>{row.shipping?.name} {row.shipping?.surname}</td>
 					<!-- Ordine -->
 					<td>
 						<div class="flex flex-col space-y-1">
 							{#each row.cart as item}
-								<span> {item.title}</span>
+								<span>{item.layoutView.title} X {item.orderQuantity}</span>
 							{/each}
 						</div>
 					</td>
 					<!-- Totale -->
-					<td>€ {row.totalCart}</td>
+					<td>€ {row.totalValue}</td>
 					<!-- Tipo pagamento -->
 					<td>
-						{row.payment.method}
+						{row.payment.method} / {row.payment.statusPayment}
 					</td>
 					<!-- Status -->
 					<td>
@@ -299,14 +286,14 @@
 					<!-- Azione -->
 					<td class="flex items-center space-x-4">
 						<button onclick={() => onClickModal('modify', row)} class="btn btn-sm">
-							<Settings />
+							<FileCog />
 						</button>
 						<button onclick={() => onClickModal('delete', row)} class="btn btn-error btn-sm">
 							<Trash2 />
 						</button>
-						<button onclick={() => onClickModal('detail', row)} class="btn btn-success btn-sm">
-							<FileSearch />
-						</button>
+						<!-- <button onclick={() => onClickModal('detail', row)} class="btn btn-success btn-sm">
+							<FileCog />
+						</button> -->
 					</td>
 				</tr>
 			{/each}
@@ -335,9 +322,147 @@
 			>✕</button
 		>
 		<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
-			<div class="space-y-4">
-				<div>
-					<label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+			<div class="flex flex-wrap -mx-2">
+				<div class="w-full md:w-full px-2 mb-4 font-bold">Dati utente</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="orderId" class="block text-sm font-medium text-gray-700 mb-1">ID ordine</label
+					>
+					<input
+						type="text"
+						id="orderId"
+						name="orderId"
+						value={orderDetail.orderId}
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						readonly
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+					<input
+						type="email"
+						id="email"
+						name="email"
+						value={orderDetail.shipping?.email}
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+					<input
+						type="text"
+						id="name"
+						name="name"
+						value={`${orderDetail.shipping?.name}`}
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="surname" class="block text-sm font-medium text-gray-700 mb-1">Cognome</label>
+					<input
+						type="text"
+						id="surname"
+						name="surname"
+						value={`${orderDetail.shipping?.surname}`}
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-full px-2 mb-4 font-bold">Dati di spedizione</div>
+
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="city" class="block text-sm font-medium text-gray-700 mb-1">Città</label>
+					<input
+						type="text"
+						id="city"
+						name="city"
+						value={orderDetail.shipping?.city}
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="address" class="block text-sm font-medium text-gray-700 mb-1">Indirizzo</label
+					>
+					<input
+						type="text"
+						id="address"
+						name="address"
+						value={orderDetail.shipping?.address}
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="postalCode" class="block text-sm font-medium text-gray-700 mb-1"
+						>Codice Postale</label
+					>
+					<input
+						type="text"
+						id="postalCode"
+						name="postalCode"
+						value={`${orderDetail.shipping?.postalCode}`}
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="postalCode" class="block text-sm font-medium text-gray-700 mb-1"
+						>Provincia</label
+					>
+					<input
+						type="text"
+						id="county"
+						name="county"
+						value={`${orderDetail.shipping?.county}`}
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="country" class="block text-sm font-medium text-gray-700 mb-1">Paese</label>
+					<input
+						type="text"
+						id="country"
+						name="country"
+						value={orderDetail.shipping?.country}
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
+					<input
+						type="text"
+						id="phone"
+						name="phone"
+						value={orderDetail.shipping?.phone}
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="mobile" class="block text-sm font-medium text-gray-700 mb-1">Cellulare</label>
+					<input
+						type="text"
+						id="mobile"
+						name="mobile"
+						value={orderDetail.shipping?.mobile}
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-1"
+						>Metodo di pagamento</label
+					>
+					<select
+						id="paymentMethod"
+						name="paymentMethod"
+						value={orderDetail.payment.method}
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					>
+						<option value="">Scegli un metodo</option>
+						<option value="bonifico">Bonifico</option>
+						<option value="paypal">Paypal</option>
+						<option value="contanti">Contanti</option>
+					</select>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="status" class="block text-sm font-medium text-gray-700 mb-1"
+						>Stato ordine</label
+					>
 					<select
 						id="status"
 						name="status"
@@ -348,9 +473,56 @@
 						<option value="requested">Richiesta in corso</option>
 						<option value="confirmed">Confermato</option>
 						<option value="cancelled">Cancellato</option>
-						<option value="exported">Processato</option>
+						<option value="exported">esportato</option>
 					</select>
 				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="status" class="block text-sm font-medium text-gray-700 mb-1"
+						>Stato pagamento</label
+					>
+					<select
+						id="status"
+						name="status"
+						value={orderDetail.payment.statusPayment}
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					>
+						<option value="">Scegli uno status</option>
+						<option value="pending">Pending</option>
+						<option value="done">Confermato</option>
+						<option value="canceled">Cancellato</option>
+					</select>
+				</div>
+			</div>
+
+			<div class="col-span-2 flex flex-wrap justify-center w-full gap-3 my-4">
+				{#each orderDetail?.cart as item}
+					<div
+						class="flex items-center w-full max-w-96 bg-indigo-100 rounded-lg shadow-md overflow-hidden"
+					>
+						<div class="w-1/3 p-3">
+							<img
+								src={item.layoutView.urlPic || '/images/picture.png'}
+								alt="Immagine corso"
+								class="w-full h-full object-cover"
+							/>
+						</div>
+						<div class="w-2/3 p-4">
+							<p class="text-center text-sm font-semibold">
+								{item.layoutView.title}
+							</p>
+							<p class="text-center text-sm font-semibold">
+								{item.layoutView.price}€
+							</p>
+							<p class="text-center text-sm font-semibold">
+								quantita': {item.orderQuantity}
+							</p>
+						</div>
+					</div>
+				{/each}
+			</div>
+			<div class="col-span-2 text-center mt-3">
+				<h2 class="text-lg font-bold">Totale Carrello:</h2>
+				<p class="text-xl font-semibold text-black-800">{orderDetail.totalValue} €</p>
 			</div>
 			<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
 				<button
@@ -399,8 +571,8 @@
 			>✕</button
 		>
 		<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
-			<div class="space-y-4">
-				<div>
+			<div class="flex flex-wrap -mx-2">
+				<div class="w-full md:w-1/2 px-2 mb-4">
 					<label for="orderId" class="block text-sm font-medium text-gray-700 mb-1">ID ordine</label
 					>
 					<input
@@ -412,7 +584,7 @@
 						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					/>
 				</div>
-				<div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
 					<label for="userId" class="block text-sm font-medium text-gray-700 mb-1">Associato</label>
 					<select
 						id="userId"
@@ -426,7 +598,29 @@
 						{/each}
 					</select>
 				</div>
-				<div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="name" class="block text-sm font-medium text-gray-700 mb-1">Cognome</label>
+					<input
+						type="text"
+						id="surname"
+						name="surname"
+						bind:value={surname}
+						placeholder="Inserisci cognome"
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+					<input
+						type="email"
+						id="email"
+						name="email"
+						bind:value={email}
+						placeholder="Inserisci email"
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
 					<label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-1"
 						>Metodo di pagamento</label
 					>
@@ -442,8 +636,10 @@
 						<option value="contanti">Contanti</option>
 					</select>
 				</div>
-				<div>
-					<label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="status" class="block text-sm font-medium text-gray-700 mb-1"
+						>Stato ordine</label
+					>
 					<select
 						id="status"
 						name="status"
@@ -455,6 +651,22 @@
 						<option value="confirmed">Confermato</option>
 						<option value="cancelled">Cancellato</option>
 						<option value="exported">Processato</option>
+					</select>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="status" class="block text-sm font-medium text-gray-700 mb-1"
+						>Stato pagamento</label
+					>
+					<select
+						id="status"
+						name="status"
+						bind:value={statusPayment}
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					>
+						<option value="">Scegli uno status</option>
+						<option value="pending">Pending</option>
+						<option value="done">Confermato</option>
+						<option value="canceled">Cancellato</option>
 					</select>
 				</div>
 			</div>
@@ -474,50 +686,107 @@
 	</Modal>
 {/if}
 
-{#if currentModal == 'detail'}
+<!-- {#if currentModal == 'detail'}
 	<Modal isOpen={openModal} header={modalTitle}>
 		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
 			>✕</button
 		>
-		<div class="col-span-2 grid grid-cols-2 gap-2 mt-4 mb-4">
-			<div class="flex flex-col items-center">
-				<p class="text-sm text-gray-600">Nome/Cognome</p>
-				<p class="font-bold text-center mt-1">
-					{orderDetail.userView?.name}
-					{orderDetail.userView?.surname}
-				</p>
+		<form class="p-6 space-y-6">
+			<div class="flex flex-wrap -mx-2">
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nome Cognome</label
+					>
+					<input
+						type="text"
+						id="name"
+						name="name"
+						value={`${orderDetail.userView?.name} ${orderDetail.userView?.surname}`}
+						readonly
+						class="input input-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+					<input
+						type="email"
+						id="email"
+						name="email"
+						value={orderDetail.userView?.email}
+						readonly
+						class="input input-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="city" class="block text-sm font-medium text-gray-700 mb-1">Città</label>
+					<input
+						type="text"
+						id="city"
+						name="city"
+						value={orderDetail.userView?.city}
+						readonly
+						class="input input-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="address" class="block text-sm font-medium text-gray-700 mb-1">Indirizzo</label
+					>
+					<input
+						type="text"
+						id="address"
+						name="address"
+						value={orderDetail.userView?.address}
+						readonly
+						class="input input-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="postalCode" class="block text-sm font-medium text-gray-700 mb-1"
+						>Codice Postale - Provincia</label
+					>
+					<input
+						type="text"
+						id="postalCode"
+						name="postalCode"
+						value={`${orderDetail.userView?.postalCode} - ${orderDetail.userView?.county}`}
+						readonly
+						class="input input-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="country" class="block text-sm font-medium text-gray-700 mb-1">Paese</label>
+					<input
+						type="text"
+						id="country"
+						name="country"
+						value={orderDetail.userView?.country}
+						readonly
+						class="input input-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
+					<input
+						type="text"
+						id="phone"
+						name="phone"
+						value={orderDetail.userView?.phone}
+						readonly
+						class="input input-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div class="w-full md:w-1/2 px-2 mb-4">
+					<label for="mobile" class="block text-sm font-medium text-gray-700 mb-1">Cellulare</label>
+					<input
+						type="text"
+						id="mobile"
+						name="mobile"
+						value={orderDetail.userView?.mobile}
+						readonly
+						class="input input-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
 			</div>
-			<div class="flex flex-col items-center">
-				<p class="text-sm text-gray-600">Email</p>
-				<p class="font-bold text-center mt-1">{orderDetail.userView?.email}</p>
-			</div>
-			<div class="flex flex-col items-center">
-				<p class="text-sm text-gray-600">Città</p>
-				<p class="font-bold text-center mt-1">{orderDetail.userView?.city}</p>
-			</div>
-			<div class="flex flex-col items-center">
-				<p class="text-sm text-gray-600">Indirizzo</p>
-				<p class="font-bold text-center mt-1">{orderDetail.userView?.address}</p>
-			</div>
-			<div class="flex flex-col items-center">
-				<p class="text-sm text-gray-600">Codice Postale - Provincia</p>
-				<p class="font-bold text-center mt-1">
-					{orderDetail.userView?.postalCode} - {orderDetail.userView?.countryState}
-				</p>
-			</div>
-			<div class="flex flex-col items-center">
-				<p class="text-sm text-gray-600">Paese</p>
-				<p class="font-bold text-center mt-1">{orderDetail.userView?.country}</p>
-			</div>
-			<div class="flex flex-col items-center">
-				<p class="text-sm text-gray-600">Telefono</p>
-				<p class="font-bold text-center mt-1">{orderDetail.userView?.phone}</p>
-			</div>
-			<div class="flex flex-col items-center">
-				<p class="text-sm text-gray-600">Cellulare</p>
-				<p class="font-bold text-center mt-1">{orderDetail.userView?.mobile}</p>
-			</div>
-		</div>
+		</form>
 		<div class="col-span-2 flex flex-col items-center w-full gap-3 my-4">
 			{#each orderDetail?.cart as item}
 				<div
@@ -566,4 +835,4 @@
 			>
 		</div>
 	</Modal>
-{/if}
+{/if} -->

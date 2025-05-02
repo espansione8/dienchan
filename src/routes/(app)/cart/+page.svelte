@@ -31,7 +31,7 @@
 	let email = $state(userData.email || '');
 	let address = $state(userData.address || '');
 	let city = $state(userData.city || '');
-	let countryState = $state(userData.countryState || 'AG'); // provincia
+	let countryState = $state(userData.county || 'AG'); // provincia
 	let postalCode = $state(userData.postalCode || '');
 	let country = $state(userData.country || 'Italy');
 	let phone = $state(userData.phone || '');
@@ -306,7 +306,7 @@
 				email = userData.email;
 				address = userData.address;
 				city = userData.city;
-				countryState = userData.countryState;
+				countryState = userData.county;
 				postalCode = userData.postalCode;
 				country = userData.country;
 				phone = userData.phone;
@@ -369,7 +369,7 @@
 						</h2>
 						<!-- provincia -->
 						<p class="card-text text-xl">
-							<b>{item.countryState}</b>
+							<b>{item.county}</b>
 						</p>
 						<!-- title -->
 						<h5

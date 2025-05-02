@@ -44,7 +44,7 @@
 	let surname = $state(userData.surname || '');
 	let address = $state(userData.address || '');
 	let city = $state(userData.city || '');
-	let countryState = $state(userData.countryState || ''); // provincia
+	let countryState = $state(userData.county || ''); // provincia
 	let postalCode = $state(userData.postalCode || '');
 	let country = $state(userData.country || '');
 	let phone = $state(userData.phone || '');
@@ -66,7 +66,7 @@
 	let years = $state([]);
 	let addressPublic = $state(userData.addressPublic || false);
 	let cityPublic = $state(userData.cityPublic || false);
-	let statePublic = $state(userData.statePublic || false);
+	let statePublic = $state(userData.countyPublic || false);
 	let postalCodePublic = $state(userData.postalCodePublic || false);
 	let countryPublic = $state(userData.countryPublic || false);
 	let phonePublic = $state(userData.phonePublic || false);
@@ -154,7 +154,7 @@
 		emailPublic = userData.emailPublic;
 		addressPublic = userData.addressPublic;
 		cityPublic = userData.cityPublic;
-		statePublic = userData.statePublic;
+		statePublic = userData.countyPublic;
 		postalCodePublic = userData.postalCodePublic;
 		countryPublic = userData.countryPublic;
 		phonePublic = userData.phonePublic;
@@ -400,10 +400,10 @@
 								<h5 class="text-gray-600"><b>CAP:</b> {userData.postalCode}</h5>
 							</div>
 						{/if}
-						{#if userData.statePublic === true}
+						{#if userData.countyPublic === true}
 							<div class="flex items-center">
 								<Building2 class="mr-2" color="gray" />
-								<h5 class="text-gray-600"><b>Provincia:</b> {userData.countryState}</h5>
+								<h5 class="text-gray-600"><b>Provincia:</b> {userData.county}</h5>
 							</div>
 						{/if}
 						{#if userData.countryPublic === true}
@@ -719,7 +719,7 @@
 							placeholder="Scegli"
 							required
 							disabled={closedInput}
-							bind:value={userData.countryState}
+							bind:value={userData.county}
 						>
 							<option selected disabled>Scegli</option>
 							{#each provinceFilterate as provincia, i}
@@ -973,7 +973,7 @@
 								<div class="font-semibold">
 									<b>{course.title}</b> <br />
 									<span class="text-gray-600 text-sm">
-										{course.eventStartDate.substring(0, 10)} - {course.countryState} -
+										{course.eventStartDate.substring(0, 10)} - {course.county} -
 										{course.name}
 										{course.surname}
 									</span>

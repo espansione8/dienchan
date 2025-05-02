@@ -86,8 +86,8 @@ const UserSchema = new mongoose.Schema(
 		cityPublic: { type: Boolean, default: false },
 		postalCode: { type: String, default: '' },
 		postalCodePublic: { type: Boolean, default: false },
-		countryState: { type: String, default: '' }, // Provincia
-		statePublic: { type: Boolean, default: false },
+		county: { type: String, default: '' }, // Provincia
+		countyPublic: { type: Boolean, default: false },
 		region: { type: String, default: '' }, // Regione	
 		regionPublic: { type: Boolean, default: false },
 		country: { type: String, default: '' }, // Nazione

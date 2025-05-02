@@ -52,7 +52,8 @@ const orderSchema = new Schema(
 			county: { type: String, default: '' },
 			invoiceNotes: { type: String, default: '' },
 			email: { type: String, default: '' },
-			phone: { type: String, default: '' }
+			phone: { type: String, default: '' },
+			mobile: { type: String, default: '' }
 		},
 
 		shipping: {
@@ -67,6 +68,7 @@ const orderSchema = new Schema(
 			deliveryNotes: { type: String, default: '' },
 			email: { type: String, default: '' },
 			phone: { type: String, default: '' },
+			mobile: { type: String, default: '' },
 
 			tracking: {
 				company: { type: String, default: '' },
