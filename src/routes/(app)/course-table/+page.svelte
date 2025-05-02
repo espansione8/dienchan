@@ -40,7 +40,7 @@
 	let infoExtra = $state('');
 	let productCorsoUserId = $state(userData.userId);
 	let productCorsoStatus = $state('enabled');
-	let countryState = $state('');
+	let county = $state('');
 	let location = $state('');
 	let layoutId = $state('');
 	let userId = $state('');
@@ -298,7 +298,7 @@
 			delete obj.userView_cityPublic;
 			delete obj.userView_postalCode;
 			delete obj.userView_postalCodePublic;
-			delete obj.userView_countryState;
+			delete obj.userView_county;
 			delete obj.userView_statePublic;
 			delete obj.userView_region;
 			delete obj.userView_regionPublic;
@@ -457,7 +457,7 @@
 		startHour = currentHour;
 		startMinute = '00';
 		stockQty = 1;
-		countryState = '';
+		county = '';
 		inputEmail = '';
 		title = '';
 		descrLong = '';
@@ -471,6 +471,7 @@
 		modalTitle = '';
 		postAction = '?/';
 		mode = '';
+
 		form = null;
 	};
 
@@ -525,10 +526,10 @@
 				closeNotification();
 			}
 		if (type == 'province') {
-			if (countryState != '') {
+			if (county != '') {
 				if (!provinceArray.includes(item)) {
 					provinceArray.push(item);
-					countryState = '';
+					county = '';
 				} else {
 					notificationError = true;
 					notificationContent = 'Provincia già inserita';
@@ -545,11 +546,10 @@
 
 		inputEmail = '';
 		tag = '';
-		countryState = '';
+		county = '';
 	};
 
 	const removeItem = (index: number, type: string) => {
-		console.log(type);
 		if (index !== -1) {
 			if (type == 'email') notificationEmail.splice(index, 1);
 			if (type == 'tag') tagArray.splice(index, 1); /// TAG
@@ -572,7 +572,7 @@
 			layoutId = item.layoutId;
 			price = item.layoutView.price;
 			stockQty = item.stockQty;
-			countryState = item.county;
+			county = item.county;
 			notificationEmail = item.notificationEmail;
 			tagArray = item.tag;
 			provinceArray = item.county;
@@ -586,7 +586,8 @@
 			startHour = item.eventStartDate.substring(11, 13);
 			startMinute = item.eventStartDate.substring(14, 16);
 
-			if (countryState[0] == 'Online') {
+
+			if (county[0] == 'Online') {
 				mode = 'ONLINE';
 			} else {
 				mode = 'IN_PRESENZA';
@@ -601,7 +602,7 @@
 		if (type == 'filter') {
 			postAction = `?/filter`;
 			modalTitle = 'Filtri di Ricerca';
-			countryState = '';
+			county = '';
 			layoutId = '';
 			userId = '';
 		}
@@ -612,6 +613,10 @@
 		currentModal = '';
 		currentDialog = '';
 		resetFields();
+
+		// questo serve per ripristinare i valori di tag e province e mail quando si preme annulla o closeModal
+
+		tableList = getTable;
 	};
 
 	const onChangeRadioMode = () => {
@@ -989,7 +994,7 @@
 			{#if mode == 'IN_PRESENZA'}
 				<!-- Provincia -->
 				<section class="col-span-4 md:col-span-2">
-					<label for="countryState" class="form-label">
+					<label for="county" class="form-label">
 						<p class="font-bold mb-2">Provincia</p>
 					</label>
 					<div class="join join-horizontal rounded-md w-full mb-2">
@@ -997,9 +1002,9 @@
 						<input type="hidden" name="provinceArray" bind:value={provinceArray} />
 						<select
 							class="select select-bordered w-full rounded-md rounded-l-none"
-							id="countryState"
-							name="countryState"
-							bind:value={countryState}
+							id="county"
+							name="county"
+							bind:value={county}
 						>
 							<option disabled value="">Scegli</option>
 							{#each $province as provincia}
@@ -1011,7 +1016,7 @@
 						<button
 							type="button"
 							class="join-item btn btn-primary"
-							onclick={() => addItem(countryState, 'province')}
+							onclick={() => addItem(county, 'province')}
 						>
 							Aggiungi
 						</button>
@@ -1305,13 +1310,11 @@
 		<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
 			<div class="space-y-4">
 				<div>
-					<label for="countryState" class="block text-sm font-medium text-gray-700 mb-1"
-						>Provincia</label
-					>
+					<label for="county" class="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
 					<select
-						id="countryState"
-						name="countryState"
-						bind:value={countryState}
+						id="county"
+						name="county"
+						bind:value={county}
 						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					>
 						<option value="">Scegli una Provincia</option>

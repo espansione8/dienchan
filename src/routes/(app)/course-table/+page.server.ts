@@ -170,7 +170,7 @@ export const actions: Actions = {
 				//descrLong,
 				eventStartDate,
 				stockQty,
-				countryState: province,
+				county: province,
 				location,
 				notificationEmail,
 				tag,
@@ -237,7 +237,7 @@ export const actions: Actions = {
 				$set: {
 					eventStartDate,
 					stockQty,
-					countryState: province,
+					county: province,
 					location,
 					layoutId,
 					notificationEmail,
@@ -308,7 +308,7 @@ export const actions: Actions = {
 
 	filter: async ({ request, fetch }) => {
 		const formData = await request.formData();
-		const countryState = formData.get('countryState');
+		const county = formData.get('county');
 		const layoutId = formData.get('layoutId');
 		const userId = formData.get('userId');
 		// console.log('layoutId', layoutId);
@@ -316,7 +316,7 @@ export const actions: Actions = {
 			const query = {
 				type: 'course',
 				// ...(countryState && { countryState }),
-				...(countryState && { countryState: { $in: [countryState] } }),
+				...(county && { county: { $in: [county] } }),
 				...(layoutId && { layoutId }),
 				...(userId && { userId }),
 				//...(title && { title: { $regex: `.*${title}.*`, $options: 'i' } }),
