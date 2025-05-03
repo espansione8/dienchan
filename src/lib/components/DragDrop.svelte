@@ -2,7 +2,7 @@
 	// INSTRUCTION server action
 	// const formData = await request.formData();
 	// const userId = formData.get('userId');
-	// const file = formData.get('setProfilePic') || '';
+	// const file = formData.get('setImage') || '';
 
 	// const uploadImg = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
 	// 			method: 'POST',
@@ -16,13 +16,10 @@
 	// if (uploadImg.status == 200) return { action: 'new', success: true, message: 'file OK' };
 
 	// INSTRUCTION frontend
-	// <DragDrop inputName="setProfilePic">
-	import { onDestroy } from 'svelte';
+	// {#if openModal}
+	// <DragDrop inputName="setImage" />
+	// {/if}
 	import { FolderOpen } from 'lucide-svelte';
-
-	onDestroy(() => {
-		console.log('the component is being destroyed');
-	});
 
 	let { inputName = 'fileUpload' } = $props();
 

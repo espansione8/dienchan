@@ -959,7 +959,7 @@
 						{#each order.cart as course}
 							<div class="flex items-center space-x-4 mb-3">
 								<img
-									src={imgSrc(course.category)}
+									src={course.layoutView.urlPic || '/images/picture.png'}
 									alt="Immagine corso"
 									class="w-16 h-16 object-cover rounded-md"
 								/>

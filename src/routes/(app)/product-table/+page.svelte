@@ -446,7 +446,6 @@
 					</select>
 				</div>
 			</section>
-
 			{#if openModal}
 				<section class="col-span-4">
 					<label for="product-primary" class="form-label">
