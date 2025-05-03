@@ -2,6 +2,7 @@ import { fail } from '@sveltejs/kit';
 import stringHash from 'string-hash';
 import { pageAuth } from '$lib/pageAuth';
 import type { PageServerLoad, Actions } from './$types'
+import type { Product } from '$lib/types';
 /// test
 // import dbConnect from '$lib/database';
 // import { Product } from '$lib/models/Products.model';
@@ -11,12 +12,12 @@ const apiKey = import.meta.env.VITE_APIKEY;
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
 
-	let getTable = [];
-	let categories = [];
+	let getTable: Product[] = [];
+	let categories: string[] = [];
 	try {
 		// NEW GET PROD
-		const query = { type: 'product' }; //types: course / product / membership / event
-		const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
+		const query: any = { type: 'product' }; //types: course / product / membership / event
+		const projection: any = { _id: 0, password: 0 } // 0: exclude | 1: include
 		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 		const limit = 1000;
 		const skip = 0;
@@ -36,7 +37,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			}
 		});
 		getTable = await res.json();
-		categories = [...new Set(getTable.flatMap((item: any) => item.category))];
+		categories = [...new Set(getTable.flatMap((item: any) => item.category))] as string[];
 
 	} catch (error) {
 		console.log('products-table fetch error:', error);
@@ -57,7 +58,7 @@ export const actions: Actions = {
 		const stockQty = formData.get('stockQty');
 		const category = formData.get('category') || '';
 		const price = formData.get('price');
-		const prodImage = formData.get('product-primary') || '';
+		const prodImage = formData.get('product-primary');
 
 		const returnObj = false
 		const newDoc = {
@@ -65,9 +66,9 @@ export const actions: Actions = {
 			title,
 			descrShort,
 			stockQty,
-			category: [category],
+			category: category,
 			price,
-			uploadfiles: [
+			uploadfiles: prodImage instanceof File ? [
 				{
 					_id: false,
 					type: 'product-primary', //'product-primary', 'product-gallery', 'membership', 'course'
@@ -75,8 +76,8 @@ export const actions: Actions = {
 					filename: prodImage.name,
 					fileUrl: `product/${prodId}/${prodImage.name}`
 				}
-			],
-		};
+			] : [],
+		} as any;
 
 		//console.log('newDoc', newDoc);
 
@@ -89,12 +90,12 @@ export const actions: Actions = {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					'x-file-name': prodImage.name,
+					'x-file-name': (prodImage as File).name,
 					'x-folder-name': `product/${prodId}`
 				},
-				body: prodImage
+				body: prodImage as File
 			});
-			if (uploadImg.status != 200) return { action: 'new', success: fail, message: 'errore file upload' };
+			if (uploadImg.status != 200) return { action: 'new', success: false, message: 'errore file upload' };
 
 			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
 				method: 'POST',

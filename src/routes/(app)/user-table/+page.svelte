@@ -3,8 +3,9 @@
 	import Notification from '$lib/components/Notification.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import Papa from 'papaparse';
+	import { orderKeysToDelete } from '$lib/stores/arrays';
 	import {
-		Filter,
+		Funnel,
 		Trash2,
 		Settings,
 		UserRoundSearch,
@@ -88,6 +89,7 @@
 	const onFilterReset = () => {
 		resetActive = false;
 		tableList = getTable;
+		form = null;
 		invalidateAll();
 	};
 
@@ -146,219 +148,8 @@
 		}));
 
 		newList.forEach((obj: any) => {
-			delete obj.__v;
-			delete obj.attribute1;
-			delete obj.attribute2;
-			delete obj.attribute3;
-			delete obj.attribute4;
-			delete obj.attribute5;
-			delete obj.attribute6;
-			delete obj.attribute7;
-			delete obj.attribute8;
-			delete obj.attribute9;
-			delete obj.brand;
-			delete obj.brandId;
-			delete obj.bundleProduct;
-			delete obj.categoryId;
-			delete obj.cost;
-			delete obj.dateAdd;
-			delete obj.dateUpd;
-			delete obj.depth;
-			delete obj.attribute10;
-			delete obj.condition;
-			delete obj.feature;
-			delete obj.filterPermissionToEdit;
-			delete obj.height;
-			delete obj.image1;
-			delete obj.image2;
-			delete obj.image3;
-			delete obj.image4;
-			delete obj.image5;
-			delete obj.image6;
-			delete obj.image7;
-			delete obj.image8;
-			delete obj.imgFull;
-			delete obj.imgThumb;
-			delete obj.listSubscribers;
-			delete obj.manufacturer;
-			delete obj.manufacturerCod;
-			delete obj.msrp;
-			delete obj.notes;
-			delete obj.points;
-			delete obj.priceSetByBundle;
-			delete obj.promoEndDate;
-			delete obj.promoStartDate;
-			delete obj.promoterProCod;
-			delete obj.rating;
-			delete obj.rewardProgramDetails;
-			delete obj.shippingCost;
-			delete obj.sku;
-			delete obj.state;
-			delete obj.value1;
-			delete obj.value2;
-			delete obj.value3;
-			delete obj.value4;
-			delete obj.value5;
-			delete obj.value6;
-			delete obj.value7;
-			delete obj.value8;
-			delete obj.value9;
-			delete obj.value10;
-			delete obj.vatType;
-			delete obj.vatValue;
-			delete obj.weight;
-			delete obj.video;
-			delete obj.birthdate;
-			delete obj.filterPermissionToSee;
-			delete obj.manufacturerId;
-			delete obj.orderQuantity;
-			delete obj.width;
-			delete obj.businessData_businessName;
-			delete obj.businessData_vatNumber;
-			delete obj.businessData_businessCategory;
-			delete obj.businessData_businessAddress;
-			delete obj.businessData_businessPostalCode;
-			delete obj.businessData_businessState;
-			delete obj.businessData_businessCountry;
-			delete obj.businessData_businessCounty;
-			delete obj.businessData_numberEmployed;
-			delete obj.businessData_grossIncome;
-			delete obj.businessData_businessCity;
-			delete obj.businessData_role;
-			delete obj.businessData_grossIncome;
-			delete obj.businessData_grossIncome;
-			delete obj.businessData_grossIncome;
-			delete obj.businessData_grossIncome;
-			delete obj.businessData_grossIncome;
-			delete obj.extra0;
-			delete obj.extra1;
-			delete obj.extra2;
-			delete obj.extra3;
-			delete obj.extra4;
-			delete obj.extra5;
-			delete obj.extra6;
-			delete obj.extra7;
-			delete obj.extra8;
-			delete obj.extra9;
-			delete obj.extra10;
-			delete obj.extra11;
-			delete obj.extra12;
-			delete obj.extraFieldNumber1;
-			delete obj.extraFieldNumber2;
-			delete obj.extraFieldNumber3;
-			delete obj.extraFieldNumber4;
-			delete obj.extraFieldNumber5;
-			delete obj.extraFieldNumber6;
-			delete obj.extraFieldNumber7;
-			delete obj.extraFieldNumber8;
-			delete obj.extraFieldNumber9;
-			delete obj.extraFieldNumber10;
-			delete obj.extraFieldNumber11;
-			delete obj.extraFieldNumber12;
-			delete obj.extraFieldNumber13;
-			delete obj.extraFieldNumber14;
-			delete obj.extraFieldNumber15;
-			delete obj.extraFieldNumber16;
-			delete obj.extraFieldNumber17;
-			delete obj.extraFieldNumber18;
-			delete obj.extraFieldNumber19;
-			delete obj.extraFieldNumber20;
-			delete obj.extraFieldNumber21;
-			delete obj.extraFieldNumber22;
-			delete obj.extraFieldNumber23;
-			delete obj.extraFieldNumber24;
-			delete obj.extraFieldText1;
-			delete obj.extraFieldText2;
-			delete obj.extraFieldText3;
-			delete obj.extraFieldText4;
-			delete obj.extraFieldText5;
-			delete obj.extraFieldText6;
-			delete obj.extraFieldText7;
-			delete obj.extraFieldText8;
-			delete obj.extraFieldText9;
-			delete obj.extraFieldText10;
-			delete obj.extraFieldText11;
-			delete obj.extraFieldText12;
-			delete obj.extraFieldText13;
-			delete obj.extraFieldText14;
-			delete obj.extraFieldText15;
-			delete obj.extraFieldText16;
-			delete obj.extraFieldText17;
-			delete obj.extraFieldText18;
-			delete obj.extraFieldText19;
-			delete obj.extraFieldText20;
-			delete obj.extraFieldText21;
-			delete obj.extraFieldText22;
-			delete obj.extraFieldText23;
-			delete obj.extraFieldText24;
-			delete obj.documentUpload;
-			delete obj.photoUpload;
-			delete obj.gender;
-			delete obj.socialSecurityNumber;
-			delete obj.username;
-			delete obj.password;
-			delete obj.pointsSpent;
-			delete obj.pointsBalance;
-			delete obj.pointsTotal;
-			delete obj.pointsBalanceDate;
-			delete obj.userAvatar;
-			delete obj.privacyDate;
-			delete obj.privacyAccept;
-			delete obj.revenue;
-			delete obj.target0;
-			delete obj.target1;
-			delete obj.target2;
-			delete obj.target3;
-			delete obj.target4;
-			delete obj.target5;
-			delete obj.target6;
-			delete obj.target7;
-			delete obj.target8;
-			delete obj.target9;
-			delete obj.target10;
-			delete obj.target11;
-			delete obj.target12;
-			delete obj.lastAccess;
-			delete obj.counterAccess;
-			delete obj.remoteIP;
-			delete obj.remoteHost;
-			delete obj.remoteBrowser;
-			delete obj.notesOnUser;
-			delete obj.userCart;
-			delete obj.userWishList;
-			delete obj.documentPageArray;
-			delete obj.storicoCorsiPartecipati;
-			delete obj.storicoCorsiCreati;
-			delete obj.docModifyArray;
-			delete obj.uploadfiles;
-			delete obj.codeSales;
-			delete obj.codeManager;
-			delete obj.codeSupervisor;
-			delete obj.codeAgency;
-			delete obj.codeSponsor;
-			delete obj.codeAdmin;
-			delete obj.codeSuperAdmin;
-			delete obj.card_cardId;
-			delete obj.card_cardCode;
-			delete obj.card_cardActivation;
-			delete obj.card_cardExpiry;
-			delete obj.card_cardStatus;
-			delete obj.userCode;
-			delete obj.active;
-			delete obj.token;
-			delete obj.cookieId;
-			delete obj.promotions;
-			delete obj.codeSales;
-			delete obj.codeManager;
-			delete obj.codeSupervisor;
-			delete obj.codeAgency;
-			delete obj.codeSponsor;
-			delete obj.codeAdmin;
-			delete obj.codeSuperAdmin;
-			delete obj.category;
-			delete obj.region;
+			$orderKeysToDelete.forEach((key: string) => delete (obj as any)[key]);
 		});
-		//console.log('newList user', newList);
 
 		//CSV UNPARSE
 		csv = Papa.unparse(newList, {
@@ -529,7 +320,7 @@
 				</button>
 			{:else}
 				<button class="btn btn-info rounded-md text-white" onclick={onOpenFilter}>
-					<Filter class="mt-1" /> Filtra
+					<Funnel class="mt-1" /> Filtra
 				</button>
 			{/if}
 			<button class="btn btn-info rounded-md text-white" onclick={() => onClickDialog('new', null)}>

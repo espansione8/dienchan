@@ -52,6 +52,7 @@
 		price = 0;
 		tableList = getTable;
 		tableList = getTable;
+		form = null;
 	};
 
 	const csvCreate = () => {

@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
+	import { province, country_list } from '$lib/stores/arrays.js';
 	import {
 		Settings,
 		X,
@@ -20,9 +21,6 @@
 		Building2,
 		FolderOpen
 	} from 'lucide-svelte';
-	import { province } from '$lib/stores/arrays.js';
-	import { country_list } from '$lib/stores/arrays.js';
-	import { coursesInfo } from '$lib/stores/arrays.js';
 
 	let { data, form } = $props();
 	let { userData, orderData } = $derived(data);
@@ -159,11 +157,6 @@
 		countryPublic = userData.countryPublic;
 		phonePublic = userData.phonePublic;
 		mobilePhonePublic = userData.mobilePhonePublic;
-	};
-
-	const imgSrc = (value: string) => {
-		const src = $coursesInfo.filter((item: any) => item.id == value);
-		return src[0]?.urlPic || '/images/picture.png';
 	};
 
 	$effect(() => {

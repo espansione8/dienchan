@@ -17,7 +17,12 @@
 
 	// INSTRUCTION frontend
 	// <DragDrop inputName="setProfilePic">
+	import { onDestroy } from 'svelte';
 	import { FolderOpen } from 'lucide-svelte';
+
+	onDestroy(() => {
+		console.log('the component is being destroyed');
+	});
 
 	let { inputName = 'fileUpload' } = $props();
 

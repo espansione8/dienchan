@@ -267,6 +267,22 @@ export interface Order {
     },
 }
 
+export interface Product {
+    prodId: string;
+    title: string;
+    descrShort: string;
+    stockQty: number;
+    category: string;
+    price: number;
+    uploadfiles: Array<{
+        type: 'product-primary';
+        filetype: string;
+        filename: string;
+        fileUrl: string;
+    }>;
+    status: 'enabled' | 'disabled';
+}
+
 export interface TableNames {
     userId: string;
     surname: string;
