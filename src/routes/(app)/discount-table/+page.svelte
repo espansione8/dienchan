@@ -135,6 +135,7 @@
 		notes = '';
 		selectedApplicability = 'userId';
 		tableList = getTable;
+		form = null;
 	};
 
 	const onCloseConfirmDelete = () => {
@@ -394,7 +395,7 @@
 					name="value"
 					aria-label="value"
 					aria-describedby="value"
-					bind:value={value}
+					bind:value
 					required
 				/>
 			</div>

@@ -14,7 +14,7 @@
 	import CartFloat from '$lib/components/CartFloat.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
-	//import { province, coursesInfo } from '$lib/stores/arrays.js';
+	//import { province } from '$lib/stores/arrays.js';
 
 	let { data } = $props();
 	let { getTable, getTableNames, getLayout, auth } = $derived(data);

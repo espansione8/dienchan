@@ -1,4 +1,4 @@
-export type Users = {
+export type User = {
     userId: string;
     userCode: string;
     status: 'enabled' | 'disabled';
@@ -13,7 +13,7 @@ export type Users = {
         membershipActivation: Date;
         membershipExpiry: Date;
         membershipStatus: boolean;
-    };
+    } & MembershipPublic;
     codeSales: string;
     codeManager: string;
     codeSupervisor: string;
@@ -178,6 +178,25 @@ export type Users = {
         filename: string;
         fileUrl: string;
     }>;
+} & UserPublic;
+
+export type MembershipPublic = {
+    membershipLevel: string;
+    membershipStatus: boolean;
+    membershipExpiry: Date;
+};
+
+export type UserPublic = {
+    namePublic: boolean;
+    surnamePublic: boolean;
+    emailPublic: boolean;
+    addressPublic: boolean;
+    cityPublic: boolean;
+    countyPublic: boolean;
+    postalCodePublic: boolean;
+    countryPublic: boolean;
+    phonePublic: boolean;
+    mobilePhonePublic: boolean;
 };
 
 export type Locals = {
@@ -265,6 +284,23 @@ export interface Order {
             estimatedDelivery: Date
         }
     },
+}
+
+export interface Product {
+    prodId: string;
+    title: string;
+    descrShort: string;
+    stockQty: number;
+    category: string;
+    price: number;
+    points: number;
+    uploadfiles: Array<{
+        type: 'product-primary';
+        filetype: string;
+        filename: string;
+        fileUrl: string;
+    }>;
+    status: 'enabled' | 'disabled';
 }
 
 export interface TableNames {

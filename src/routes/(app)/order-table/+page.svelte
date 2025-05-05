@@ -1,13 +1,11 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { coursesInfo, orderKeysToDelete } from '$lib/stores/arrays';
 	import { goto, invalidateAll } from '$app/navigation';
 	import Papa from 'papaparse';
+	import { orderKeysToDelete, province } from '$lib/stores/arrays';
 	import Notification from '$lib/components/Notification.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import { enhance } from '$app/forms';
 	import {
-		Settings,
 		Funnel,
 		XCircle,
 		ShieldAlert,
@@ -19,7 +17,7 @@
 	import type { Order, TableNames } from '$lib/types';
 
 	let { data, form } = $props();
-	let { getTable, getTableNames, auth } = $derived(data);
+	let { getTable, getTableNames } = $derived(data);
 	let tableList = $state<Order[]>(getTable || []);
 	let tableNames = $state<TableNames[]>(getTableNames || []);
 
@@ -111,7 +109,7 @@
 		email = '';
 	};
 
-	const resetData = () => {
+	const refresh = () => {
 		invalidateAll();
 		resetFields();
 		resetActive = false;
@@ -140,10 +138,10 @@
 			postAction = `?/filter`;
 			modalTitle = 'Filtra';
 		}
-		if (type == 'detail') {
-			orderDetail = item;
-			modalTitle = `Ordine (ID: ${item.orderId})`;
-		}
+		// if (type == 'detail') {
+		// 	orderDetail = item;
+		// 	modalTitle = `Ordine (ID: ${item.orderId})`;
+		// }
 	};
 
 	const onCloseModal = () => {
@@ -210,11 +208,11 @@
 	<div class="flex flex-col gap-4 mb-4">
 		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Ordini</h1>
 		<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
-			<button class="btn btn-info text-white w-full sm:w-auto" onclick={resetData}>
+			<button class="btn btn-info text-white w-full sm:w-auto" onclick={refresh}>
 				<RefreshCcw />
 			</button>
 			{#if resetActive == true}
-				<button class="btn btn-error rounded-md text-white" onclick={resetData}>
+				<button class="btn btn-error rounded-md text-white" onclick={refresh}>
 					<XCircle class="mt-1" /> Reset Filtro
 				</button>
 			{:else}
@@ -352,7 +350,7 @@
 						type="text"
 						id="name"
 						name="name"
-						value={`${orderDetail.shipping?.name}`}
+						value={orderDetail.shipping?.name}
 						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					/>
 				</div>
@@ -362,7 +360,7 @@
 						type="text"
 						id="surname"
 						name="surname"
-						value={`${orderDetail.shipping?.surname}`}
+						value={orderDetail.shipping?.surname}
 						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					/>
 				</div>
@@ -397,21 +395,23 @@
 						type="text"
 						id="postalCode"
 						name="postalCode"
-						value={`${orderDetail.shipping?.postalCode}`}
+						value={orderDetail.shipping?.postalCode}
 						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					/>
 				</div>
 				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="postalCode" class="block text-sm font-medium text-gray-700 mb-1"
-						>Provincia</label
-					>
-					<input
-						type="text"
+					<label for="county" class="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
+					<select
 						id="county"
 						name="county"
-						value={`${orderDetail.shipping?.county}`}
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
+						value={orderDetail.shipping.county}
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					>
+						<option value="">Scegli una Provincia {orderDetail.shipping.county}</option>
+						{#each $province as provincia}
+							<option value={provincia.title}>{provincia.title}</option>
+						{/each}
+					</select>
 				</div>
 				<div class="w-full md:w-1/2 px-2 mb-4">
 					<label for="country" class="block text-sm font-medium text-gray-700 mb-1">Paese</label>

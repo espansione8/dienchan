@@ -1,22 +1,25 @@
+import type { PageServerLoad, Actions } from './$types'
 import { fail } from '@sveltejs/kit';
 import stringHash from 'string-hash';
+import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
-import type { PageServerLoad, Actions } from './$types'
+import type { Product } from '$lib/types';
 /// test
 // import dbConnect from '$lib/database';
 // import { Product } from '$lib/models/Products.model';
 
 const apiKey = import.meta.env.VITE_APIKEY;
+const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
 
-	let getTable = [];
-	let categories = [];
+	let getTable: Product[] = [];
+	let categories: string[] = [];
 	try {
 		// NEW GET PROD
-		const query = { type: 'product' }; //types: course / product / membership / event
-		const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
+		const query: any = { type: 'product' }; //types: course / product / membership / event
+		const projection: any = { _id: 0, password: 0 } // 0: exclude | 1: include
 		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 		const limit = 1000;
 		const skip = 0;
@@ -36,7 +39,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			}
 		});
 		getTable = await res.json();
-		categories = [...new Set(getTable.flatMap((item: any) => item.category))];
+		categories = [...new Set(getTable.flatMap((item: any) => item.category))] as string[];
 
 	} catch (error) {
 		console.log('products-table fetch error:', error);
@@ -129,28 +132,57 @@ export const actions: Actions = {
 		const title = formData.get('title') || '';
 		const descrShort = formData.get('descrShort') || '';
 		const stockQty = formData.get('stockQty');
-		const category = formData.get('category') || '';
 		const price = formData.get('price');
+		const weight = formData.get('weight');
+		const category = formData.get('category') || '';
+		// const prodImage = formData.get('product-primary');
+		// console.log('prodImage', prodImage);
 
-		if (!prodId || !title || !descrShort || !stockQty || !category || !price) {
+		if (!prodId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
 		const query = { prodId, type: 'product' };
 		const update = {
 			$set: {
-				prodId,
 				title,
 				descrShort,
 				stockQty,
-				category,
 				price,
+				weight,
+				category,
 			}
 		};
-		const options = { upsert: false }
+		// if (prodImage instanceof File && prodImage.name) {
+		// 	update.$set["uploadfiles.$[elem].filename"] = prodImage.name;
+		// 	update.$set["uploadfiles.$[elem].fileUrl"] = `product/${prodId}/${prodImage.name}`;
+		// } else {
+		// 	update.$set["uploadfiles.$[elem].filename"] = '';
+		// 	update.$set["uploadfiles.$[elem].fileUrl"] = '/images/picture.png';
+		// }
+		const options = {
+			upsert: false,
+			// arrayFilters: [
+			// 	{ "elem.type": "product-primary" } // Filter for the array element where 'type' is 'product-primary'
+			// ]
+		};
 		const multi = false
 
 		try {
+
+			// if (prodImage.name != '') {
+			// 	const uploadImg = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
+			// 		method: 'POST',
+			// 		headers: {
+			// 			'Content-Type': 'application/json',
+			// 			'x-file-name': (prodImage as File).name,
+			// 			'x-folder-name': `product/${prodId}`
+			// 		},
+			// 		body: prodImage as File
+			// 	});
+			// 	if (uploadImg.status != 200) return { action: 'new', success: false, message: 'errore file upload' };
+			// }
+
 			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({

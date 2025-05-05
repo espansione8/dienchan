@@ -2,6 +2,8 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
+	import DragDrop from '$lib/components/DragDrop.svelte';
+	import { province, country_list } from '$lib/stores/arrays.js';
 	import {
 		Settings,
 		X,
@@ -20,9 +22,6 @@
 		Building2,
 		FolderOpen
 	} from 'lucide-svelte';
-	import { province } from '$lib/stores/arrays.js';
-	import { country_list } from '$lib/stores/arrays.js';
-	import { coursesInfo } from '$lib/stores/arrays.js';
 
 	let { data, form } = $props();
 	let { userData, orderData } = $derived(data);
@@ -30,9 +29,8 @@
 	// remove online in province
 	let provinceFilterate = $province.filter((p) => p.title !== 'Online');
 
-	let picFilter = $derived(userData.uploadfiles.filter((item: any) => item.type == 'avatar'));
-
 	let closedInput = $state(true);
+	const picFilter = $derived(userData.uploadfiles.filter((item: any) => item.type == 'avatar'));
 	const openInput = () => (closedInput = false);
 	const closeInput = () => {
 		closedInput = true;
@@ -161,11 +159,6 @@
 		mobilePhonePublic = userData.mobilePhonePublic;
 	};
 
-	const imgSrc = (value: string) => {
-		const src = $coursesInfo.filter((item: any) => item.id == value);
-		return src[0]?.urlPic || '/images/picture.png';
-	};
-
 	$effect(() => {
 		if (form != null) {
 			async () => await invalidateAll();
@@ -289,74 +282,12 @@
 							class="card-body w-full"
 						>
 							<input type="hidden" name="userId" value={userData.userId} />
-							<div class="form-control w-full cursor-pointer">
-								<div
-									role="region"
-									class="form-control w-full relative h-48 rounded-lg border-2 transition-colors duration-200 {isDragging
-										? 'border-green-500 bg-green-50'
-										: 'border-dashed border-blue-700 bg-gray-100 hover:border-blue-500 hover:bg-gray-50'} flex justify-center items-center"
-									ondragenter={handleDragEnter}
-									ondragleave={handleDragLeave}
-									ondragover={handleDragOver}
-									ondrop={handleDrop}
-								>
-									<label class="form-control w-full h-full" for="fileUpload">
-										{#if previewUrl}
-											<div class="flex flex-col items-center justify-center h-full">
-												<img src={previewUrl} alt="Upload Preview" class="mt-2 max-h-32" />
-											</div>
-										{:else}
-											<div
-												class="flex flex-col items-center absolute inset-0 justify-center pointer-events-none"
-											>
-												<FolderOpen
-													size={64}
-													class={isDragging ? 'text-green-500' : 'text-blue-700'}
-												/>
-												<span class="block text-gray-600 font-normal text-center px-4">
-													{isDragging
-														? 'Rilascia il file qui'
-														: 'Drag & Drop oppure clicca per scegliere un file'}
-												</span>
-											</div>
-										{/if}
-										<input
-											type="file"
-											id="fileUpload"
-											name="fileUpload"
-											placeholder="image"
-											accept=".jpg, .jpeg, .png, .webp"
-											class="h-full w-full opacity-0 absolute top-0 left-0"
-											bind:this={fileInput}
-											onchange={(event) => {
-												const file = event.target.files[0];
-												if (file) {
-													previewUrl = URL.createObjectURL(file);
-												}
-											}}
-										/>
-									</label>
-								</div>
-							</div>
-							{#if previewUrl}
-								<button
-									class="btn btn-error btn-sm mt-4"
-									type="button"
-									onclick={() => {
-										previewUrl = null;
-										fileInput.value = ''; // Reset the file input
-										URL.revokeObjectURL(previewUrl); // Clean up the object URL
-									}}
-								>
-									cancella
-								</button>
-							{/if}
+							<DragDrop />
 							<button class="btn btn-sm btn-info rounded-lg border-2" type="submit">
 								Upload foto
 							</button>
 						</form>
 					{/if}
-
 					<!-- img end -->
 				</div>
 				<div class="card-body p-6 w-1/2">
@@ -962,11 +893,10 @@
 								>
 							</div>
 						</div>
-						<!-- src={imgSrc(course.category[0])} -->
 						{#each order.cart as course}
 							<div class="flex items-center space-x-4 mb-3">
 								<img
-									src={imgSrc(course.category)}
+									src={course.layoutView.urlPic || '/images/picture.png'}
 									alt="Immagine corso"
 									class="w-16 h-16 object-cover rounded-md"
 								/>
