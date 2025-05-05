@@ -1,13 +1,15 @@
+import type { PageServerLoad, Actions } from './$types'
 import { fail } from '@sveltejs/kit';
 import stringHash from 'string-hash';
+import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
-import type { PageServerLoad, Actions } from './$types'
 import type { Product } from '$lib/types';
 /// test
 // import dbConnect from '$lib/database';
 // import { Product } from '$lib/models/Products.model';
 
 const apiKey = import.meta.env.VITE_APIKEY;
+const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
@@ -58,7 +60,7 @@ export const actions: Actions = {
 		const stockQty = formData.get('stockQty');
 		const category = formData.get('category') || '';
 		const price = formData.get('price');
-		const prodImage = formData.get('product-primary');
+		const prodImage = formData.get('product-primary') || '';
 
 		const returnObj = false
 		const newDoc = {
@@ -66,9 +68,9 @@ export const actions: Actions = {
 			title,
 			descrShort,
 			stockQty,
-			category: category,
+			category: [category],
 			price,
-			uploadfiles: prodImage instanceof File ? [
+			uploadfiles: [
 				{
 					_id: false,
 					type: 'product-primary', //'product-primary', 'product-gallery', 'membership', 'course'
@@ -76,8 +78,8 @@ export const actions: Actions = {
 					filename: prodImage.name,
 					fileUrl: `product/${prodId}/${prodImage.name}`
 				}
-			] : [],
-		} as any;
+			],
+		};
 
 		//console.log('newDoc', newDoc);
 
@@ -90,12 +92,12 @@ export const actions: Actions = {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					'x-file-name': (prodImage as File).name,
+					'x-file-name': prodImage.name,
 					'x-folder-name': `product/${prodId}`
 				},
-				body: prodImage as File
+				body: prodImage
 			});
-			if (uploadImg.status != 200) return { action: 'new', success: false, message: 'errore file upload' };
+			if (uploadImg.status != 200) return { action: 'new', success: fail, message: 'errore file upload' };
 
 			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
 				method: 'POST',
@@ -130,28 +132,57 @@ export const actions: Actions = {
 		const title = formData.get('title') || '';
 		const descrShort = formData.get('descrShort') || '';
 		const stockQty = formData.get('stockQty');
-		const category = formData.get('category') || '';
 		const price = formData.get('price');
+		const weight = formData.get('weight');
+		const category = formData.get('category') || '';
+		// const prodImage = formData.get('product-primary');
+		// console.log('prodImage', prodImage);
 
-		if (!prodId || !title || !descrShort || !stockQty || !category || !price) {
+		if (!prodId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
 		const query = { prodId, type: 'product' };
 		const update = {
 			$set: {
-				prodId,
 				title,
 				descrShort,
 				stockQty,
-				category,
 				price,
+				weight,
+				category,
 			}
 		};
-		const options = { upsert: false }
+		// if (prodImage instanceof File && prodImage.name) {
+		// 	update.$set["uploadfiles.$[elem].filename"] = prodImage.name;
+		// 	update.$set["uploadfiles.$[elem].fileUrl"] = `product/${prodId}/${prodImage.name}`;
+		// } else {
+		// 	update.$set["uploadfiles.$[elem].filename"] = '';
+		// 	update.$set["uploadfiles.$[elem].fileUrl"] = '/images/picture.png';
+		// }
+		const options = {
+			upsert: false,
+			// arrayFilters: [
+			// 	{ "elem.type": "product-primary" } // Filter for the array element where 'type' is 'product-primary'
+			// ]
+		};
 		const multi = false
 
 		try {
+
+			// if (prodImage.name != '') {
+			// 	const uploadImg = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
+			// 		method: 'POST',
+			// 		headers: {
+			// 			'Content-Type': 'application/json',
+			// 			'x-file-name': (prodImage as File).name,
+			// 			'x-folder-name': `product/${prodId}`
+			// 		},
+			// 		body: prodImage as File
+			// 	});
+			// 	if (uploadImg.status != 200) return { action: 'new', success: false, message: 'errore file upload' };
+			// }
+
 			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({

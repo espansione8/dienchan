@@ -7,6 +7,7 @@
 	import Notification from '$lib/components/Notification.svelte';
 	import DragDrop from '$lib/components/DragDrop.svelte';
 	import Modal from '$lib/components/Modal.svelte';
+	import { imgCheck } from '$lib/tools/imgCheck';
 	import {
 		CopyPlus,
 		RefreshCcw,
@@ -43,6 +44,7 @@
 	let price = $state(0);
 	let prodId = $state('');
 	let weight = $state(0);
+	let imgPrimary = $state('');
 
 	const csvCreate = () => {
 		let csv = $state('');
@@ -132,9 +134,15 @@
 			title = item.title;
 			descrShort = item.descrShort;
 			stockQty = item.stockQty;
-			category = item.category;
 			price = item.price;
-			//console.log('price.category', price, category);
+			weight = item.weight;
+			category = item.category[0];
+			if (imgCheck(item.uploadfiles, 'product-primary').length > 0) {
+				imgPrimary = `files/product/${item.prodId}/${imgCheck(item.uploadfiles, 'product-primary')[0]}`;
+			} else {
+				imgPrimary = '/images/picture.png';
+			}
+			//console.log('imgPrimary', imgPrimary);
 		}
 		if (type == 'delete') {
 			postAction = `?/delete`;
@@ -170,11 +178,13 @@
 			async () => await invalidateAll(); // MUST be async/await or tableList = getTable will trigger infinite loop
 			const { action, success, message, filterTableList } = form;
 			if (success) {
-				//fieldReset();
-				openModal = false;
-				if (filterTableList) {
+				//console.log('filterTableList effect', filterTableList);
+				currentModal = '';
+				if (action == 'filter') {
+					resetActive = true;
 					tableList = filterTableList;
 				} else {
+					resetActive = false;
 					tableList = getTable;
 				}
 			} else {
@@ -256,11 +266,16 @@
 					<td>
 						<img
 							class="max-h-20"
-							src={row.uploadfiles[0]?.type == 'product-primary'
-								? `files/${row.uploadfiles[0]?.fileUrl}`
+							src={imgCheck(row.uploadfiles, 'product-primary').length > 0
+								? `files/product/${row.prodId}/${imgCheck(row.uploadfiles, 'product-primary')[0]}`
 								: '/images/picture.png'}
 							alt={row.title}
 						/>
+						<!-- <img
+							class="max-h-20"
+							src={`files/product/${row.prodId}/${imgCheck(row.uploadfiles, 'product-primary')[0]}`}
+							alt={row.title}
+						/> -->
 					</td>
 					<td class="">
 						<form method="POST" action={`?/changeStatus`} use:enhance>
@@ -319,9 +334,9 @@
 			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 			use:enhance
 		>
-			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
+			<!-- <header class="col-span-4 text-center text-2xl font-bold text-green-800">
 				Nuovo Prodotto
-			</header>
+			</header> -->
 			<section class="col-span-4">
 				<label for="titolo" class="form-label">
 					<p class="font-bold mb-2">Titolo</p>
@@ -474,13 +489,14 @@
 		<form
 			action={postAction}
 			method="POST"
+			enctype="multipart/form-data"
 			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 			use:enhance
 		>
-			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
-				Modifica Prodotto
-			</header>
 			<input type="hidden" name="prodId" value={prodId} />
+			<!-- <header class="col-span-4 text-center text-2xl font-bold text-green-800">
+			Modifica Prodotto
+		</header> -->
 			<section class="col-span-4">
 				<label for="titolo" class="form-label">
 					<p class="font-bold mb-2">Titolo</p>
@@ -520,7 +536,7 @@
 			</section>
 			<section class="col-span-1 md:col-span-2">
 				<label for="quantitaProdotto" class="form-label">
-					<p class="font-bold mb-2">Quantità</p>
+					<p class="font-bold mb-2">Quantità magazzino</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
 					<button class="join-item bg-gray-300 px-3"><Users /></button>
@@ -553,16 +569,37 @@
 						placeholder="N."
 						aria-label="cost"
 						aria-describedby="basic-cost"
-						step="0.50"
-						min="1"
 						bind:value={price}
+						min="0"
+						step="0.01"
+						required
+					/>
+				</div>
+			</section>
+			<section class="col-span-4 md:col-span-2">
+				<label for="weight" class="form-label">
+					<p class="font-bold mb-2">Peso KG</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Calculator /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="weight"
+						name="weight"
+						type="number"
+						placeholder="KG"
+						aria-label="weight"
+						aria-describedby="shipping-weight"
+						bind:value={weight}
+						min="0"
+						step="0.01"
 						required
 					/>
 				</div>
 			</section>
 			<section class="col-span-4 md:col-span-2">
 				<label for="category" class="form-label">
-					<p class="font-bold mb-2">Categoria</p>
+					<p class="font-bold mb-2">Categoria prodotto</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
 					<button class="join-item bg-gray-300 px-3"><List /></button>
@@ -576,18 +613,43 @@
 						required
 					>
 						<option disabled value="">Scegli</option>
-						<option value="strumenti">Strumenti</option>
-						<option value="materiali">Materiali</option>
-						<option value="altro">Altro</option>
+						<option value="Strumenti">Strumenti</option>
+						<option value="Materiale didattico">Materiale didattico</option>
+						<option value="Infusi & Integratori">Infusi & Integratori</option>
+						<option value="Merchandising">Merchandising</option>
+						<option value="Altro">Altro</option>
 					</select>
 				</div>
 			</section>
 
+			<!-- img -->
+			{#if imgPrimary.length > 0}
+				<section class="col-span-4">
+					<figure class="mt-4">
+						<img src={imgPrimary} alt="product-primary" class="object-cover rounded-md" />
+					</figure>
+					<button
+						class="btn btn-error mx-1 mt-4"
+						type="button"
+						onclick={() => {
+							imgPrimary = '';
+						}}>Cambia immagine</button
+					>
+				</section>
+			{:else if openModal}
+				<section class="col-span-4">
+					<label for="product-primary" class="form-label">
+						<p class="font-bold mb-2">Foto Prodotto</p>
+					</label>
+					<DragDrop inputName="product-primary" />
+				</section>
+			{/if}
+			<!-- img end -->
 			<section class="lg:col-span-4 mt-2">
 				<div class="col-span-4 mt-10 flex justify-center">
 					<button class="btn btn-error mx-1" type="button" onclick={onCloseModal}>Annulla</button>
 					<button class="btn btn-success mx-1" type="submit">
-						<span class="flex items-center justify-center"> MODIFICA PRODOTTO </span>
+						<span class="flex items-center justify-center">CONFERMA MODIFICA</span>
 					</button>
 				</div>
 			</section>
