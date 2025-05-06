@@ -143,7 +143,8 @@ const productSchema = new Schema(
         // eventStartTime: { type: Date, default: Date.now }, //deprecated
         //eventEndDate: { type: Date, default: Date.now }, // deprecated
         state: { type: String, default: '' },
-        countryState: [{ type: String, default: '' }],// provincia
+        // countryState: [{ type: String, default: '' }],// provincia
+        county: [{ type: String, default: '' }],// provincia
         location: { type: String, default: '' },
         notificationEmail: [{ type: String, default: '' }],
         listSubscribers: [

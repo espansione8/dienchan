@@ -38,12 +38,39 @@
 	coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
 	// cycle to count the number of courses in each province
-	const numCoursesInProvince: any = {};
+	let numCoursesInProvince: any = {};
 	coursesList.forEach((item) => {
-		const countryState = item.county;
-		numCoursesInProvince[countryState] = (numCoursesInProvince[countryState] || 0) + 1;
-		// key : value ---> es: numCoursesInProvince = {"Bologna": "1", "Firenze": "2", "Roma": "3"}
+		item.county.forEach((province) => {
+			numCoursesInProvince[province] = (numCoursesInProvince[province] || 0) + 1;
+		});
 	});
+
+	// Ordina le chiavi dell'oggetto in ordine alfabetico
+	const sortedNumCoursesInProvince: Record<string, number> = Object.keys(numCoursesInProvince)
+		.sort((a, b) => {
+			// Se "Online" è presente, mettiamolo in cima
+			if (a === 'Online') return -1;
+			if (b === 'Online') return 1;
+
+			// Altrimenti ordina alfabeticamente
+			return a.localeCompare(b);
+		})
+		.reduce(
+			(acc, key) => {
+				acc[key] = numCoursesInProvince[key];
+				return acc;
+			},
+			{} as Record<string, number>
+		);
+
+	numCoursesInProvince = sortedNumCoursesInProvince;
+
+	// vecchio non c'era l'array di stringhe -> county
+	// coursesList.forEach((item) => {
+	// 	const countryState = item.county;
+	// 	numCoursesInProvince[countryState] = (numCoursesInProvince[countryState] || 0) + 1;
+	// 	// key : value ---> es: numCoursesInProvince = {"Bologna": "1", "Firenze": "2", "Roma": "3"}
+	// });
 
 	const nomiMesi = [
 		'Gennaio',
@@ -110,7 +137,10 @@
 		coursesList = getTable;
 		// provincia
 		if (filtriAttivi.provincia) {
-			coursesList = coursesList.filter((item) => item.county == filtriAttivi.provincia);
+			// coursesList = coursesList.filter((item) => item.county == filtriAttivi.provincia);
+			coursesList = coursesList.filter((item) =>
+				item.county.some((county) => county === filtriAttivi.provincia)
+			);
 		}
 		// riflessologo
 		if (filtriAttivi.riflessologo) {
