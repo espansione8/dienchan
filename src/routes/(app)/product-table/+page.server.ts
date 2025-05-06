@@ -54,13 +54,13 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 export const actions: Actions = {
 	new: async ({ request, fetch }) => {
 		const formData = await request.formData();
-		const prodId = stringHash(crypto.randomUUID());
+		const prodId = nanoid()
+		//const prodId = stringHash(crypto.randomUUID());
 		const title = formData.get('title') || '';
 		const descrShort = formData.get('descrShort') || '';
 		const stockQty = formData.get('stockQty');
 		const category = formData.get('category') || '';
 		const price = formData.get('price');
-		const prodImage = formData.get('product-primary') || '';
 
 		const returnObj = false
 		const newDoc = {
@@ -70,17 +70,7 @@ export const actions: Actions = {
 			stockQty,
 			category: [category],
 			price,
-			uploadfiles: [
-				{
-					_id: false,
-					type: 'product-primary', //'product-primary', 'product-gallery', 'membership', 'course'
-					filetype: prodImage.type,
-					filename: prodImage.name,
-					fileUrl: `product/${prodId}/${prodImage.name}`
-				}
-			],
 		};
-
 		//console.log('newDoc', newDoc);
 
 		if (!title || !descrShort || !stockQty || !price) {
@@ -88,17 +78,6 @@ export const actions: Actions = {
 		}
 
 		try {
-			const uploadImg = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'x-file-name': prodImage.name,
-					'x-folder-name': `product/${prodId}`
-				},
-				body: prodImage
-			});
-			if (uploadImg.status != 200) return { action: 'new', success: fail, message: 'errore file upload' };
-
 			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
 				method: 'POST',
 				body: JSON.stringify({
@@ -342,6 +321,128 @@ export const actions: Actions = {
 		} catch (error) {
 			console.error('Error changing status:', error);
 			return { action: 'changeStatus', success: false, message: 'Errore changeStatus' };
+		}
+	},
+	setProdPic: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const prodId = formData.get('prodId');
+		const file = formData.get('fileUpload');
+
+		if (!prodId || !file || !file.name) {
+			return fail(400, { action: 'setProdPic', success: false, message: 'File mancante' });
+		}
+
+		try {
+			const uploadImg = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'x-file-name': file.name,
+					'x-folder-name': `product/${prodId}`
+				},
+				body: file
+			});
+			const resImg = await uploadImg.json();
+			if (uploadImg.status != 200) return { action: 'setProdPic', success: false, message: resImg.message };
+
+			const query = { prodId, type: 'product' }; // 'course', 'product', 'membership', 'event'
+			const update = {
+				$push: {
+					uploadfiles: [
+						{
+							_id: false,
+							type: 'product-primary', //'product-primary', 'product-gallery', 'membership', 'course'
+							filetype: file.type,
+							filename: file.name,
+							fileUrl: `product/${prodId}/${file.name}`
+						}
+					],
+				}
+			};
+			const options = { upsert: false }
+			const multi = false
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'product', //product | order | user | layout | discount
+					query,
+					update,
+					options,
+					multi
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const response = await res.json();
+			if (res.status == 200) {
+				return { action: 'setProdPic', success: true, message: response.message };
+			} else {
+				return { action: 'setProdPic', success: false, message: response.message };
+			}
+		} catch (error) {
+			console.error('Error upload:', error);
+			return { action: 'setProdPic', success: false, message: 'Errore upload' };
+		}
+	},
+	delProdPic: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const prodId = formData.get('prodId');
+		const fileName = formData.get('fileName');
+		console.log('prod filename', prodId, fileName);
+
+		if (!prodId || !fileName) {
+			return fail(400, { action: 'delProdPic', success: false, message: 'Dati mancanti' });
+		}
+
+		try {
+			const responseDelete = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
+				method: 'DELETE',
+				body: JSON.stringify({
+					dir: `product/${prodId}`,
+					fileName
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const resDel = await responseDelete.json();
+			if (responseDelete.status != 200) return { action: 'delProdPic', success: false, message: resDel.message };
+
+			const query = { prodId, type: 'product' }; // 'course', 'product', 'membership', 'event'
+			const update = {
+				$pull:
+					{ uploadfiles: { type: 'product-primary', filename: fileName } }
+
+			};
+			const options = { upsert: false }
+			const multi = false
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'product', //product | order | user | layout | discount
+					query,
+					update,
+					options,
+					multi
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			const response = await res.json();
+
+			if (res.status == 200) {
+				return { action: 'delProdPic', success: true, message: response.message };
+			} else {
+				return { action: 'delProdPic', success: false, message: response.message };
+			}
+		} catch (error) {
+			console.error('Error delProdPic:', error);
+			return { action: 'delProdPic', success: false, message: 'Errore rimozione' };
 		}
 	},
 } satisfies Actions;

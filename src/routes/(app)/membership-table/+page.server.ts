@@ -63,7 +63,7 @@ export const actions: Actions = {
 		const descrShort = formData.get('descrShort');
 		const category = formData.get('category') || '';
 		const price = formData.get('price');
-		const prodImage = formData.get('image') || '';
+		//const file = formData.get('image') || '';
 		const renewalLength = formData.get('renewalLength');
 
 		if (!title || !price || !renewalLength || !userId) {
@@ -81,29 +81,29 @@ export const actions: Actions = {
 				stockQty: 1,
 				category: [category],
 				price,
-				uploadfiles: [
-					{
-						_id: false,
-						type: 'membership', //'product-primary', 'product-gallery', 'membership', 'course'
-						filetype: prodImage.type,
-						filename: prodImage.name,
-						fileUrl: `product/${prodId}/${prodImage.name}`
-					}
-				],
+				// uploadfiles: [
+				// 	{
+				// 		_id: false,
+				// 		type: 'membership', //'product-primary', 'product-gallery', 'membership', 'course'
+				// 		filetype: file.type,
+				// 		filename: file.name,
+				// 		fileUrl: `membership/${prodId}/${file.name}`
+				// 	}
+				// ],
 				type: 'membership',
 				renewalLength,
 				userId,
 			};
-			const uploadImg = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'x-file-name': prodImage.name,
-					'x-folder-name': `product/${prodId}`
-				},
-				body: prodImage
-			});
-			if (uploadImg.status != 200) return { action: 'new', success: fail, message: 'errore file upload' };
+			// const uploadImg = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
+			// 	method: 'POST',
+			// 	headers: {
+			// 		'Content-Type': 'application/json',
+			// 		'x-file-name': file.name,
+			// 		'x-folder-name': `product/${prodId}`
+			// 	},
+			// 	body: file
+			// });
+			// if (uploadImg.status != 200) return { action: 'new', success: fail, message: 'errore file upload' };
 
 			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
 				method: 'POST',

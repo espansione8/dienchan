@@ -16,7 +16,9 @@
 		FileDown,
 		RefreshCcw,
 		Trash2,
-		ShieldAlert
+		ShieldAlert,
+		Eye,
+		EyeOff
 	} from 'lucide-svelte';
 
 	let { data, form } = $props(); // pull data from server
@@ -148,12 +150,13 @@
 		tableList = getTable;
 	};
 
-	const changeStatus = (event: any) => {
-		if (event.target.form) {
-			event.preventDefault();
-			event.target.form.requestSubmit();
-		}
-	};
+	// MANUAL TRIGGER FORM SUBMIT
+	// const changeStatus = (event: any) => {
+	// 	if (event.target.form) {
+	// 		event.preventDefault();
+	// 		event.target.form.requestSubmit();
+	// 	}
+	// };
 
 	const onClickModal = (type: string, item: any) => {
 		currentModal = type;
@@ -301,13 +304,24 @@
 							<div>
 								<input type="hidden" name="prodId" value={row.prodId} />
 								<input type="hidden" name="status" value={row.status} />
-								<input
+								<span class="flex items-center">
+									{#if row.status == 'enabled'}
+										<button type="submit" class="btn btn-success btn-sm font-semibold"
+											><Eye /></button
+										>
+									{:else}
+										<button type="submit" class="btn btn-error btn-sm font-semibold"
+											><EyeOff /></button
+										>
+									{/if}
+								</span>
+								<!-- <input
 									type="checkbox"
 									id="setting"
 									checked={row.status == 'enabled'}
 									onchange={changeStatus}
 									class="toggle toggle-success"
-								/>
+								/> -->
 							</div>
 						</form>
 					</td>

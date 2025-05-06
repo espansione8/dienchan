@@ -198,6 +198,12 @@
 			form = null; // reset form
 		}
 	}); // end effect
+	const changeStatus = (event: any) => {
+		if (event.target.form) {
+			event.preventDefault();
+			event.target.form.requestSubmit();
+		}
+	};
 </script>
 
 <svelte:head>
@@ -264,18 +270,63 @@
 				<tr class="hover:bg-gray-100">
 					<td>{row.prodId}</td>
 					<td>
-						<img
+						<!-- <img
 							class="max-h-20"
 							src={imgCheck(row.uploadfiles, 'product-primary').length > 0
 								? `files/product/${row.prodId}/${imgCheck(row.uploadfiles, 'product-primary')[0]}`
 								: '/images/picture.png'}
 							alt={row.title}
-						/>
-						<!-- <img
-							class="max-h-20"
-							src={`files/product/${row.prodId}/${imgCheck(row.uploadfiles, 'product-primary')[0]}`}
-							alt={row.title}
 						/> -->
+						<!-- img -->
+						{#if imgCheck(row.uploadfiles, 'product-primary').length > 0}
+							<div class="card-body p-4">
+								<div class="flex items-center">
+									<figure class="flex-shrink-0">
+										<img
+											src={`files/product/${row.prodId}/${imgCheck(row.uploadfiles, 'product-primary')[0]}`}
+											alt="product-primary"
+											class="object-cover rounded-md max-w-36 max-h-36 h-auto"
+										/>
+									</figure>
+
+									<form
+										method="POST"
+										action={`?/delProdPic`}
+										use:enhance
+										class="ml-4 flex-shrink-0"
+									>
+										<input type="hidden" name="prodId" value={row.prodId} />
+										<input
+											type="hidden"
+											name="fileName"
+											value={imgCheck(row.uploadfiles, 'product-primary')[0]}
+										/>
+										<button
+											class="btn btn-sm btn-error rounded-lg border-2"
+											type="submit"
+											aria-label="Delete image"
+										>
+											<Trash2 size="24" />
+										</button>
+									</form>
+								</div>
+							</div>
+						{:else}
+							<form
+								action={`?/setProdPic`}
+								method="POST"
+								enctype="multipart/form-data"
+								use:enhance
+								class="card-body max-w-48"
+							>
+								<input type="hidden" name="prodId" value={row.prodId} />
+								<DragDrop />
+								<button class="btn btn-sm btn-info rounded-lg border-2" type="submit">
+									Aggiungi foto
+								</button>
+							</form>
+						{/if}
+						<!-- img end -->
 					</td>
 					<td class="">
 						<form method="POST" action={`?/changeStatus`} use:enhance>
@@ -298,16 +349,14 @@
 					<td>{row.price}</td>
 					<td>{row.stockQty}</td>
 					<td><div class="badge badge-primary badge-md">0</div></td>
-					<td class="flex items-center justify-center space-x-4">
+					<td>
 						<!-- Action -->
-						<button
-							onclick={() => onClickModal('modify', row)}
-							class="btn btn-sm bg-gray-200 btn-neutral text-gray-700"
+						<button onclick={() => onClickModal('modify', row)} class="btn btn-sm"
 							><Settings />
 						</button>
 						<button
 							onclick={() => goto(`/product-detail/${row.prodId}`)}
-							class="btn btn-sm bg-green-200 btn-green-400 text-green-800"
+							class="btn btn-sm btn-success"
 							><FileSearch2 />
 						</button>
 						<button class="btn btn-error btn-sm" onclick={() => onClickModal('delete', row)}
@@ -330,7 +379,6 @@
 		<form
 			action={postAction}
 			method="POST"
-			enctype="multipart/form-data"
 			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 			use:enhance
 		>
@@ -461,14 +509,14 @@
 					</select>
 				</div>
 			</section>
-			{#if openModal}
+			<!-- {#if openModal}
 				<section class="col-span-4">
 					<label for="product-primary" class="form-label">
 						<p class="font-bold mb-2">Foto Prodotto</p>
 					</label>
 					<DragDrop inputName="product-primary" />
 				</section>
-			{/if}
+			{/if} -->
 			<section class="lg:col-span-4 mt-2">
 				<div class="col-span-4 mt-10 flex justify-center">
 					<button class="btn btn-error mx-1" type="button" onclick={onCloseModal}>Annulla</button>
@@ -489,7 +537,6 @@
 		<form
 			action={postAction}
 			method="POST"
-			enctype="multipart/form-data"
 			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 			use:enhance
 		>
@@ -623,7 +670,7 @@
 			</section>
 
 			<!-- img -->
-			{#if imgPrimary.length > 0}
+			<!-- {#if imgPrimary.length > 0}
 				<section class="col-span-4">
 					<figure class="mt-4">
 						<img src={imgPrimary} alt="product-primary" class="object-cover rounded-md" />
@@ -643,7 +690,7 @@
 					</label>
 					<DragDrop inputName="product-primary" />
 				</section>
-			{/if}
+			{/if} -->
 			<!-- img end -->
 			<section class="lg:col-span-4 mt-2">
 				<div class="col-span-4 mt-10 flex justify-center">

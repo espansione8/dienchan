@@ -116,8 +116,8 @@ export const actions: Actions = {
 		const userId = formData.get('userId');
 		const file = formData.get('fileUpload');
 
-		if (!userId || !file) {
-			return fail(400, { action: 'setProfilePic', success: false, message: 'Dati mancanti' });
+		if (!userId || !file || !file.name) {
+			return fail(400, { action: 'setProfilePic', success: false, message: 'File mancante' });
 		}
 
 		try {
@@ -149,7 +149,6 @@ export const actions: Actions = {
 				}
 			);
 			const result = await response.json();
-
 			if (response.status == 200) {
 				return { action: 'new', success: true, message: result.message };
 			} else {
@@ -164,7 +163,7 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const userId = formData.get('userId');
 		const fileName = formData.get('fileName');
-		console.log(fileName);
+		//console.log(fileName);
 
 		if (!userId || !fileName) {
 			return fail(400, { action: 'delProfilePic', success: false, message: 'Dati mancanti' });

@@ -301,6 +301,7 @@ export interface Product {
         fileUrl: string;
     }>;
     status: 'enabled' | 'disabled';
+    hasFile?: boolean;
 }
 
 export interface TableNames {
