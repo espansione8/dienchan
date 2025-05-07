@@ -1,6 +1,5 @@
 import type { PageServerLoad, Actions } from './$types'
 import { fail } from '@sveltejs/kit';
-import stringHash from 'string-hash';
 import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
 import type { Product } from '$lib/types';
@@ -15,7 +14,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
 
 	let getTable: Product[] = [];
-	let categories: string[] = [];
+	//let categories: string[] = [];
 	try {
 		// NEW GET PROD
 		const query: any = { type: 'product' }; //types: course / product / membership / event
@@ -39,7 +38,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			}
 		});
 		getTable = await res.json();
-		categories = [...new Set(getTable.flatMap((item: any) => item.category))] as string[];
+		//categories = [...new Set(getTable.flatMap((item: any) => item.category))] as string[];
 
 	} catch (error) {
 		console.log('products-table fetch error:', error);
@@ -47,7 +46,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 
 	return {
 		getTable,
-		categories
+		//categories
 	};
 }
 
@@ -114,8 +113,6 @@ export const actions: Actions = {
 		const price = formData.get('price');
 		const weight = formData.get('weight');
 		const category = formData.get('category') || '';
-		// const prodImage = formData.get('product-primary');
-		// console.log('prodImage', prodImage);
 
 		if (!prodId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
@@ -132,36 +129,12 @@ export const actions: Actions = {
 				category,
 			}
 		};
-		// if (prodImage instanceof File && prodImage.name) {
-		// 	update.$set["uploadfiles.$[elem].filename"] = prodImage.name;
-		// 	update.$set["uploadfiles.$[elem].fileUrl"] = `product/${prodId}/${prodImage.name}`;
-		// } else {
-		// 	update.$set["uploadfiles.$[elem].filename"] = '';
-		// 	update.$set["uploadfiles.$[elem].fileUrl"] = '/images/picture.png';
-		// }
 		const options = {
 			upsert: false,
-			// arrayFilters: [
-			// 	{ "elem.type": "product-primary" } // Filter for the array element where 'type' is 'product-primary'
-			// ]
 		};
 		const multi = false
 
 		try {
-
-			// if (prodImage.name != '') {
-			// 	const uploadImg = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
-			// 		method: 'POST',
-			// 		headers: {
-			// 			'Content-Type': 'application/json',
-			// 			'x-file-name': (prodImage as File).name,
-			// 			'x-folder-name': `product/${prodId}`
-			// 		},
-			// 		body: prodImage as File
-			// 	});
-			// 	if (uploadImg.status != 200) return { action: 'new', success: false, message: 'errore file upload' };
-			// }
-
 			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
@@ -223,19 +196,20 @@ export const actions: Actions = {
 
 	filter: async ({ request, fetch }) => {
 		const formData = await request.formData();
+		const prodId = formData.get('prodId');
 		const title = formData.get('title');
-		//const price = formData.get('price');
 		const category = formData.get('category');
-		// console.log('layoutId', layoutId);
+		const status = formData.get('status');
 
 		try {
 			const query = {
 				type: 'product',
+				...(prodId && { prodId }),
 				...(title && { title: { $regex: `.*${title}.*`, $options: 'i' } }),
 				...(category && { category }),
+				...(status && { status }),
 			};
-
-			const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
+			const projection = { _id: 0 } // 0: exclude | 1: include
 			const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 			const limit = 100;
 			const skip = 0;
@@ -255,7 +229,6 @@ export const actions: Actions = {
 				}
 			});
 			const response = await res.json();
-			//console.log('response', response);
 
 			if (res.status == 200) {
 				const filterTableList = response.map((obj: any) => ({
@@ -323,6 +296,7 @@ export const actions: Actions = {
 			return { action: 'changeStatus', success: false, message: 'Errore changeStatus' };
 		}
 	},
+
 	setProdPic: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');
@@ -342,8 +316,7 @@ export const actions: Actions = {
 				},
 				body: file
 			});
-			const resImg = await uploadImg.json();
-			if (uploadImg.status != 200) return { action: 'setProdPic', success: false, message: resImg.message };
+			// const resImg = await uploadImg.json();
 
 			const query = { prodId, type: 'product' }; // 'course', 'product', 'membership', 'event'
 			const update = {
@@ -359,7 +332,13 @@ export const actions: Actions = {
 					],
 				}
 			};
-			const options = { upsert: false }
+			const options = {
+				upsert: false
+				// NOTES:
+				// arrayFilters: [
+				// 	{ "elem.type": "product-primary" } // Check array where 'type' === 'product-primary'
+				// ]
+			}
 			const multi = false
 			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
 				method: 'POST',
@@ -375,7 +354,15 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				}
 			});
-			const response = await res.json();
+			//const response = await res.json();
+
+			const [resImg, response] = await Promise.all([
+				await uploadImg.json(),
+				await res.json()
+			])
+
+			if (uploadImg.status != 200) return { action: 'setProdPic', success: false, message: resImg.message }
+
 			if (res.status == 200) {
 				return { action: 'setProdPic', success: true, message: response.message };
 			} else {
@@ -386,6 +373,7 @@ export const actions: Actions = {
 			return { action: 'setProdPic', success: false, message: 'Errore upload' };
 		}
 	},
+
 	delProdPic: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');

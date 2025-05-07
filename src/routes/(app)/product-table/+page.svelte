@@ -26,16 +26,16 @@
 	} from 'lucide-svelte';
 
 	let { data, form } = $props();
-	let { getTable, categories } = $derived(data);
+	let { getTable } = $derived(data);
 	let tableList: Product[] = $state(getTable || []);
-	let categoriesList = $state(categories || []);
+	// let categoriesList = $state(categories || []);
 
 	// modal
 	let currentModal = $state('');
 	let openModal = $state(false);
 	let modalTitle = $state('');
 	let postAction = $state('?/');
-	let resetActive = $state(false);
+	let resetActive = $state(true);
 	//filter
 	let title = $state('');
 	let descrShort = $state('');
@@ -45,6 +45,7 @@
 	let prodId = $state('');
 	let weight = $state(0);
 	let imgPrimary = $state('');
+	let status = $state('');
 
 	const csvCreate = () => {
 		let csv = $state('');
@@ -104,9 +105,6 @@
 	};
 
 	const resetFields = () => {
-		invalidateAll();
-		tableList = getTable;
-		resetActive = false;
 		title = '';
 		descrShort = '';
 		stockQty = 0;
@@ -117,6 +115,8 @@
 
 	const refresh = () => {
 		invalidateAll();
+		resetFields();
+		resetActive = false;
 		tableList = getTable;
 	};
 
@@ -153,6 +153,7 @@
 		if (type == 'filter') {
 			postAction = `?/filter`;
 			modalTitle = 'Filtra';
+			status = 'enabled';
 		}
 	};
 
@@ -178,7 +179,6 @@
 			async () => await invalidateAll(); // MUST be async/await or tableList = getTable will trigger infinite loop
 			const { action, success, message, filterTableList } = form;
 			if (success) {
-				//console.log('filterTableList effect', filterTableList);
 				currentModal = '';
 				if (action == 'filter') {
 					resetActive = true;
@@ -198,12 +198,6 @@
 			form = null; // reset form
 		}
 	}); // end effect
-	const changeStatus = (event: any) => {
-		if (event.target.form) {
-			event.preventDefault();
-			event.target.form.requestSubmit();
-		}
-	};
 </script>
 
 <svelte:head>
@@ -220,8 +214,6 @@
 </noscript>
 
 <div class="overflow-x-auto mt-5 px-4 mb-5">
-	<!-- {languageTag()}
-	{m.home} -->
 	<div class="flex flex-col gap-4 mb-4">
 		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Lista prodotti</h1>
 		<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
@@ -270,14 +262,6 @@
 				<tr class="hover:bg-gray-100">
 					<td>{row.prodId}</td>
 					<td>
-						<!-- <img
-							class="max-h-20"
-							src={imgCheck(row.uploadfiles, 'product-primary').length > 0
-								? `files/product/${row.prodId}/${imgCheck(row.uploadfiles, 'product-primary')[0]}`
-								: '/images/picture.png'}
-							alt={row.title}
-						/> -->
-						<!-- img -->
 						{#if imgCheck(row.uploadfiles, 'product-primary').length > 0}
 							<div class="card-body p-4">
 								<div class="flex items-center">
@@ -509,14 +493,6 @@
 					</select>
 				</div>
 			</section>
-			<!-- {#if openModal}
-				<section class="col-span-4">
-					<label for="product-primary" class="form-label">
-						<p class="font-bold mb-2">Foto Prodotto</p>
-					</label>
-					<DragDrop inputName="product-primary" />
-				</section>
-			{/if} -->
 			<section class="lg:col-span-4 mt-2">
 				<div class="col-span-4 mt-10 flex justify-center">
 					<button class="btn btn-error mx-1" type="button" onclick={onCloseModal}>Annulla</button>
@@ -735,48 +711,48 @@
 			>✕</button
 		>
 		<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
-			<div class="space-y-4">
-				<div>
-					<label for="title" class="block text-sm font-medium text-gray-700 mb-1">Titolo</label>
-					<input
-						class="input input-bordered join-item w-full"
-						id="title"
-						name="title"
-						type="text"
-						placeholder="Titolo"
-						bind:value={title}
-					/>
-				</div>
-
-				<!-- <div>
-				<label for="price" class="block text-sm font-medium text-gray-700 mb-1">Prezzo</label>
+			<fieldset class="fieldset space-y-4">
+				<!-- <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Titolo</label> -->
+				<legend class="fieldset-legend">ID</legend>
 				<input
-					class="input input-bordered join-item w-full"
-					id="meta"
-					name="price"
+					class="input input-bordered w-full"
+					id="prodId"
+					name="prodId"
 					type="text"
-					placeholder="Prezzo"
-					bind:value={price}
+					placeholder="ID"
+					bind:value={prodId}
 				/>
-			</div> -->
+				<legend class="fieldset-legend">Titolo</legend>
+				<input
+					class="input input-bordered w-full"
+					id="title"
+					name="title"
+					type="text"
+					placeholder="Titolo"
+					bind:value={title}
+				/>
 
-				<div>
-					<label for="category" class="block text-sm font-medium text-gray-700 mb-1"
-						>Categoria</label
-					>
-					<select
-						class="input input-bordered join-item w-full"
-						id="category"
-						name="category"
-						bind:value={category}
-					>
-						<option value="">Seleziona una categoria</option>
-						{#each categoriesList as category}
-							<option value={category}>{category}</option>
-						{/each}
-					</select>
-				</div>
-			</div>
+				<legend class="fieldset-legend">Categoria</legend>
+				<select class="select w-full" id="category" name="category" bind:value={category}>
+					<option disabled value="">Scegli</option>
+					<!-- <option disabled selected>Scegli</option> -->
+					<option value="Strumenti">Strumenti</option>
+					<option value="Materiale didattico">Materiale didattico</option>
+					<option value="Infusi & Integratori">Infusi & Integratori</option>
+					<option value="Merchandising">Merchandising</option>
+					<option value="Altro">Altro</option>
+				</select>
+				<!-- <span class="label">Optional</span> -->
+
+				<legend class="fieldset-legend">Status</legend>
+				<select class="select w-full" id="status" name="status" bind:value={status}>
+					<!-- <option disabled value="">Scegli</option> -->
+					<!-- <option disabled selected>Scegli</option> -->
+					<option value="enabled">Attivo</option>
+					<option value="disabled">Inattivo</option>
+				</select>
+				<!-- <span class="label">Optional</span> -->
+			</fieldset>
 			<section class="lg:col-span-4 mt-2">
 				<div class="col-span-4 mt-10 flex justify-center">
 					<button class="btn btn-error mx-1" type="button" onclick={onCloseModal}>Annulla</button>
