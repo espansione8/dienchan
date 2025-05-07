@@ -338,11 +338,8 @@
 						<button onclick={() => onClickModal('modify', row)} class="btn btn-sm"
 							><Settings />
 						</button>
-						<button
-							onclick={() => goto(`/product-detail/${row.prodId}`)}
-							class="btn btn-sm btn-success"
-							><FileSearch2 />
-						</button>
+						<a href="/product-detail/{row.prodId}" class="btn btn-sm btn-success"><FileSearch2 /></a
+						>
 						<button class="btn btn-error btn-sm" onclick={() => onClickModal('delete', row)}
 							><Trash2 /></button
 						>
