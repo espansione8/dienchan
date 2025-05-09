@@ -221,7 +221,7 @@
 				<RefreshCcw />
 			</button>
 			{#if resetActive}
-				<button class="btn btn-error rounded-md text-white" onclick={resetFields}>
+				<button class="btn btn-error rounded-md text-white" onclick={refresh}>
 					<XCircle class="mt-1" /> Reset Filtro
 				</button>
 			{:else}

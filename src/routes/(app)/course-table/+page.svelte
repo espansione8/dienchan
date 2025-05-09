@@ -55,7 +55,7 @@
 	let startDay = $state(currentDay);
 	let startHour = $state(currentHour);
 	let startMinute = $state('00');
-	let mode = $state('');
+	let mode = $state('ONLINE');
 	let provinceArray = $state([]);
 	// filter Data
 	let sortDirection = $state('asc');
@@ -471,6 +471,7 @@
 		modalTitle = '';
 		postAction = '?/';
 		mode = '';
+		provinceArray = [];
 
 		form = null;
 	};
@@ -586,7 +587,6 @@
 			startHour = item.eventStartDate.substring(11, 13);
 			startMinute = item.eventStartDate.substring(14, 16);
 
-
 			if (county[0] == 'Online') {
 				mode = 'ONLINE';
 			} else {
@@ -618,11 +618,11 @@
 
 		tableList = getTable;
 	};
-
-	const onChangeRadioMode = () => {
-		location = '';
-		provinceArray = [];
-	};
+	// CHECK WHY
+	// const onChangeRadioMode = () => {
+	// 	location = '';
+	// 	provinceArray = [];
+	// };
 
 	$effect(() => {
 		if (form != null) {
@@ -966,26 +966,11 @@
 				<p class="font-bold mb-2">Modalità corso</p>
 				<div class="flex gap-4">
 					<label class="label cursor-pointer flex gap-2">
-						<input
-							type="radio"
-							name="mode"
-							value="ONLINE"
-							bind:group={mode}
-							class="radio"
-							onchange={() => onChangeRadioMode()}
-							required
-						/>
+						<input type="radio" name="mode" value="ONLINE" bind:group={mode} class="radio" />
 						<span class="label-text">Online</span>
 					</label>
 					<label class="label cursor-pointer flex gap-2">
-						<input
-							type="radio"
-							name="mode"
-							value="IN_PRESENZA"
-							bind:group={mode}
-							class="radio"
-							onchange={() => onChangeRadioMode()}
-						/>
+						<input type="radio" name="mode" value="IN_PRESENZA" bind:group={mode} class="radio" />
 						<span class="label-text">In presenza</span>
 					</label>
 				</div>

@@ -59,6 +59,7 @@ export const actions: Actions = {
 		const descrShort = formData.get('descrShort') || '';
 		const stockQty = formData.get('stockQty');
 		const category = formData.get('category') || '';
+		const weight = formData.get('weight');
 		const price = formData.get('price');
 
 		const returnObj = false
@@ -67,12 +68,13 @@ export const actions: Actions = {
 			title,
 			descrShort,
 			stockQty,
+			weight,
 			category: [category],
 			price,
 		};
 		//console.log('newDoc', newDoc);
 
-		if (!title || !descrShort || !stockQty || !price) {
+		if (!title || !descrShort || !stockQty || !price || !weight) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
 

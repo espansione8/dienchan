@@ -1,0 +1,342 @@
+<script lang="ts">
+	import { goto, invalidateAll } from '$app/navigation';
+	import Notification from '$lib/components/Notification.svelte';
+	import CartFloat from '$lib/components/CartFloat.svelte';
+	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
+	import {
+		ChevronDown,
+		ShieldAlert,
+		Check,
+		CalendarSearch,
+		UserSearch,
+		TextSearch,
+		MapPinned,
+		ShoppingCart,
+		Trash2
+	} from 'lucide-svelte';
+	//import { province } from '$lib/stores/arrays.js';
+
+	let { data } = $props();
+	let { getTable, auth } = $derived(data);
+	let prodList = $state(getTable);
+
+	let resetActive = $state(false);
+	let currentSort = $state('dal più recente');
+
+	let activeFilter = $state({
+		mese: '',
+		provincia: '',
+		evento: '',
+		category: ''
+	});
+
+	const checkCart = (id: any) => {
+		const check = $cartProducts.some((item) => item.prodId == id);
+		return check;
+	};
+
+	const onFilterReset = () => {
+		// invalidateAll();
+		prodList = getTable || '';
+		prodList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
+
+		activeFilter = {
+			mese: '',
+			provincia: '',
+			evento: '',
+			category: ''
+		};
+
+		// chiude gli accordion
+		const accordionList = ['accordion1', 'accordion2', 'accordion3', 'accordion4'];
+		accordionList.forEach((item) => (document.getElementById(item).checked = false));
+		// document.getElementById('accordion1').checked = false;
+
+		resetActive = false;
+	};
+
+	const updateFilter = () => {
+		prodList = getTable;
+		// category
+		if (activeFilter.category) {
+			// prodList = prodList.filter((item) => item.county == activeFilter.provincia);
+			prodList = prodList.filter((item) =>
+				item.category.some((category) => category === activeFilter.category)
+			);
+		}
+	};
+
+	const onClickFilterCategory = async (categorySelected) => {
+		resetActive = true;
+		activeFilter.category = categorySelected;
+		updateFilter();
+	};
+
+	// sort
+	const sortItems = (option) => {
+		switch (option) {
+			case 'expensive':
+				currentSort = 'dal più costoso';
+				return prodList.sort((a, b) => b.price - a.price);
+			case 'cheap':
+				currentSort = 'dal più economico';
+				return prodList.sort((a, b) => a.price - b.price);
+			case 'recent':
+				currentSort = 'dal più recente';
+				return prodList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
+			case 'oldest':
+				currentSort = 'dal meno recente';
+				return prodList.sort((a, b) => new Date(a.eventStartDate) - new Date(b.eventStartDate));
+
+			default:
+				return prodList;
+		}
+	};
+
+	let categoriesInProduct: any = {};
+	prodList.forEach((item) => {
+		item.category.forEach((cat) => {
+			categoriesInProduct[cat] = (categoriesInProduct[cat] || 0) + 1;
+		});
+	});
+
+	// notification
+	let toastClosed = $state(true);
+	let notificationContent = $state('');
+	let notificationError = $state(false);
+	let startTimeout;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+		}, 5000); // 1000 milliseconds = 1 second
+	};
+	//clearTimeout(startTimeout); // reset timer
+</script>
+
+<svelte:head>
+	<title>Lista corsi</title>
+</svelte:head>
+
+<div class="bg-base-200 grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-8 lg:p-8">
+	<!-- colonna accordion -->
+	<section class="col-span-12 xl:col-span-3 bg-base-100 rounded-lg">
+		<div class="flex flex-col space-y-4 w-auto p-3">
+			<span>Filtri:</span>
+			<div class="collapse collapse-arrow">
+				<input id="accordion3" type="checkbox" class="peer" />
+				<div
+					class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
+				>
+					<span class="inline-flex items-center">
+						<b
+							><MapPinned class="-mt-1 mr-1" />
+							Categoria</b
+						>
+						{#if activeFilter.provincia.length > 0}
+							<Check class="ml-1" color="green" />
+						{/if}
+					</span>
+				</div>
+				<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100">
+					<ul class="list-none -mx-4">
+						{#each Object.entries(categoriesInProduct) as [chiave, valore]}
+							<li
+								class="p-2 border-b cursor-pointer transition-colors duration-300
+								{activeFilter.provincia == chiave
+									? 'bg-orange-200 text-red-900 font-bold'
+									: 'hover:bg-blue-200 hover:text-blue-900'}"
+							>
+								{'>'}
+								<button type="button" onclick={() => onClickFilterCategory(chiave)}
+									>{chiave}: ({valore})</button
+								>
+							</li>
+						{/each}
+					</ul>
+				</div>
+			</div>
+		</div>
+	</section>
+	<!-- colonna ordina, filtri e card -->
+	<section class="col-span-12 xl:col-span-9 bg-base-100 rounded-lg">
+		<!-- ORDINA BUTTON -->
+		<div class="flex items-center justify-between p-4">
+			<!-- Visualizzazione corsi disponibili -->
+			<div
+				class="btn btn-sm rounded-md cursor-default {prodList.length > 0
+					? 'bg-green-300 hover:bg-green-300'
+					: 'bg-red-300 hover:bg-red-300'}"
+			>
+				Prodotti disponibili:
+				<div class="badge rounded-md flex justify-center">
+					<strong class="">{prodList.length}</strong>
+				</div>
+			</div>
+			<!-- bottone ordina -->
+			<div class="dropdown dropdown-end flex relative">
+				<button
+					id="dropdownSortButton"
+					class="btn btn-sm bg-blue-200 border-blue-500 text-blue-500 rounded-md hover:border-blue-100 hover:text-blue-200"
+					aria-expanded="false"
+					onclick={() => document.getElementById('dropdownSortContent').classList.remove('hidden')}
+				>
+					<span class="flex items-center justify-center space-x-1"
+						><strong>Ordina: {currentSort}</strong>
+						<ChevronDown class="" /></span
+					>
+				</button>
+				<ul
+					id="dropdownSortContent"
+					class="dropdown-content menu z-1 bg-gray-100 p-2 rounded-lg shadow-sm w-max gap-2 absolute"
+					style="left: 50%; transform: translateX(-50%); top: 100%;"
+				>
+					<li>
+						<a
+							class="dropdown-item"
+							href="#1"
+							onclick={() => {
+								sortItems('recent');
+								document.getElementById('dropdownSortContent').classList.add('hidden');
+							}}
+						>
+							dal più recente</a
+						>
+					</li>
+					<li>
+						<a
+							class="dropdown-item cursor-pointer"
+							href="#1"
+							onclick={() => {
+								sortItems('oldest');
+								document.getElementById('dropdownSortContent').classList.add('hidden');
+							}}
+						>
+							dal meno recente</a
+						>
+					</li>
+					<li>
+						<a
+							class="dropdown-item"
+							href="#1"
+							onclick={() => {
+								sortItems('expensive');
+								document.getElementById('dropdownSortContent').classList.add('hidden');
+							}}>dal più costoso</a
+						>
+					</li>
+					<li>
+						<a
+							class="dropdown-item"
+							href="#1"
+							onclick={() => {
+								sortItems('cheap');
+								document.getElementById('dropdownSortContent').classList.add('hidden');
+							}}>dal meno costoso</a
+						>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<!-- Visualizzazione filtri attivi e RESET -->
+		{#if resetActive}
+			<div class="flex items-center space-x-4 pb-3 px-4">
+				<!-- Pulsante Reset Filter -->
+				<button
+					class="btn btn-sm bg-red-200 border-red-500 text-red-500 px-3 py-2 rounded-md hover:border-red-100 hover:bg-red-400 hover:text-red-200"
+					onclick={onFilterReset}
+				>
+					Reset filtri
+				</button>
+				<!-- Visualizzazione Filtri Attivi -->
+				<div class="text-gray-700">
+					<span class="">Filtri attivi</span>
+					{#if activeFilter.provincia.length > 0}
+						<div class="badge badge-accent rounded-md">
+							Categoria: <strong class="pl-1">{activeFilter.provincia}</strong>
+						</div>
+					{/if}
+				</div>
+			</div>
+		{/if}
+		<!-- end ORDINA BUTTON -->
+		<!-- CARD -->
+		<div class="flex flex-wrap justify-center gap-3 pl-3 pb-4">
+			{#if prodList.length == 0}
+				<div
+					class="alert alert-warning shadow-lg text-center rounded-md mt-6 mx-auto w-full max-w-md"
+				>
+					<div>
+						<ShieldAlert />
+						<br />
+						<span class="mt-2 text-semibold">
+							Nessun corso trovato. Cambia parametri o resetta il filtro.
+						</span>
+					</div>
+				</div>
+			{/if}
+			{#each prodList as productData, i}
+				<div
+					class="card card-compact overflow-hidden bg-base-100 max-w-xs rounded-xl shadow-md border"
+				>
+					<figure class="px-8 pt-8">
+						<img
+							src="/images/picture.png"
+							alt="product-primary"
+							class="h-full w-full object-cover border-2 rounded-lg"
+						/>
+					</figure>
+					<div class="card-body items-center text-center">
+						<h2 class="card-title text-2xl">
+							{productData.title}
+						</h2>
+						<p class="card-text text-xl">
+							<b>{productData.price}</b>
+						</p>
+						<h5
+							class="card-text text-xl border rounded-md shadow-sm font-semibold p-2 bg-neutral-200"
+						>
+							{productData.descrShort}
+						</h5>
+						<p class="card-text">
+							in stock: <b>{productData.stockQty}</b>
+						</p>
+						<h5 class="card-text">
+							categoria <b>{productData.category[0]}</b>
+						</h5>
+						<div class="card-actions">
+							<span class="flex justify-between gap-10 my-3">
+								<a
+									class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:text-gray-300"
+									href="/product-detail/{productData.prodId}">Info</a
+								>
+								{#if checkCart(productData.prodId)}
+									<!-- in carello -->
+									<button
+										class="btn btn-sm bg-red-200 w-48 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400 inline-flex items-center justify-center space-x-2"
+										onclick={() => removeFromCart($cartProducts, productData)}
+										><Trash2 />Rimuovi dal Carrello</button
+									>
+								{:else}
+									<!-- non in carello -->
+									<button
+										class="btn btn-sm w-48 btn-success rounded-md inline-flex items-center justify-center space-x-2"
+										onclick={() => addToCart($cartProducts, productData, false)}
+										><ShoppingCart /> Aggiungi al Carrello</button
+									>
+								{/if}
+							</span>
+						</div>
+					</div>
+				</div>
+			{/each}
+		</div>
+		<!-- end CARD -->
+	</section>
+</div>
+<Notification {toastClosed} {notificationContent} {notificationError} />
+{#if $cartProducts.length > 0}
+	<CartFloat />
+{/if}
+
+<style>
+</style>

@@ -55,7 +55,154 @@
 			</span>
 		{/if}
 	</div>
+	<!-- Menu for desktop -->
+	<div class="hidden sm:flex gap-2">
+		<ul class="hidden menu sm:menu-horizontal gap-3">
+			<a
+				class="btn btn-sm btn-outline btn-accent"
+				class:active={page.url.pathname === '/membership-new/'}
+				href="/membership-new"
+				aria-current="page"
+				onclick={onBurgerclick}
+			>
+				<Megaphone /><strong>Tesseramento</strong>
+			</a>
+			<a
+				class="btn btn-sm btn-outline btn-accent"
+				class:active={page.url.pathname === '/course-filter/'}
+				href="/course-filter"
+				aria-current="page"
+				onclick={onBurgerclick}
+			>
+				<strong>Corsi</strong>
+			</a>
+			<a
+				class="btn btn-sm btn-outline btn-accent"
+				class:active={page.url.pathname === '/product-filter/'}
+				href="/product-filter"
+				aria-current="page"
+				onclick={onBurgerclick}
+			>
+				<strong>Prodotti</strong>
+			</a>
+			<a
+				class="btn btn-sm btn-outline btn-accent"
+				class:active={page.url.pathname === '/cart/'}
+				href="/cart"
+				aria-current="page"
+				onclick={onBurgerclick}
+			>
+				{#if $cartProducts.length > 0}
+					<span class="badge badge-sm"><strong>{$cartProducts.length}</strong></span>
+				{/if}
 
+				<strong>Carrello</strong>
+			</a>
+			{#if auth}
+				<a
+					class="btn btn-sm btn-outline btn-accent"
+					class:active={page.url.pathname === '/profile-modify/'}
+					href="/profile-modify"
+					aria-current="page"
+					onclick={onBurgerclick}
+				>
+					<strong>Area personale</strong>
+				</a>
+				{#if auth && userLevel == 'superadmin'}
+					<div class="dropdown dropdown-end">
+						<button class="btn btn-sm btn-accent btn-outline py-2">
+							<span class="flex justify-between"
+								><strong>Gestione</strong>
+								<ChevronDown class="-mt-1" /></span
+							>
+						</button>
+						<ul class="dropdown-content menu z-1 bg-base-100 p-2 rounded-lg shadow-sm w-max gap-2">
+							<li>
+								<a
+									class="btn btn-sm btn-accent btn-outline"
+									href="/course-table"
+									aria-current="page"><strong>Corsi</strong></a
+								>
+							</li>
+							<li>
+								<a
+									class="btn btn-sm btn-accent btn-outline"
+									href="/product-table"
+									aria-current="page"><strong>Prodotti</strong></a
+								>
+							</li>
+							<li>
+								<a
+									class="btn btn-sm btn-accent btn-outline"
+									href="/membership-table"
+									aria-current="page"><strong>Membership</strong></a
+								>
+							</li>
+							<li>
+								<a
+									class="btn btn-sm btn-accent btn-outline"
+									href="/layout-table"
+									aria-current="page"><strong>Modelli corsi</strong></a
+								>
+							</li>
+							<li>
+								<a class="btn btn-sm btn-accent btn-outline" href="/user-table" aria-current="page"
+									><strong>Utenti</strong></a
+								>
+							</li>
+
+							<li>
+								<a class="btn btn-sm btn-accent btn-outline" href="/order-table" aria-current="page"
+									><strong>Ordini</strong></a
+								>
+							</li>
+							<li>
+								<a
+									class="btn btn-sm btn-accent btn-outline"
+									href="/discount-table"
+									aria-current="page"><strong>Sconti</strong></a
+								>
+							</li>
+						</ul>
+					</div>
+				{/if}
+				{#if auth && userLevel == 'formatore'}
+					<div class="dropdown dropdown-end">
+						<button class="btn btn-sm btn-accent btn-outline py-2">
+							<span class="flex justify-between"
+								><strong>Gestione</strong>
+								<ChevronDown class="-mt-1" /></span
+							>
+						</button>
+						<ul class="dropdown-content menu z-1 bg-gray-200 p-2 rounded-lg shadow-sm w-max gap-2">
+							<li>
+								<a
+									class="btn btn-sm btn-primary btn-outline"
+									href="/course-table"
+									aria-current="page"><strong>Corsi</strong></a
+								>
+							</li>
+						</ul>
+					</div>
+				{/if}
+			{/if}
+			{#if auth}
+				<button onclick={logOutNow} class="btn btn-sm btn-outline btn-accent">
+					<span class="flex justify-center gap-1">
+						<LogOut size="16" strokeWidth={2.5} />
+						<strong>Logout</strong>
+					</span>
+				</button>
+			{:else}
+				<a href="/login" class="btn btn-sm btn-outline btn-accent">
+					<span class="flex justify-center gap-1 group-hover:text-white">
+						<LogIn size="16" strokeWidth={2.5} />
+						<strong>Login</strong>
+					</span>
+				</a>
+			{/if}
+		</ul>
+	</div>
 	<!-- Menu for mobile -->
 	<div class="dropdown dropdown-end sm:hidden">
 		<button class="btn btn-ghost">
@@ -86,6 +233,17 @@
 					onclick={onBurgerclick}
 				>
 					<strong>Corsi</strong>
+				</a>
+			</li>
+			<li>
+				<a
+					class="btn btn-sm btn-primary border-black"
+					class:active={page.url.pathname === '/product-filter/'}
+					href="/product-filter"
+					aria-current="page"
+					onclick={onBurgerclick}
+				>
+					<strong>Prodotti</strong>
 				</a>
 			</li>
 			<li>
@@ -205,147 +363,6 @@
 					class="btn btn-sm bg-transparent rounded-md flex border-green-900 text-green-900 mx-2"
 				>
 					<span class="flex justify-center gap-1">
-						<LogIn size="16" strokeWidth={2.5} />
-						<strong>Login</strong>
-					</span>
-				</a>
-			{/if}
-		</ul>
-	</div>
-
-	<!-- Menu for desktop -->
-	<div class="hidden sm:flex gap-2">
-		<ul class="hidden menu sm:menu-horizontal gap-3">
-			<a
-				class="btn btn-sm btn-outline btn-accent"
-				class:active={page.url.pathname === '/membership-new/'}
-				href="/membership-new"
-				aria-current="page"
-				onclick={onBurgerclick}
-			>
-				<Megaphone /><strong>Tesseramento</strong>
-			</a>
-			<a
-				class="btn btn-sm btn-outline btn-accent"
-				class:active={page.url.pathname === '/course-filter/'}
-				href="/course-filter"
-				aria-current="page"
-				onclick={onBurgerclick}
-			>
-				<strong>Corsi</strong>
-			</a>
-
-			<a
-				class="btn btn-sm btn-outline btn-accent"
-				class:active={page.url.pathname === '/cart/'}
-				href="/cart"
-				aria-current="page"
-				onclick={onBurgerclick}
-			>
-				{#if $cartProducts.length > 0}
-					<span class="badge badge-sm"><strong>{$cartProducts.length}</strong></span>
-				{/if}
-
-				<strong>Carrello</strong>
-			</a>
-			{#if auth}
-				<a
-					class="btn btn-sm btn-outline btn-accent"
-					class:active={page.url.pathname === '/profile-modify/'}
-					href="/profile-modify"
-					aria-current="page"
-					onclick={onBurgerclick}
-				>
-					<strong>Area personale</strong>
-				</a>
-				{#if auth && userLevel == 'superadmin'}
-					<div class="dropdown dropdown-end">
-						<button class="btn btn-sm btn-accent btn-outline py-2">
-							<span class="flex justify-between"
-								><strong>Gestione</strong>
-								<ChevronDown class="-mt-1" /></span
-							>
-						</button>
-						<ul class="dropdown-content menu z-1 bg-base-100 p-2 rounded-lg shadow-sm w-max gap-2">
-							<li>
-								<a
-									class="btn btn-sm btn-accent btn-outline"
-									href="/course-table"
-									aria-current="page"><strong>Corsi</strong></a
-								>
-							</li>
-							<li>
-								<a
-									class="btn btn-sm btn-accent btn-outline"
-									href="/product-table"
-									aria-current="page"><strong>Prodotti</strong></a
-								>
-							</li>
-							<li>
-								<a
-									class="btn btn-sm btn-accent btn-outline"
-									href="/membership-table"
-									aria-current="page"><strong>Membership</strong></a
-								>
-							</li>
-							<li>
-								<a
-									class="btn btn-sm btn-accent btn-outline"
-									href="/layout-table"
-									aria-current="page"><strong>Modelli corsi</strong></a
-								>
-							</li>
-							<li>
-								<a class="btn btn-sm btn-accent btn-outline" href="/user-table" aria-current="page"
-									><strong>Utenti</strong></a
-								>
-							</li>
-
-							<li>
-								<a class="btn btn-sm btn-accent btn-outline" href="/order-table" aria-current="page"
-									><strong>Ordini</strong></a
-								>
-							</li>
-							<li>
-								<a
-									class="btn btn-sm btn-accent btn-outline"
-									href="/discount-table"
-									aria-current="page"><strong>Sconti</strong></a
-								>
-							</li>
-						</ul>
-					</div>
-				{/if}
-				{#if auth && userLevel == 'formatore'}
-					<div class="dropdown dropdown-end">
-						<button class="btn btn-sm btn-accent btn-outline py-2">
-							<span class="flex justify-between"
-								><strong>Gestione</strong>
-								<ChevronDown class="-mt-1" /></span
-							>
-						</button>
-						<ul class="dropdown-content menu z-1 bg-gray-200 p-2 rounded-lg shadow-sm w-max gap-2">
-							<li>
-								<a
-									class="btn btn-sm btn-primary btn-outline"
-									href="/course-table"
-									aria-current="page"><strong>Corsi</strong></a
-								>
-							</li>
-						</ul>
-					</div>
-				{/if}
-			{/if}
-			{#if auth}
-				<button onclick={logOutNow} class="btn btn-sm btn-outline btn-accent">
-					<span class="flex justify-center gap-1">
-						<LogOut size="16" strokeWidth={2.5} />
-						<strong>Logout</strong>
-					</span>
-				</button>
-			{:else}
-				<a href="/login" class="btn btn-sm btn-outline btn-accent">
-					<span class="flex justify-center gap-1 group-hover:text-white">
 						<LogIn size="16" strokeWidth={2.5} />
 						<strong>Login</strong>
 					</span>
