@@ -35,7 +35,7 @@
 	let openModal = $state(false);
 	let modalTitle = $state('');
 	let postAction = $state('?/');
-	let resetActive = $state(true);
+	let resetActive = $state(false);
 	//filter
 	let title = $state('');
 	let descrShort = $state('');

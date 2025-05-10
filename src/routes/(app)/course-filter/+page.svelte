@@ -501,7 +501,7 @@
 						<img
 							src={courseData.layoutView.urlPic}
 							alt="tipo corso"
-							class="h-full w-full object-cover border-2 rounded-lg"
+							class="h-full w-full object-contain border-2 rounded-lg"
 						/>
 					</figure>
 					<div class="card-body items-center text-center">

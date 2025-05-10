@@ -1,19 +1,10 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
+	//import { goto, invalidateAll } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
 	import CartFloat from '$lib/components/CartFloat.svelte';
 	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
-	import {
-		ChevronDown,
-		ShieldAlert,
-		Check,
-		CalendarSearch,
-		UserSearch,
-		TextSearch,
-		MapPinned,
-		ShoppingCart,
-		Trash2
-	} from 'lucide-svelte';
+	import { imgCheck } from '$lib/tools/imgCheck';
+	import { ChevronDown, ShieldAlert, Check, MapPinned, ShoppingCart, Trash2 } from 'lucide-svelte';
 	//import { province } from '$lib/stores/arrays.js';
 
 	let { data } = $props();
@@ -37,7 +28,7 @@
 
 	const onFilterReset = () => {
 		// invalidateAll();
-		prodList = getTable || '';
+		prodList = getTable || [];
 		prodList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
 		activeFilter = {
@@ -53,6 +44,7 @@
 		// document.getElementById('accordion1').checked = false;
 
 		resetActive = false;
+		sortItems('recent');
 	};
 
 	const updateFilter = () => {
@@ -70,6 +62,7 @@
 		resetActive = true;
 		activeFilter.category = categorySelected;
 		updateFilter();
+		sortItems('recent');
 	};
 
 	// sort
@@ -108,7 +101,7 @@
 	const closeNotification = () => {
 		startTimeout = setTimeout(() => {
 			toastClosed = true;
-		}, 5000); // 1000 milliseconds = 1 second
+		}, 3000); // 1000 milliseconds = 1 second
 	};
 	//clearTimeout(startTimeout); // reset timer
 </script>
@@ -132,7 +125,7 @@
 							><MapPinned class="-mt-1 mr-1" />
 							Categoria</b
 						>
-						{#if activeFilter.provincia.length > 0}
+						{#if activeFilter.category.length > 0}
 							<Check class="ml-1" color="green" />
 						{/if}
 					</span>
@@ -142,7 +135,7 @@
 						{#each Object.entries(categoriesInProduct) as [chiave, valore]}
 							<li
 								class="p-2 border-b cursor-pointer transition-colors duration-300
-								{activeFilter.provincia == chiave
+								{activeFilter.category == chiave
 									? 'bg-orange-200 text-red-900 font-bold'
 									: 'hover:bg-blue-200 hover:text-blue-900'}"
 							>
@@ -250,9 +243,9 @@
 				<!-- Visualizzazione Filtri Attivi -->
 				<div class="text-gray-700">
 					<span class="">Filtri attivi</span>
-					{#if activeFilter.provincia.length > 0}
+					{#if activeFilter.category.length > 0}
 						<div class="badge badge-accent rounded-md">
-							Categoria: <strong class="pl-1">{activeFilter.provincia}</strong>
+							Categoria: <strong class="pl-1">{activeFilter.category}</strong>
 						</div>
 					{/if}
 				</div>
@@ -280,9 +273,11 @@
 				>
 					<figure class="px-8 pt-8">
 						<img
-							src="/images/picture.png"
+							src={imgCheck(productData.uploadfiles, 'product-primary').length > 0
+								? `files/product/${productData.prodId}/${imgCheck(productData.uploadfiles, 'product-primary')[0]}`
+								: '/images/picture.png'}
 							alt="product-primary"
-							class="h-full w-full object-cover border-2 rounded-lg"
+							class="h-64 w-full border-2 rounded-lg object-contain"
 						/>
 					</figure>
 					<div class="card-body items-center text-center">
@@ -290,38 +285,43 @@
 							{productData.title}
 						</h2>
 						<p class="card-text text-xl">
-							<b>{productData.price}</b>
+							<b>€ {productData.price}</b>
 						</p>
-						<h5
+						<!-- <h5
 							class="card-text text-xl border rounded-md shadow-sm font-semibold p-2 bg-neutral-200"
 						>
 							{productData.descrShort}
-						</h5>
+						</h5> -->
+						<p class="card-text">
+							categoria <b>{productData.category[0]}</b>
+						</p>
 						<p class="card-text">
 							in stock: <b>{productData.stockQty}</b>
 						</p>
-						<h5 class="card-text">
-							categoria <b>{productData.category[0]}</b>
-						</h5>
 						<div class="card-actions">
 							<span class="flex justify-between gap-10 my-3">
 								<a
 									class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:text-gray-300"
 									href="/product-detail/{productData.prodId}">Info</a
 								>
-								{#if checkCart(productData.prodId)}
-									<!-- in carello -->
-									<button
-										class="btn btn-sm bg-red-200 w-48 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400 inline-flex items-center justify-center space-x-2"
-										onclick={() => removeFromCart($cartProducts, productData)}
-										><Trash2 />Rimuovi dal Carrello</button
-									>
+								{#if auth}
+									{#if checkCart(productData.prodId)}
+										<button
+											class="btn btn-sm bg-red-200 w-48 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400 inline-flex items-center justify-center space-x-2"
+											onclick={() => removeFromCart($cartProducts, productData)}
+											><Trash2 />Rimuovi dal Carrello</button
+										>
+									{:else}
+										<button
+											class="btn btn-sm w-48 btn-success rounded-md inline-flex items-center justify-center space-x-2"
+											onclick={() => addToCart($cartProducts, productData, false)}
+											><ShoppingCart />Aggiungi al Carrello</button
+										>
+									{/if}
 								{:else}
-									<!-- non in carello -->
 									<button
-										class="btn btn-sm w-48 btn-success rounded-md inline-flex items-center justify-center space-x-2"
-										onclick={() => addToCart($cartProducts, productData, false)}
-										><ShoppingCart /> Aggiungi al Carrello</button
+										class="btn btn-sm w-48 btn-error rounded-md inline-flex items-center justify-center space-x-2"
+										><ShoppingCart />Riservato agli associati</button
 									>
 								{/if}
 							</span>
