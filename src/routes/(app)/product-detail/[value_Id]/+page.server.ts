@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 	let getProduct = [];
 	try {
 		const query = { prodId: params.value_Id, type: 'product' };
-		const projection = { _id: 0, password: 0 };
+		const projection = { _id: 0 };
 		const limit = 1;
 		const skip = 0;
 		const sort = {};

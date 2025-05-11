@@ -4,8 +4,16 @@
 	import CartFloat from '$lib/components/CartFloat.svelte';
 	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
 	import { imgCheck } from '$lib/tools/imgCheck';
-	import { ChevronDown, ShieldAlert, Check, MapPinned, ShoppingCart, Trash2 } from 'lucide-svelte';
-	//import { province } from '$lib/stores/arrays.js';
+	import {
+		ChevronDown,
+		ShieldAlert,
+		Check,
+		MapPinned,
+		ShoppingCart,
+		Trash2,
+		Plus,
+		Minus
+	} from 'lucide-svelte';
 
 	let { data } = $props();
 	let { getTable, auth } = $derived(data);
@@ -13,6 +21,7 @@
 
 	let resetActive = $state(false);
 	let currentSort = $state('dal più recente');
+	let quantity = $state(1);
 
 	let activeFilter = $state({
 		mese: '',
@@ -20,6 +29,15 @@
 		evento: '',
 		category: ''
 	});
+
+	const setQty = (type: string) => {
+		if (type == 'plus') {
+			quantity += 1;
+		}
+		if (type == 'minus') {
+			if (quantity > 1) quantity -= 1;
+		}
+	};
 
 	const checkCart = (id: any) => {
 		const check = $cartProducts.some((item) => item.prodId == id);
@@ -37,6 +55,7 @@
 			evento: '',
 			category: ''
 		};
+		quantity = 1;
 
 		// chiude gli accordion
 		const accordionList = ['accordion1', 'accordion2', 'accordion3', 'accordion4'];
@@ -271,19 +290,23 @@
 				<div
 					class="card card-compact overflow-hidden bg-base-100 max-w-xs rounded-xl shadow-md border"
 				>
-					<figure class="px-8 pt-8">
-						<img
-							src={imgCheck(productData.uploadfiles, 'product-primary').length > 0
-								? `files/product/${productData.prodId}/${imgCheck(productData.uploadfiles, 'product-primary')[0]}`
-								: '/images/picture.png'}
-							alt="product-primary"
-							class="h-64 w-full border-2 rounded-lg object-contain"
-						/>
-					</figure>
+					<a href="/product-detail/{productData.prodId}">
+						<figure class="px-8 pt-8">
+							<img
+								src={imgCheck(productData.uploadfiles, 'product-primary').length > 0
+									? `/files/product/${productData.prodId}/${imgCheck(productData.uploadfiles, 'product-primary')[0]}`
+									: '/images/placeholder.jpg'}
+								alt="product-primary"
+								class="h-64 w-full border-2 rounded-lg object-contain"
+							/>
+						</figure>
+					</a>
 					<div class="card-body items-center text-center">
-						<h2 class="card-title text-2xl">
-							{productData.title}
-						</h2>
+						<a href="/product-detail/{productData.prodId}">
+							<h2 class="card-title text-2xl">
+								{productData.title}
+							</h2>
+						</a>
 						<p class="card-text text-xl">
 							<b>€ {productData.price}</b>
 						</p>
@@ -299,32 +322,66 @@
 							in stock: <b>{productData.stockQty}</b>
 						</p>
 						<div class="card-actions">
-							<span class="flex justify-between gap-10 my-3">
-								<a
+							<div class="flex justify-between gap-1 my-3">
+								<!-- <a
 									class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:text-gray-300"
 									href="/product-detail/{productData.prodId}">Info</a
-								>
+								> -->
+								<!-- <div class="join">
+									<button class="btn btn-sm join-item text-lg" onclick={() => setQty('minus')}
+										>-</button
+									>
+									<input
+										type="text"
+										value={quantity}
+										class="input input-sm join-item w-12 text-center"
+										readonly
+									/>
+									<button class="btn btn-sm join-item text-lg" onclick={() => setQty('plus')}
+										>+</button
+									>
+								</div> -->
 								{#if auth}
 									{#if checkCart(productData.prodId)}
-										<button
-											class="btn btn-sm bg-red-200 w-48 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400 inline-flex items-center justify-center space-x-2"
+										<!-- <button
+											class="btn btn-sm bg-red-200 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400 inline-flex items-center justify-center space-x-2"
 											onclick={() => removeFromCart($cartProducts, productData)}
-											><Trash2 />Rimuovi dal Carrello</button
-										>
+											><ShoppingCart /> Rimuovi</button
+										> -->
+										<div class="join join-vertical">
+											<button
+												class="btn btn-primary join-item"
+												onclick={() => addToCart($cartProducts, productData, false)}
+												>+ <ShoppingCart /> aggiungi</button
+											>
+											<input
+												type="text"
+												value={$cartProducts.find((item) => item.prodId === productData.prodId)
+													?.orderQuantity}
+												class="input join-item text-center w-full"
+												readonly
+											/>
+
+											<button
+												class="btn join-item"
+												onclick={() => removeFromCart($cartProducts, productData)}
+												>- <ShoppingCart /> rimuovi</button
+											>
+										</div>
 									{:else}
 										<button
-											class="btn btn-sm w-48 btn-success rounded-md inline-flex items-center justify-center space-x-2"
+											class="btn btn-primary rounded-md inline-flex items-center justify-center space-x-2"
 											onclick={() => addToCart($cartProducts, productData, false)}
-											><ShoppingCart />Aggiungi al Carrello</button
+											><ShoppingCart /> Aggiungi</button
 										>
 									{/if}
 								{:else}
 									<button
-										class="btn btn-sm w-48 btn-error rounded-md inline-flex items-center justify-center space-x-2"
-										><ShoppingCart />Riservato agli associati</button
+										class="btn btn-sm btn-error rounded-md inline-flex items-center justify-center space-x-2"
+										>Riservato agli associati</button
 									>
 								{/if}
-							</span>
+							</div>
 						</div>
 					</div>
 				</div>

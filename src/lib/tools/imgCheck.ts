@@ -19,8 +19,8 @@ export const imgCheck = (array: any[], type: string) => {
 // B) RETURN FIRST ITEM IN ARRAY
 // <img
 //     class="max-h-20"
-//     src = {`files/product/${row.prodId}/${imgCheck(row.uploadfiles, 'product-primary')[0]}`}
+//     src = {`/files/product/${row.prodId}/${imgCheck(row.uploadfiles, 'product-primary')[0]}`}
 //     alt = { row.title }
 // />
 
-//'/images/picture.png'
+//'/images/placeholder.jpg'

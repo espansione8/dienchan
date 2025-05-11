@@ -138,9 +138,9 @@
 			weight = item.weight;
 			category = item.category[0];
 			if (imgCheck(item.uploadfiles, 'product-primary').length > 0) {
-				imgPrimary = `files/product/${item.prodId}/${imgCheck(item.uploadfiles, 'product-primary')[0]}`;
+				imgPrimary = `/files/product/${item.prodId}/${imgCheck(item.uploadfiles, 'product-primary')[0]}`;
 			} else {
-				imgPrimary = '/images/picture.png';
+				imgPrimary = '/images/placeholder.jpg';
 			}
 			//console.log('imgPrimary', imgPrimary);
 		}
@@ -267,7 +267,7 @@
 								<div class="flex items-center">
 									<figure class="flex-shrink-0">
 										<img
-											src={`files/product/${row.prodId}/${imgCheck(row.uploadfiles, 'product-primary')[0]}`}
+											src={`/files/product/${row.prodId}/${imgCheck(row.uploadfiles, 'product-primary')[0]}`}
 											alt="product-primary"
 											class="object-cover rounded-md max-w-36 max-h-36 h-auto"
 										/>

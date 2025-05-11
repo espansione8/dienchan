@@ -27,9 +27,9 @@
 		usage:
 			'Apply 2-3 drops to pulse points, add to diffuser, or mix with carrier oil for massage. Use morning and evening for optimal results.',
 		images: [
-			'/images/picture.png',
+			'/images/placeholder.jpg',
 			'/images/no_img.jpg',
-			'/images/picture.png',
+			'/images/placeholder.jpg',
 			'/images/no_img.jpg',
 			'/images/image_placeholder.png'
 		],
@@ -160,7 +160,7 @@
 						clip-rule="evenodd"
 					/>
 				</svg>
-				{product.stock}
+				{product.stock} 2222
 			</div>
 
 			<div class="divider my-2"></div>

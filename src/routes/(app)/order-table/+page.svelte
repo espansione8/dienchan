@@ -501,7 +501,7 @@
 					>
 						<div class="w-1/3 p-3">
 							<img
-								src={item.layoutView.urlPic || '/images/picture.png'}
+								src={item.layoutView.urlPic || '/images/placeholder.jpg'}
 								alt="Immagine corso"
 								class="w-full h-full object-cover"
 							/>

@@ -20,10 +20,10 @@
 		ingredients:
 			'Lavender Oil, Eucalyptus Oil, Jojoba Oil, Rosemary Extract, Chamomile Extract, Vitamin E',
 		images: [
-			'/images/picture.png',
-			'/images/picture.png',
-			'/images/picture.png',
-			'/images/picture.png'
+			'/images/placeholder.jpg',
+			'/images/placeholder.jpg',
+			'/images/placeholder.jpg',
+			'/images/placeholder.jpg'
 		],
 		reviews: [
 			{

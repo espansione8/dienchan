@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { cartProducts } from '$lib/stores/cart';
+	import { page } from '$app/state';
+	import { cdata } from '$lib/stores/cart';
 	import { ShoppingCart } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
 
@@ -22,15 +22,13 @@
 		<div>
 			<a
 				class="btn btn-sm btn-primary rounded-t-lg rounded-b-none w-14 py-0"
-				class:active={$page.url.pathname === '/cart/'}
+				class:active={page.url.pathname === '/cart/'}
 				href="/cart"
 				aria-current="page"
 			>
-				{#if $cartProducts.length > 0}
-					<h3
-						class="badge badge-sm p-2 indicator-item rounded-full bg-blue-200 text-green-600 border-green-500"
-					>
-						<strong>{$cartProducts.length}</strong>
+				{#if $cdata.q1 > 0}
+					<h3 class="badge badge-sm p-2 indicator-item rounded-full">
+						<strong>{$cdata.q1}</strong>
 					</h3>
 				{/if}
 			</a>
@@ -38,7 +36,7 @@
 		<div>
 			<a
 				class="btn btn-sm btn-primary rounded-b-lg rounded-t-none w-14 py-0"
-				class:active={$page.url.pathname === '/cart/'}
+				class:active={page.url.pathname === '/cart/'}
 				href="/cart"
 				aria-current="page"
 			>

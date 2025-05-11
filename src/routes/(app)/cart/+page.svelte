@@ -357,7 +357,7 @@
 					<!-- src={imgSrc(item.category[0])} -->
 					<figure class="px-4 pt-4">
 						<img
-							src={item.layoutView?.urlPic || '/images/picture.png'}
+							src={item.layoutView?.urlPic || '/images/placeholder.jpg'}
 							alt="tipo corso"
 							class="h-full w-full object-cover border-2 rounded-lg"
 						/>

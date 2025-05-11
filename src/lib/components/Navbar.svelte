@@ -2,7 +2,7 @@
 	//import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { LogOut, ChevronDown, Menu, Megaphone, LogIn } from 'lucide-svelte';
-	import { cartProducts, emptyCart } from '$lib/stores/cart';
+	import { cartProducts, emptyCart, cdata } from '$lib/stores/cart';
 
 	let { user, auth } = $props();
 
@@ -69,8 +69,8 @@
 			</a>
 			<a
 				class="btn btn-sm btn-outline btn-accent"
-				class:active={page.url.pathname === '/course-filter/'}
-				href="/course-filter"
+				class:active={page.url.pathname === '/course-shop/'}
+				href="/course-shop"
 				aria-current="page"
 				onclick={onBurgerclick}
 			>
@@ -78,8 +78,8 @@
 			</a>
 			<a
 				class="btn btn-sm btn-outline btn-accent"
-				class:active={page.url.pathname === '/product-filter/'}
-				href="/product-filter"
+				class:active={page.url.pathname === '/product-shop/'}
+				href="/product-shop"
 				aria-current="page"
 				onclick={onBurgerclick}
 			>
@@ -93,7 +93,7 @@
 				onclick={onBurgerclick}
 			>
 				{#if $cartProducts.length > 0}
-					<span class="badge badge-sm"><strong>{$cartProducts.length}</strong></span>
+					<span class="badge badge-sm"><strong>{$cdata.q1}</strong></span>
 				{/if}
 
 				<strong>Carrello</strong>
@@ -227,8 +227,8 @@
 			<li>
 				<a
 					class="btn btn-sm btn-primary border-black"
-					class:active={page.url.pathname === '/course-filter/'}
-					href="/course-filter"
+					class:active={page.url.pathname === '/course-shop/'}
+					href="/course-shop"
 					aria-current="page"
 					onclick={onBurgerclick}
 				>
@@ -238,8 +238,8 @@
 			<li>
 				<a
 					class="btn btn-sm btn-primary border-black"
-					class:active={page.url.pathname === '/product-filter/'}
-					href="/product-filter"
+					class:active={page.url.pathname === '/product-shop/'}
+					href="/product-shop"
 					aria-current="page"
 					onclick={onBurgerclick}
 				>
@@ -257,7 +257,7 @@
 					{#if $cartProducts.length > 0}
 						<span
 							class="badge badge-sm p-2 indicator-item rounded-full bg-blue-200 text-green-600 border-green-500"
-							><strong>{$cartProducts.length}</strong></span
+							><strong>{$cdata.q1}</strong></span
 						>
 					{/if}
 

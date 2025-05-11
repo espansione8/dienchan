@@ -7,7 +7,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	console.log('locals', locals.auth);
 
 	if (!locals?.auth) {
-		throw redirect(302, '/course-filter');
+		throw redirect(302, '/course-shop');
 	} else {
 		throw redirect(302, '/profile-modify');
 	}

@@ -1,4 +1,8 @@
 <script lang="ts">
+	import { goto, invalidateAll } from '$app/navigation';
+	import Notification from '$lib/components/Notification.svelte';
+	import CartFloat from '$lib/components/CartFloat.svelte';
+	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
 	import {
 		ChevronDown,
 		ShieldAlert,
@@ -10,10 +14,6 @@
 		ShoppingCart,
 		Trash2
 	} from 'lucide-svelte';
-	import Notification from '$lib/components/Notification.svelte';
-	import CartFloat from '$lib/components/CartFloat.svelte';
-	import { goto, invalidateAll } from '$app/navigation';
-	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
 	//import { province } from '$lib/stores/arrays.js';
 
 	let { data } = $props();
@@ -530,11 +530,12 @@
 						<!-- price -->
 						<p class="card-text">
 							Prezzo: <b>{courseData.layoutView.price}</b>
-							<br />
-							{#if !auth}
-								+ 25 solo al primo corso
-							{/if}
 						</p>
+						{#if !auth}
+							<p class="card-text text-xs rounded-md weight font-bold bg-neutral-200">
+								+25€ di tesseramento solo al primo corso
+							</p>
+						{/if}
 						<div class="card-actions">
 							<span class="flex justify-between gap-10 my-3">
 								<button

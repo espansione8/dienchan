@@ -19,6 +19,7 @@ export const addToCart = async (cart, item, openCart) => {
 	if (openCart) {
 		cartStatus.set(Math.random());
 	}
+
 	//cartTotalQuantity.update(n => n + 1);
 	// const checkParamType = Object.values(listAPI).includes(queryParam);
 	const idList = cart.map((cartItem) => cartItem.prodId);
