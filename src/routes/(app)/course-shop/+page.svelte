@@ -14,7 +14,14 @@
 		ShoppingCart,
 		Trash2,
 		CircleX,
-		Tags
+		Tags,
+		BookOpen,
+		Clock,
+		MapPin,
+		UserCircle,
+		AlertCircle,
+		Info,
+		Calendar
 	} from 'lucide-svelte';
 	//import { province } from '$lib/stores/arrays.js';
 
@@ -234,7 +241,7 @@
 <div class="bg-base-200 grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-8 lg:p-8">
 	<!-- Filter column -->
 	<section
-		class="col-span-12 xl:col-span-3 bg-base-100 rounded-lg shadow-md border border-base-200 overflow-hidden"
+		class="col-span-12 xl:col-span-2 bg-base-100 rounded-lg shadow-md border border-base-200 overflow-hidden"
 	>
 		<div class="flex flex-col w-auto">
 			<!-- Filter Header -->
@@ -429,8 +436,8 @@
 			</div>
 		</div>
 	</section>
-	<!-- colonna ordina, filtri e card -->
-	<section class="col-span-12 xl:col-span-9 bg-base-100 rounded-lg">
+	<!-- Product column -->
+	<section class="col-span-12 xl:col-span-10 bg-base-100 rounded-lg">
 		<div class="flex items-center p-4">
 			<div
 				class="btn btn-sm rounded-md cursor-default {coursesList.length > 0
@@ -539,7 +546,7 @@
 		{/if}
 		<!-- end ORDINA BUTTON -->
 		<!-- CARD -->
-		<div class="flex flex-wrap justify-center gap-3 pl-3 pb-4">
+		<div class="flex flex-wrap justify-center gap-6 pl-3 pb-4">
 			{#if coursesList.length == 0}
 				<div
 					class="alert alert-warning shadow-lg text-center rounded-md mt-6 mx-auto w-full max-w-md"
@@ -555,69 +562,99 @@
 			{/if}
 			{#each coursesList as courseData, i}
 				<div
-					class="card card-compact overflow-hidden bg-base-100 max-w-xs rounded-xl shadow-md border"
+					class="card overflow-hidden bg-base-100 rounded-xl shadow-lg border
+	border-base-200 hover:shadow-xl transition-shadow duration-300 flex flex-col w-84"
+					class:h-114={auth}
+					class:h-128={!auth}
 				>
-					<figure class="px-8 pt-8">
-						<img
-							src={courseData.layoutView.urlPic}
-							alt="tipo corso"
-							class="h-full w-full object-contain border-2 rounded-lg"
-						/>
-					</figure>
-					<div class="card-body items-center text-center">
-						<!-- data giorno -->
-						<h2 class="card-title text-2xl">
-							{courseData.eventStartDate}
-						</h2>
-						<!-- luogo -->
-						<p class="card-text text-xl">
-							<b>{courseData.county}</b>
-						</p>
-						<!-- title -->
-						<h5
-							class="card-text text-xl border rounded-md shadow-sm font-semibold p-2 bg-neutral-200"
-						>
-							{courseData.layoutView.title}
-						</h5>
-						<!-- riflessologo -->
-						<p class="card-text">
-							Riflessologo: <b>{courseData.name} {courseData.surname}</b>
-						</p>
-						<!-- dalle x alle y -->
-						<h5 class="card-text">
-							Dalle <b>{courseData.timeStartDate}</b>
-						</h5>
-						<!-- price -->
-						<p class="card-text">
-							Prezzo: <b>{courseData.layoutView.price}</b>
-						</p>
+					<div class="relative px-6 pt-6 pb-2 bg-base-200/30 space-y-0">
+						<a href="/course-detail/{courseData.prodId}">
+							<div class="absolute -top-1 -right-1 z-10 opacity-70">
+								<div class="relative">
+									<div
+										class="bg-gradient-to-r from-primary to-primary/80 text-primary-content px-4 py-2 rounded-bl-lg rounded-tr-lg shadow-md"
+									>
+										<span class="text-xs font-semibold">PREZZO</span>
+										<div class="flex items-baseline">
+											<span class="text-2xl font-bold">€ {courseData.layoutView.price}</span>
+										</div>
+									</div>
+									<div
+										class="absolute top-0 right-0 w-0 h-0 border-t-8 border-t-primary/80 border-r-8 border-r-transparent transform translate-x-full"
+									></div>
+								</div>
+							</div>
+							<div class="h-48 w-full flex items-center justify-center">
+								<img
+									src={courseData.layoutView.urlPic || '/images/placeholder.jpg'}
+									alt={courseData.layoutView.title}
+									class="h-full max-h-48 w-auto object-contain rounded-lg hover:scale-110 transition-transform duration-500"
+								/>
+							</div>
+						</a>
+					</div>
+
+					<div class="card-body px-5 py-2 flex-grow">
+						<a href="/course-detail/{courseData.prodId}">
+							<h3 class="card-title text-lg font-bold text-primary flex items-start gap-2 mb-2">
+								<BookOpen size={18} class="flex-shrink-0 mt-1" />
+								<span>{courseData.layoutView.title}</span>
+							</h3>
+						</a>
+						<div class="flex items-center gap-2 mb-2 text-sm">
+							<Calendar size={16} class="text-primary flex-shrink-0" />
+							<span class="font-medium">{courseData.eventStartDate}</span>
+							<Clock size={16} class="text-primary flex-shrink-0 ml-2" />
+							<span>Dalle <b>{courseData.timeStartDate}</b></span>
+						</div>
+
+						<div class="flex items-center gap-2 mb-2 text-sm">
+							<MapPin size={16} class="text-primary flex-shrink-0" />
+							<span class="font-medium">{courseData.county}</span>
+						</div>
+
+						<div class="flex items-center gap-2 mb-1 text-sm">
+							<UserCircle size={16} class="text-primary flex-shrink-0" />
+							<span>Riflessologo: <b>{courseData.name} {courseData.surname}</b></span>
+						</div>
+
+						<div class="divider my-1"></div>
+
 						{#if !auth}
-							<p class="card-text text-xs rounded-md weight font-bold bg-neutral-200">
-								+25€ di tesseramento solo al primo corso
-							</p>
+							<div class="bg-amber-100 text-amber-800 p-2 rounded-md flex items-center gap-2 mb-3">
+								<AlertCircle size={16} class="flex-shrink-0" />
+								<p class="text-xs font-medium">+25€ di tesseramento solo al primo corso</p>
+							</div>
 						{/if}
-						<div class="card-actions">
-							<span class="flex justify-between gap-10 my-3">
+					</div>
+
+					<div class="px-5 pb-4 pt-0">
+						<div class="card-actions flex justify-between items-center w-full gap-2">
+							<a
+								class="btn btn-outline btn-sm rounded-md flex items-center gap-1"
+								href="/course-detail/{courseData.prodId}"
+							>
+								<Info size={16} />
+								Dettagli
+							</a>
+
+							{#if checkCart(courseData.prodId)}
 								<button
-									class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:text-gray-300"
-									onclick={() => onClickInfo(courseData.prodId)}>Info</button
+									class="btn btn-error btn-sm flex-1 rounded-md flex items-center gap-1"
+									onclick={() => removeFromCart($cartProducts, courseData)}
 								>
-								{#if checkCart(courseData.prodId)}
-									<!-- in carello -->
-									<button
-										class="btn btn-sm bg-red-200 w-48 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400 inline-flex items-center justify-center space-x-2"
-										onclick={() => removeFromCart($cartProducts, courseData)}
-										><Trash2 />Rimuovi dal Carrello</button
-									>
-								{:else}
-									<!-- non in carello -->
-									<button
-										class="btn btn-sm w-48 btn-success rounded-md inline-flex items-center justify-center space-x-2"
-										onclick={() => addToCart($cartProducts, courseData, false)}
-										><ShoppingCart /> Aggiungi al Carrello</button
-									>
-								{/if}
-							</span>
+									<Trash2 size={16} />
+									Rimuovi
+								</button>
+							{:else}
+								<button
+									class="btn btn-success btn-sm flex-1 rounded-md flex items-center gap-1"
+									onclick={() => addToCart($cartProducts, courseData, false)}
+								>
+									<ShoppingCart size={16} />
+									Aggiungi al Carrello
+								</button>
+							{/if}
 						</div>
 					</div>
 				</div>

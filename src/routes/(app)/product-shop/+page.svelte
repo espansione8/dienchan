@@ -7,7 +7,6 @@
 	import {
 		ChevronDown,
 		ShieldAlert,
-		Check,
 		MapPinned,
 		ShoppingCart,
 		Tags,
