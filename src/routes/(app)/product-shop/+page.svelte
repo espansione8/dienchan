@@ -10,9 +10,9 @@
 		Check,
 		MapPinned,
 		ShoppingCart,
-		Trash2,
-		Plus,
-		Minus
+		Tags,
+		Boxes,
+		CircleX
 	} from 'lucide-svelte';
 
 	let { data } = $props();
@@ -46,6 +46,7 @@
 
 	const onFilterReset = () => {
 		// invalidateAll();
+		resetActive = false;
 		prodList = getTable || [];
 		prodList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
@@ -61,8 +62,6 @@
 		const accordionList = ['accordion1', 'accordion2', 'accordion3', 'accordion4'];
 		accordionList.forEach((item) => (document.getElementById(item).checked = false));
 		// document.getElementById('accordion1').checked = false;
-
-		resetActive = false;
 		sortItems('recent');
 	};
 
@@ -130,50 +129,95 @@
 </svelte:head>
 
 <div class="bg-base-200 grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-8 lg:p-8">
-	<!-- colonna accordion -->
-	<section class="col-span-12 xl:col-span-3 bg-base-100 rounded-lg">
-		<div class="flex flex-col space-y-4 w-auto p-3">
-			<span>Filtri:</span>
-			<div class="collapse collapse-arrow">
-				<input id="accordion3" type="checkbox" class="peer" />
-				<div
-					class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
-				>
-					<span class="inline-flex items-center">
-						<b
-							><MapPinned class="-mt-1 mr-1" />
-							Categoria</b
+	<!-- Filter column -->
+	<section class="col-span-12 xl:col-span-3">
+		<div class="sticky top-4">
+			<div class="bg-base-100 rounded-xl shadow-lg overflow-hidden border border-base-200">
+				<!-- Filter Header -->
+				<div class="bg-primary text-primary-content p-4 relative overflow-hidden">
+					<div class="absolute inset-0 opacity-20">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+							class="w-32 h-32 -rotate-12 absolute -right-8 -bottom-8"
 						>
-						{#if activeFilter.category.length > 0}
-							<Check class="ml-1" color="green" />
-						{/if}
-					</span>
+							<path
+								d="M18.75 12.75h1.5a.75.75 0 000-1.5h-1.5a.75.75 0 000 1.5zM12 6a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 0112 6zM12 18a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 0112 18zM3.75 6.75h1.5a.75.75 0 100-1.5h-1.5a.75.75 0 000 1.5zM5.25 18.75h-1.5a.75.75 0 010-1.5h1.5a.75.75 0 010 1.5zM3 12a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 013 12zM9 3.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5zM12.75 12a2.25 2.25 0 114.5 0 2.25 2.25 0 01-4.5 0zM9 15.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z"
+							/>
+						</svg>
+					</div>
+					<h2 class="text-xl font-bold flex items-center gap-2 relative z-10">Filtri</h2>
+					<p class="text-sm opacity-90 mt-1 relative z-10">Affina la tua ricerca</p>
 				</div>
-				<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100">
-					<ul class="list-none -mx-4">
-						{#each Object.entries(categoriesInProduct) as [chiave, valore]}
-							<li
-								class="p-2 border-b cursor-pointer transition-colors duration-300
-								{activeFilter.category == chiave
-									? 'bg-orange-200 text-red-900 font-bold'
-									: 'hover:bg-blue-200 hover:text-blue-900'}"
-							>
-								{'>'}
-								<button type="button" onclick={() => onClickFilterCategory(chiave)}
-									>{chiave}: ({valore})</button
+
+				<!-- Filter Body -->
+				<div class="p-4">
+					<!-- Category Filter -->
+					<div class="mb-6">
+						<div class="flex items-center justify-between mb-3">
+							<h3 class="font-medium flex items-center gap-2">
+								<MapPinned size={18} class="text-primary" />
+								Categoria
+							</h3>
+							{#if activeFilter.category}
+								<span class="badge badge-primary badge-sm">{activeFilter.category}</span>
+							{/if}
+						</div>
+
+						<div
+							class="grid grid-cols-1 gap-1 mt-2 max-h-[300px] overflow-y-auto pr-1 filter-scrollbar"
+						>
+							{#each Object.entries(categoriesInProduct) as [chiave, valore]}
+								<button
+									type="button"
+									class="group relative flex items-center justify-between py-2.5 px-3 rounded-lg transition-all duration-300 overflow-hidden
+                {activeFilter.category === chiave
+										? 'bg-primary text-primary-content font-medium'
+										: 'hover:bg-base-200'}"
+									onclick={() => onClickFilterCategory(chiave)}
 								>
-							</li>
-						{/each}
-					</ul>
+									<!-- Background animation on hover -->
+									<div
+										class="absolute inset-0 bg-primary/10 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out {activeFilter.category ===
+										chiave
+											? 'scale-x-100'
+											: ''}"
+									></div>
+
+									<span class="relative z-10">{chiave}</span>
+									<span
+										class="badge {activeFilter.category === chiave
+											? 'bg-primary-content/20 text-primary-content'
+											: 'bg-base-200'} relative z-10">{valore}</span
+									>
+								</button>
+							{/each}
+						</div>
+					</div>
+
+					<!-- Reset Button -->
+					{#if resetActive}
+						<div class="pt-3 border-t border-base-200">
+							<button
+								class="btn btn-error btn-outline w-full gap-2 group relative overflow-hidden"
+								onclick={onFilterReset}
+							>
+								<span
+									class="absolute inset-0 bg-error/10 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"
+								></span>
+								<CircleX size={16} class="relative z-10" />
+								<span class="relative z-10">Reset filtri</span>
+							</button>
+						</div>
+					{/if}
 				</div>
 			</div>
 		</div>
 	</section>
 	<!-- colonna ordina, filtri e card -->
 	<section class="col-span-12 xl:col-span-9 bg-base-100 rounded-lg">
-		<!-- ORDINA BUTTON -->
-		<div class="flex items-center justify-between p-4">
-			<!-- Visualizzazione corsi disponibili -->
+		<div class="flex items-center p-4">
 			<div
 				class="btn btn-sm rounded-md cursor-default {prodList.length > 0
 					? 'bg-green-300 hover:bg-green-300'
@@ -184,67 +228,68 @@
 					<strong class="">{prodList.length}</strong>
 				</div>
 			</div>
-			<!-- bottone ordina -->
-			<div class="dropdown dropdown-end flex relative">
+			<!-- Reset button -->
+			{#if resetActive}
+				<button
+					class="btn btn-sm px-3 py-2 ml-4 rounded-md bg-red-200 border-red-500 text-red-500 hover:border-red-100 hover:bg-red-400 hover:text-red-200"
+					onclick={onFilterReset}
+				>
+					<CircleX size={16} />
+					Reset filtri
+				</button>
+			{/if}
+			<!-- Sort button -->
+			<div class="dropdown dropdown-end ml-auto">
 				<button
 					id="dropdownSortButton"
-					class="btn btn-sm bg-blue-200 border-blue-500 text-blue-500 rounded-md hover:border-blue-100 hover:text-blue-200"
-					aria-expanded="false"
-					onclick={() => document.getElementById('dropdownSortContent').classList.remove('hidden')}
+					class="btn btn-sm btn-primary btn-outline gap-2 rounded-md"
+					tabindex="0"
 				>
-					<span class="flex items-center justify-center space-x-1"
-						><strong>Ordina: {currentSort}</strong>
-						<ChevronDown class="" /></span
-					>
+					<span class="flex items-center justify-center gap-2">
+						Ordina: <span class="font-bold">{currentSort}</span>
+						<ChevronDown />
+					</span>
 				</button>
-				<ul
-					id="dropdownSortContent"
-					class="dropdown-content menu z-1 bg-gray-100 p-2 rounded-lg shadow-sm w-max gap-2 absolute"
-					style="left: 50%; transform: translateX(-50%); top: 100%;"
-				>
+				<ul class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-lg w-52 mt-1">
 					<li>
-						<a
-							class="dropdown-item"
-							href="#1"
-							onclick={() => {
-								sortItems('recent');
-								document.getElementById('dropdownSortContent').classList.add('hidden');
-							}}
+						<button
+							class="flex items-center {currentSort === 'dal più recente'
+								? 'bg-primary/10 text-primary font-medium'
+								: ''}"
+							onclick={() => sortItems('recent')}
 						>
-							dal più recente</a
-						>
+							dal più recente
+						</button>
 					</li>
 					<li>
-						<a
-							class="dropdown-item cursor-pointer"
-							href="#1"
-							onclick={() => {
-								sortItems('oldest');
-								document.getElementById('dropdownSortContent').classList.add('hidden');
-							}}
+						<button
+							class="flex items-center {currentSort === 'dal meno recente'
+								? 'bg-primary/10 text-primary font-medium'
+								: ''}"
+							onclick={() => sortItems('oldest')}
 						>
-							dal meno recente</a
-						>
+							dal meno recente
+						</button>
 					</li>
 					<li>
-						<a
-							class="dropdown-item"
-							href="#1"
-							onclick={() => {
-								sortItems('expensive');
-								document.getElementById('dropdownSortContent').classList.add('hidden');
-							}}>dal più costoso</a
+						<button
+							class="flex items-center {currentSort === 'dal più costoso'
+								? 'bg-primary/10 text-primary font-medium'
+								: ''}"
+							onclick={() => sortItems('expensive')}
 						>
+							dal più costoso
+						</button>
 					</li>
 					<li>
-						<a
-							class="dropdown-item"
-							href="#1"
-							onclick={() => {
-								sortItems('cheap');
-								document.getElementById('dropdownSortContent').classList.add('hidden');
-							}}>dal meno costoso</a
+						<button
+							class="flex items-center {currentSort === 'dal meno costoso'
+								? 'bg-primary/10 text-primary font-medium'
+								: ''}"
+							onclick={() => sortItems('cheap')}
 						>
+							dal meno costoso
+						</button>
 					</li>
 				</ul>
 			</div>
@@ -252,16 +297,9 @@
 		<!-- Visualizzazione filtri attivi e RESET -->
 		{#if resetActive}
 			<div class="flex items-center space-x-4 pb-3 px-4">
-				<!-- Pulsante Reset Filter -->
-				<button
-					class="btn btn-sm bg-red-200 border-red-500 text-red-500 px-3 py-2 rounded-md hover:border-red-100 hover:bg-red-400 hover:text-red-200"
-					onclick={onFilterReset}
-				>
-					Reset filtri
-				</button>
-				<!-- Visualizzazione Filtri Attivi -->
+				<!-- Active filter -->
 				<div class="text-gray-700">
-					<span class="">Filtri attivi</span>
+					<span><Tags /></span>
 					{#if activeFilter.category.length > 0}
 						<div class="badge badge-accent rounded-md">
 							Categoria: <strong class="pl-1">{activeFilter.category}</strong>
@@ -316,10 +354,17 @@
 							{productData.descrShort}
 						</h5> -->
 						<p class="card-text">
-							categoria <b>{productData.category[0]}</b>
+							<Tags /> <b>{productData.category[0]}</b>
 						</p>
 						<p class="card-text">
-							in stock: <b>{productData.stockQty}</b>
+							<Boxes />
+							<b>
+								{#if productData.stockQty < 1}
+									out of stock
+								{:else}
+									{productData.stockQty} max
+								{/if}
+							</b>
 						</p>
 						<div class="card-actions">
 							<div class="flex justify-between gap-1 my-3">
@@ -342,37 +387,53 @@
 									>
 								</div> -->
 								{#if auth}
-									{#if checkCart(productData.prodId)}
-										<!-- <button
+									{#if productData.stockQty > 0}
+										{#if checkCart(productData.prodId)}
+											<!-- <button
 											class="btn btn-sm bg-red-200 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400 inline-flex items-center justify-center space-x-2"
 											onclick={() => removeFromCart($cartProducts, productData)}
 											><ShoppingCart /> Rimuovi</button
 										> -->
-										<div class="join join-vertical">
-											<button
+											<div class="join join-vertical">
+												{#if $cartProducts.find((item) => item.prodId === productData.prodId)?.orderQuantity < productData.stockQty}
+													<button
+														class="btn btn-primary join-item"
+														onclick={() => addToCart($cartProducts, productData, false)}
+														>+ <ShoppingCart /> aggiungi</button
+													>
+												{:else}
+													<button class="btn join-item"><CircleX />Quantità limite</button>
+												{/if}
+												<!-- <button
 												class="btn btn-primary join-item"
 												onclick={() => addToCart($cartProducts, productData, false)}
 												>+ <ShoppingCart /> aggiungi</button
-											>
-											<input
-												type="text"
-												value={$cartProducts.find((item) => item.prodId === productData.prodId)
-													?.orderQuantity}
-												class="input join-item text-center w-full"
-												readonly
-											/>
+											> -->
+												<input
+													type="text"
+													value={$cartProducts.find((item) => item.prodId === productData.prodId)
+														?.orderQuantity}
+													class="input join-item text-center w-full"
+													readonly
+												/>
 
+												<button
+													class="btn join-item"
+													onclick={() => removeFromCart($cartProducts, productData)}
+													>- <ShoppingCart /> rimuovi</button
+												>
+											</div>
+										{:else}
 											<button
-												class="btn join-item"
-												onclick={() => removeFromCart($cartProducts, productData)}
-												>- <ShoppingCart /> rimuovi</button
+												class="btn btn-primary rounded-md inline-flex items-center justify-center space-x-2"
+												onclick={() => addToCart($cartProducts, productData, false)}
+												><ShoppingCart /> Aggiungi</button
 											>
-										</div>
+										{/if}
 									{:else}
 										<button
-											class="btn btn-primary rounded-md inline-flex items-center justify-center space-x-2"
-											onclick={() => addToCart($cartProducts, productData, false)}
-											><ShoppingCart /> Aggiungi</button
+											class="btn btn-sm rounded-md inline-flex items-center justify-center space-x-2"
+											disabled>+ <ShoppingCart /> aggiungi</button
 										>
 									{/if}
 								{:else}

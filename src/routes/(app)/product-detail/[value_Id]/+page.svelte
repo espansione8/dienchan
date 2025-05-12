@@ -2,7 +2,7 @@
 	import Notification from '$lib/components/Notification.svelte';
 	import CartFloat from '$lib/components/CartFloat.svelte';
 	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
-	import { Boxes, Tags, CircleCheck, Minus, Plus, ShoppingCart } from 'lucide-svelte';
+	import { Boxes, Tags, CircleCheck, CircleX, ShoppingCart } from 'lucide-svelte';
 	let { data } = $props();
 	let { getProduct, auth } = $derived(data);
 	import { imgCheck } from '$lib/tools/imgCheck';
@@ -177,11 +177,20 @@
 							>
 						{:else}
 							<div class="join join-vertical">
-								<button
+								{#if $cartProducts.find((item) => item.prodId === getProduct.prodId)?.orderQuantity < thisProd.stockQty}
+									<button
+										class="btn btn-primary join-item"
+										onclick={() => addToCart($cartProducts, getProduct, false)}
+										>+ <ShoppingCart /> aggiungi al carrello</button
+									>
+								{:else}
+									<button class="btn join-item"><CircleX />Quantità limite</button>
+								{/if}
+								<!-- <button
 									class="btn btn-primary join-item"
 									onclick={() => addToCart($cartProducts, getProduct, false)}
 									>+ <ShoppingCart /> aggiungi al carrello</button
-								>
+								> -->
 								<input
 									type="text"
 									value={$cartProducts.find((item) => item.prodId === getProduct.prodId)
@@ -190,7 +199,7 @@
 									readonly
 								/>
 								<button
-									class="btn btn-error join-item"
+									class="btn join-item"
 									onclick={() => removeFromCart($cartProducts, getProduct)}
 									>- <ShoppingCart /> rimuovi dal carrello</button
 								>

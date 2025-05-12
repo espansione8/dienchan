@@ -12,7 +12,9 @@
 		TextSearch,
 		MapPinned,
 		ShoppingCart,
-		Trash2
+		Trash2,
+		CircleX,
+		Tags
 	} from 'lucide-svelte';
 	//import { province } from '$lib/stores/arrays.js';
 
@@ -114,6 +116,7 @@
 
 	const onFilterReset = () => {
 		// invalidateAll();
+		resetActive = false;
 		coursesList = getTable || '';
 		coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
@@ -129,8 +132,6 @@
 		const accordionList = ['accordion1', 'accordion2', 'accordion3', 'accordion4'];
 		accordionList.forEach((item) => (document.getElementById(item).checked = false));
 		// document.getElementById('accordion1').checked = false;
-
-		resetActive = false;
 	};
 
 	const updateFilter = () => {
@@ -193,7 +194,7 @@
 	};
 
 	// sort
-	const sortCourses = (option) => {
+	const sortItems = (option) => {
 		switch (option) {
 			case 'expensive':
 				currentSort = 'dal più costoso';
@@ -231,140 +232,206 @@
 </svelte:head>
 
 <div class="bg-base-200 grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-8 lg:p-8">
-	<!-- colonna accordion -->
-	<section class="col-span-12 xl:col-span-3 bg-base-100 rounded-lg">
-		<div class="flex flex-col space-y-4 w-auto p-3">
-			<span>Filtri:</span>
-			<div class="collapse collapse-arrow">
-				<input id="accordion1" type="checkbox" class="peer" />
-				<div
-					class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
-				>
-					<span class="inline-flex items-center">
-						<b><TextSearch class="-mt-1" /> Evento</b>
-						{#if filtriAttivi?.evento.length > 0}
-							<Check class="ml-1" color="green" />
-						{/if}
-					</span>
+	<!-- Filter column -->
+	<section
+		class="col-span-12 xl:col-span-3 bg-base-100 rounded-lg shadow-md border border-base-200 overflow-hidden"
+	>
+		<div class="flex flex-col w-auto">
+			<!-- Filter Header -->
+			<div class="bg-primary text-primary-content p-4 relative overflow-hidden">
+				<div class="absolute inset-0 opacity-20">
+					<!-- Using SVG pattern instead of imported icons -->
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="currentColor"
+						class="w-32 h-32 -rotate-12 absolute -right-8 -bottom-8"
+					>
+						<path
+							d="M18.75 12.75h1.5a.75.75 0 000-1.5h-1.5a.75.75 0 000 1.5zM12 6a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 0112 6zM12 18a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 0112 18zM3.75 6.75h1.5a.75.75 0 100-1.5h-1.5a.75.75 0 000 1.5zM5.25 18.75h-1.5a.75.75 0 010-1.5h1.5a.75.75 0 010 1.5zM3 12a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 013 12zM9 3.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5zM12.75 12a2.25 2.25 0 114.5 0 2.25 2.25 0 01-4.5 0zM9 15.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z"
+						/>
+					</svg>
 				</div>
-				<div class="collapse-content bg-blue-50 text-base-content peer-checked:bg-base-100">
-					<ul class="list-none -mx-4">
-						{#each getLayout as option}
-							<li
-								class="p-2 border-b cursor-pointer transition-colors duration-300
-							{filtriAttivi.evento == option.title
-									? 'bg-orange-200 text-red-900 font-bold'
-									: 'hover:bg-blue-200 hover:text-blue-900'}"
-								onclick={() => onClickFilterEvent(option.title)}
-							>
-								{'>'}
-								{option.title}
-							</li>
-						{/each}
-					</ul>
-				</div>
+				<h2 class="text-xl font-bold relative z-10">Filtri</h2>
+				<p class="text-sm opacity-90 mt-1 relative z-10">Affina la tua ricerca</p>
 			</div>
 
-			<div class="collapse collapse-arrow">
-				<input id="accordion2" type="checkbox" class="peer" />
+			<!-- Filter Body -->
+			<div class="p-4 space-y-4">
+				<!-- Event Filter -->
 				<div
-					class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
+					class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200"
 				>
-					<span class="inline-flex items-center">
-						<b><CalendarSearch class="-mt-1" /> Mese</b>
-						{#if filtriAttivi.mese.length > 0}
-							<Check class="ml-1" color="green" />
-						{/if}
-					</span>
+					<input id="accordion1" type="checkbox" class="peer" />
+					<div
+						class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
+					>
+						<span class="inline-flex items-center">
+							<b><TextSearch class="-mt-1 mr-2" /> Evento</b>
+							{#if filtriAttivi?.evento.length > 0}
+								<Check class="ml-1" color="green" />
+							{/if}
+						</span>
+					</div>
+					<div
+						class="collapse-content bg-blue-50 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto"
+					>
+						<ul class="list-none -mx-4 divide-y divide-base-200/70">
+							{#each getLayout as option}
+								<li
+									class="p-3 cursor-pointer transition-all duration-300 flex items-center
+                {filtriAttivi.evento == option.title
+										? 'bg-orange-200 text-red-900 font-bold'
+										: 'hover:bg-blue-200 hover:text-blue-900'}
+"
+									onclick={() => onClickFilterEvent(option.title)}
+								>
+									<span class="flex-1">{option.title} </span>
+									{#if filtriAttivi.evento == option.title}
+										<Check size={18} class="flex-shrink-0 text-green-600" />
+									{/if}
+								</li>
+							{/each}
+						</ul>
+					</div>
 				</div>
-				<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100">
-					<ul class="list-none -mx-4">
-						{#each informazioniMesi as { mese, conteggio }}
-							<li
-								class="p-2 border-b cursor-pointer transition-colors duration-300
-								{filtriAttivi.mese == mese
-									? 'bg-orange-200 text-red-900 font-bold'
-									: 'hover:bg-blue-200 hover:text-blue-900'}
-									{conteggio == 0 ? 'text-gray-400 pointer-events-none' : ''}"
-								onclick={() => onClickFilterMonth(mese)}
-							>
-								&gt; {mese} ({conteggio})
-							</li>
-						{/each}
-					</ul>
-				</div>
-			</div>
 
-			<div class="collapse collapse-arrow">
-				<input id="accordion3" type="checkbox" class="peer" />
+				<!-- Month Filter -->
 				<div
-					class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
+					class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200"
 				>
-					<span class="inline-flex items-center">
-						<b
-							><MapPinned class="-mt-1 mr-1" />
-							Provincia</b
+					<input id="accordion2" type="checkbox" class="peer" />
+					<div
+						class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
+					>
+						<span class="inline-flex items-center">
+							<b><CalendarSearch class="-mt-1 mr-2" /> Mese</b>
+							{#if filtriAttivi.mese.length > 0}
+								<Check class="ml-1" color="green" />
+							{/if}
+						</span>
+					</div>
+					<div
+						class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto"
+					>
+						<ul class="list-none -mx-4 divide-y divide-base-200/70">
+							{#each informazioniMesi as { mese, conteggio }}
+								<li
+									class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
+                {filtriAttivi.mese == mese
+										? 'bg-orange-200 text-red-900 font-bold'
+										: 'hover:bg-blue-200 hover:text-blue-900'}
+                  {conteggio == 0 ? 'text-gray-400 pointer-events-none opacity-50' : ''}"
+									onclick={() => onClickFilterMonth(mese)}
+								>
+									<span>{mese}</span>
+									<div class="flex items-center gap-2">
+										<span class="badge badge-sm badge-ghost">{conteggio}</span>
+										{#if filtriAttivi.mese == mese}
+											<Check size={18} class="flex-shrink-0 text-green-600" />
+										{/if}
+									</div>
+								</li>
+							{/each}
+						</ul>
+					</div>
+				</div>
+
+				<!-- Province Filter -->
+				<div
+					class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200"
+				>
+					<input id="accordion3" type="checkbox" class="peer" />
+					<div
+						class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
+					>
+						<span class="inline-flex items-center">
+							<b><MapPinned class="-mt-1 mr-2" /> Provincia</b>
+							{#if filtriAttivi.provincia.length > 0}
+								<Check class="ml-1" color="green" />
+							{/if}
+						</span>
+					</div>
+					<div
+						class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto"
+					>
+						<ul class="list-none -mx-4 divide-y divide-base-200/70">
+							{#each Object.entries(numCoursesInProvince) as [chiave, valore]}
+								<li
+									class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
+                {filtriAttivi.provincia == chiave
+										? 'bg-orange-200 text-red-900 font-bold'
+										: 'hover:bg-blue-200 hover:text-blue-900'}"
+									onclick={() => onClickFilterProvincia(chiave)}
+								>
+									<span>{chiave}</span>
+									<div class="flex items-center gap-2">
+										<span class="badge badge-sm badge-ghost">{valore}</span>
+										{#if filtriAttivi.provincia == chiave}
+											<Check size={18} class="flex-shrink-0 text-green-600" />
+										{/if}
+									</div>
+								</li>
+							{/each}
+						</ul>
+					</div>
+				</div>
+
+				<!-- Riflessologo Filter -->
+				<div
+					class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200"
+				>
+					<input id="accordion4" type="checkbox" class="peer" />
+					<div
+						class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
+					>
+						<span class="inline-flex items-center">
+							<b><UserSearch class="-mt-1 mr-2" /> Riflessologo</b>
+							{#if filtriAttivi.riflessologo.length > 0}
+								<Check class="ml-1" color="green" />
+							{/if}
+						</span>
+					</div>
+					<div
+						class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto"
+					>
+						<ul class="list-none -mx-4 divide-y divide-base-200/70">
+							{#each getTableNames as item}
+								<li
+									class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
+                {filtriAttivi.riflessologo == `${item.name} ${item.surname}`
+										? 'bg-orange-200 text-red-900 font-bold'
+										: 'hover:bg-blue-200 hover:text-blue-900'}"
+									onclick={() => onClickFilterRiflessologo(item.userId, item.name, item.surname)}
+								>
+									<span>{item.name} {item.surname}</span>
+									{#if filtriAttivi.riflessologo == `${item.name} ${item.surname}`}
+										<Check size={18} class="flex-shrink-0 text-green-600" />
+									{/if}
+								</li>
+							{/each}
+						</ul>
+					</div>
+				</div>
+
+				<!-- Reset Button -->
+				{#if resetActive}
+					<div class="pt-3 mt-2 border-t border-base-200">
+						<button
+							class="btn btn-sm w-full bg-red-200 border border-red-500 text-red-500 px-3 py-2 rounded-md hover:border-red-100 hover:bg-red-400 hover:text-red-200 flex items-center justify-center gap-2"
+							onclick={onFilterReset}
 						>
-						{#if filtriAttivi.provincia.length > 0}
-							<Check class="ml-1" color="green" />
-						{/if}
-					</span>
-				</div>
-				<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100">
-					<ul class="list-none -mx-4">
-						{#each Object.entries(numCoursesInProvince) as [chiave, valore]}
-							<li
-								class="p-2 border-b cursor-pointer transition-colors duration-300
-								{filtriAttivi.provincia == chiave
-									? 'bg-orange-200 text-red-900 font-bold'
-									: 'hover:bg-blue-200 hover:text-blue-900'}"
-								onclick={() => onClickFilterProvincia(chiave)}
-							>
-								{'>'}
-								{chiave}: ({valore})
-							</li>
-						{/each}
-					</ul>
-				</div>
-			</div>
-
-			<div class="collapse collapse-arrow">
-				<input id="accordion4" type="checkbox" class="peer" />
-				<div
-					class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
-				>
-					<span class="inline-flex items-center">
-						<b><UserSearch class="-mt-1 mr-1" />Riflessologo</b>
-						{#if filtriAttivi.riflessologo.length > 0}
-							<Check class="ml-1" color="green" />
-						{/if}
-					</span>
-				</div>
-				<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100">
-					<ul class="list-none p-0 -mx-4">
-						{#each getTableNames as item}
-							<li
-								class="p-2 border-b cursor-pointer transition-colors duration-300
-							{filtriAttivi.riflessologo == `${item.name} ${item.surname}`
-									? 'bg-orange-200 text-red-900 font-bold'
-									: 'hover:bg-blue-200 hover:text-blue-900'}"
-								onclick={() => onClickFilterRiflessologo(item.userId, item.name, item.surname)}
-							>
-								{'>'}
-								{item.name}
-								{item.surname}
-							</li>
-						{/each}
-					</ul>
-				</div>
+							<CircleX size={16} />
+							Reset filtri
+						</button>
+					</div>
+				{/if}
 			</div>
 		</div>
 	</section>
 	<!-- colonna ordina, filtri e card -->
 	<section class="col-span-12 xl:col-span-9 bg-base-100 rounded-lg">
-		<!-- ORDINA BUTTON -->
-		<div class="flex items-center justify-between p-4">
-			<!-- Visualizzazione corsi disponibili -->
+		<div class="flex items-center p-4">
 			<div
 				class="btn btn-sm rounded-md cursor-default {coursesList.length > 0
 					? 'bg-green-300 hover:bg-green-300'
@@ -375,67 +442,68 @@
 					<strong class="">{coursesList.length}</strong>
 				</div>
 			</div>
-			<!-- bottone ordina -->
-			<div class="dropdown dropdown-end flex relative">
+			<!-- Reset button -->
+			{#if resetActive}
+				<button
+					class="btn btn-sm px-3 py-2 ml-4 rounded-md bg-red-200 border-red-500 text-red-500 hover:border-red-100 hover:bg-red-400 hover:text-red-200"
+					onclick={onFilterReset}
+				>
+					<CircleX size={16} />
+					Reset filtri
+				</button>
+			{/if}
+			<!-- Sort button -->
+			<div class="dropdown dropdown-end ml-auto">
 				<button
 					id="dropdownSortButton"
-					class="btn btn-sm bg-blue-200 border-blue-500 text-blue-500 rounded-md hover:border-blue-100 hover:text-blue-200"
-					aria-expanded="false"
-					onclick={() => document.getElementById('dropdownSortContent').classList.remove('hidden')}
+					class="btn btn-sm btn-primary btn-outline gap-2 rounded-md"
+					tabindex="0"
 				>
-					<span class="flex items-center justify-center space-x-1"
-						><strong>Ordina: {currentSort}</strong>
-						<ChevronDown class="" /></span
-					>
+					<span class="flex items-center justify-center gap-2">
+						Ordina: <span class="font-bold">{currentSort}</span>
+						<ChevronDown />
+					</span>
 				</button>
-				<ul
-					id="dropdownSortContent"
-					class="dropdown-content menu z-1 bg-gray-100 p-2 rounded-lg shadow-sm w-max gap-2 absolute"
-					style="left: 50%; transform: translateX(-50%); top: 100%;"
-				>
+				<ul class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-lg w-52 mt-1">
 					<li>
-						<a
-							class="dropdown-item"
-							href="#1"
-							onclick={() => {
-								sortCourses('recent');
-								document.getElementById('dropdownSortContent').classList.add('hidden');
-							}}
+						<button
+							class="flex items-center {currentSort === 'dal più recente'
+								? 'bg-primary/10 text-primary font-medium'
+								: ''}"
+							onclick={() => sortItems('recent')}
 						>
-							dal più recente</a
-						>
+							dal più recente
+						</button>
 					</li>
 					<li>
-						<a
-							class="dropdown-item cursor-pointer"
-							href="#1"
-							onclick={() => {
-								sortCourses('oldest');
-								document.getElementById('dropdownSortContent').classList.add('hidden');
-							}}
+						<button
+							class="flex items-center {currentSort === 'dal meno recente'
+								? 'bg-primary/10 text-primary font-medium'
+								: ''}"
+							onclick={() => sortItems('oldest')}
 						>
-							dal meno recente</a
-						>
+							dal meno recente
+						</button>
 					</li>
 					<li>
-						<a
-							class="dropdown-item"
-							href="#1"
-							onclick={() => {
-								sortCourses('expensive');
-								document.getElementById('dropdownSortContent').classList.add('hidden');
-							}}>dal più costoso</a
+						<button
+							class="flex items-center {currentSort === 'dal più costoso'
+								? 'bg-primary/10 text-primary font-medium'
+								: ''}"
+							onclick={() => sortItems('expensive')}
 						>
+							dal più costoso
+						</button>
 					</li>
 					<li>
-						<a
-							class="dropdown-item"
-							href="#1"
-							onclick={() => {
-								sortCourses('cheap');
-								document.getElementById('dropdownSortContent').classList.add('hidden');
-							}}>dal meno costoso</a
+						<button
+							class="flex items-center {currentSort === 'dal meno costoso'
+								? 'bg-primary/10 text-primary font-medium'
+								: ''}"
+							onclick={() => sortItems('cheap')}
 						>
+							dal meno costoso
+						</button>
 					</li>
 				</ul>
 			</div>
@@ -443,17 +511,9 @@
 		<!-- Visualizzazione filtri attivi e RESET -->
 		{#if resetActive}
 			<div class="flex items-center space-x-4 pb-3 px-4">
-				<!-- Pulsante Reset Filter -->
-				<button
-					class="btn btn-sm bg-red-200 border-red-500 text-red-500 px-3 py-2 rounded-md hover:border-red-100 hover:bg-red-400 hover:text-red-200"
-					onclick={onFilterReset}
-				>
-					Reset filtri
-				</button>
-				<!-- Visualizzazione Filtri Attivi -->
+				<!-- Active filter -->
 				<div class="text-gray-700">
-					<span class="">Filtri attivi</span>
-
+					<span><Tags /></span>
 					{#if filtriAttivi.evento.length > 0}
 						<div class="badge badge-accent rounded-md">
 							Evento: <strong class="pl-1">{filtriAttivi.evento}</strong>

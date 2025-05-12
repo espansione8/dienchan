@@ -418,7 +418,7 @@
 						aria-label="quantitaProdotto"
 						aria-describedby="basic-quantitaProdotto"
 						step="1"
-						min="1"
+						min="0"
 						bind:value={stockQty}
 						required
 					/>
@@ -569,7 +569,7 @@
 						aria-label="quantitaProdotto"
 						aria-describedby="basic-quantitaProdotto"
 						step="1"
-						min="1"
+						min="0"
 						bind:value={stockQty}
 						required
 					/>
