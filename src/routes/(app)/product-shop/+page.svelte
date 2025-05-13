@@ -11,7 +11,17 @@
 		ShoppingCart,
 		Tags,
 		Boxes,
-		CircleX
+		CircleX,
+		Tag,
+		Package,
+		BookOpen,
+		Clock,
+		MapPin,
+		UserCircle,
+		AlertCircle,
+		Info,
+		Calendar,
+		Trash2
 	} from 'lucide-svelte';
 
 	let { data } = $props();
@@ -129,7 +139,7 @@
 
 <div class="bg-base-200 grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-8 lg:p-8">
 	<!-- Filter column -->
-	<section class="col-span-12 xl:col-span-3">
+	<section class="col-span-12 xl:col-span-2">
 		<div class="sticky top-4">
 			<div class="bg-base-100 rounded-xl shadow-lg overflow-hidden border border-base-200">
 				<!-- Filter Header -->
@@ -214,8 +224,8 @@
 			</div>
 		</div>
 	</section>
-	<!-- colonna ordina, filtri e card -->
-	<section class="col-span-12 xl:col-span-9 bg-base-100 rounded-lg">
+	<!-- Product column -->
+	<section class="col-span-12 xl:col-span-10 bg-base-100 rounded-lg">
 		<div class="flex items-center p-4">
 			<div
 				class="btn btn-sm rounded-md cursor-default {prodList.length > 0
@@ -296,7 +306,6 @@
 		<!-- Visualizzazione filtri attivi e RESET -->
 		{#if resetActive}
 			<div class="flex items-center space-x-4 pb-3 px-4">
-				<!-- Active filter -->
 				<div class="text-gray-700">
 					<span><Tags /></span>
 					{#if activeFilter.category.length > 0}
@@ -307,7 +316,6 @@
 				</div>
 			</div>
 		{/if}
-		<!-- end ORDINA BUTTON -->
 		<!-- CARD -->
 		<div class="flex flex-wrap justify-center gap-3 pl-3 pb-4">
 			{#if prodList.length == 0}
@@ -325,126 +333,319 @@
 			{/if}
 			{#each prodList as productData, i}
 				<div
-					class="card card-compact overflow-hidden bg-base-100 max-w-xs rounded-xl shadow-md border"
+					class="card overflow-hidden bg-base-100 rounded-xl shadow-lg border
+	border-base-200 hover:shadow-xl transition-shadow duration-300 flex flex-col w-84"
+					class:h-128={auth}
+					class:h-115={!auth}
 				>
-					<a href="/product-detail/{productData.prodId}">
-						<figure class="px-8 pt-8">
-							<img
-								src={imgCheck(productData.uploadfiles, 'product-primary').length > 0
-									? `/files/product/${productData.prodId}/${imgCheck(productData.uploadfiles, 'product-primary')[0]}`
-									: '/images/placeholder.jpg'}
-								alt="product-primary"
-								class="h-64 w-full border-2 rounded-lg object-contain"
-							/>
-						</figure>
-					</a>
-					<div class="card-body items-center text-center">
-						<a href="/product-detail/{productData.prodId}">
-							<h2 class="card-title text-2xl">
-								{productData.title}
-							</h2>
+					<div class="relative px-6 pt-6 pb-2 bg-base-200/30 space-y-0">
+						<a href="/course-detail/{productData.prodId}">
+							<div class="absolute -top-1 -right-1 z-10 opacity-70">
+								<div class="relative">
+									<div
+										class="bg-gradient-to-r from-primary to-primary/80 text-primary-content px-4 py-2 rounded-bl-lg rounded-tr-lg shadow-md"
+									>
+										<span class="text-xs font-semibold">PREZZO</span>
+										<div class="flex items-baseline">
+											<span class="text-2xl font-bold">€ {productData.price}</span>
+										</div>
+									</div>
+									<div
+										class="absolute top-0 right-0 w-0 h-0 border-t-8 border-t-primary/80 border-r-8 border-r-transparent transform translate-x-full"
+									></div>
+								</div>
+							</div>
+							<div class="h-48 w-full flex items-center justify-center">
+								<img
+									src={imgCheck(productData.uploadfiles, 'product-primary').length > 0
+										? `/files/product/${productData.prodId}/${imgCheck(productData.uploadfiles, 'product-primary')[0]}`
+										: '/images/placeholder.jpg'}
+									alt="product-primary"
+									class="h-full max-h-48 w-auto object-contain rounded-lg hover:scale-110 transition-transform duration-500"
+								/>
+							</div>
 						</a>
-						<p class="card-text text-xl">
-							<b>€ {productData.price}</b>
-						</p>
-						<!-- <h5
-							class="card-text text-xl border rounded-md shadow-sm font-semibold p-2 bg-neutral-200"
-						>
-							{productData.descrShort}
-						</h5> -->
-						<p class="card-text">
-							<Tags /> <b>{productData.category[0]}</b>
-						</p>
-						<p class="card-text">
-							<Boxes />
-							<b>
-								{#if productData.stockQty < 1}
-									out of stock
-								{:else}
-									{productData.stockQty} max
-								{/if}
-							</b>
-						</p>
-						<div class="card-actions">
-							<div class="flex justify-between gap-1 my-3">
-								<!-- <a
-									class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:text-gray-300"
-									href="/product-detail/{productData.prodId}">Info</a
-								> -->
-								<!-- <div class="join">
-									<button class="btn btn-sm join-item text-lg" onclick={() => setQty('minus')}
-										>-</button
-									>
-									<input
-										type="text"
-										value={quantity}
-										class="input input-sm join-item w-12 text-center"
-										readonly
-									/>
-									<button class="btn btn-sm join-item text-lg" onclick={() => setQty('plus')}
-										>+</button
-									>
-								</div> -->
-								{#if auth}
-									{#if productData.stockQty > 0}
-										{#if checkCart(productData.prodId)}
-											<!-- <button
-											class="btn btn-sm bg-red-200 border border-red-400 rounded-md text-red-700 hover:text-red-700 hover:bg-red-400 inline-flex items-center justify-center space-x-2"
-											onclick={() => removeFromCart($cartProducts, productData)}
-											><ShoppingCart /> Rimuovi</button
-										> -->
-											<div class="join join-vertical">
-												{#if $cartProducts.find((item) => item.prodId === productData.prodId)?.orderQuantity < productData.stockQty}
-													<button
-														class="btn btn-primary join-item"
-														onclick={() => addToCart($cartProducts, productData, false)}
-														>+ <ShoppingCart /> aggiungi</button
-													>
-												{:else}
-													<button class="btn join-item"><CircleX />Quantità limite</button>
-												{/if}
-												<!-- <button
-												class="btn btn-primary join-item"
-												onclick={() => addToCart($cartProducts, productData, false)}
-												>+ <ShoppingCart /> aggiungi</button
-											> -->
-												<input
-													type="text"
-													value={$cartProducts.find((item) => item.prodId === productData.prodId)
-														?.orderQuantity}
-													class="input join-item text-center w-full"
-													readonly
-												/>
+					</div>
 
-												<button
-													class="btn join-item"
-													onclick={() => removeFromCart($cartProducts, productData)}
-													>- <ShoppingCart /> rimuovi</button
-												>
-											</div>
-										{:else}
+					<div class="card-body px-5 py-2 flex-grow">
+						<a href="/course-detail/{productData.prodId}">
+							<h3 class="card-title text-lg font-bold text-primary flex items-start gap-2 mb-2">
+								<BookOpen size={18} class="flex-shrink-0 mt-1" />
+								<span>{productData.title}</span>
+							</h3>
+						</a>
+						<div class="flex items-center gap-2 mb-2 text-sm">
+							<Tags size={16} class="text-primary flex-shrink-0" />
+							<span class="font-medium">{productData.category[0]}</span>
+						</div>
+						<div class="flex items-center gap-1 text-sm">
+							<span class={productData.stockQty < 1 ? 'font-medium text-error' : 'font-medium'}>
+								{#if productData.stockQty < 1}
+									<Boxes size={16} color="red" /> Out of stock
+								{:else}
+									<Boxes size={16} color="green" /><span class="text-success">
+										&nbsp;{productData.stockQty} in magazzino</span
+									>
+								{/if}
+							</span>
+						</div>
+						<!-- memo for 2 inline items  -->
+						<!-- <div class="flex items-center gap-2 mb-2 text-sm">
+							<Calendar size={16} class="text-primary flex-shrink-0" />
+							<span class="font-medium">{productData.eventStartDate}</span>
+							<Clock size={16} class="text-primary flex-shrink-0 ml-2" />
+							<span>Dalle <b>{productData.timeStartDate}</b></span>
+						</div> -->
+					</div>
+
+					<div class="px-5 pb-4 pt-0">
+						<div class="divider my-1"></div>
+						<div class="card-actions flex justify-between items-center w-full gap-2">
+							<a
+								class="btn btn-outline rounded-md flex items-center gap-1"
+								href="/product-detail/{productData.prodId}"
+							>
+								<Info size={16} />
+								Dettagli
+							</a>
+							{#if auth}
+								{#if productData.stockQty > 0}
+									{#if checkCart(productData.prodId)}
+										<div class="join join-vertical flex-1">
 											<button
-												class="btn btn-primary rounded-md inline-flex items-center justify-center space-x-2"
-												onclick={() => addToCart($cartProducts, productData, false)}
-												><ShoppingCart /> Aggiungi</button
+												class="btn join-item"
+												onclick={() => removeFromCart($cartProducts, productData)}
+												><b>-</b> <ShoppingCart /> rimuovi</button
 											>
-										{/if}
+
+											<input
+												type="text"
+												value={$cartProducts.find((item) => item.prodId === productData.prodId)
+													?.orderQuantity}
+												class="input join-item text-center w-full"
+												readonly
+											/>
+											{#if $cartProducts.find((item) => item.prodId === productData.prodId)?.orderQuantity < productData.stockQty}
+												<button
+													class="btn btn-primary join-item"
+													onclick={() => addToCart($cartProducts, productData, false)}
+													><b>+</b> <ShoppingCart /> aggiungi</button
+												>
+											{:else}
+												<button class="btn join-item"><CircleX />Quantità limite</button>
+											{/if}
+										</div>
 									{:else}
 										<button
-											class="btn btn-sm rounded-md inline-flex items-center justify-center space-x-2"
-											disabled>+ <ShoppingCart /> aggiungi</button
+											class="btn btn-primary rounded-md flex-1 rounded-md flex items-center gap-1"
+											onclick={() => addToCart($cartProducts, productData, false)}
+											><ShoppingCart /> Aggiungi</button
 										>
 									{/if}
 								{:else}
 									<button
-										class="btn btn-sm btn-error rounded-md inline-flex items-center justify-center space-x-2"
-										>Riservato agli associati</button
+										class="btn btn-sm rounded-md inline-flex items-center justify-center space-x-2"
+										disabled>Out of Stock</button
 									>
 								{/if}
-							</div>
+							{:else}
+								<button
+									class="btn btn-sm btn-error rounded-md inline-flex items-center justify-center space-x-2"
+									>Riservato agli associati</button
+								>
+							{/if}
 						</div>
 					</div>
 				</div>
+				<!-- V1 -->
+
+				<!-- <div class="card w-full max-w-xs bg-base-100 rounded-2xl shadow-xl border">
+					<figure class="px-4 pt-4">
+						<img
+							src={imgCheck(productData.uploadfiles, 'product-primary').length > 0
+								? `/files/product/${productData.prodId}/${imgCheck(productData.uploadfiles, 'product-primary')[0]}`
+								: '/images/placeholder.jpg'}
+							alt="product-primary"
+							class="rounded-xl object-contain h-64 w-full"
+						/>
+					</figure>
+					<div class="card-body p-6">
+						<h2 class="card-title text-2xl font-semibold text-gray-900">
+							{productData.title}
+						</h2>
+						<p class="text-xl font-bold text-primary">€ {productData.price}</p>
+						<div class="flex items-center space-x-2 text-sm">
+							<Tag class="h-5 w-5 text-gray-500" />
+							<span>{productData.category[0]}</span>
+						</div>
+						<div class="flex items-center space-x-2 text-sm">
+							<Package class="h-5 w-5 text-gray-500" />
+							<span>
+								{#if productData.stockQty < 1}
+									Out of Stock
+								{:else}
+									{productData.stockQty} in stock
+								{/if}
+							</span>
+						</div>
+						<div class="card-actions justify-end mt-4">
+							{#if auth}
+								{#if productData.stockQty > 0}
+									{#if checkCart(productData.prodId)}
+										<div class="join join-vertical">
+											{#if $cartProducts.find((item) => item.prodId === productData.prodId)?.orderQuantity < productData.stockQty}
+												<button
+													class="btn btn-sm btn-primary join-item"
+													onclick={() => addToCart($cartProducts, productData, false)}
+												>
+													+ Aggiungi 1 <ShoppingCart class="w-4 h-4" />
+												</button>
+											{:else}
+												<button class="btn btn-sm join-item" disabled>
+													<CircleX class="w-4 h-4" /> Limit
+												</button>
+											{/if}
+											<input
+												type="text"
+												value={$cartProducts.find((item) => item.prodId === productData.prodId)
+													?.orderQuantity}
+												class="input input-sm join-item text-center w-full"
+												readonly
+											/>
+											<button
+												class="btn btn-sm join-item"
+												onclick={() => removeFromCart(cartProducts, productData)}
+											>
+												- Remove <ShoppingCart class="w-4 h-4" />
+											</button>
+										</div>
+									{:else}
+										<button
+											class="btn btn-primary btn-sm rounded-md"
+											onclick={() => addToCart(cartProducts, productData, false)}
+										>
+											<ShoppingCart class="w-4 h-4 mr-2" /> Add to Cart
+										</button>
+									{/if}
+								{:else}
+									<button class="btn btn-sm btn-disabled" disabled> Out of Stock </button>
+								{/if}
+							{:else}
+								<button class="btn btn-sm btn-error">Associates Only</button>
+							{/if}
+						</div>
+					</div>
+				</div> -->
+
+				<!-- V2 -->
+
+				<!-- <div
+					class="card card-compact overflow-hidden bg-base-100 max-w-xs rounded-xl shadow-md border card-hover"
+				>
+					<a href="/product-detail/{productData.prodId}" class="block overflow-hidden">
+						<figure class="px-8 pt-8 transition-all duration-300 hover:scale-[1.02]">
+							<img
+								src={imgCheck(productData.uploadfiles, 'product-primary').length > 0
+									? `/files/product/${productData.prodId}/${imgCheck(productData.uploadfiles, 'product-primary')[0]}`
+									: '/images/placeholder.jpg'}
+								alt={productData.title}
+								class="h-64 w-full border-2 rounded-lg object-contain"
+							/>
+						</figure>
+					</a>
+
+					<div class="card-body items-center text-center">
+						<a
+							href="/product-detail/{productData.prodId}"
+							class="hover:text-primary transition-colors duration-200"
+						>
+							<h2 class="card-title text-xl md:text-2xl line-clamp-1">
+								{productData.title}
+							</h2>
+						</a>
+
+						<p class="card-text text-xl font-semibold text-primary">
+							€ {productData.price.toFixed(2)}
+						</p>
+
+						<div class="flex items-center gap-1 text-sm">
+							<Tags size={16} />
+							<span class="font-medium">{productData.category[0]}</span>
+						</div>
+
+						<div class="flex items-center gap-1 text-sm">
+							<span class={productData.stockQty < 1 ? 'font-medium text-error' : 'font-medium'}>
+								{#if productData.stockQty < 1}
+									<Boxes size={16} color="red" /> Out of stock
+								{:else}
+									<Boxes size={16} color="green" /><span class="text-success"
+										>{productData.stockQty} in magazzino</span
+									>
+								{/if}
+							</span>
+						</div>
+
+						<div class="card-actions w-full mt-3">
+							{#if auth}
+								{#if productData.stockQty > 0}
+									{#if checkCart(productData.prodId)}
+										<div class="join join-vertical w-full">
+											<button
+												class="btn btn-outline join-item btn-hover flex gap-1"
+												onclick={() => removeFromCart($cartProducts, productData)}
+												aria-label="Remove one from cart"
+											>
+												<ShoppingCart size={18} />
+												<span>- Rimuovi 1 <ShoppingCart class="w-4 h-4" /></span>
+											</button>
+
+											{#if productData.stockQty > 0}
+												<div class="bg-base-200 py-2 text-center font-semibold">
+													{$cartProducts.find((item) => item.prodId === productData.prodId)
+														?.orderQuantity} nel carrello
+												</div>
+											{/if}
+
+											{#if $cartProducts.find((item) => item.prodId === productData.prodId)?.orderQuantity < productData.stockQty}
+												<button
+													class="btn btn-primary join-item btn-hover flex gap-1"
+													onclick={() => addToCart($cartProducts, productData, false)}
+													aria-label="Add one more to cart"
+												>
+													<ShoppingCart size={18} />
+													<span>+ Aggiungi 1 <ShoppingCart class="w-4 h-4" /></span>
+												</button>
+											{:else}
+												<button class="btn join-item disabled flex gap-1">
+													<CircleX size={18} />
+													<span>Quantità massima</span>
+												</button>
+											{/if}
+										</div>
+									{:else}
+										<button
+											class="btn btn-primary w-full btn-hover flex gap-1"
+											onclick={() => addToCart($cartProducts, productData, false)}
+											aria-label="Add to cart"
+										>
+											<ShoppingCart size={18} />
+											<span>Aggiungi al Carrello</span>
+										</button>
+									{/if}
+								{:else}
+									<button class="btn w-full disabled flex gap-1" disabled aria-label="Out of stock">
+										<ShoppingCart size={18} />
+										<span>Out of stock</span>
+									</button>
+								{/if}
+							{:else}
+								<button class="btn btn-error w-full flex gap-1" aria-label="Members only">
+									<span>Members only</span>
+								</button>
+							{/if}
+						</div>
+					</div>
+				</div> -->
 			{/each}
 		</div>
 		<!-- end CARD -->

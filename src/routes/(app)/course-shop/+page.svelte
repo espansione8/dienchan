@@ -617,9 +617,6 @@
 							<UserCircle size={16} class="text-primary flex-shrink-0" />
 							<span>Riflessologo: <b>{courseData.name} {courseData.surname}</b></span>
 						</div>
-
-						<div class="divider my-1"></div>
-
 						{#if !auth}
 							<div class="bg-amber-100 text-amber-800 p-2 rounded-md flex items-center gap-2 mb-3">
 								<AlertCircle size={16} class="flex-shrink-0" />
@@ -629,9 +626,10 @@
 					</div>
 
 					<div class="px-5 pb-4 pt-0">
+						<div class="divider my-1"></div>
 						<div class="card-actions flex justify-between items-center w-full gap-2">
 							<a
-								class="btn btn-outline btn-sm rounded-md flex items-center gap-1"
+								class="btn btn-outline rounded-md flex items-center gap-1"
 								href="/course-detail/{courseData.prodId}"
 							>
 								<Info size={16} />
@@ -640,7 +638,7 @@
 
 							{#if checkCart(courseData.prodId)}
 								<button
-									class="btn btn-error btn-sm flex-1 rounded-md flex items-center gap-1"
+									class="btn btn-error flex-1 rounded-md flex items-center gap-1"
 									onclick={() => removeFromCart($cartProducts, courseData)}
 								>
 									<Trash2 size={16} />
@@ -648,11 +646,11 @@
 								</button>
 							{:else}
 								<button
-									class="btn btn-success btn-sm flex-1 rounded-md flex items-center gap-1"
+									class="btn btn-primary flex-1 rounded-md flex items-center gap-1"
 									onclick={() => addToCart($cartProducts, courseData, false)}
 								>
 									<ShoppingCart size={16} />
-									Aggiungi al Carrello
+									Aggiungi
 								</button>
 							{/if}
 						</div>
