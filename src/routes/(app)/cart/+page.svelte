@@ -2,15 +2,32 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import Modal from '$lib/components/Modal.svelte';
 	import { enhance } from '$app/forms';
-	import { cartProducts, removeFromCart, emptyCart } from '$lib/stores/cart';
+	import { cartProducts, addToCart, removeFromCart, emptyCart } from '$lib/stores/cart';
 	import Notification from '$lib/components/Notification.svelte';
 	import { country_list, province } from '$lib/stores/arrays.js';
-	import { Settings, X, Check, Lock } from 'lucide-svelte';
+	import { imgCheck } from '$lib/tools/imgCheck';
+	import {
+		Settings,
+		X,
+		Check,
+		Lock,
+		BookOpen,
+		Tags,
+		Boxes,
+		ShoppingCart,
+		CircleX,
+		Info
+	} from 'lucide-svelte';
 
 	let { data, form } = $props();
 	let { userData, auth } = $derived(data);
 
 	console.log('form', form);
+
+	const checkCart = (id: any) => {
+		const check = $cartProducts.some((item) => item.prodId == id);
+		return check;
+	};
 
 	let cart = $state($cartProducts);
 	console.log('cart', cart[0]);
@@ -352,9 +369,130 @@
 		<div class="flex flex-wrap justify-center gap-3 my-5">
 			{#each $cartProducts as item}
 				<div
+					class="card overflow-hidden bg-base-100 rounded-xl shadow-lg border
+	border-base-200 hover:shadow-xl transition-shadow duration-300 flex flex-col w-84"
+					class:h-128={auth}
+					class:h-115={!auth}
+				>
+					<div class="relative px-6 pt-6 pb-2 bg-base-200/30 space-y-0">
+						<a href="/course-detail/{item.prodId}">
+							<div class="absolute -top-1 -right-1 z-10 opacity-70">
+								<div class="relative">
+									<div
+										class="bg-gradient-to-r from-primary to-primary/80 text-primary-content px-4 py-2 rounded-bl-lg rounded-tr-lg shadow-md"
+									>
+										<span class="text-xs font-semibold">PREZZO</span>
+										<div class="flex items-baseline">
+											<span class="text-2xl font-bold">€ {item.price}</span>
+										</div>
+									</div>
+									<div
+										class="absolute top-0 right-0 w-0 h-0 border-t-8 border-t-primary/80 border-r-8 border-r-transparent transform translate-x-full"
+									></div>
+								</div>
+							</div>
+							<div class="h-48 w-full flex items-center justify-center">
+								<img
+									src={imgCheck(item.uploadfiles, 'product-primary').length > 0
+										? `/files/product/${item.prodId}/${imgCheck(item.uploadfiles, 'product-primary')[0]}`
+										: '/images/placeholder.jpg'}
+									alt="product-primary"
+									class="h-full max-h-48 w-auto object-contain rounded-lg hover:scale-110 transition-transform duration-500"
+								/>
+							</div>
+						</a>
+					</div>
+
+					<div class="card-body px-5 py-2 flex-grow">
+						<a href="/course-detail/{item.prodId}">
+							<h3 class="card-title text-lg font-bold text-primary flex items-start gap-2 mb-2">
+								<BookOpen size={18} class="flex-shrink-0 mt-1" />
+								<span>{item.title}</span>
+							</h3>
+						</a>
+						<div class="flex items-center gap-2 mb-2 text-sm">
+							<Tags size={16} class="text-primary flex-shrink-0" />
+							<span class="font-medium">{item.category[0]}</span>
+						</div>
+						<div class="flex items-center gap-1 text-sm">
+							<span class={item.stockQty < 1 ? 'font-medium text-error' : 'font-medium'}>
+								{#if item.stockQty < 1}
+									<Boxes size={16} color="red" /> Out of stock
+								{:else}
+									<Boxes size={16} color="green" /><span class="text-success">
+										&nbsp;{item.stockQty} in magazzino</span
+									>
+								{/if}
+							</span>
+						</div>
+						<!-- memo for 2 inline items  -->
+						<!-- <div class="flex items-center gap-2 mb-2 text-sm">
+							<Calendar size={16} class="text-primary flex-shrink-0" />
+							<span class="font-medium">{item.eventStartDate}</span>
+							<Clock size={16} class="text-primary flex-shrink-0 ml-2" />
+							<span>Dalle <b>{item.timeStartDate}</b></span>
+						</div> -->
+					</div>
+
+					<div class="px-5 pb-4 pt-0">
+						<div class="divider my-1"></div>
+						<div class="card-actions flex justify-between items-center w-full gap-2">
+							<a
+								class="btn btn-outline rounded-md flex items-center gap-1"
+								href="/product-detail/{item.prodId}"
+							>
+								<Info size={16} />
+								Dettagli
+							</a>
+							{#if auth}
+								{#if item.stockQty > 0}
+									{#if checkCart(item.prodId)}
+										<div class="join join-vertical flex-1">
+											<button onclick={() => removeFromCart($cartProducts, item)}
+												><b>-</b> <ShoppingCart /> rimuovi</button
+											>
+
+											<input
+												type="text"
+												value={$cartProducts.find((p) => p.prodId === item.prodId)?.orderQuantity}
+												class="input join-item text-center w-full"
+												readonly
+											/>
+											{#if $cartProducts.find((p) => p.prodId === item.prodId)?.orderQuantity < item.stockQty}
+												<button
+													class="btn btn-primary join-item"
+													onclick={() => addToCart($cartProducts, item, false)}
+													><b>+</b> <ShoppingCart /> aggiungi</button
+												>
+											{:else}
+												<button class="btn join-item"><CircleX />Quantità limite</button>
+											{/if}
+										</div>
+									{:else}
+										<button
+											class="btn btn-primary rounded-md flex-1 rounded-md flex items-center gap-1"
+											onclick={() => addToCart($cartProducts, item, false)}
+											><ShoppingCart /> Aggiungi</button
+										>
+									{/if}
+								{:else}
+									<button
+										class="btn btn-sm rounded-md inline-flex items-center justify-center space-x-2"
+										disabled>Out of Stock</button
+									>
+								{/if}
+							{:else}
+								<button
+									class="btn btn-sm btn-error rounded-md inline-flex items-center justify-center space-x-2"
+									>Riservato agli associati</button
+								>
+							{/if}
+						</div>
+					</div>
+				</div>
+				<!-- <div
 					class="card card-compact overflow-hidden bg-base-100 max-w-xs rounded-xl shadow-md border"
 				>
-					<!-- src={imgSrc(item.category[0])} -->
 					<figure class="px-4 pt-4">
 						<img
 							src={item.layoutView?.urlPic || '/images/placeholder.jpg'}
@@ -363,30 +501,30 @@
 						/>
 					</figure>
 					<div class="card-body items-center text-center">
-						<!-- data giorno -->
+
 						<h2 class="card-title text-2xl">
 							{item.eventStartDate}
 						</h2>
-						<!-- provincia -->
+
 						<p class="card-text text-xl">
 							<b>{item.county}</b>
 						</p>
-						<!-- title -->
+
 						<h5
 							class="card-text text-xl bg-base-200 border rounded-md shadow-sm font-semibold p-2 {item
 								.layoutView?.bgColor || 'bg-primary'}"
 						>
 							{item.layoutView?.title}
 						</h5>
-						<!-- riflessologo -->
+			
 						<p class="card-text">
 							Riflessologo: <b>{item.name} {item.surname}</b>
 						</p>
-						<!-- dalle x alle y -->
+			
 						<h5 class="card-text">
 							Dalle <b>{item.timeStartDate}</b>
 						</h5>
-						<!-- price -->
+				
 						<p class="card-text">
 							Prezzo: <b>{item.layoutView?.price}</b>
 							<br />
@@ -410,7 +548,7 @@
 							</span>
 						</div>
 					</div>
-				</div>
+				</div> -->
 			{:else}
 				<p class="text-xl font-semibold text-red-400">Carrello vuoto</p>
 			{/each}

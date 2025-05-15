@@ -613,9 +613,6 @@
 		currentModal = '';
 		currentDialog = '';
 		resetFields();
-
-		// questo serve per ripristinare i valori di tag e province e mail quando si preme annulla o closeModal
-
 		tableList = getTable;
 	};
 	// CHECK WHY

@@ -215,8 +215,8 @@
 				<div class="alert bg-primary/10 text-primary-focus border-none">
 					<CircleCheck size="20" />
 					<div>
-						<h3 class="font-bold">Spedizioni gratuite per ordino superiori a € 150</h3>
-						<div class="text-xs">Ordini saranno evasi ogni settimana il mercoledi</div>
+						<h3 class="font-bold">Spedizioni gratuite per ordini superiori a € 100</h3>
+						<div class="text-xs">Ordini saranno evasi ogni settimana il Lunedi e Giovedi</div>
 					</div>
 				</div>
 			</div>

@@ -569,7 +569,7 @@
 				>
 					<div class="relative px-6 pt-6 pb-2 bg-base-200/30 space-y-0">
 						<a href="/course-detail/{courseData.prodId}">
-							<div class="absolute -top-1 -right-1 z-10 opacity-70">
+							<div class="absolute -top-1 -right-1 z-10 opacity-85">
 								<div class="relative">
 									<div
 										class="bg-gradient-to-r from-primary to-primary/80 text-primary-content px-4 py-2 rounded-bl-lg rounded-tr-lg shadow-md"
@@ -629,6 +629,13 @@
 						<div class="divider my-1"></div>
 						<div class="card-actions flex justify-between items-center w-full gap-2">
 							<a
+								class="btn btn-primary flex-1 rounded-md flex items-center gap-1"
+								href="/course-detail/{courseData.prodId}"
+							>
+								<Info size={20} />
+								Visualizza
+							</a>
+							<!-- <a
 								class="btn btn-outline rounded-md flex items-center gap-1"
 								href="/course-detail/{courseData.prodId}"
 							>
@@ -652,7 +659,7 @@
 									<ShoppingCart size={16} />
 									Aggiungi
 								</button>
-							{/if}
+							{/if} -->
 						</div>
 					</div>
 				</div>

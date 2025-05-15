@@ -1,8 +1,8 @@
 <script lang="ts">
 	//import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { LogOut, ChevronDown, Menu, Megaphone, LogIn } from 'lucide-svelte';
 	import { cartProducts, emptyCart, cdata } from '$lib/stores/cart';
+	import { LogOut, ChevronDown, Menu, Megaphone, LogIn, TriangleAlert } from 'lucide-svelte';
 
 	let { user, auth } = $props();
 
@@ -13,9 +13,15 @@
 	let userName = $state(user?.name || '');
 	let userSurname = $state(user?.surname || '');
 	//let userId = $state(user?.userId || '');
+	let notification = $state('');
+
+	if ($cartProducts.length < 1) {
+		notification = '';
+	}
 
 	const onBurgerclick = () => {
 		menuActive = !menuActive;
+		notification = '';
 	};
 
 	const redirectToLogin = () => {
@@ -35,6 +41,13 @@
 		} catch (err) {
 			console.log('Error logout', err);
 		}
+	};
+
+	const onClickCourse = () => {
+		notification = "Completa l'ordine PRODOTTI prima di ordinare CORSI";
+	};
+	const onClickProduct = () => {
+		notification = "Completa l'ordine CORSI prima di ordinare PRODOTTI";
 	};
 </script>
 
@@ -56,7 +69,7 @@
 		{/if}
 	</div>
 	<!-- Menu for desktop -->
-	<div class="hidden sm:flex gap-2">
+	<div class="hidden sm:flex sm:flex-col gap-2">
 		<ul class="hidden menu sm:menu-horizontal gap-3">
 			<a
 				class="btn btn-sm btn-outline btn-accent"
@@ -202,6 +215,12 @@
 				</a>
 			{/if}
 		</ul>
+		<p class="text-red-700">
+			{#if notification.length > 0}
+				<TriangleAlert size={18} />
+			{/if}
+			<b>{notification}</b>
+		</p>
 	</div>
 	<!-- Menu for mobile -->
 	<div class="dropdown dropdown-end sm:hidden">
