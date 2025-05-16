@@ -219,10 +219,21 @@ export const actions: Actions = {
 		const location = formData.get('location');
 		const layoutId = formData.get('layoutId');
 		//const price = formData.get('price');
-		const tagArray = formData.get('tagArray') || "";
-		const tag = tagArray.split(",");
-		const arrayEmail = formData.get('notificationEmail') || "";
-		const notificationEmail = arrayEmail.split(",");
+		const tagArray = formData.get('tagArray');
+		let tag: string[] = [];
+
+		if (typeof tagArray === 'string' && tagArray.trim().length) {
+			tag = tagArray.split(',').map((t) => t.trim());
+		}
+		//const arrayEmail = formData.get('notificationEmail') || "";
+		//const notificationEmail = arrayEmail.split(",");
+
+		const emailArray = formData.get('notificationEmail');
+		let notificationEmail: string[] = [];
+		if (typeof emailArray === 'string' && emailArray.trim().length) {
+			notificationEmail = emailArray.split(',').map((t) => t.trim());
+		}
+
 		const infoExtra = formData.get('infoExtra');
 		const prodId = formData.get('prodId');
 
@@ -241,7 +252,7 @@ export const actions: Actions = {
 					location,
 					layoutId,
 					notificationEmail,
-					tag,
+					...(tag.length ? { tag } : {}),
 					infoExtra
 				}
 			};
