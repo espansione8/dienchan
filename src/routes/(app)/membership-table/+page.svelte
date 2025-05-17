@@ -211,6 +211,7 @@
 		if (form != null) {
 			//console.log('form triggered');
 			async () => await invalidateAll(); // MUST be async/await or tableList = getTable will trigger infinite loop
+			//(async () => await invalidateAll())() // new to test
 			const { action, success, message, filterTableList } = form;
 			if (success) {
 				//console.log('filterTableList effect', filterTableList);

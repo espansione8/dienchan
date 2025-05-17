@@ -1,404 +1,321 @@
-<script>
-	// Svelte 5 state management
-	let activeTab = $state('description');
-	let cartCount = $state(0);
-	let selectedImage = $state(0);
+<script lang="ts">
+	import { invalidateAll } from '$app/navigation';
+	import Modal from '$lib/components/Modal.svelte';
+	import { enhance } from '$app/forms'; // `enhance` is the action directive
+	import type { ActionResult } from '@sveltejs/kit'; // Import ActionResult type
 
-	// Product data
-	const product = {
-		name: 'Pure Essence Wellness Oil V1',
-		price: 39.99,
-		description:
-			'Our Pure Essence Wellness Oil is crafted from 100% organic ingredients, sourced from sustainable farms. This therapeutic-grade essential oil blend promotes relaxation, reduces stress, and enhances overall wellbeing.',
-		benefits: [
-			'Reduces stress and anxiety',
-			'Improves sleep quality',
-			'Enhances mental clarity',
-			'Promotes skin health',
-			'100% natural ingredients'
-		],
-		ingredients:
-			'Lavender Oil, Eucalyptus Oil, Jojoba Oil, Rosemary Extract, Chamomile Extract, Vitamin E',
-		images: [
-			'/images/placeholder.jpg',
-			'/images/placeholder.jpg',
-			'/images/placeholder.jpg',
-			'/images/placeholder.jpg'
-		],
-		reviews: [
-			{
-				name: 'Sarah M.',
-				rating: 5,
-				text: 'This oil has completely transformed my evening routine. I sleep better than ever!'
-			},
-			{
-				name: 'James K.',
-				rating: 4,
-				text: 'Great product, lovely scent. I use it daily for meditation.'
-			},
-			{ name: 'Amelia P.', rating: 5, text: "The best wellness oil I've tried. Worth every penny!" }
-		]
+	import {
+		ListPlus,
+		XCircle,
+		Settings,
+		Funnel,
+		Pen,
+		Calendar,
+		Calculator,
+		FileDown,
+		RefreshCcw,
+		Trash2,
+		ShieldAlert,
+		Eye,
+		EyeOff
+	} from 'lucide-svelte';
+
+	let { data, form } = $props(); // `form` prop from server, contains action result
+	const { getTable } = $derived(data);
+	let tableList = $state(getTable);
+
+	let prodId = $state(null);
+	let status = $state('');
+	let title = $state('');
+	let descrShort = $state('');
+	let price: number | null = $state(0);
+	let renewalLength: number = $state(365);
+	let resetActive = $state(false);
+
+	// modal
+	let currentModal = $state('');
+	let openModal = $state(false);
+	let modalTitle = $state('');
+	let postAction = $state('?/');
+
+	//notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+			notificationContent = '';
+			notificationError = false;
+		}, 3000);
 	};
 
-	function addToCart() {
-		cartCount += 1;
-	}
+	const resetFields = () => {
+		// Reset your client-side state for form inputs
+		title = '';
+		descrShort = '';
+		price = 0;
+		renewalLength = 365;
+		prodId = null; // Assuming prodId is also part of the form fields to be reset
+		status = ''; // Assuming status is also part of the form fields to be reset
+		// Do not try to set `form = null;` here, as `form` is a prop.
+	};
 
-	function setActiveTab(tab) {
-		activeTab = tab;
-	}
+	// Define the callback for use:enhance
+	const handleFormSubmissionResult = () => {
+		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
+			// `result` is the ActionResult from your server action.
+			// `result.data` contains the data your action returned (this is what populates $props().form).
+			// `update` is a function to tell SvelteKit to update data, run load functions, etc.
+			// `enhance` calls `update` by default.
 
-	function setSelectedImage(index) {
-		selectedImage = index;
-	}
+			// Original logic from $effect, now using `result.data`
+			if (result.type === 'success' || result.type === 'failure') {
+				const actionResultData = result.data; // This is the content that will go into $props().form
+
+				if (actionResultData) {
+					// It's crucial to await invalidateAll() if subsequent logic depends on refreshed data.
+					//await invalidateAll();
+
+					// `actionResultData` should have the structure your server action returns,
+					// e.g., { success: boolean, message: string, filterTableList?: any, action?: string }
+					const { action, success, message, filterTableList } = actionResultData as any; // Cast if necessary, or define a type
+
+					if (success) {
+						currentModal = ''; // Close modal on success
+						if (action === 'filter') {
+							resetActive = true;
+							tableList = filterTableList; // Ensure filterTableList is in actionResultData
+						} else {
+							resetActive = false;
+							// `getTable` is derived from `$props().data`.
+							// After `invalidateAll()`, `data` is fresh, so `getTable` will provide the updated list.
+							tableList = getTable;
+						}
+						notificationError = false; // Ensure error is reset on success
+					} else {
+						// This case handles `success: false` explicitly returned by your action.
+						notificationError = true;
+					}
+
+					resetFields(); // Reset the client-side input field values
+					clearTimeout(startTimeout);
+					closeNotification(); // Setup notification display
+					toastClosed = false;
+					notificationContent = message || (success ? 'Success!' : 'Operation failed.');
+				} else if (result.type === 'success') {
+					// Action was successful (e.g., HTTP 200) but returned no specific data payload.
+					// This could be for actions that just need to trigger a refresh.
+					await invalidateAll();
+					resetFields();
+					currentModal = ''; // Close modal if applicable
+					tableList = getTable; // Refresh table
+
+					clearTimeout(startTimeout);
+					closeNotification();
+					toastClosed = false;
+					notificationContent = 'Operation completed successfully.'; // Generic success message
+					notificationError = false;
+				}
+			} else if (result.type === 'error') {
+				// This handles errors like network issues or unhandled exceptions in the action.
+				await invalidateAll(); // You might still want to refresh data
+				notificationError = true;
+				resetFields(); // Reset form fields
+				clearTimeout(startTimeout);
+				closeNotification();
+				toastClosed = false;
+				notificationContent = result.error.message || 'An unexpected error occurred.';
+			}
+
+			// `enhance` calls `update()` by default after this callback, which ensures props are updated
+			// and necessary `load` functions are re-run. If you called `invalidateAll()`, `update()`
+			// will work with the already invalidated (and thus refetched) data.
+			// You could call `await update()` explicitly if needed before further client-side logic not covered by Svelte's reactivity.
+		};
+	};
+
+	// Remove the $effect block that was handling form submission
+	/*
+	$effect(() => {
+		// console.log('form', form);
+		if (form != null) {
+			// (async () => await invalidateAll())(); // Corrected IIFE if you were to use it here
+			const { action, success, message, filterTableList } = form;
+			if (success) {
+				//console.log('filterTableList effect', filterTableList);
+				currentModal = '';
+				if (action == 'filter') {
+					resetActive = true;
+					tableList = filterTableList;
+				} else {
+					resetActive = false;
+					tableList = getTable;
+				}
+			} else {
+				notificationError = true;
+			}
+			resetFields();
+			clearTimeout(startTimeout);
+			closeNotification();
+			toastClosed = false;
+			notificationContent = message;
+			// form = null; // This line was problematic as `form` is a prop and cannot be reassigned here.
+		}
+	});
+	*/
+
+	// Function to close modal (assuming you have this or similar)
+	const onCloseModal = () => {
+		openModal = false;
+		currentModal = '';
+		resetFields(); // Optionally reset fields when modal is manually closed
+	};
 </script>
 
-<!-- Header -->
-<header class="navbar bg-base-100 shadow-lg px-4 sm:px-8">
-	<div class="flex-1">
-		<a class="text-xl font-bold text-primary">NaturalWell</a>
-	</div>
-	<div class="flex-none">
-		<div class="dropdown dropdown-end">
-			<label tabindex="0" class="btn btn-ghost btn-circle">
-				<div class="indicator">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="h-5 w-5"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
+<svelte:head>
+	<title>Lista Membership</title>
+</svelte:head>
+
+<noscript>
+	<h1 style="font-weight:700; text-align: center;">Please enable Javascript to continue.</h1>
+	<style type="text/css">
+		#main-content {
+			display: none;
+		}
+	</style>
+</noscript>
+
+<div class="overflow-x-auto table-zebra mt-5 px-4 mb-5">
+	<button
+		onclick={() => {
+			currentModal = 'new';
+			openModal = true;
+			modalTitle = 'Create New Membership';
+			postAction = '?/createNew';
+		}}
+		class="btn btn-primary">Add New Membership</button
+	>
+</div>
+
+{#if currentModal == 'new'}
+	<Modal isOpen={openModal} header={modalTitle}>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+			>✕</button
+		>
+		<form
+			method="POST"
+			action={postAction}
+			use:enhance={handleFormSubmissionResult}
+			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+		>
+			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
+				Nuovo membership
+			</header>
+
+			<section class="col-span-4">
+				<label for="titolo" class="form-label">
+					<p class="font-bold mb-2">Nome</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button type="button" class="join-item bg-gray-300 px-3"><Pen /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="titolo"
+						name="title"
+						type="text"
+						placeholder="Titolo"
+						aria-label="Titolo"
+						aria-describedby="basic-titolo"
+						bind:value={title}
+						required
+					/>
+				</div>
+			</section>
+
+			<section class="col-span-2 md:col-span-2">
+				<label for="price" class="form-label">
+					<p class="font-bold mb-2">Prezzo</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button type="button" class="join-item bg-gray-300 px-3"><Calculator /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="price"
+						type="number"
+						name="price"
+						placeholder="€"
+						aria-label="price"
+						aria-describedby="basic-price"
+						bind:value={price}
+						required
+					/>
+				</div>
+			</section>
+
+			<section class="col-span-2 md:col-span-2">
+				<label for="renewalLength" class="form-label">
+					<p class="font-bold mb-2">Durata giorni</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button type="button" class="join-item bg-gray-300 px-3"><Calendar /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="renewalLength"
+						type="number"
+						name="renewalLength"
+						aria-label="renewalLength"
+						aria-describedby="renewalLength"
+						min="1"
+						max="36500"
+						bind:value={renewalLength}
+						required
+					/>
+				</div>
+				<label for="renewalLength" class="form-label">
+					<p class="font-bold mb-2">(max 36500 = 100 anni)</p>
+				</label>
+			</section>
+
+			<section class="col-span-4">
+				<div class="mt-6">
+					<label for="descrShortN" class="form-label">
+						<p class="font-bold mb-2">Descrizione (opzionale)</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button type="button" class="join-item bg-gray-300 px-3"><Pen /></button>
+						<textarea
+							class="textarea textarea-bordered h-24 join-item w-full"
+							id="descrShortN"
+							name="descrShort"
+							placeholder="Descrizione"
+							aria-label="descrizione"
+							aria-describedby="basic-descrizione"
+							bind:value={descrShort}
+						></textarea>
+					</div>
+				</div>
+			</section>
+
+			<div class="col-span-4 mt-5 flex justify-center">
+				<div class="bg-gray-50 flex justify-center">
+					<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}
+						>Annulla</button
 					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-						/>
-					</svg>
-					{#if cartCount > 0}
-						<span class="badge badge-sm indicator-item badge-secondary">{cartCount}</span>
-					{/if}
-				</div>
-			</label>
-		</div>
-		<div class="dropdown dropdown-end">
-			<label tabindex="0" class="btn btn-ghost btn-circle avatar">
-				<div class="w-10 rounded-full">
-					<img src="/placeholder.svg?height=40&width=40" alt="Avatar" />
-				</div>
-			</label>
-		</div>
-	</div>
-</header>
-
-<main class="container mx-auto px-4 py-8">
-	<!-- Breadcrumbs -->
-	<div class="text-sm breadcrumbs mb-6">
-		<ul>
-			<li><a>Home</a></li>
-			<li><a>Wellness</a></li>
-			<li>Essential Oils</li>
-		</ul>
-	</div>
-
-	<!-- Product Section -->
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-		<!-- Product Images -->
-		<div class="space-y-4">
-			<div class="bg-base-200 rounded-lg overflow-hidden">
-				<img
-					src={product.images[selectedImage] || '/placeholder.svg'}
-					alt={product.name}
-					class="w-full h-auto object-cover aspect-square"
-				/>
-			</div>
-			<div class="flex space-x-2 overflow-x-auto">
-				{#each product.images as image, i}
-					<div
-						class="w-20 h-20 cursor-pointer rounded-md overflow-hidden border-2 {selectedImage === i
-							? 'border-primary'
-							: 'border-transparent'}"
-						on:click={() => setSelectedImage(i)}
-					>
-						<img
-							src={image || '/placeholder.svg'}
-							alt="Thumbnail"
-							class="w-full h-full object-cover"
-						/>
-					</div>
-				{/each}
-			</div>
-		</div>
-
-		<!-- Product Info -->
-		<div class="space-y-6">
-			<div>
-				<h1 class="text-3xl font-bold">{product.name}</h1>
-				<div class="flex items-center mt-2">
-					<div class="rating rating-sm">
-						<input type="radio" name="rating-2" class="mask mask-star-2 bg-accent" checked />
-						<input type="radio" name="rating-2" class="mask mask-star-2 bg-accent" checked />
-						<input type="radio" name="rating-2" class="mask mask-star-2 bg-accent" checked />
-						<input type="radio" name="rating-2" class="mask mask-star-2 bg-accent" checked />
-						<input type="radio" name="rating-2" class="mask mask-star-2 bg-accent" checked />
-					</div>
-					<span class="text-sm ml-2">(24 reviews)</span>
+					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">Registra</button>
 				</div>
 			</div>
+		</form>
+	</Modal>
+{/if}
 
-			<div class="text-2xl font-bold text-primary">${product.price}</div>
-
-			<div class="prose">
-				<p>{product.description}</p>
-			</div>
-
-			<div class="flex flex-col sm:flex-row gap-4">
-				<div class="form-control">
-					<div class="input-group">
-						<button class="btn btn-square btn-outline">-</button>
-						<input type="text" value="1" class="input input-bordered w-20 text-center" />
-						<button class="btn btn-square btn-outline">+</button>
-					</div>
-				</div>
-				<button class="btn btn-primary flex-1" on:click={addToCart}> Add to Cart </button>
-				<button class="btn btn-outline btn-accent">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="h-6 w-6"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-						/>
-					</svg>
-				</button>
-			</div>
-
-			<div class="flex items-center gap-2 text-sm">
-				<div class="badge badge-outline">Organic</div>
-				<div class="badge badge-outline">Vegan</div>
-				<div class="badge badge-outline">Cruelty-Free</div>
-			</div>
-
-			<div class="alert alert-success shadow-lg">
-				<div>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="stroke-current flex-shrink-0 h-6 w-6"
-						fill="none"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-						/>
-					</svg>
-					<span>Free shipping on orders over $50</span>
-				</div>
-			</div>
+{#if !toastClosed}
+	<div class={`toast toast-end toast-top`} style="z-index: 9999;">
+		<div class={`alert ${notificationError ? 'alert-error' : 'alert-success'}`}>
+			<span>{notificationContent}</span>
+			<button class="btn btn-sm btn-ghost" onclick={() => (toastClosed = true)}>✕</button>
 		</div>
 	</div>
-
-	<!-- Product Details Tabs -->
-	<div class="mt-12">
-		<div class="tabs tabs-boxed">
-			<a
-				class="tab {activeTab === 'description' ? 'tab-active' : ''}"
-				on:click={() => setActiveTab('description')}
-			>
-				Description
-			</a>
-			<a
-				class="tab {activeTab === 'ingredients' ? 'tab-active' : ''}"
-				on:click={() => setActiveTab('ingredients')}
-			>
-				Ingredients
-			</a>
-			<a
-				class="tab {activeTab === 'reviews' ? 'tab-active' : ''}"
-				on:click={() => setActiveTab('reviews')}
-			>
-				Reviews
-			</a>
-		</div>
-
-		<div class="p-6 bg-base-200 rounded-b-lg">
-			{#if activeTab === 'description'}
-				<div class="space-y-4">
-					<h3 class="text-xl font-semibold">Product Benefits</h3>
-					<ul class="list-disc pl-5 space-y-2">
-						{#each product.benefits as benefit}
-							<li>{benefit}</li>
-						{/each}
-					</ul>
-
-					<h3 class="text-xl font-semibold mt-6">How to Use</h3>
-					<p>
-						Apply 2-3 drops to pulse points or add to a diffuser. For topical use, dilute with a
-						carrier oil. Use daily for best results.
-					</p>
-				</div>
-			{:else if activeTab === 'ingredients'}
-				<div class="space-y-4">
-					<h3 class="text-xl font-semibold">Ingredients</h3>
-					<p>{product.ingredients}</p>
-
-					<div class="alert alert-info mt-4">
-						<div>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								fill="none"
-								viewBox="0 0 24 24"
-								class="stroke-current flex-shrink-0 w-6 h-6"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-								></path>
-							</svg>
-							<span>All ingredients are 100% natural and ethically sourced.</span>
-						</div>
-					</div>
-				</div>
-			{:else if activeTab === 'reviews'}
-				<div class="space-y-6">
-					{#each product.reviews as review}
-						<div class="bg-base-100 p-4 rounded-lg">
-							<div class="flex justify-between">
-								<div class="font-semibold">{review.name}</div>
-								<div class="rating rating-sm">
-									{#each Array(5) as _, i}
-										<input
-											type="radio"
-											name={`rating-${review.name}`}
-											class="mask mask-star-2 bg-accent"
-											checked={i < review.rating}
-											disabled
-										/>
-									{/each}
-								</div>
-							</div>
-							<p class="mt-2">{review.text}</p>
-						</div>
-					{/each}
-
-					<button class="btn btn-outline btn-primary">Write a Review</button>
-				</div>
-			{/if}
-		</div>
-	</div>
-
-	<!-- Related Products -->
-	<section class="mt-16">
-		<h2 class="text-2xl font-bold mb-6">You May Also Like</h2>
-		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-			{#each Array(4) as _}
-				<div class="card bg-base-100 shadow-xl">
-					<figure><img src="/placeholder.svg?height=200&width=300" alt="Product" /></figure>
-					<div class="card-body">
-						<h3 class="card-title">Natural Wellness Product</h3>
-						<div class="rating rating-sm">
-							<input type="radio" name="rating-card" class="mask mask-star-2 bg-accent" checked />
-							<input type="radio" name="rating-card" class="mask mask-star-2 bg-accent" checked />
-							<input type="radio" name="rating-card" class="mask mask-star-2 bg-accent" checked />
-							<input type="radio" name="rating-card" class="mask mask-star-2 bg-accent" checked />
-							<input type="radio" name="rating-card" class="mask mask-star-2 bg-accent" />
-						</div>
-						<p class="text-primary font-bold mt-2">$29.99</p>
-						<div class="card-actions justify-end">
-							<button class="btn btn-primary btn-sm">Add to Cart</button>
-						</div>
-					</div>
-				</div>
-			{/each}
-		</div>
-	</section>
-</main>
-
-<!-- Newsletter -->
-<section class="bg-accent text-accent-content py-16 mt-16">
-	<div class="container mx-auto px-4 text-center">
-		<h2 class="text-2xl font-bold mb-4">Join Our Wellness Journey</h2>
-		<p class="max-w-md mx-auto mb-6">
-			Subscribe to our newsletter for exclusive offers, wellness tips, and new product
-			announcements.
-		</p>
-		<div class="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
-			<input type="email" placeholder="Your email" class="input input-bordered w-full" />
-			<button class="btn btn-secondary">Subscribe</button>
-		</div>
-	</div>
-</section>
-
-<!-- Footer -->
-<footer class="footer p-10 bg-base-200 text-base-content">
-	<div>
-		<span class="footer-title">Shop</span>
-		<a class="link link-hover">Essential Oils</a>
-		<a class="link link-hover">Diffusers</a>
-		<a class="link link-hover">Wellness Kits</a>
-		<a class="link link-hover">Gift Sets</a>
-	</div>
-	<div>
-		<span class="footer-title">Company</span>
-		<a class="link link-hover">About us</a>
-		<a class="link link-hover">Contact</a>
-		<a class="link link-hover">Our Story</a>
-		<a class="link link-hover">Sustainability</a>
-	</div>
-	<div>
-		<span class="footer-title">Legal</span>
-		<a class="link link-hover">Terms of use</a>
-		<a class="link link-hover">Privacy policy</a>
-		<a class="link link-hover">Cookie policy</a>
-	</div>
-	<div>
-		<span class="footer-title">Newsletter</span>
-		<div class="form-control w-80">
-			<label class="label">
-				<span class="label-text">Enter your email address</span>
-			</label>
-			<div class="relative">
-				<input
-					type="text"
-					placeholder="username@site.com"
-					class="input input-bordered w-full pr-16"
-				/>
-				<button class="btn btn-primary absolute top-0 right-0 rounded-l-none">Subscribe</button>
-			</div>
-		</div>
-	</div>
-</footer>
-
-<style>
-	/* Custom styles to apply the specified colors */
-	:global(html) {
-		--primary: #1a93dc;
-		--primary-focus: #1684c7;
-		--primary-content: #ffffff;
-
-		--secondary: #f50101;
-		--secondary-focus: #d90101;
-		--secondary-content: #ffffff;
-
-		--accent: #292fa7;
-		--accent-focus: #232896;
-		--accent-content: #ffffff;
-	}
-
-	/* Additional custom styles */
-	.tabs-boxed .tab-active {
-		background-color: var(--primary);
-		color: var(--primary-content);
-	}
-</style>
+{/if}

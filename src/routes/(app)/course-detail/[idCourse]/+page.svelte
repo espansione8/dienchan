@@ -26,12 +26,6 @@
 	const userfiles = $derived(userData?.uploadfiles || []);
 	const picFilter = $derived(userfiles.filter((file: any) => file.type == 'avatar'));
 
-	const testPass = () => {
-		checkPass = password1.length >= 8;
-		checkSecondPass = password1 === password2;
-	};
-	const testSecondPass = () => (checkSecondPass = password1 === password2);
-
 	// reset cart - original price
 	// const totalCart = () => {
 	// 	grandTotal = 0;
@@ -45,13 +39,6 @@
 	// 	//return grandTotal;
 	// };
 
-	let error: string = $state('');
-	let password1 = $state('');
-	let password2 = $state('');
-	let checkPass = $state(false);
-	let checkSecondPass = $state(false);
-	let inputRef: any = $state(null);
-
 	let closedInput = $state(false);
 	if (auth) {
 		closedInput = true;
@@ -63,7 +50,7 @@
 		email: userData?.email || '',
 		address: userData?.address || '',
 		city: userData?.city || '',
-		county: userData?.county || 'AG',
+		county: userData?.county || '',
 		postalCode: userData?.postalCode || '',
 		country: userData?.country || 'Italy',
 		phone: userData?.phone || '',
@@ -76,10 +63,10 @@
 	let openModal = $state(false);
 	let postAction = $state('?/');
 	let modalTitle = $state('');
-	let currentModal = $state('');
+	//let currentModal = $state('');
 
 	const onClickModal = (type: string, item: any) => {
-		currentModal = type;
+		//currentModal = type;
 		openModal = true;
 		if (type == 'new') {
 			postAction = `?/new`;
@@ -89,7 +76,7 @@
 
 	const onCloseModal = () => {
 		openModal = false;
-		currentModal = '';
+		//currentModal = '';
 		//resetFields();
 	};
 
@@ -112,7 +99,7 @@
 			async () => await invalidateAll();
 			const { action, success, message, payload } = form;
 			if (success) {
-				currentModal = '';
+				//currentModal = '';
 				formData.name = userData.name;
 				formData.surname = userData.surname;
 				formData.email = userData.email;
@@ -375,6 +362,18 @@
 									<p class="font-medium text-xl text-blue-900">{getCourse.layoutView.price} €</p>
 								</div>
 							</div>
+
+							{#if !auth}
+								<div class="flex items-center gap-3">
+									<div class="bg-blue-100 p-2 rounded-full">
+										<Coins class="w-5 h-5 text-blue-700" />
+									</div>
+									<div>
+										<p class="text-sm text-gray-500">Tesseramento per il primo corso</p>
+										<p class="font-medium text-xl text-blue-900">+25 €</p>
+									</div>
+								</div>
+							{/if}
 						</div>
 
 						{#if getCourse.infoExtra.length > 0}
@@ -406,7 +405,6 @@
 	>
 
 	<form method="POST" action={postAction} use:enhance class="p-4 space-y-6">
-		<!-- User Information Section -->
 		<div class="card bg-base-100 shadow-sm border border-base-200 rounded-lg overflow-hidden">
 			<div class="bg-primary/10 px-4 py-3 border-b border-base-200">
 				<div class="flex justify-between items-center">
@@ -421,8 +419,7 @@
 
 			<div class="p-4">
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<!-- Nome -->
-					<div class="form-control w-full">
+					<div>
 						<label for="Name" class="label">
 							<span class="label-text font-medium">Nome</span>
 						</label>
@@ -430,7 +427,7 @@
 							id="Name"
 							name="name"
 							type="text"
-							class="input input-bordered w-full"
+							class="input"
 							placeholder="Inserisci il tuo nome"
 							required
 							readonly={closedInput}
@@ -438,8 +435,7 @@
 						/>
 					</div>
 
-					<!-- Cognome -->
-					<div class="form-control w-full">
+					<div>
 						<label for="Surname" class="label">
 							<span class="label-text font-medium">Cognome</span>
 						</label>
@@ -447,7 +443,7 @@
 							id="Surname"
 							name="surname"
 							type="text"
-							class="input input-bordered w-full"
+							class="input"
 							placeholder="Inserisci il tuo cognome"
 							required
 							readonly={closedInput}
@@ -455,76 +451,60 @@
 						/>
 					</div>
 
-					<!-- Email -->
-					<div class="form-control w-full md:col-span-2">
-						<label for="Email" class="label">
-							<span class="label-text font-medium">Email</span>
+					<div class="md:col-span-2">
+						<span class="label-text font-medium">Email (per login)</span>
+						<label for="Email" class="input validator">
+							<Mail />
+							<input
+								id="Email"
+								name="email"
+								type="email"
+								placeholder="esempio@email.com"
+								required
+								readonly={closedInput}
+								bind:value={formData.email}
+							/>
 						</label>
-						<input
-							id="Email"
-							name="email"
-							type="email"
-							class="input input-bordered w-full"
-							placeholder="esempio@email.com"
-							required
-							readonly={closedInput}
-							bind:value={formData.email}
-						/>
+						<div class="validator-hint hidden">Inserire email valida</div>
 					</div>
 
 					{#if !auth}
-						<!-- Password -->
-						<div class="form-control w-full md:col-span-2">
-							<label for="password" class="label">
-								<span class="label-text font-medium">
-									Password
-									<span class="text-xs text-base-content/70" class:text-error={error}>
-										(Almeno 8 caratteri con numeri e lettere)
-									</span>
-								</span>
-							</label>
-							<div class="input input-bordered flex items-center gap-2 pr-2">
-								<Lock size={18} color={checkPass ? 'green' : 'currentColor'} class="ml-2" />
+						<div class="md:col-span-2">
+							<span class="label-text font-medium">
+								Password
+								<span class="text-xs"> (Almeno 8 caratteri con numeri e lettere) </span>
+							</span>
+							<label for="password" class="input validator">
+								<Lock />
 								<input
-									class="flex-1 outline-none bg-transparent"
 									id="password"
 									type="password"
+									name="password1"
 									placeholder="Inserisci la password"
 									aria-label="Password"
 									bind:value={formData.password1}
-									oninput={testPass}
+									minlength="8"
 									required={!auth}
 								/>
-							</div>
+							</label>
+							<div class="validator-hint hidden">Inserire password valida</div>
 						</div>
 
-						<!-- Confirm Password -->
-						<div class="form-control w-full md:col-span-2">
-							<label for="password2" class="label">
-								<span class="label-text font-medium">
-									Conferma password
-									{#if error}
-										<span class="text-xs text-error ml-2">{error}</span>
-									{/if}
-								</span>
-							</label>
-							<div class="input input-bordered flex items-center gap-2 pr-2">
-								<Lock
-									size={18}
-									color={checkSecondPass && checkPass ? 'green' : 'currentColor'}
-									class="ml-2"
-								/>
+						<div class="md:col-span-2">
+							<span class="label-text font-medium">Conferma password</span>
+							<label for="password2" class="input validator">
+								<Lock />
 								<input
-									class="flex-1 outline-none bg-transparent"
 									id="password2"
 									type="password"
+									name="password2"
 									placeholder="Conferma la password"
 									bind:value={formData.password2}
-									oninput={testSecondPass}
-									bind:this={inputRef}
+									minlength="8"
 									required={!auth}
 								/>
-							</div>
+							</label>
+							<div class="validator-hint hidden">Inserire password valida</div>
 						</div>
 					{/if}
 				</div>
@@ -532,7 +512,6 @@
 				<div class="divider my-4">Indirizzo</div>
 
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<!-- Indirizzo -->
 					<div class="form-control w-full md:col-span-2">
 						<label for="address" class="label">
 							<span class="label-text font-medium">Indirizzo</span>
@@ -549,7 +528,6 @@
 						/>
 					</div>
 
-					<!-- Città -->
 					<div class="form-control w-full">
 						<label for="city" class="label">
 							<span class="label-text font-medium">Città</span>
@@ -566,7 +544,6 @@
 						/>
 					</div>
 
-					<!-- Provincia -->
 					<div class="form-control w-full">
 						<label for="state" class="label">
 							<span class="label-text font-medium">Provincia</span>
@@ -588,7 +565,6 @@
 						</select>
 					</div>
 
-					<!-- CAP -->
 					<div class="form-control w-full">
 						<label for="postalcode" class="label">
 							<span class="label-text font-medium">CAP</span>
@@ -605,7 +581,6 @@
 						/>
 					</div>
 
-					<!-- Nazione -->
 					<div class="form-control w-full">
 						<label for="country" class="label">
 							<span class="label-text font-medium">Nazione</span>
@@ -627,16 +602,15 @@
 						</select>
 					</div>
 
-					<!-- Telefono -->
-					<div class="form-control w-full">
+					<div>
 						<label for="telefono" class="label">
-							<span class="label-text font-medium">Telefono</span>
+							<span class="font-medium">Telefono</span>
 						</label>
 						<input
 							id="telefono"
 							name="phone"
-							type="tel"
-							class="input input-bordered w-full"
+							type="text"
+							class="input"
 							placeholder="+39 01234567"
 							required
 							readonly={closedInput}
@@ -644,16 +618,15 @@
 						/>
 					</div>
 
-					<!-- Cellulare -->
-					<div class="form-control w-full">
+					<div>
 						<label for="cellulare" class="label">
-							<span class="label-text font-medium">Cellulare</span>
+							<span class="font-medium">Cellulare</span>
 						</label>
 						<input
 							id="cellulare"
 							name="mobilePhone"
-							type="tel"
-							class="input input-bordered w-full"
+							type="text"
+							class="input"
 							placeholder="+39 3331234567"
 							readonly={closedInput}
 							bind:value={formData.mobilePhone}
@@ -663,7 +636,6 @@
 			</div>
 		</div>
 
-		<!-- Payment Method Section -->
 		<div class="card bg-base-100 shadow-sm border border-base-200 rounded-lg overflow-hidden">
 			<div class="bg-primary/10 px-4 py-3 border-b border-base-200">
 				<h3 class="font-bold text-lg">Metodo di Pagamento</h3>
@@ -728,7 +700,6 @@
 			</div>
 		</div>
 
-		<!-- Order Summary Section -->
 		<div class="card bg-base-100 shadow-sm border border-base-200 rounded-lg overflow-hidden">
 			<div class="bg-primary/10 px-4 py-3 border-b border-base-200">
 				<h3 class="font-bold text-lg">Riepilogo Ordine</h3>
@@ -739,17 +710,26 @@
 					<span class="text-base-content/80">{getCourse.layoutView.title || 'Corso'}</span>
 					<span>{getCourse.layoutView.price} €</span>
 				</div>
+				{#if !auth}
+					<div class="flex justify-between items-center py-2">
+						<span class="text-base-content/80">'Tesseramento per il primo corso'</span>
+						<span>25 €</span>
+					</div>
+				{/if}
 
 				<div class="divider my-1"></div>
 
 				<div class="flex justify-between items-center py-2 text-lg font-bold">
 					<span>Totale</span>
-					<span class="text-primary">{getCourse.layoutView.price} €</span>
+					{#if !auth}
+						<span class="text-primary">{getCourse.layoutView.price + 25} €</span>
+					{:else}
+						<span class="text-primary">{getCourse.layoutView.price} €</span>
+					{/if}
 				</div>
 			</div>
 		</div>
 
-		<!-- Action Buttons -->
 		<div class="flex justify-end gap-3 mt-6">
 			<button class="btn btn-outline btn-error" type="button" onclick={onCloseModal}>
 				Annulla
