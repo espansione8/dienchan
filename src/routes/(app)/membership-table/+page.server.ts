@@ -109,11 +109,11 @@ export const actions: Actions = {
 			if (res.status == 200) {
 				return { action: 'new', success: true, message: response.message };
 			} else {
-				return { action: 'new', success: false, message: response.message };
+				return fail(400, { action: 'new', success: false, message: response.message });
 			}
 		} catch (error) {
 			console.error('Error creating new membership:', error);
-			return { action: 'new', success: false, message: 'Errore creazione membership' };
+			return fail(400, { action: 'new', success: false, message: 'Errore creazione membership' });
 		}
 	},
 
@@ -137,6 +137,7 @@ export const actions: Actions = {
 					title,
 					descrShort,
 					price,
+					renewalLength
 				}
 			};
 			const options = { upsert: false }
@@ -162,11 +163,11 @@ export const actions: Actions = {
 			if (res.status == 200) {
 				return { action: 'modify', success: true, message: response.message };
 			} else {
-				return { action: 'modify', success: false, message: response.message };
+				return fail(400, { action: 'modify', success: false, message: response.message });
 			}
 		} catch (error) {
 			console.error('Error modify:', error);
-			return { action: 'modify', success: false, message: 'Errore modify' };
+			return fail(400, { action: 'modify', success: false, message: 'Errore modify' });
 		}
 	},
 
@@ -196,11 +197,11 @@ export const actions: Actions = {
 			if (res.status == 200) {
 				return { action: 'delete', success: true, message: response.message };
 			} else {
-				return { action: 'delete', success: false, message: response.message };
+				return fail(400, { action: 'delete', success: false, message: response.message });
 			}
 		} catch (error) {
 			console.error('Error delete:', error);
-			return { action: 'delete', success: false, message: 'Errore delete' };
+			return fail(400, { action: 'delete', success: false, message: 'Errore delete' });
 		}
 	},
 
@@ -246,18 +247,18 @@ export const actions: Actions = {
 			const response = await res.json();
 
 			if (res.status == 200) {
-				const filterTableList = response.map((obj: any) => ({
+				const payload = response.map((obj: any) => ({
 					...obj,
 					createdAt: obj.createdAt.substring(0, 10)
 				}));
 				//console.log('response', response);
-				return { action: 'filter', success: true, message: 'Filtro attivato', filterTableList };
+				return { action: 'filter', success: true, message: 'Filtro attivato', payload };
 			} else {
-				return { action: 'filter', success: false, message: 'Errore filtro' };
+				return fail(400, { action: 'filter', success: false, message: 'Errore filtro' });
 			}
 		} catch (error) {
 			console.error('Error filter membership:', error);
-			return { action: 'filter', success: false, message: 'Errore filtro 500' };
+			return fail(400, { action: 'filter', success: false, message: 'Errore filtro 500' });
 		}
 	},
 
@@ -298,11 +299,11 @@ export const actions: Actions = {
 			if (res.status == 200) {
 				return { action: 'changeStatus', success: true, message: response.message };
 			} else {
-				return { action: 'changeStatus', success: false, message: response.message };
+				return fail(400, { action: 'changeStatus', success: false, message: response.message });
 			}
 		} catch (error) {
 			console.error('Error changing status:', error);
-			return { action: 'changeStatus', success: false, message: 'Errore changeStatus' };
+			return fail(400, { action: 'changeStatus', success: false, message: 'Errore changeStatus' });
 		}
 	},
 } satisfies Actions;

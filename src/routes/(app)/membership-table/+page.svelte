@@ -20,6 +20,7 @@
 		Eye,
 		EyeOff
 	} from 'lucide-svelte';
+	import type { ActionResult } from '@sveltejs/kit';
 
 	let { data, form } = $props(); // pull data from server
 	const { getTable } = $derived(data); // deconstruct data from server
@@ -203,37 +204,69 @@
 			notificationContent = '';
 			notificationError = false;
 		}, 3000); // 1000 milliseconds = 1 second
+		//clearTimeout(startTimeout); // reset timer
 	};
-	//clearTimeout(startTimeout); // reset timer
 
-	$effect(() => {
-		//console.log('form', form);
-		if (form != null) {
-			//console.log('form triggered');
-			async () => await invalidateAll(); // MUST be async/await or tableList = getTable will trigger infinite loop
-			//(async () => await invalidateAll())() // new to test
-			const { action, success, message, filterTableList } = form;
-			if (success) {
-				//console.log('filterTableList effect', filterTableList);
-				currentModal = '';
+	// $effect(() => {
+	// 	//console.log('form', form);
+	// 	if (form != null) {
+	// 		//console.log('form triggered');
+	// 		async () => await invalidateAll(); // MUST be async/await or tableList = getTable will trigger infinite loop
+	// 		//(async () => await invalidateAll())() // new to test
+	// 		const { action, success, message, filterTableList } = form;
+	// 		if (success) {
+	// 			//console.log('filterTableList effect', filterTableList);
+	// 			currentModal = '';
+	// 			if (action == 'filter') {
+	// 				resetActive = true;
+	// 				tableList = filterTableList;
+	// 			} else {
+	// 				resetActive = false;
+	// 				tableList = getTable;
+	// 			}
+	// 		} else {
+	// 			notificationError = true;
+	// 		}
+	// 		resetFields();
+	// 		clearTimeout(startTimeout);
+	// 		closeNotification();
+	// 		toastClosed = false;
+	// 		notificationContent = message;
+	// 		form = null; // reset form
+	// 	}
+	// }); // end effect
+
+	const formSubmit = () => {
+		return async ({ result }: { result: ActionResult }) => {
+			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
+			await invalidateAll();
+			if (result.type === 'success' && result.data) {
+				const { action, success, message, payload } = result.data;
 				if (action == 'filter') {
 					resetActive = true;
-					tableList = filterTableList;
+					tableList = payload;
 				} else {
 					resetActive = false;
 					tableList = getTable;
 				}
-			} else {
+				notificationContent = message;
+			}
+			if (result.type === 'failure') {
+				notificationContent = result.data.message;
 				notificationError = true;
 			}
+			if (result.type === 'error') {
+				notificationContent = result.error;
+				notificationError = true;
+			}
+			// 'update()' is called by default by use:enhance
+			// call 'await update()' if you need to ensure it completes before further client logic.
 			resetFields();
 			clearTimeout(startTimeout);
 			closeNotification();
 			toastClosed = false;
-			notificationContent = message;
-			form = null; // reset form
-		}
-	}); // end effect
+		};
+	};
 </script>
 
 <svelte:head>
@@ -301,7 +334,7 @@
 			{#each tableList as row}
 				<tr class="hover:bg-gray-300">
 					<td class="">
-						<form method="POST" action="?/changeStatus" use:enhance>
+						<form method="POST" action="?/changeStatus" use:enhance={formSubmit}>
 							<div>
 								<input type="hidden" name="prodId" value={row.prodId} />
 								<input type="hidden" name="status" value={row.status} />
@@ -367,7 +400,7 @@
 		<form
 			method="POST"
 			action={postAction}
-			use:enhance
+			use:enhance={formSubmit}
 			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 		>
 			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
@@ -478,7 +511,7 @@
 		<form
 			method="POST"
 			action={postAction}
-			use:enhance
+			use:enhance={formSubmit}
 			class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 		>
 			<input type="hidden" name="prodId" value={prodId} />
@@ -590,7 +623,7 @@
 		<form
 			method="POST"
 			action={postAction}
-			use:enhance
+			use:enhance={formSubmit}
 			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 		>
 			<input type="hidden" name="prodId" value={prodId} />
@@ -612,7 +645,7 @@
 		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
 			>✕</button
 		>
-		<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
+		<form method="POST" action={postAction} use:enhance={formSubmit} class="p-6 space-y-6">
 			<!-- <input type="hidden" name="prodId" value={prodId} /> -->
 			<div class="space-y-4">
 				<div>
