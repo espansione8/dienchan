@@ -6,7 +6,7 @@
 	// import LoginForm from '$lib/components/LoginForm.svelte';
 	// import RegisterForm from '$lib/components/RegisterForm.svelte';
 	import { page } from '$app/state';
-	console.log('page.data requestId', page.data);
+	//console.log('page.data requestId', page.data);
 
 	// notification
 	let toastClosed: boolean = $state(true);

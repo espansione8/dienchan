@@ -339,7 +339,7 @@
 					class:h-115={!auth}
 				>
 					<div class="relative px-6 pt-6 pb-2 bg-base-200/30 space-y-0">
-						<a href="/course-detail/{productData.prodId}">
+						<a href="/product-detail/{productData.prodId}">
 							<div class="absolute -top-1 -right-1 z-10 opacity-70">
 								<div class="relative">
 									<div
@@ -368,7 +368,7 @@
 					</div>
 
 					<div class="card-body px-5 py-2 flex-grow">
-						<a href="/course-detail/{productData.prodId}">
+						<a href="/product-detail/{productData.prodId}">
 							<h3 class="card-title text-lg font-bold text-primary flex items-start gap-2 mb-2">
 								<BookOpen size={18} class="flex-shrink-0 mt-1" />
 								<span>{productData.title}</span>

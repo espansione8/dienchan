@@ -53,7 +53,7 @@ const orderSchema = new Schema(
 			invoiceNotes: { type: String, default: '' },
 			email: { type: String, default: '' },
 			phone: { type: String, default: '' },
-			mobile: { type: String, default: '' }
+			mobilePhone: { type: String, default: '' }
 		},
 
 		shipping: {
@@ -69,7 +69,7 @@ const orderSchema = new Schema(
 			deliveryNotes: { type: String, default: '' },
 			email: { type: String, default: '' },
 			phone: { type: String, default: '' },
-			mobile: { type: String, default: '' },
+			mobilePhone: { type: String, default: '' },
 
 			tracking: {
 				company: { type: String, default: '' },

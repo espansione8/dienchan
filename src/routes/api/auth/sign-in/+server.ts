@@ -1,8 +1,10 @@
 // src/routes/api/auth/sign-in
 import { json } from '@sveltejs/kit';
-import stringHash from 'string-hash';
+import { hash } from '$lib/tools/hash';
 import dbConnect from '$lib/db/mongo/database';
 import { User } from '$lib/db/mongo/schema/Users.model';
+
+const salt = import.meta.env.VITE_SALT;
 
 export const POST = async ({ request, cookies }) => {
 	const body = await request.json();
@@ -22,7 +24,7 @@ export const POST = async ({ request, cookies }) => {
 		// console.log('stringHash(body.loginPassword)', typeof hashed.toString());
 		// console.log('pass test', user.password === stringHash(body.loginPassword).toString());
 
-		if (!user || user.password !== stringHash(body.loginPassword).toString()) {
+		if (!user || user.password !== hash(body.loginPassword, salt)) {
 			return json({ message: 'Incorrect user or password' }, { status: 400 });
 		}
 

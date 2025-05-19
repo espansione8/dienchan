@@ -22,10 +22,11 @@
 	} from 'lucide-svelte';
 	import type { ActionResult } from '@sveltejs/kit';
 
-	let { data, form } = $props(); // pull data from server
+	let { data } = $props(); // pull data from server
 	const { getTable } = $derived(data); // deconstruct data from server
 	let tableList = $state(getTable);
 
+	// filter
 	let prodId = $state(null);
 	let status = $state('');
 	let title = $state('');
@@ -39,40 +40,6 @@
 	let openModal = $state(false);
 	let modalTitle = $state('');
 	let postAction = $state('?/');
-
-	// FRONTEND LEGACY FETCH
-	// const onChangeStatus = async (prodId: string, status: string) => {
-	// 	const data = {
-	// 		prodId,
-	// 		status
-	// 	};
-	// 	try {
-	// 		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/products/setStatus`, {
-	// 			method: 'POST',
-	// 			headers: {
-	// 				'Content-Type': 'application/json'
-	// 			},
-	// 			body: JSON.stringify(data)
-	// 		});
-	// 		const response = await res.json();
-	// 		if (response.status == 200) {
-	// 			invalidateAll();
-	// 			clearTimeout(startTimeout);
-	// 			openModal = false;
-	// 			toastClosed = false;
-	// 			notificationContent = 'status cambiato';
-	// 			resetFields();
-	// 			closeNotification();
-	// 		} else {
-	// 			toastClosed = false;
-	// 			notificationContent = 'errore status';
-	// 			notificationError = true;
-	// 			closeNotification();
-	// 		}
-	// 	} catch (err) {
-	// 		console.log('Error:', err);
-	// 	}
-	// };
 
 	// CSV download
 	const csvCreate = () => {
@@ -141,7 +108,6 @@
 		renewalLength = 365;
 		modalTitle = '';
 		postAction = '?/';
-		form = null;
 	};
 
 	const refresh = () => {
@@ -150,14 +116,6 @@
 		resetActive = false;
 		tableList = getTable;
 	};
-
-	// MANUAL TRIGGER FORM SUBMIT
-	// const changeStatus = (event: any) => {
-	// 	if (event.target.form) {
-	// 		event.preventDefault();
-	// 		event.target.form.requestSubmit();
-	// 	}
-	// };
 
 	const onClickModal = (type: string, item: any) => {
 		currentModal = type;
@@ -190,7 +148,6 @@
 		openModal = false;
 		resetFields();
 		currentModal = '';
-		//invalidateAll();
 	};
 
 	//notification
@@ -199,49 +156,23 @@
 	let notificationError: boolean = $state(false);
 	let startTimeout: any;
 	const closeNotification = () => {
+		if (startTimeout) {
+			clearTimeout(startTimeout);
+		}
 		startTimeout = setTimeout(() => {
 			toastClosed = true;
 			notificationContent = '';
 			notificationError = false;
 		}, 3000); // 1000 milliseconds = 1 second
-		//clearTimeout(startTimeout); // reset timer
 	};
-
-	// $effect(() => {
-	// 	//console.log('form', form);
-	// 	if (form != null) {
-	// 		//console.log('form triggered');
-	// 		async () => await invalidateAll(); // MUST be async/await or tableList = getTable will trigger infinite loop
-	// 		//(async () => await invalidateAll())() // new to test
-	// 		const { action, success, message, filterTableList } = form;
-	// 		if (success) {
-	// 			//console.log('filterTableList effect', filterTableList);
-	// 			currentModal = '';
-	// 			if (action == 'filter') {
-	// 				resetActive = true;
-	// 				tableList = filterTableList;
-	// 			} else {
-	// 				resetActive = false;
-	// 				tableList = getTable;
-	// 			}
-	// 		} else {
-	// 			notificationError = true;
-	// 		}
-	// 		resetFields();
-	// 		clearTimeout(startTimeout);
-	// 		closeNotification();
-	// 		toastClosed = false;
-	// 		notificationContent = message;
-	// 		form = null; // reset form
-	// 	}
-	// }); // end effect
+	//clearTimeout(startTimeout); // reset timer
 
 	const formSubmit = () => {
 		return async ({ result }: { result: ActionResult }) => {
 			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
-				const { action, success, message, payload } = result.data;
+				const { action, message, payload } = result.data; // { action, success, message, payload }
 				if (action == 'filter') {
 					resetActive = true;
 					tableList = payload;

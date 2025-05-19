@@ -11,21 +11,23 @@ export const hash = (inputString: string, salt: string = ''): string => {
         throw new Error('salt must be a string.');
     }
 
-    const hash = createHash('sha256');
     const dataToHash = salt + inputString;
-    hash.update(dataToHash, 'utf8');
-    const hexHash = hash.digest('hex');
+    // const hash = createHash('sha256');
+    // hash.update(dataToHash, 'utf8');
+    // const hexHash = hash.digest('hex');
+    // return hexHash;
 
-    return hexHash;
+    const hashed = createHash('sha256').update(dataToHash, 'utf8').digest('hex');
+    return hashed
 };
 
 
 // // EXAMPLE +page.server.ts
 // import { hash } from '$lib/tools/hash';
 
-//   const someData = "Data for hashing in the backend.";
-//   const hashedData = hash(someData); //
+//  const someData = "Data for hashing in the backend.";
+//  const hashedData = hash(someData); //
 
-//   //optional salt
-//   const mySalt = import.meta.env.VITE_SALT;
-//   const hashedData = hash(someData, mySalt);
+//  //optional salt
+//  const mySalt = import.meta.env.VITE_SALT;
+//  const hashedData = hash(someData, mySalt);

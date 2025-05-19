@@ -51,7 +51,14 @@ const UserSchema = new mongoose.Schema(
 			},
 			membershipSignUp: { type: Date, default: Date.now }, // La prima volta che è stato attivato
 			membershipActivation: { type: Date, default: Date.now }, // la data del ultima attivazione - rinnovi
-			membershipExpiry: { type: Date, default: () => new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) }, // quando scade
+			//membershipExpiry: { type: Date, default: () => new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) }, // quando scade
+			membershipExpiry: {
+				type: Date, default: () => {
+					const date = new Date();
+					date.setFullYear(date.getFullYear() + 1);
+					return date;
+				}
+			}, // quando scade
 			membershipStatus: { type: Boolean, default: true }
 		},
 		codeSales: { type: String, default: '' },
@@ -205,8 +212,8 @@ const UserSchema = new mongoose.Schema(
 		userCart: [],
 		userWishList: [],
 		documentPageArray: [{ type: String }],
-		storicoCorsiPartecipati: [],
-		storicoCorsiCreati: [],
+		courseJoined: [],
+		courseCreated: [],
 		docModifyArray: [
 			{
 				documentPageId: { type: String, default: '' },

@@ -267,7 +267,11 @@
 					<td>
 						<div class="flex flex-col space-y-1">
 							{#each row.cart as item}
-								<span>{item.layoutView.title} X {item.orderQuantity}</span>
+								{#if item.type == 'course'}
+									<span>{item.layoutView.title}</span>
+								{:else}
+									<span>{item.layoutView.title}: {item.orderQuantity}</span>
+								{/if}
 							{/each}
 						</div>
 					</td>
