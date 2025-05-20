@@ -105,9 +105,15 @@ export const actions: Actions = {
 		const password2 = formData.get('password2') || '';
 		const totalValue = formData.get('totalValue');
 		const cart = formData.get('cart');
-		const cartItem = JSON.parse(cart)
+		//const cartItem = JSON.parse(cart)
+		let cartItem;
+		try {
+			cartItem = JSON.parse(String(cart));
+		} catch (e) {
+			return fail(400, { action: 'new', success: false, message: 'Cart parsing error' });
+		}
 		//const file = formData.get('image') || '';
-		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobile, payment, password1, password2, totalValue);
+		console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
 		let currentUserId: string = locals.user?.userId ?? '';
 
 
@@ -121,6 +127,8 @@ export const actions: Actions = {
 		if (!locals.auth) {
 			try {
 				const userId = nanoid() // OLD stringHash(crypto.randomUUID());
+				console.log('new userId', userId);
+
 				const userCode = crypto.randomUUID()
 				const cookieId = crypto.randomUUID()
 				const returnObj = true
@@ -158,8 +166,13 @@ export const actions: Actions = {
 						'Content-Type': 'application/json'
 					}
 				});
+				if (!res.ok) {
+					return fail(400, { action: 'user', success: false, message: await res.text() });
+				}
 				const response = await res.json();
 				currentUserId = response.userId;
+				console.log('response1', response);
+
 
 				if (res.status == 200) {
 					cookies.set('session_id', cookieId, {
@@ -263,6 +276,7 @@ export const actions: Actions = {
 				}
 			});
 			const response = await res.json();
+			console.log('response2', response);
 
 			if (res.status == 200) {
 				return { action: 'new', success: true, message: response.message };
