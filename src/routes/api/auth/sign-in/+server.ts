@@ -9,6 +9,7 @@ const salt = import.meta.env.VITE_SALT;
 export const POST = async ({ request, cookies }) => {
 	const body = await request.json();
 	const loginEmail = body.loginEmail.replace(/\s+/g, '').toLowerCase();
+
 	try {
 		// Connecting to DB
 		// All database code can only run inside async functions as it uses await
@@ -19,7 +20,6 @@ export const POST = async ({ request, cookies }) => {
 			.lean()
 			.exec();
 
-		// console.log('user', user);
 		// const hashed = stringHash(body.loginPassword);
 		// console.log('stringHash(body.loginPassword)', typeof hashed.toString());
 		// console.log('pass test', user.password === stringHash(body.loginPassword).toString());

@@ -34,13 +34,10 @@
 	<div class="toast toast-top toast-center z-9999">
 		<div class={notificationError ? 'alert alert-error rounded-lg' : 'alert alert-info rounded-lg'}>
 			<span>
-				<button
-					onclick={() => (toastClosed = true)}
-					class={notificationError
-						? 'btn btn-error inline btn-circle btn-sm'
-						: 'btn btn-info inline btn-circle btn-sm '}><X /></button
-				>
-				{notificationContent}
+				<button onclick={() => (toastClosed = true)} class="btn inline btn-circle btn-sm mx-1"
+					><X />
+				</button>
+				<span class="text-bold text-lg text-white mx-1"> {notificationContent}</span>
 			</span>
 		</div>
 	</div>

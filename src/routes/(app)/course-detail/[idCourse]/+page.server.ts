@@ -84,7 +84,6 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 		userData: userData[0] ?? null,
 		auth: locals.auth
 	};
-
 }
 
 export const actions: Actions = {
@@ -105,90 +104,124 @@ export const actions: Actions = {
 		const password2 = formData.get('password2') || '';
 		const totalValue = formData.get('totalValue');
 		const cart = formData.get('cart');
-		//const cartItem = JSON.parse(cart)
-		let cartItem;
-		try {
-			cartItem = JSON.parse(String(cart));
-		} catch (e) {
-			return fail(400, { action: 'new', success: false, message: 'Cart parsing error' });
-		}
-		//const file = formData.get('image') || '';
-		console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
-		let currentUserId: string = locals.user?.userId ?? '';
+		const cartItem = JSON.parse(String(cart)) || null;
 
+		//const file = formData.get('image') || '';
+		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
+		let currentUserId: string = locals.user?.userId ?? '';
 
 		if (!locals.auth && (password1 != password2)) {
 			return fail(400, { action: 'new', success: false, message: 'Password non corrispondenti' });
 		}
 
-		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue) {
+		if (!locals.auth && (password1 == '' || password2 == '')) {
+			return fail(400, { action: 'new', success: false, message: 'Password non valide' });
+		}
+
+		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || !cart) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
+
 		if (!locals.auth) {
+			let userExist = false;
 			try {
-				const userId = nanoid() // OLD stringHash(crypto.randomUUID());
-				console.log('new userId', userId);
-
-				const userCode = crypto.randomUUID()
-				const cookieId = crypto.randomUUID()
-				const returnObj = true
-				const newDoc = {
-					userId,
-					userCode,
-					name,
-					surname,
-					email,
-					address,
-					postalCode,
-					city,
-					county,
-					country,
-					phone,
-					mobilePhone,
-					password: hash(String(password1), salt),
-					cookieId,
-					// "membership.membershipLevel": 'Socio ordinario',
-					// "membership.membershipSignUp": new Date(),
-					// "membership.membershipActivation": new Date(),
-					// "membership.membershipExpiry": new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-					// "membership.membershipStatus": true
-				};
-
-				const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
+				const query = { email };
+				const projection = { _id: 0, email: 1 } // 0: exclude | 1: include
+				const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
+				const limit = 1;
+				const skip = 0;
+				const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
 					method: 'POST',
 					body: JSON.stringify({
 						apiKey,
 						schema: 'user', //product | order | user | layout | discount
-						newDoc,
-						returnObj
+						query,
+						projection,
+						sort,
+						limit,
+						skip
 					}),
 					headers: {
 						'Content-Type': 'application/json'
 					}
 				});
-				if (!res.ok) {
-					return fail(400, { action: 'user', success: false, message: await res.text() });
+				if (res.status != 200) {
+					console.error('user fetch failed', res.status, await res.text());
+					return fail(400, { action: 'new', success: false, message: 'errore database user' });
 				}
 				const response = await res.json();
-				currentUserId = response.userId;
-				console.log('response1', response);
-
-
-				if (res.status == 200) {
-					cookies.set('session_id', cookieId, {
-						httpOnly: true,
-						//maxAge: 60 * 60 * 24 * 7 // one week
-						maxAge: 60 * 60 * 24, // one day
-						sameSite: 'strict',
-						secure: process.env.NODE_ENV === 'production',
-						path: '/'
-					});
-				} else {
-					return fail(400, { action: 'user', success: false, message: response.message });
+				if (response.length > 0) {
+					userExist = true;
+					return fail(400, { action: 'new', success: false, message: 'email esistente' });
 				}
 			} catch (error) {
-				console.error('Error creating new user:', error);
-				return fail(400, { action: 'user', success: false, message: 'Error new user' });
+				console.log('userCheck error:', error);
+			}
+			if (!userExist) {
+				try {
+					const userId = nanoid() // OLD stringHash(crypto.randomUUID());
+					///console.log('new userId', userId);
+					const userCode = crypto.randomUUID()
+					const cookieId = crypto.randomUUID()
+					const returnObj = true
+					const newDoc = {
+						userId,
+						userCode,
+						name,
+						surname,
+						email,
+						address,
+						postalCode,
+						city,
+						county,
+						country,
+						phone,
+						mobilePhone,
+						password: hash(password1, salt),
+						cookieId,
+						// "membership.membershipLevel": 'Socio ordinario',
+						// "membership.membershipSignUp": new Date(),
+						// "membership.membershipActivation": new Date(),
+						// "membership.membershipExpiry": new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+						// "membership.membershipStatus": true
+					};
+
+					const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
+						method: 'POST',
+						body: JSON.stringify({
+							apiKey,
+							schema: 'user', //product | order | user | layout | discount
+							newDoc,
+							returnObj
+						}),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					});
+					if (!res.ok) {
+						return fail(400, { action: 'user', success: false, message: await res.text() });
+					}
+					const response = await res.json();
+					currentUserId = response.userId;
+					//console.log('response1', response);
+
+
+					if (res.status == 200) {
+						cookies.set('session_id', cookieId, {
+							httpOnly: true,
+							//maxAge: 60 * 60 * 24 * 7 // one week
+							maxAge: 60 * 60 * 24, // one day
+							sameSite: 'strict',
+							secure: process.env.NODE_ENV === 'production',
+							path: '/'
+						});
+					} else {
+						return fail(400, { action: 'user', success: false, message: response.message });
+					}
+				} catch (error) {
+					console.error('Error creating new user:', error);
+					return fail(400, { action: 'user', success: false, message: 'Error new user' });
+				}
 			}
 		}
 
@@ -209,7 +242,7 @@ export const actions: Actions = {
 				agencyId: '',
 				orderConfirmed: false,
 				totalPoints: 0,
-				totalValue,
+				totalValue: Number(totalValue),
 				totalVAT: 0,
 				browser: '',
 				orderIp: '',
@@ -276,10 +309,14 @@ export const actions: Actions = {
 				}
 			});
 			const response = await res.json();
-			console.log('response2', response);
+			//console.log('response2', response);
 
 			if (res.status == 200) {
-				return { action: 'new', success: true, message: response.message };
+				if (locals.auth) {
+					return { action: 'new', success: true, message: response.message, payload: true };
+				} else {
+					return { action: 'new', success: true, message: response.message, payload: false };
+				}
 			} else {
 				return fail(400, { action: 'new', success: false, message: response.message });
 			}

@@ -26,7 +26,6 @@
 
 	let { data } = $props();
 	const { getCourse, userData, auth } = $derived(data);
-	console.log('userData:', userData);
 
 	const userfiles = $derived(userData?.uploadfiles || []);
 	const picFilter = $derived(userfiles.filter((file: any) => file.type == 'avatar'));
@@ -118,7 +117,6 @@
 			if (!formData.password1 || !formData.password2 || formData.password1.length < 8) {
 				return false;
 			}
-			// Check if passwords match
 			if (formData.password1 !== formData.password2) {
 				return false;
 			}
@@ -128,7 +126,6 @@
 	};
 
 	const isStep2Valid = () => {
-		// Check if all required fields in step 2 are filled\
 		return !!(
 			formData.address &&
 			formData.city &&
@@ -139,7 +136,6 @@
 	};
 
 	const isStep3Valid = () => {
-		// Check if payment method is selected\
 		return !!formData.payment;
 	};
 
@@ -192,7 +188,7 @@
 			await invalidateAll();
 			//console.log('formData', formData);
 			if (result.type === 'success' && result.data) {
-				//const { message } = result.data; // { action, success, message, payload }
+				const { payload } = result.data; // { action, success, message, payload }
 				/////
 				// formData.name = userData.name;
 				// formData.surname = userData.surname;
@@ -223,11 +219,16 @@
 				// 	discountTostring();
 				// 	// console.log('discountList', discountList);
 				// }
-				notificationContent =
-					"Benvenuto! L'ordine è stato inviato. Ora puoi completare il tuo profilo.";
-				setTimeout(() => {
-					goto('/profile-modify');
-				}, 5000);
+				if (payload) {
+					notificationContent = "L'ordine è stato inviato. Controlla lo storico nel tuo profilo";
+				} else {
+					notificationContent =
+						"Benvenuto! L'ordine è stato inviato. Tra poco verrai reindirizzato sul tuo profilo.";
+					setTimeout(() => {
+						goto(`/course-detail/${getCourse.prodId}`);
+					}, 6000);
+				}
+				onCloseModal();
 			}
 			if (result.type === 'failure') {
 				notificationContent = result.data.message;
@@ -239,7 +240,6 @@
 			}
 			// 'update()' is called by default by use:enhance
 			// call 'await update()' if you need to ensure it completes before further client logic.
-			onCloseModal();
 			clearTimeout(startTimeout);
 			closeNotification();
 			toastClosed = false;
@@ -973,12 +973,14 @@
 									<input
 										class="flex-1 outline-none bg-transparent"
 										id="password"
+										name="password1"
 										type="password"
 										placeholder="Inserisci la password"
 										aria-label="Password"
 										bind:value={formData.password1}
 										minlength="8"
 										required={!auth}
+										onblur={checkPasswordsMatch}
 									/>
 								</div>
 								<div class="validator-hint hidden">Inserire password valida</div>
@@ -1001,6 +1003,7 @@
 									<input
 										class="flex-1 outline-none bg-transparent"
 										id="password2"
+										name="password2"
 										type="password"
 										placeholder="Conferma la password"
 										bind:value={formData.password2}
@@ -1252,6 +1255,7 @@
 						</div>
 					</div>
 				</div>
+				<input type="hidden" name="cart" value={JSON.stringify(getCourse)} />
 			</div>
 
 			<!-- Navigation buttons -->
