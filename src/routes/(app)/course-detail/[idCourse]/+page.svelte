@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { ActionResult } from '@sveltejs/kit';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { enhance } from '$app/forms';
 	import Modal from '$lib/components/Modal.svelte';
@@ -22,9 +23,8 @@
 		ArrowLeft,
 		CheckCircle
 	} from 'lucide-svelte';
-	import type { ActionResult } from '@sveltejs/kit';
 
-	let { data } = $props();
+	const { data } = $props();
 	const { getCourse, userData, auth } = $derived(data);
 
 	const userfiles = $derived(userData?.uploadfiles || []);
@@ -71,8 +71,23 @@
 	//let currentModal = $state('');
 	let currentStep = $state(1);
 	let totalSteps = $state(3);
-
 	let passwordsMatch = $state(true);
+
+	const resetFields = () => {
+		formData.name = userData?.name || '';
+		formData.surname = userData?.surname || '';
+		formData.email = userData?.email || '';
+		formData.address = userData?.address || '';
+		formData.city = userData?.city || '';
+		formData.county = userData?.county || '';
+		formData.postalCode = userData?.postalCode || '';
+		formData.country = userData?.country || 'Italy';
+		formData.phone = userData?.phone || '';
+		formData.mobilePhone = userData?.mobilePhone || '';
+		formData.payment = 'Bonifico bancario';
+		formData.password1 = '';
+		formData.password2 = '';
+	};
 
 	const checkPasswordsMatch = () => {
 		if (!auth && formData.password1 && formData.password2) {
@@ -163,8 +178,8 @@
 
 	const onCloseModal = () => {
 		openModal = false;
+		resetFields();
 		//currentModal = '';
-		//resetFields();
 	};
 
 	//notification
@@ -189,18 +204,6 @@
 			//console.log('formData', formData);
 			if (result.type === 'success' && result.data) {
 				const { payload } = result.data; // { action, success, message, payload }
-				/////
-				// formData.name = userData.name;
-				// formData.surname = userData.surname;
-				// formData.email = userData.email;
-				// formData.address = userData.address;
-				// formData.city = userData.city;
-				// formData.county = userData.county;
-				// formData.postalCode = userData.postalCode;
-				// formData.country = userData.country;
-				// formData.phone = userData.phone;
-				// formData.mobilePhone = userData.mobilePhone;
-				//////
 				// subTotal = 0;
 				// totalDiscount = 0;
 				// discountActive = payload?.discountApplied ?? [];
@@ -225,7 +228,7 @@
 					notificationContent =
 						"Benvenuto! L'ordine è stato inviato. Tra poco verrai reindirizzato sul tuo profilo.";
 					setTimeout(() => {
-						goto(`/course-detail/${getCourse.prodId}`);
+						goto('/profile-modify');
 					}, 6000);
 				}
 				onCloseModal();
@@ -521,351 +524,6 @@
 		<Loader />
 	{:else}
 		<form method="POST" action={postAction} use:enhance={formSubmit} class="px-6 pb-6">
-			<!-- <div class="card bg-base-100 shadow-sm border border-base-200 rounded-lg overflow-hidden">
-				<div class="bg-primary/10 px-4 py-3 border-b border-base-200">
-					<div class="flex justify-between items-center">
-						{#if auth}
-							<h3 class="font-bold text-lg">Dati di fatturazione</h3>
-							<a href="/profile-modify" class="btn btn-sm btn-outline">Modifica profilo</a>
-						{:else}
-							<h3 class="font-bold text-lg">Prima iscrizione</h3>
-						{/if}
-					</div>
-				</div>
-
-				<div class="p-4">
-					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<div>
-							<label for="Name" class="label">
-								<span class="label-text font-medium">Nome</span>
-							</label>
-							<input
-								id="Name"
-								name="name"
-								type="text"
-								class="input"
-								placeholder="Inserisci il tuo nome"
-								required
-								readonly={closedInput}
-								bind:value={formData.name}
-							/>
-						</div>
-
-						<div>
-							<label for="Surname" class="label">
-								<span class="label-text font-medium">Cognome</span>
-							</label>
-							<input
-								id="Surname"
-								name="surname"
-								type="text"
-								class="input"
-								placeholder="Inserisci il tuo cognome"
-								required
-								readonly={closedInput}
-								bind:value={formData.surname}
-							/>
-						</div>
-
-						<div class="md:col-span-2">
-							<span class="label-text font-medium">
-								Email {#if !auth}per Login{/if}
-							</span>
-							<label for="Email" class="input validator">
-								<Mail />
-								<input
-									id="Email"
-									name="email"
-									type="email"
-									placeholder="esempio@email.com"
-									required
-									readonly={closedInput}
-									bind:value={formData.email}
-								/>
-							</label>
-							<div class="validator-hint hidden">Inserire email valida</div>
-						</div>
-
-						{#if !auth}
-							<div class="md:col-span-2">
-								<span class="label-text font-medium">
-									Password
-									<span class="text-xs"> (Almeno 8 caratteri con numeri e lettere) </span>
-								</span>
-								<label for="password" class="input validator">
-									<Lock />
-									<input
-										id="password"
-										type="password"
-										name="password1"
-										placeholder="Inserisci la password"
-										aria-label="Password"
-										bind:value={formData.password1}
-										minlength="8"
-										required={!auth}
-									/>
-								</label>
-								<div class="validator-hint hidden">Inserire password valida</div>
-							</div>
-
-							<div class="md:col-span-2">
-								<span class="label-text font-medium">Conferma password</span>
-								<label for="password2" class="input validator">
-									<Lock />
-									<input
-										id="password2"
-										type="password"
-										name="password2"
-										placeholder="Conferma la password"
-										bind:value={formData.password2}
-										minlength="8"
-										required={!auth}
-									/>
-								</label>
-								<div class="validator-hint hidden">Inserire password valida</div>
-							</div>
-						{/if}
-					</div>
-
-					<div class="divider my-4">Indirizzo</div>
-
-					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<div class="form-control w-full md:col-span-2">
-							<label for="address" class="label">
-								<span class="label-text font-medium">Indirizzo</span>
-							</label>
-							<input
-								id="address"
-								name="address"
-								type="text"
-								class="input input-bordered w-full"
-								placeholder="Via/Piazza, numero civico"
-								required
-								readonly={closedInput}
-								bind:value={formData.address}
-							/>
-						</div>
-
-						<div class="form-control w-full">
-							<label for="city" class="label">
-								<span class="label-text font-medium">Città</span>
-							</label>
-							<input
-								id="city"
-								name="city"
-								type="text"
-								class="input input-bordered w-full"
-								placeholder="Inserisci la città"
-								required
-								readonly={closedInput}
-								bind:value={formData.city}
-							/>
-						</div>
-
-						<div class="form-control w-full">
-							<label for="county" class="label">
-								<span class="label-text font-medium">Provincia</span>
-							</label>
-							<select
-								id="county"
-								name="county"
-								class="select select-bordered w-full"
-								required
-								disabled={closedInput}
-								bind:value={formData.county}
-							>
-								<option value="" disabled selected>Seleziona provincia</option>
-								{#each $province as provincia, i}
-									{#if provincia.title !== 'Online'}
-										<option value={provincia.title}>
-											{provincia.title} ({provincia.region})
-										</option>
-									{/if}
-								{/each}
-							</select>
-						</div>
-
-						<div class="form-control w-full">
-							<label for="postalcode" class="label">
-								<span class="label-text font-medium">CAP</span>
-							</label>
-							<input
-								id="postalCode"
-								name="postalCode"
-								type="text"
-								class="input input-bordered w-full"
-								placeholder="12345"
-								required
-								readonly={closedInput}
-								bind:value={formData.postalCode}
-							/>
-						</div>
-
-						<div class="form-control w-full">
-							<label for="country" class="label">
-								<span class="label-text font-medium">Nazione</span>
-							</label>
-							<select
-								id="country"
-								name="country"
-								class="select select-bordered w-full"
-								required
-								disabled={closedInput}
-								bind:value={formData.country}
-							>
-								<option value="" disabled selected>Seleziona nazione</option>
-								{#each $country_list as country}
-									<option value={country}>
-										{country}
-									</option>
-								{/each}
-							</select>
-						</div>
-
-						<div>
-							<label for="telefono" class="label">
-								<span class="font-medium">Telefono</span>
-							</label>
-							<input
-								id="telefono"
-								name="phone"
-								type="text"
-								class="input"
-								placeholder="+39 01234567"
-								required
-								readonly={closedInput}
-								bind:value={formData.phone}
-							/>
-						</div>
-
-						<div>
-							<label for="cellulare" class="label">
-								<span class="font-medium">Cellulare</span>
-							</label>
-							<input
-								id="cellulare"
-								name="mobilePhone"
-								type="text"
-								class="input"
-								placeholder="+39 3331234567"
-								readonly={closedInput}
-								bind:value={formData.mobilePhone}
-							/>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<div class="card bg-base-100 shadow-sm border border-base-200 rounded-lg overflow-hidden">
-				<div class="bg-primary/10 px-4 py-3 border-b border-base-200">
-					<h3 class="font-bold text-lg">Metodo di Pagamento</h3>
-				</div>
-
-				<div class="p-4">
-					<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-						<label
-							class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4"
-							class:border-primary={formData.payment === 'Carta di credito'}
-							class:bg-base-200={formData.payment === 'Carta di credito'}
-						>
-							<div class="flex flex-col items-center justify-center gap-2">
-								<input
-									type="radio"
-									name="payment"
-									value="Carta di credito"
-									class="hidden"
-									bind:group={formData.payment}
-								/>
-								<CreditCard class="h-8 w-8 text-primary" />
-								<span class="text-center font-medium">Carta di Credito / Paypal</span>
-							</div>
-						</label>
-
-						<label
-							class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4"
-							class:border-primary={formData.payment === 'Bonifico bancario'}
-							class:bg-base-200={formData.payment === 'Bonifico bancario'}
-						>
-							<div class="flex flex-col items-center justify-center gap-2">
-								<input
-									type="radio"
-									name="payment"
-									value="Bonifico bancario"
-									class="hidden"
-									bind:group={formData.payment}
-								/>
-								<Landmark class="h-8 w-8 text-primary" />
-								<span class="text-center font-medium">Bonifico Bancario</span>
-							</div>
-						</label>
-
-						<label
-							class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4"
-							class:border-primary={formData.payment === 'Contanti'}
-							class:bg-base-200={formData.payment === 'Contanti'}
-						>
-							<div class="flex flex-col items-center justify-center gap-2">
-								<input
-									type="radio"
-									name="payment"
-									value="Contanti"
-									class="hidden"
-									bind:group={formData.payment}
-								/>
-								<HandCoins class="h-8 w-8 text-primary" />
-								<span class="text-center font-medium">Contanti (all'inizio corso)</span>
-							</div>
-						</label>
-					</div>
-				</div>
-			</div>
-
-			<div class="card bg-base-100 shadow-sm border border-base-200 rounded-lg overflow-hidden">
-				<div class="bg-primary/10 px-4 py-3 border-b border-base-200">
-					<h3 class="font-bold text-lg">Riepilogo Ordine</h3>
-				</div>
-
-				<div class="p-4">
-					<div class="flex justify-between items-center py-2">
-						<span class="text-base-content/80">{getCourse.layoutView.title || 'Corso'}</span>
-						<span>{getCourse.layoutView.price} €</span>
-					</div>
-					{#if !auth}
-						<div class="flex justify-between items-center py-2">
-							<span class="text-base-content/80">Tesseramento per il primo corso</span>
-							<span>25 €</span>
-						</div>
-					{/if}
-
-					<div class="divider my-1"></div>
-
-					<div class="flex justify-between items-center py-2 text-lg font-bold">
-						<span>Totale</span>
-						{#if !auth}
-							<span class="text-primary">{getCourse.layoutView.price + 25} €</span>
-							<input type="hidden" name="totalValue" value={getCourse.layoutView.price + 25} />
-						{:else}
-							<span class="text-primary">{getCourse.layoutView.price} €</span>
-							<input type="hidden" name="totalValue" value={getCourse.layoutView.price} />
-						{/if}
-					</div>
-				</div>
-			</div>
-
-			{#if closedInput}
-				<input type="hidden" name="county" value={formData.county} />
-				<input type="hidden" name="country" value={formData.country} />
-			{/if}
-
-			<input type="hidden" name="cart" value={JSON.stringify(getCourse)} />
-
-			<div class="flex justify-end gap-3 mt-6">
-				<button class="btn btn-outline btn-error" type="button" onclick={onCloseModal}>
-					Annulla
-				</button>
-				<button class="btn btn-primary" type="submit"> Conferma Acquisto </button>
-			</div> -->
-
 			<div class="px-6 pt-4">
 				<div class="w-full flex justify-between mb-2">
 					{#each Array(totalSteps) as _, i}
@@ -1225,7 +883,7 @@
 						</label>
 					</div>
 
-					<!-- Order Summary -->
+					<!-- Summary -->
 					<div class="card bg-base-200 p-4 rounded-lg">
 						<h3 class="font-bold text-lg mb-2">Riepilogo Ordine</h3>
 						<div class="divider my-1"></div>
@@ -1258,31 +916,7 @@
 				<input type="hidden" name="cart" value={JSON.stringify(getCourse)} />
 			</div>
 
-			<!-- Navigation buttons -->
-			<!-- <div class="flex justify-between mt-6">
-				<button
-					type="button"
-					class="btn btn-outline"
-					onclick={prevStep}
-					class:hidden={currentStep === 1}
-				>
-					<ArrowLeft size={16} />
-					Indietro
-				</button>
-
-				<div class="flex gap-2 ml-auto">
-					<button type="button" class="btn btn-error btn-outline" onclick={onCloseModal}>
-						Annulla
-					</button>
-
-					{#if currentStep < totalSteps}
-						<button type="button" class="btn btn-primary" onclick={nextStep}> Continua </button>
-					{:else}
-						<button type="submit" class="btn btn-success"> Conferma Acquisto </button>
-					{/if}
-				</div>
-			</div> -->
-			<!-- Navigation buttons -->
+			<!-- Navigation -->
 			<div class="flex justify-between mt-6">
 				<button
 					type="button"

@@ -3,7 +3,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
 	import Modal from '$lib/components/Modal.svelte';
-	import { page } from '$app/stores'; // $page.data.user $page.data.auth
+	import { page } from '$app/stores';
 	import { province, country_list } from '$lib/stores/arrays';
 	import {
 		Mail,
@@ -14,14 +14,21 @@
 		Phone,
 		Smartphone,
 		Lock,
-		CircleCheckBig
+		CheckCircle,
+		CreditCard,
+		Wallet,
+		Calendar,
+		Users,
+		GraduationCap,
+		Globe2,
+		Clock
 	} from 'lucide-svelte';
 
-	//let { data, form } = $props();
-	//let { userData, auth } = $derived(data);
-	let { form } = $props();
-	let auth = $state($page.data.auth);
-	let userData = $state($page.data.user);
+	const { data, form } = $props();
+	//const { userData, auth } = $derived(data);
+	//let { form } = $props();
+	let auth = $page.data.auth;
+	let userData = $page.data.user;
 
 	if (auth) {
 		userData.membership.membershipExpiry = userData.membership.membershipExpiry
@@ -44,9 +51,9 @@
 		},
 		{
 			name: 'Federico C',
-			image: ' 	/images/michael-dam-mEZ3PoFGs_k-unsplash.jpg',
+			image: '/images/michael-dam-mEZ3PoFGs_k-unsplash.jpg',
 			review:
-				'Per chi fa i corsi della durata di qualche giorno è possibile dormire direttamente sul posto grazie a letti a muro. È presente in bagno e una cucina per poter fare le proprie cose e fare colazione/cucinare all’occorrenza.'
+				"Per chi fa i corsi della durata di qualche giorno è possibile dormire direttamente sul posto grazie a letti a muro. È presente in bagno e una cucina per poter fare le proprie cose e fare colazione/cucinare all'occorrenza."
 		},
 		{
 			name: 'Moria',
@@ -56,34 +63,35 @@
 		}
 	];
 
-	let paymentType = $state('bonifico');
-	let isModal = $state(false);
-	let newExpire: any = $state(new Date());
-	let currentDialog = $state('');
-	let postAction = $state('?/renewMembership');
-	let modalTitle = $state('');
+	let paymentType = 'bonifico';
+	let isModal = false;
+	let newExpire = new Date().toISOString().substring(0, 10);
+	let currentDialog = '';
+	let postAction = '?/renewMembership';
+	let modalTitle = '';
 
-	let password1 = $state('');
-	let password2 = $state('');
-	let name = $state('');
-	let surname = $state('');
-	let email = $state('');
-	let address = $state('');
-	let postalCode = $state('');
-	let city = $state('');
-	let countryState = $state('');
-	let country = $state('');
-	let phone = $state('');
-	let mobilePhone = $state('');
-	let checkPass = $state(false);
-	let checkSecondPass = $state(false);
-	//let error = $state();
-	let inputRef = $state();
-	let membershipLevel = $state('');
+	let password1 = '';
+	let password2 = '';
+	let name = '';
+	let surname = '';
+	let email = '';
+	let address = '';
+	let postalCode = '';
+	let city = '';
+	let countryState = '';
+	let country = '';
+	let phone = '';
+	let mobilePhone = '';
+	let checkPass = false;
+	let checkSecondPass = false;
+	let inputRef = null;
+	let membershipLevel = '';
+
 	const testPass = () => {
 		checkPass = password1.length >= 8;
 		checkSecondPass = password1 === password2;
 	};
+
 	const testSecondPass = () => (checkSecondPass = password1 === password2);
 
 	const fieldReset = () => {
@@ -104,7 +112,7 @@
 	const onClickDialog = (type: string) => {
 		currentDialog = type;
 		isModal = true;
-		console.log('onClickDialog', type, { isModal });
+
 		if (type == 'associate') {
 			postAction = `?/newMembership`;
 			modalTitle = 'Nuova iscrizione socio ordinario';
@@ -118,14 +126,15 @@
 		if (type == 'renew') {
 			postAction = `?/renewMembership`;
 			modalTitle = 'Rinnovo iscrizione';
-			const newDate = newExpire.setFullYear(newExpire.getFullYear() + 1);
-			newExpire = newDate.toString().substring(0, 10);
+			const nextYear = new Date(newExpire);
+			nextYear.setFullYear(nextYear.getFullYear() + 1);
+			newExpire = nextYear.toISOString().substring(0, 10);
 		}
 	};
 
 	$effect(() => {
 		if (form != null) {
-			async () => await invalidateAll(); // MUST be async/await or tableList = getTable will trigger infinite loop
+			invalidateAll();
 			const { action, success, message } = form;
 			if (success) {
 				fieldReset();
@@ -137,477 +146,571 @@
 			toastClosed = false;
 			notificationContent = message;
 		}
-	}); // end effect
+	});
 
 	// notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
+	let toastClosed: boolean = true;
+	let notificationContent: string = '';
+	let notificationError: boolean = false;
 	let startTimeout: any;
+
 	const closeNotification = () => {
 		startTimeout = setTimeout(() => {
 			toastClosed = true;
-		}, 3000); // 1000 milliseconds = 1 second
+		}, 3000);
 	};
-	//clearTimeout(startTimeout); // reset timer
 </script>
 
 <svelte:head>
-	<title>Diventa socio</title>
+	<title>Diventa socio Diện Chẩn</title>
+	<meta
+		name="description"
+		content="Diventa socio dell'associazione Diện Chẩn e accedi a tutti i vantaggi"
+	/>
 </svelte:head>
 
-<div class="bg-blue-50 grid grid-cols-6 grid-rows-[min-content] gap-y-8 p-4 md:p-10">
-	<span class="col-span-6 text-blue-900 font-bold text-5xl text-center mb-4">
-		Diventa socio Dien Chan®
-	</span>
-	<!-- foto -->
-	<section class="col-start-2 col-end-4 bg-trasparent rounded-lg">
-		<img
-			src="/images/riflessologo_dienchan.jpg"
-			alt="foto riflessologo"
-			class="h-90 object-cover"
-		/>
-	</section>
-	<!-- elenco -->
-	<section class="mt-10">
-		<div class="space-y-5">
-			<!-- Blocco 1 -->
-			<div class="flex items-center">
-				<div class="shrink-0 flex items-center justify-center">
-					<CircleCheckBig size="28" color="red" strokeWidth={4} />
-				</div>
-				<div class="grow flex items-center ml-5">
-					<p class="text-blue-900 font-semibold text-lg leading-tight w-96">
-						Accedi al servizio di mappatura punti online e disegna schemi personalizzati per i tuoi
-						trattamenti
-					</p>
+<!-- Hero Section -->
+<section class="bg-gradient-to-b from-blue-50 to-teal-50 py-16 px-4 md:py-24">
+	<div class="container mx-auto">
+		<div class="flex flex-col md:flex-row items-center justify-between gap-8">
+			<div class="md:w-1/2">
+				<h1 class="text-4xl md:text-5xl font-bold text-blue-900 mb-6">Diventa socio Diện Chẩn®</h1>
+				<p class="text-lg text-blue-800 mb-8">
+					Unisciti alla nostra comunità di professionisti del benessere e accedi a risorse
+					esclusive, formazione continua e supporto professionale.
+				</p>
+				<div class="flex flex-wrap gap-4">
+					{#if !auth}
+						<button class="btn btn-primary btn-lg" onclick={() => onClickDialog('associate')}>
+							Diventa Socio
+						</button>
+					{:else if userData?.membership?.membershipLevel != 'Socio vitalizio'}
+						<button class="btn btn-primary btn-lg" onclick={() => onClickDialog('renew')}>
+							Rinnova Iscrizione
+						</button>
+					{/if}
 				</div>
 			</div>
-			<!-- Blocco 2 -->
-			<div class="flex items-center">
-				<div class="shrink-0 flex items-center justify-center">
-					<CircleCheckBig size="28" color="red" strokeWidth={4} />
-				</div>
-				<div class="grow flex items-center ml-5">
-					<p class="text-blue-900 font-semibold text-lg leading-tight w-96">
-						Accedi gratuitamente ai video del corso base registrato da My Le dopo aver frequentato
-						il corso con uno dei nostri riflessologi
-					</p>
+			<div class="md:w-1/2">
+				<img
+					src="/images/riflessologo_dienchan.jpg"
+					alt="Riflessologo Diện Chẩn"
+					class="rounded-lg shadow-xl max-w-full h-auto"
+				/>
+			</div>
+		</div>
+	</div>
+</section>
+
+<!-- Benefits Section -->
+<section class="py-16 px-4 bg-white">
+	<div class="container mx-auto">
+		<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-12">
+			Vantaggi dell'Associazione
+		</h2>
+
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
+				<div class="flex items-start gap-4">
+					<div class="bg-blue-100 p-3 rounded-full">
+						<CheckCircle class="text-blue-600 h-6 w-6" />
+					</div>
+					<div>
+						<h3 class="font-semibold text-lg text-blue-900 mb-2">Mappatura Punti Online</h3>
+						<p class="text-blue-800">
+							Accedi al servizio di mappatura punti online e disegna schemi personalizzati per i
+							tuoi trattamenti.
+						</p>
+					</div>
 				</div>
 			</div>
-			<!-- Blocco 3 -->
-			<div class="flex items-center">
-				<div class="shrink-0 flex items-center justify-center">
-					<CircleCheckBig size="28" color="red" strokeWidth={4} />
-				</div>
-				<div class="grow flex items-center ml-5">
-					<p class="text-blue-900 font-semibold text-lg leading-tight w-96">
-						Acquista strumenti e materiale didattico con lo sconto del 10% grazie al codice fornito
-						dal tuo riflessologo
-					</p>
-				</div>
-			</div>
-			<!-- Blocco 4 -->
-			<div class="flex items-center">
-				<div class="shrink-0 flex items-center justify-center">
-					<CircleCheckBig size="28" color="red" strokeWidth={4} />
-				</div>
-				<div class="grow flex items-center ml-5">
-					<p class="text-blue-900 font-semibold text-lg leading-tight w-96">
-						Partecipa agli incontri in diretta online organizzati annualmente con il nostro
-						professore Bui Quoc Chau
-					</p>
+
+			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
+				<div class="flex items-start gap-4">
+					<div class="bg-blue-100 p-3 rounded-full">
+						<CheckCircle class="text-blue-600 h-6 w-6" />
+					</div>
+					<div>
+						<h3 class="font-semibold text-lg text-blue-900 mb-2">Video Corso Base</h3>
+						<p class="text-blue-800">
+							Accedi gratuitamente ai video del corso base registrato da My Le dopo aver frequentato
+							il corso con uno dei nostri riflessologi.
+						</p>
+					</div>
 				</div>
 			</div>
-			<!-- Blocco 5 -->
-			<div class="flex items-center">
-				<div class="shrink-0 flex items-center justify-center">
-					<CircleCheckBig size="28" color="red" strokeWidth={4} />
+
+			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
+				<div class="flex items-start gap-4">
+					<div class="bg-blue-100 p-3 rounded-full">
+						<CheckCircle class="text-blue-600 h-6 w-6" />
+					</div>
+					<div>
+						<h3 class="font-semibold text-lg text-blue-900 mb-2">Sconti Esclusivi</h3>
+						<p class="text-blue-800">
+							Acquista strumenti e materiale didattico con lo sconto del 10% grazie al codice
+							fornito dal tuo riflessologo.
+						</p>
+					</div>
 				</div>
-				<div class="grow flex items-center ml-5">
-					<p class="text-blue-900 font-semibold text-lg leading-tight w-96">
-						Frequenta incontri di pratica o di aggiornamento organizzati dal tuo riflessologo di
-						riferimento
-					</p>
+			</div>
+
+			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
+				<div class="flex items-start gap-4">
+					<div class="bg-blue-100 p-3 rounded-full">
+						<CheckCircle class="text-blue-600 h-6 w-6" />
+					</div>
+					<div>
+						<h3 class="font-semibold text-lg text-blue-900 mb-2">Incontri Online</h3>
+						<p class="text-blue-800">
+							Partecipa agli incontri in diretta online organizzati annualmente con il nostro
+							professore Bui Quoc Chau.
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
+				<div class="flex items-start gap-4">
+					<div class="bg-blue-100 p-3 rounded-full">
+						<CheckCircle class="text-blue-600 h-6 w-6" />
+					</div>
+					<div>
+						<h3 class="font-semibold text-lg text-blue-900 mb-2">Pratica e Aggiornamento</h3>
+						<p class="text-blue-800">
+							Frequenta incontri di pratica o di aggiornamento organizzati dal tuo riflessologo di
+							riferimento.
+						</p>
+					</div>
 				</div>
 			</div>
 		</div>
-	</section>
-	{#if userData?.membership?.membershipLevel != 'Socio vitalizio'}
-		<section class="col-start-2 col-end-4">
-			<!-- Card per Socio Ordinario -->
-			<div class="flex justify-center space-x-6 my-8">
+	</div>
+</section>
+
+<!-- Membership Options -->
+<section class="py-16 px-4 bg-gradient-to-b from-teal-50 to-blue-50">
+	<div class="container mx-auto">
+		<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-12">
+			Scegli il Tuo Piano di Associazione
+		</h2>
+
+		<div class="flex flex-col md:flex-row justify-center gap-8">
+			{#if userData?.membership?.membershipLevel != 'Socio vitalizio'}
 				<div
-					class="bg-linear-to-b from-indigo-700 via-indigo-600 to-indigo-500 rounded-xl p-6 w-80 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+					class="bg-white rounded-xl overflow-hidden shadow-lg transition-all hover:shadow-2xl w-full md:w-96"
 				>
-					<div class="text-center">
-						<h2
-							class="text-white font-semibold text-lg mb-4 border-2 border-white rounded-md inline-block px-3 py-1"
-						>
-							SOCIO ORDINARIO
-						</h2>
-						<p class="text-4xl font-bold">25€ <span class="text-xl">annuali</span></p>
+					<div class="bg-blue-600 p-4 text-white text-center">
+						<h3 class="text-xl font-bold">SOCIO ORDINARIO</h3>
 					</div>
-					<div class="flex justify-center my-4">
-						<figure class="px-4 pt-4">
+					<div class="p-6">
+						<div class="text-center mb-6">
+							<p class="text-4xl font-bold text-blue-900">
+								25€ <span class="text-xl text-blue-700">annuali</span>
+							</p>
+						</div>
+
+						<div class="flex justify-center mb-6">
 							<img
 								src="/images/card-1.jpg"
-								alt="tipo corso"
-								class="h-40 rounded-full object-cover"
+								alt="Socio Ordinario"
+								class="h-40 w-40 rounded-full object-cover border-4 border-blue-100"
 							/>
-						</figure>
-					</div>
-					<div class="flex justify-between space-x-4">
+						</div>
+
+						<ul class="mb-8 space-y-3">
+							<li class="flex items-center">
+								<CheckCircle class="text-blue-600 h-4 w-4 mr-2" />
+								<span>Accesso a tutti i vantaggi</span>
+							</li>
+							<li class="flex items-center">
+								<CheckCircle class="text-blue-600 h-4 w-4 mr-2" />
+								<span>Rinnovo annuale</span>
+							</li>
+						</ul>
+
 						{#if !auth}
-							<button
-								class="btn bg-red-500 text-white w-full rounded-xl mt-2"
-								onclick={() => onClickDialog('associate')}
-							>
-								Associati</button
-							>
+							<button class="btn btn-primary w-full" onclick={() => onClickDialog('associate')}>
+								Associati Ora
+							</button>
 						{:else}
-							<button
-								class="btn bg-transparent border-2 border-white text-white w-full rounded-xl mt-2"
-								onclick={() => onClickDialog('renew')}>Rinnova</button
-							>
+							<button class="btn btn-primary w-full" onclick={() => onClickDialog('renew')}>
+								Rinnova Iscrizione
+							</button>
 						{/if}
 					</div>
 				</div>
-			</div>
-		</section>
-	{/if}
+			{/if}
 
-	<section class="col-start-4 col-end-6">
-		<!-- Card per Socio Vitalizio -->
-		<div class="flex justify-center space-x-6 my-8">
 			<div
-				class="bg-linear-to-b from-yellow-600 via-yellow-500 to-yellow-400 rounded-xl p-6 w-80 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+				class="bg-white rounded-xl overflow-hidden shadow-lg transition-all hover:shadow-2xl w-full md:w-96 relative"
 			>
-				<div class="text-center">
-					<h2
-						class="text-white font-semibold text-lg mb-4 border-2 border-white rounded-md inline-block px-3 py-1"
-					>
+				<div class="bg-yellow-500 p-4 text-white text-center">
+					<h3 class="text-xl font-bold">
 						SOCIO VITALIZIO
-					</h2>
-					<p class="text-4xl font-bold">390€</p>
-					<!-- <p class="text-xl invisible"> /a vita</p> -->
+						{#if userData?.membership?.membershipLevel != 'Socio vitalizio'}
+							<div class="badge badge-warning text-white px-4 py-1 rounded-bl-lg font-semibold">
+								Consigliato
+							</div>
+						{/if}
+					</h3>
 				</div>
-				<div class="flex justify-center my-4">
-					<figure class="px-4 pt-4">
-						<img src="/images/card-2.jpg" alt="tipo corso" class="h-40 rounded-full object-cover" />
-					</figure>
+				<div class="p-6">
+					<div class="text-center mb-6">
+						<p class="text-4xl font-bold text-blue-900">
+							390€ <span class="text-xl text-blue-700">una tantum</span>
+						</p>
+					</div>
+
+					<div class="flex justify-center mb-6">
+						<img
+							src="/images/card-2.jpg"
+							alt="Socio Vitalizio"
+							class="h-40 w-40 rounded-full object-cover border-4 border-yellow-100"
+						/>
+					</div>
+
+					<ul class="mb-8 space-y-3">
+						<li class="flex items-center">
+							<CheckCircle class="text-yellow-500 h-4 w-4 mr-2" />
+							<span>Accesso a tutti i vantaggi</span>
+						</li>
+						<li class="flex items-center">
+							<CheckCircle class="text-yellow-500 h-4 w-4 mr-2" />
+							<span>Nessun rinnovo necessario</span>
+						</li>
+						<li class="flex items-center">
+							<CheckCircle class="text-yellow-500 h-4 w-4 mr-2" />
+							<span>Supporto prioritario</span>
+						</li>
+						<li class="flex items-center">
+							<CheckCircle class="text-yellow-500 h-4 w-4 mr-2" />
+							<span>Accesso a vita</span>
+						</li>
+					</ul>
+
+					{#if userData?.membership?.membershipLevel != 'Socio vitalizio'}
+						<button
+							class="btn bg-yellow-500 hover:bg-yellow-600 text-white w-full"
+							onclick={() => onClickDialog('lifetime')}
+						>
+							Diventa Socio Vitalizio
+						</button>
+					{:else}
+						<div class="bg-green-100 p-3 rounded-lg text-center text-green-800">
+							<p>Sei già un Socio Vitalizio</p>
+						</div>
+					{/if}
 				</div>
-				<button
-					class="btn bg-red-500 text-white w-full rounded-xl mt-2"
-					onclick={() => onClickDialog('lifetime')}>Associati</button
-				>
 			</div>
 		</div>
-	</section>
+	</div>
+</section>
 
-	<section class="col-span-6 py-12 rounded-xl bg-gray-50">
-		<!-- Sezione Testimonianze -->
-		<div class="text-center mb-12">
-			<h2 class="text-5xl font-extrabold text-gray-900 mb-6">Le parole dei nostri associati</h2>
-			<p class="text-lg text-gray-700">Scopri cosa pensano di noi i nostri clienti</p>
-		</div>
+<!-- Testimonials Section -->
+<section class="py-16 px-4 bg-white">
+	<div class="container mx-auto">
+		<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-4">
+			Le parole dei nostri associati
+		</h2>
+		<p class="text-lg text-center text-blue-700 mb-12">
+			Scopri cosa pensano di noi i nostri clienti
+		</p>
 
-		<div class=" flex justify-center space-x-10 m-10">
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 			{#each testimonials as testimonial}
-				<div
-					class="testimonial-card w-[450px] rounded-2xl shadow-lg bg-white p-8 transition-transform transform hover:scale-105"
-				>
-					<div class="flex items-center mb-6">
+				<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
+					<div class="flex items-center mb-4">
 						<img
-							src={testimonial.image}
+							src={testimonial.image || '/placeholder.svg'}
 							alt={testimonial.name}
-							class="mask mask-circle w-16 mr-4"
+							class="w-12 h-12 rounded-full object-cover mr-4"
 						/>
-						<h4 class="text-xl font-semibold text-gray-800">{testimonial.name}</h4>
+						<h4 class="font-semibold text-lg text-blue-900">{testimonial.name}</h4>
 					</div>
-					<p class="text-gray-700 text-base">{testimonial.review}</p>
+					<p class="text-blue-800 italic">"{testimonial.review}"</p>
 				</div>
 			{/each}
 		</div>
-		<!-- Sezione Statistiche -->
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12 mx-10">
-			<div
-				class="flex flex-col items-center justify-center p-2 bg-white rounded-lg shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
-			>
-				<h3 class="text-4xl font-bold text-gray-800">2,000+</h3>
-				<p class="text-gray-600">Lezioni svolte</p>
+	</div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-16 px-4 bg-gradient-to-b from-blue-50 to-teal-50">
+	<div class="container mx-auto">
+		<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-12">I nostri numeri</h2>
+
+		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+			<div class="bg-white rounded-xl p-6 shadow-md text-center transition-all hover:shadow-lg">
+				<div
+					class="bg-blue-100 p-3 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4"
+				>
+					<Calendar class="text-blue-600 h-8 w-8" />
+				</div>
+				<h3 class="text-4xl font-bold text-blue-900 mb-2">2,000+</h3>
+				<p class="text-blue-700">Lezioni svolte</p>
 			</div>
-			<div
-				class="flex flex-col items-center justify-center bg-white rounded-lg shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
-			>
-				<h3 class="text-4xl font-bold text-gray-800">360+</h3>
-				<p class="text-gray-600">Riflessologi istruiti</p>
+
+			<div class="bg-white rounded-xl p-6 shadow-md text-center transition-all hover:shadow-lg">
+				<div
+					class="bg-blue-100 p-3 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4"
+				>
+					<Users class="text-blue-600 h-8 w-8" />
+				</div>
+				<h3 class="text-4xl font-bold text-blue-900 mb-2">360+</h3>
+				<p class="text-blue-700">Riflessologi istruiti</p>
 			</div>
-			<div
-				class="flex flex-col items-center justify-center bg-white rounded-lg shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
-			>
-				<h3 class="text-4xl font-bold text-gray-800">40+</h3>
-				<p class="text-gray-600">Paesi di diffusione</p>
+
+			<div class="bg-white rounded-xl p-6 shadow-md text-center transition-all hover:shadow-lg">
+				<div
+					class="bg-blue-100 p-3 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4"
+				>
+					<Globe2 class="text-blue-600 h-8 w-8" />
+				</div>
+				<h3 class="text-4xl font-bold text-blue-900 mb-2">40+</h3>
+				<p class="text-blue-700">Paesi di diffusione</p>
 			</div>
-			<div
-				class="flex flex-col items-center justify-center bg-white rounded-lg shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
-			>
-				<h3 class="text-4xl font-bold text-gray-800">12+</h3>
-				<p class="text-gray-600">Anni di esperienza</p>
+
+			<div class="bg-white rounded-xl p-6 shadow-md text-center transition-all hover:shadow-lg">
+				<div
+					class="bg-blue-100 p-3 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4"
+				>
+					<Clock class="text-blue-600 h-8 w-8" />
+				</div>
+				<h3 class="text-4xl font-bold text-blue-900 mb-2">12+</h3>
+				<p class="text-blue-700">Anni di esperienza</p>
 			</div>
 		</div>
-	</section>
+	</div>
+</section>
 
-	<section class="col-span-6 py-12 rounded-xl bg-gray-50">
-		<div class="container mx-auto p-4">
-			<h1 class="text-3xl font-bold text-center -mt-8 mb-10">Domande e risposte</h1>
+<!-- FAQ Section -->
+<section class="py-16 px-4 bg-white">
+	<div class="container mx-auto">
+		<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-12">
+			Domande frequenti
+		</h2>
 
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-				<div
-					id="question"
-					class="bg-gray-100 p-4 rounded-lg shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
-				>
-					<h2 class="text-lg font-semibold text-blue-800 mb-2">Come divento socio?</h2>
-					<p class="text-gray-700">
-						In questa pagina "Quote associative" è possibile iscriversi come socio ordinario
-						premendo il pulsante "Associati" per 25 euro all'anno oppure come socio vitalizio
-						premendo il pulsante "Associati a vita" per un singolo pagamento di 390€.
-					</p>
-				</div>
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
+				<h3 class="font-semibold text-lg text-blue-900 mb-3">Come divento socio?</h3>
+				<p class="text-blue-800">
+					In questa pagina "Quote associative" è possibile iscriversi come socio ordinario premendo
+					il pulsante "Associati" per 25 euro all\'anno oppure come socio vitalizio premendo il
+					pulsante "Associati a vita" per un singolo pagamento di 390€.
+				</p>
+			</div>
 
-				<div
-					id="answer"
-					class="bg-gray-100 p-4 rounded-lg shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
-				>
-					<h2 class="text-lg font-semibold text-blue-800 mb-2">
-						Cosa succede se come socio ordinario non rinnovo l'iscrizione in tempo?
-					</h2>
-					<p class="text-gray-700">
-						Se l'inscrizione a socio ordinario non viene rinnovato entro un anno dalla prima
-						associazione o dall'ultimo rinnovo i privilegi da socio decadono.
-					</p>
-				</div>
+			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
+				<h3 class="font-semibold text-lg text-blue-900 mb-3">
+					Cosa succede se come socio ordinario non rinnovo l\'iscrizione in tempo?
+				</h3>
+				<p class="text-blue-800">
+					Se l\'iscrizione a socio ordinario non viene rinnovato entro un anno dalla prima
+					associazione o dall\'ultimo rinnovo i privilegi da socio decadono.
+				</p>
+			</div>
 
-				<div
-					id="question"
-					class="bg-gray-100 p-4 rounded-lg shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
-				>
-					<h2 class="text-lg font-semibold text-blue-800 mb-2">
-						Quali sono le differenze tra un socio ordinario e un socio vitalizio?
-					</h2>
-					<p class="text-gray-700">
-						Il socio ordinario e il socio vitalizio godono degli stessi privilegi e accessi. L'unica
-						differenza risiede nel pagamento. Al socio ordinario sarà richiesto di rinnovare
-						manualmente l'abbonamento di 25 euro ogni anno, con il rischio di perdita dei privilegi
-						in caso di mancato rinnovo. Al contrario al socio vitalizio sarà necessario pagare
-						solamente una volta l'acconto di 390 euro per rimanere associato a vita, senza alcun
-						bisogno di rinnovamento.
-					</p>
-				</div>
+			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
+				<h3 class="font-semibold text-lg text-blue-900 mb-3">
+					Quali sono le differenze tra un socio ordinario e un socio vitalizio?
+				</h3>
+				<p class="text-blue-800">
+					Il socio ordinario e il socio vitalizio godono degli stessi privilegi e accessi. L\'unica
+					differenza risiede nel pagamento. Al socio ordinario sarà richiesto di rinnovare
+					manualmente l\'abbonamento di 25 euro ogni anno, con il rischio di perdita dei privilegi
+					in caso di mancato rinnovo. Al contrario al socio vitalizio sarà necessario pagare
+					solamente una volta l\'acconto di 390 euro per rimanere associato a vita, senza alcun
+					bisogno di rinnovamento.
+				</p>
+			</div>
 
-				<div
-					id="answer"
-					class="bg-gray-100 p-4 rounded-lg shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
-				>
-					<h2 class="text-lg font-semibold text-blue-800 mb-2">
-						Posso diventare socio vitalizio se sono già socio ordinario?
-					</h2>
-					<p class="text-gray-700">
-						Come socio ordinario è possibile diventare soci vitalizi in qualsiasi momento premendo
-						il pulsante "Associati a vita" e procedendo con il pagamento.
-					</p>
-				</div>
+			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
+				<h3 class="font-semibold text-lg text-blue-900 mb-3">
+					Posso diventare socio vitalizio se sono già socio ordinario?
+				</h3>
+				<p class="text-blue-800">
+					Come socio ordinario è possibile diventare soci vitalizi in qualsiasi momento premendo il
+					pulsante "Associati a vita" e procedendo con il pagamento.
+				</p>
 			</div>
 		</div>
-	</section>
-</div>
+	</div>
+</section>
+
+<!-- Notification Component -->
 <Notification {toastClosed} {notificationContent} {notificationError} />
 
-<!-- modal CONFIRM -->
-<Modal
-	isOpen={isModal}
-	header={modalTitle}
-	headerBg="bg-blue-600"
-	footer="ERROR SPACE"
-	footerColor="text-error"
->
+<!-- Modal for Registration/Renewal -->
+<Modal isOpen={isModal} header={modalTitle} headerBg="bg-primary" footer="" footerColor="">
 	<button
-		class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-		onclick={() => (isModal = false)}>✕</button
+		class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 text-white"
+		onclick={() => (isModal = false)}
 	>
-	<!-- START CONTENT -->
-	<div class="flex justify-center">
-		<div class="w-full">
-			<form
-				method="POST"
-				action={postAction}
-				use:enhance
-				class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-			>
-				<!-- <header class="col-span-4 text-center text-2xl font-bold text-green-800">
-					{modalTitle}
-				</header> -->
-				{#if !auth}
-					<!-- Nome -->
-					<section class="col-span-4 md:col-span-2">
-						<label for="nome" class="form-label">
-							<p class="font-bold mb-2">Nome</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full">
-							<button class="join-item bg-gray-300 px-3"><User /></button>
-							<input
-								class="input input-bordered join-item w-full"
-								id="nome"
-								name="name"
-								type="text"
-								placeholder="Nome"
-								aria-label="nome"
-								aria-describedby="basic-nome"
-								bind:value={name}
-								required
-							/>
+		✕
+	</button>
+
+	<div class="p-4">
+		<form method="POST" action={postAction} use:enhance class="space-y-6">
+			{#if !auth}
+				<div class="bg-blue-50 p-4 rounded-lg mb-6">
+					<h3 class="font-semibold text-lg text-blue-900 mb-4">Informazioni Personali</h3>
+
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<!-- Nome -->
+						<div class="form-control">
+							<label for="nome" class="label">
+								<span class="label-text font-medium">Nome</span>
+							</label>
+							<div class="input input-bordered flex items-center gap-2">
+								<User size={18} class="text-gray-500" />
+								<input
+									id="nome"
+									name="name"
+									type="text"
+									class="flex-1 bg-transparent outline-none"
+									placeholder="Inserisci il tuo nome"
+									bind:value={name}
+									required
+								/>
+							</div>
 						</div>
-					</section>
-					<!-- Cognome -->
-					<section class="col-span-4 md:col-span-2">
-						<label for="cognome" class="form-label">
-							<p class="font-bold mb-2">Cognome</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full">
-							<button class="join-item bg-gray-300 px-3"><User /></button>
-							<input
-								class="input input-bordered join-item w-full"
-								id="cognome"
-								name="surname"
-								type="text"
-								placeholder="Cognome"
-								aria-label="cognome"
-								aria-describedby="basic-cognome"
-								bind:value={surname}
-								required
-							/>
+
+						<!-- Cognome -->
+						<div class="form-control">
+							<label for="cognome" class="label">
+								<span class="label-text font-medium">Cognome</span>
+							</label>
+							<div class="input input-bordered flex items-center gap-2">
+								<User size={18} class="text-gray-500" />
+								<input
+									id="cognome"
+									name="surname"
+									type="text"
+									class="flex-1 bg-transparent outline-none"
+									placeholder="Inserisci il tuo cognome"
+									bind:value={surname}
+									required
+								/>
+							</div>
 						</div>
-					</section>
-					<!-- Email -->
-					<section class="col-span-4">
-						<label for="email" class="form-label">
-							<p class="font-bold mb-2">Email</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full">
-							<button class="join-item bg-gray-300 px-3"><Mail /></button>
-							<input
-								class="input input-bordered join-item w-full"
-								id="email"
-								name="email"
-								type="email"
-								placeholder="Tua Email"
-								bind:value={email}
-								required
-							/>
+
+						<!-- Email -->
+						<div class="form-control md:col-span-2">
+							<label for="email" class="label">
+								<span class="label-text font-medium">Email</span>
+							</label>
+							<div class="input input-bordered flex items-center gap-2">
+								<Mail size={18} class="text-gray-500" />
+								<input
+									id="email"
+									name="email"
+									type="email"
+									class="flex-1 bg-transparent outline-none"
+									placeholder="Inserisci la tua email"
+									bind:value={email}
+									required
+								/>
+							</div>
 						</div>
-					</section>
-					<!-- Indirizzo -->
-					<section class="col-span-4">
-						<label for="indirizzo" class="form-label">
-							<p class="font-bold mb-2">Indirizzo</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full">
-							<button class="join-item bg-gray-300 px-3"><MapPin /></button>
-							<input
-								class="input input-bordered join-item w-full"
-								id="indirizzo"
-								name="address"
-								type="text"
-								placeholder="Indirizzo"
-								aria-label="indirizzo"
-								aria-describedby="basic-indirizzo"
-								bind:value={address}
-								required
-							/>
+					</div>
+				</div>
+
+				<div class="bg-blue-50 p-4 rounded-lg mb-6">
+					<h3 class="font-semibold text-lg text-blue-900 mb-4">Indirizzo</h3>
+
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<!-- Indirizzo -->
+						<div class="form-control md:col-span-2">
+							<label for="indirizzo" class="label">
+								<span class="label-text font-medium">Indirizzo</span>
+							</label>
+							<div class="input input-bordered flex items-center gap-2">
+								<MapPin size={18} class="text-gray-500" />
+								<input
+									id="indirizzo"
+									name="address"
+									type="text"
+									class="flex-1 bg-transparent outline-none"
+									placeholder="Via/Piazza e numero civico"
+									bind:value={address}
+									required
+								/>
+							</div>
 						</div>
-					</section>
-					<!-- CAP -->
-					<section class="col-span-4 md:col-span-2">
-						<label for="cap" class="form-label">
-							<p class="font-bold mb-2">CAP</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full">
-							<button class="join-item bg-gray-300 px-3"><MapPin /></button>
-							<input
-								class="input input-bordered join-item w-full"
-								id="cap"
-								name="postalCode"
-								type="text"
-								placeholder="CAP"
-								aria-label="cap"
-								aria-describedby="basic-cap"
-								bind:value={postalCode}
-								required
-							/>
+
+						<!-- CAP -->
+						<div class="form-control">
+							<label for="cap" class="label">
+								<span class="label-text font-medium">CAP</span>
+							</label>
+							<div class="input input-bordered flex items-center gap-2">
+								<MapPin size={18} class="text-gray-500" />
+								<input
+									id="cap"
+									name="postalCode"
+									type="text"
+									class="flex-1 bg-transparent outline-none"
+									placeholder="Codice postale"
+									bind:value={postalCode}
+									required
+								/>
+							</div>
 						</div>
-					</section>
-					<!-- Citta -->
-					<section class="col-span-4 md:col-span-2">
-						<label for="citta" class="form-label">
-							<p class="font-bold mb-2">Città</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full">
-							<button class="join-item bg-gray-300 px-3"><Building2 /></button>
-							<input
-								class="input input-bordered join-item w-full"
-								id="citta"
-								name="city"
-								type="text"
-								placeholder="Città"
-								aria-label="citta"
-								aria-describedby="basic-citta"
-								bind:value={city}
-								required
-							/>
+
+						<!-- Città -->
+						<div class="form-control">
+							<label for="citta" class="label">
+								<span class="label-text font-medium">Città</span>
+							</label>
+							<div class="input input-bordered flex items-center gap-2">
+								<Building2 size={18} class="text-gray-500" />
+								<input
+									id="citta"
+									name="city"
+									type="text"
+									class="flex-1 bg-transparent outline-none"
+									placeholder="Inserisci la città"
+									bind:value={city}
+									required
+								/>
+							</div>
 						</div>
-					</section>
-					<!-- Provincia -->
-					<section class="col-span-4">
-						<label for="provincia" class="form-label">
-							<p class="font-bold mb-2">Provincia</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full">
-							<button class="join-item bg-gray-300 px-3"><Building2 /></button>
+
+						<!-- Provincia -->
+						<div class="form-control">
+							<label for="provincia" class="label">
+								<span class="label-text font-medium">Provincia</span>
+							</label>
 							<select
-								class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
 								id="provincia"
 								name="countryState"
-								aria-label="Provincia"
-								aria-describedby="basic-provincia"
-								placeholder="Scegli"
+								class="select select-bordered w-full"
 								bind:value={countryState}
 								required
 							>
-								<option selected disabled>Scegli</option>
-								{#each $province as provincia, i}
+								<option value="" disabled selected>Seleziona provincia</option>
+								{#each $province as provincia}
 									<option value={provincia.title}>
 										{provincia.title} ({provincia.code})
 									</option>
 								{/each}
 							</select>
 						</div>
-					</section>
-					<!-- Nazione -->
-					<section class="col-span-4">
-						<label for="nazione" class="form-label">
-							<p class="font-bold mb-2">Nazione</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full">
-							<button class="join-item bg-gray-300 px-3"><Globe /></button>
+
+						<!-- Nazione -->
+						<div class="form-control">
+							<label for="nazione" class="label">
+								<span class="label-text font-medium">Nazione</span>
+							</label>
 							<select
-								class="select select-bordered w-full rounded-md mt-2 rounded-l-none"
-								aria-label="Default select example"
 								id="nazione"
 								name="country"
-								required
+								class="select select-bordered w-full"
 								bind:value={country}
+								required
 							>
-								<option selected disabled>Scegli</option>
+								<option value="" disabled selected>Seleziona nazione</option>
 								{#each $country_list as country}
 									<option value={country}>
 										{country}
@@ -615,172 +718,208 @@
 								{/each}
 							</select>
 						</div>
-					</section>
-					<!-- Telefono -->
-					<section class="col-span-4">
-						<label for="telefono" class="form-label">
-							<p class="font-bold mb-2">Telefono</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full">
-							<button class="join-item bg-gray-300 px-3"><Phone /></button>
-							<input
-								class="input input-bordered join-item w-full"
-								id="telefono"
-								name="phone"
-								type="text"
-								placeholder="Telefono"
-								aria-label="telefono"
-								aria-describedby="basic-telefono"
-								bind:value={phone}
-							/>
+					</div>
+				</div>
+
+				<div class="bg-blue-50 p-4 rounded-lg mb-6">
+					<h3 class="font-semibold text-lg text-blue-900 mb-4">Contatti</h3>
+
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<!-- Telefono -->
+						<div class="form-control">
+							<label for="telefono" class="label">
+								<span class="label-text font-medium">Telefono</span>
+							</label>
+							<div class="input input-bordered flex items-center gap-2">
+								<Phone size={18} class="text-gray-500" />
+								<input
+									id="telefono"
+									name="phone"
+									type="tel"
+									class="flex-1 bg-transparent outline-none"
+									placeholder="Numero di telefono"
+									bind:value={phone}
+								/>
+							</div>
 						</div>
-					</section>
-					<!-- Cellulare -->
-					<section class="col-span-4">
-						<label for="cellulare" class="form-label">
-							<p class="font-bold mb-2">Cellulare</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full">
-							<button class="join-item bg-gray-300 px-3"><Smartphone /></button>
-							<input
-								class="input input-bordered join-item w-full"
-								id="cellulare"
-								name="mobilePhone"
-								type="text"
-								placeholder="Cellulare"
-								aria-label="cellulare"
-								aria-describedby="basic-cellulare"
-								bind:value={mobilePhone}
-							/>
+
+						<!-- Cellulare -->
+						<div class="form-control">
+							<label for="cellulare" class="label">
+								<span class="label-text font-medium">Cellulare</span>
+							</label>
+							<div class="input input-bordered flex items-center gap-2">
+								<Smartphone size={18} class="text-gray-500" />
+								<input
+									id="cellulare"
+									name="mobilePhone"
+									type="tel"
+									class="flex-1 bg-transparent outline-none"
+									placeholder="Numero di cellulare"
+									bind:value={mobilePhone}
+								/>
+							</div>
 						</div>
-					</section>
-					<!-- Password -->
-					<section class="col-span-4">
-						<label for="password" class="form-label">
-							<p class="font-bold mb-2">
-								Password <br />
-								<span class="text-sm text-gray-600">( Almeno 8 caratteri numeri e lettere )</span>
-							</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full">
-							<button class="join-item bg-gray-300 px-3"
-								><Lock color={checkPass ? 'green' : 'black'} /></button
+					</div>
+				</div>
+
+				<div class="bg-blue-50 p-4 rounded-lg mb-6">
+					<h3 class="font-semibold text-lg text-blue-900 mb-4">Password</h3>
+
+					<div class="grid grid-cols-1 gap-4">
+						<!-- Password -->
+						<div class="form-control">
+							<label for="password" class="label">
+								<div class="flex flex-col">
+									<span class="label-text font-medium">Password</span>
+									<span class="text-xs text-gray-500">Almeno 8 caratteri con numeri e lettere</span>
+								</div>
+							</label>
+							<div class="input input-bordered flex items-center gap-2">
+								<Lock size={18} color={checkPass ? 'green' : 'gray'} />
+								<input
+									id="password"
+									name="password1"
+									type="password"
+									class="flex-1 bg-transparent outline-none"
+									placeholder="Crea una password"
+									bind:value={password1}
+									oninput={testPass}
+									required
+								/>
+							</div>
+						</div>
+
+						<!-- Conferma Password -->
+						<div class="form-control">
+							<label for="password2" class="label">
+								<span class="label-text font-medium">Conferma Password</span>
+							</label>
+							<div class="input input-bordered flex items-center gap-2">
+								<Lock size={18} color={checkSecondPass && checkPass ? 'green' : 'gray'} />
+								<input
+									id="password2"
+									type="password"
+									class="flex-1 bg-transparent outline-none"
+									placeholder="Conferma la password"
+									bind:value={password2}
+									oninput={testSecondPass}
+									bind:this={inputRef}
+									required
+								/>
+							</div>
+						</div>
+					</div>
+				</div>
+			{/if}
+
+			<div class="bg-blue-50 p-4 rounded-lg">
+				<h3 class="font-semibold text-lg text-blue-900 mb-4">Riepilogo e Pagamento</h3>
+
+				{#if auth}
+					<div class="mb-4">
+						<p class="font-medium">
+							Attuale livello associazione: <span class="text-blue-700"
+								>{userData?.membership?.membershipLevel}</span
 							>
-							<input
-								class="input input-bordered join-item w-full"
-								id="password"
-								name="password1"
-								type="password"
-								placeholder="your password"
-								aria-label="Password"
-								aria-describedby="basic-password"
-								bind:value={password1}
-								oninput={testPass}
-								required
-							/>
-						</div>
-					</section>
-					<!-- Conferma password -->
-					<section class="col-span-4">
-						<label for="password2" class="form-label">
-							<p class="font-bold mb-2">Conferma password</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full">
-							<button class="join-item bg-gray-300 px-3"
-								><Lock color={checkSecondPass && checkPass ? 'green' : 'black'} /></button
-							>
-							<input
-								class="input input-bordered join-item w-full"
-								id="password2"
-								type="password"
-								placeholder="Repeat password"
-								bind:value={password2}
-								oninput={testSecondPass}
-								bind:this={inputRef}
-								required
-							/>
-						</div>
-					</section>
-				{/if}
-				<section class="col-span-4">
-					<hr class="bg-black h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
-					{#if auth}
-						<p class="py-2 font-semibold mt-2">
-							Attuale livello associazione: {userData?.membership?.membershipLevel}
 						</p>
-					{/if}
-					{#if auth && currentDialog == 'renew'}
-						<p class="py-2 font-semibold mt-2">
-							Attuale data di scadenza:
-							<strong class="text-red-500">{userData.membership.membershipExpiry}</strong>
-						</p>
-						<p class=" font-semibold">
-							Futura data di scadenza:
-							<b class="text-green-500">{newExpire}</b>
-						</p>
-					{/if}
-					<p class="  font-bold text-lg text-center mt-4">
-						{#if currentDialog == 'associate' || currentDialog == 'renew'}
-							Totale: 25€
-						{:else if currentDialog == 'lifetime'}
-							Totale: 390€
+
+						{#if currentDialog == 'renew'}
+							<div class="mt-2 space-y-1">
+								<p class="font-medium">
+									Attuale data di scadenza:
+									<span class="text-red-500">{userData.membership.membershipExpiry}</span>
+								</p>
+								<p class="font-medium">
+									Futura data di scadenza:
+									<span class="text-green-600">{newExpire}</span>
+								</p>
+							</div>
 						{/if}
-					</p>
-					<hr class="bg-black h-0.5 mt-3 opacity-100 mx-auto w-[385px]" />
-					<p class="  font-bold text-lg text-center mt-4">Scegli il metodo di pagamento:</p>
-					<div class="form-control col-span-2 mx-2">
-						<label class="label cursor-pointer">
-							<span class="label-text font-semibold">Bonifico (IBAN: 1548416800005462)</span>
+					</div>
+				{/if}
+
+				<div class="bg-white p-4 rounded-lg mb-6">
+					<div class="flex justify-between items-center">
+						<span class="font-medium">Totale da pagare:</span>
+						<span class="text-xl font-bold text-blue-900">
+							{#if currentDialog == 'associate' || currentDialog == 'renew'}
+								25€
+							{:else if currentDialog == 'lifetime'}
+								390€
+							{/if}
+						</span>
+					</div>
+				</div>
+
+				<div class="space-y-3">
+					<h4 class="font-medium">Scegli il metodo di pagamento:</h4>
+
+					<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+						<label
+							class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-blue-50"
+							class:bg-blue-100={paymentType === 'bonifico'}
+						>
 							<input
 								type="radio"
 								name="radio-paymentType"
-								class="radio checked:bg-blue-500"
+								class="radio radio-primary"
 								bind:group={paymentType}
 								value={'bonifico'}
 							/>
+							<div>
+								<CreditCard size={18} class="inline-block mr-2" />
+								<span>Bonifico</span>
+								<p class="text-xs text-gray-500">IBAN: 1548416800005462</p>
+							</div>
 						</label>
-					</div>
-					<div class="form-control col-span-2 mx-2">
-						<label class="label cursor-pointer">
-							<span class="label-text font-semibold">Paypal</span>
+
+						<label
+							class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-blue-50"
+							class:bg-blue-100={paymentType === 'paypal'}
+						>
 							<input
 								type="radio"
 								name="radio-paymentType"
-								class="radio checked:bg-blue-500"
+								class="radio radio-primary"
 								bind:group={paymentType}
 								value={'paypal'}
 							/>
+							<div>
+								<Wallet size={18} class="inline-block mr-2" />
+								<span>PayPal</span>
+							</div>
 						</label>
-					</div>
-					<div class="form-control col-span-2 mx-2">
-						<label class="label cursor-pointer">
-							<span class="label-text font-semibold">Contanti (all'inizio corso)</span>
+
+						<label
+							class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-blue-50"
+							class:bg-blue-100={paymentType === 'contanti'}
+						>
 							<input
 								type="radio"
 								name="radio-paymentType"
-								class="radio checked:bg-blue-500"
+								class="radio radio-primary"
 								bind:group={paymentType}
 								value={'contanti'}
 							/>
+							<div>
+								<CreditCard size={18} class="inline-block mr-2" />
+								<span>Contanti</span>
+								<p class="text-xs text-gray-500">All\'inizio corso</p>
+							</div>
 						</label>
-						<input type="hidden" name="membershipLevel" value={membershipLevel} />
 					</div>
 
-					<!-- button -->
-					<div class="modal-action">
-						<button
-							type="button"
-							class="btn btn-sm btn-error w-24 hover:bg-white hover:text-red-500 rounded-lg"
-							onclick={() => (isModal = false)}>Chiudi</button
-						>
-						<button
-							type="submit"
-							class="btn btn-sm btn-success w-24 hover:bg-white hover:text-green-500 rounded-lg"
-							>Conferma</button
-						>
-					</div>
-				</section>
-			</form>
-		</div>
+					<input type="hidden" name="membershipLevel" value={membershipLevel} />
+				</div>
+			</div>
+
+			<div class="flex justify-end gap-3 mt-6">
+				<button type="button" class="btn btn-outline" onclick={() => (isModal = false)}>
+					Annulla
+				</button>
+				<button type="submit" class="btn btn-primary"> Conferma </button>
+			</div>
+		</form>
 	</div>
 </Modal>

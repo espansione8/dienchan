@@ -1,3 +1,4 @@
+// NEW CONFIG IN APP.CSS
 /** @type {import('tailwindcss').Config} */
 import daisyui from "daisyui";
 

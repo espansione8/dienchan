@@ -1,23 +1,51 @@
-import { redirect, fail } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import { pageAuth } from '$lib/pageAuth';
 import type { PageServerLoad, Actions } from './$types'
+
+const apiKey = import.meta.env.VITE_APIKEY;
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
 
-	let getOrderData = [];
 	let getOrder = [];
-	// console.log('locals.data', locals.user.userId);
-	const res = await fetch(
-		`${import.meta.env.VITE_BASE_URL}/api/orders/findId/${locals.user.userId}`
-	);
-	getOrderData = await res.json();
+	// console.log('locals.user.userId', locals.user.userId);
 
-	getOrder = getOrderData.map((obj) => ({
-		...obj,
-		createdAt: obj.createdAt.substring(0, 10)
-	}));
-	//console.log('getOrder', getOrder);
+	try {
+		const query = { userId: locals.user.userId }; //IF USE Products.model -> types: course / product / membership / event
+		const projection = { _id: 0 } // 0: exclude | 1: include
+		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
+		const limit = 1000;
+		const skip = 0;
+		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey,
+				schema: 'order', //product | order | user | layout | discount
+				query,
+				projection,
+				sort,
+				limit,
+				skip
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		if (res.status != 200) {
+			console.error('orders fetch error:', res.status, await res.text());
+			return fail(400, { action: 'page load', success: false, message: await res.text() });
+		}
+
+		const response = await res.json();
+		getOrder = response.map((obj: any) => ({
+			...obj,
+			createdAt: obj.createdAt.substring(0, 10),
+			orderDate: obj.orderDate.substring(0, 10),
+			totalCart: obj.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(2)
+		}));
+	} catch (error) {
+		console.log('orders fetch error:', error);
+	}
 
 	const user = locals.user
 	if (locals.auth) {
@@ -25,10 +53,8 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
 		user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
 	}
-	//console.log('locals.data', typeof locals.data, locals.data);
+
 	return {
-		//sessionAuth: session.auth,
-		//userEmail: session.user.email,
 		userData: user,
 		orderData: getOrder,
 		auth: locals.auth
@@ -36,7 +62,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 }
 
 export const actions: Actions = {
-	modifyUser: async ({ request, fetch }) => {
+	modify: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const userId = formData.get('userId');
 		const name = formData.get('name');
@@ -45,70 +71,127 @@ export const actions: Actions = {
 		const address = formData.get('address');
 		const postalCode = formData.get('postalCode') || '';
 		const city = formData.get('city') || '';
-		const countryState = formData.get('countryState') || '';
+		const county = formData.get('county') || '';
 		const country = formData.get('country') || '';
 		const phone = formData.get('phone') || '';
 		const mobilePhone = formData.get('mobilePhone') || '';
-		const level = formData.get('level') || '';
+		//const level = formData.get('level') || '';
 
-		//  cast boolean 
+		// cast boolean 
 		const namePublic = !!(formData.get('namePublic') || '');
 		const surnamePublic = !!(formData.get('surnamePublic') || '');
 		const emailPublic = !!(formData.get('emailPublic') || '');
 		const addressPublic = !!(formData.get('addressPublic') || '');
 		const cityPublic = !!(formData.get('cityPublic') || '');
-		const statePublic = !!(formData.get('statePublic') || '');
 		const postalCodePublic = !!(formData.get('postalCodePublic') || '');
+		const countyPublic = !!(formData.get('countyPublic') || '');
 		const countryPublic = !!(formData.get('countryPublic') || '');
 		const phonePublic = !!(formData.get('phonePublic') || '');
 		const mobilePhonePublic = !!(formData.get('mobilePhonePublic') || '');
 
-		if (!name || !surname || !email || !address || !postalCode || !city || !countryState || !country || !phone || !mobilePhone) {
-			return fail(400, { action: 'newUser', success: false, message: 'Dati mancanti' });
+		if (!name || !surname || !email || !address || !postalCode || !city || !county || !country || !phone || !mobilePhone) {
+			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
-		// console.log('namePublic', typeof namePublic, namePublic);
-		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/modify`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					userId,
+			const query = { userId }; //IF USE Products.model -> types: course / product / membership / event
+			const update = {
+				$set: {
 					name,
 					surname,
 					email,
 					address,
 					postalCode,
 					city,
-					countryState,
+					county,
 					country,
 					phone,
 					mobilePhone,
-					level,
+					//level,
 					namePublic,
 					surnamePublic,
 					emailPublic,
 					addressPublic,
 					cityPublic,
-					statePublic,
 					postalCodePublic,
+					countyPublic,
 					countryPublic,
 					phonePublic,
-					mobilePhonePublic
-				})
+					mobilePhonePublic,
+				}
+			};
+			const options = { upsert: false }
+			const multi = false
+
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'user', //product | order | user | layout | discount
+					query,
+					update,
+					options,
+					multi
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
 			});
-			const result = await response.json();
-			if (response.ok) {
-				return { action: 'modifyUser', success: true, message: result.message };
+
+			if (res.status != 200) {
+				return fail(400, { action: 'modify', success: false, message: await res.text() });
+			}
+
+			const response = await res.json();
+			return { action: 'modify', success: true, message: response.message };
+
+		} catch (error) {
+			console.error('Error modify:', error);
+			return fail(400, { action: 'modify', success: false, message: 'Errore modify' });
+		}
+	},
+	changeStatus: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const prodId = formData.get('prodId');
+		const status = formData.get('status');
+		if (!prodId || !status) {
+			return fail(400, { action: 'changeStatus', success: false, message: 'Dati mancanti' });
+		}
+		const newStatus = status == 'enabled' ? 'disabled' : 'enabled';
+		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
+		try {
+			const query = { prodId: prodId, type: 'membership' };
+			const update = {
+				$set: {
+					status: newStatus,
+				}
+			};
+			const options = { upsert: false }
+			const multi = false
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'product', //product | order | user | layout | discount
+					query,
+					update,
+					options,
+					multi
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const response = await res.json();
+			//console.log('res', res);
+			if (res.status == 200) {
+				return { action: 'changeStatus', success: true, message: response.message };
 			} else {
-				return { action: 'modifyUser', success: false, message: result.message };
+				return fail(400, { action: 'changeStatus', success: false, message: response.message });
 			}
 		} catch (error) {
-			console.error('Error creating new modifyUser:', error);
-			return { action: 'modifyUser', success: false, message: 'Errore creazione modifyUser' };
+			console.error('Error changing status:', error);
+			return fail(400, { action: 'changeStatus', success: false, message: 'Errore changeStatus' });
 		}
 	},
 	setProfilePic: async ({ request, fetch }) => {
@@ -131,32 +214,45 @@ export const actions: Actions = {
 				body: file
 			});
 			const resImg = await uploadImg.json();
-			if (uploadImg.status != 200) return { action: 'new', success: false, message: resImg.message };
+			if (uploadImg.status != 200) return fail(400, { action: 'setProfilePic', success: false, message: resImg.message })
 
-			const response = await fetch(
-				`${import.meta.env.VITE_BASE_URL}/api/users/update-photo`,
-				{
-					method: 'POST',
-					body: JSON.stringify({
+			const query = { userId }; //IF USE Products.model -> types: course / product / membership / event
+			const update = {
+				$push: {
+					uploadfiles: {
+						type: 'profile',
 						fileName: file.name,
-						userId, // filter in DB
-						type: 'avatar',
-						action: 'new'
-					}),
-					headers: {
-						'Content-Type': 'application/json'
+						fileUrl: `/files/user/${userId}/${file.name}`
 					}
 				}
-			);
-			const result = await response.json();
-			if (response.status == 200) {
-				return { action: 'new', success: true, message: result.message };
+			};
+			const options = { upsert: false }
+			const multi = false
+
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'user', //product | order | user | layout | discount
+					query,
+					update,
+					options,
+					multi
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const response = await res.json();
+
+			if (res.status == 200) {
+				return { action: 'setProfilePic', success: true, message: 'Immagine caricata' };
 			} else {
-				return { action: 'new', success: false, message: result.message };
+				return fail(400, { action: 'setProfilePic', success: false, message: response.message });
 			}
 		} catch (error) {
 			console.error('Error upload:', error);
-			return { action: 'new', success: false, message: 'Errore upload' };
+			return fail(400, { action: 'setProfilePic', success: false, message: 'Errore upload' });
 		}
 	},
 	delProfilePic: async ({ request, fetch }) => {
@@ -181,30 +277,45 @@ export const actions: Actions = {
 				}
 			});
 			const resDel = await responseDelete.json();
-			if (responseDelete.status != 200) return { action: 'delProfilePic', success: false, message: resDel.message };
+			if (responseDelete.status != 200) return fail(400, { action: 'delProfilePic', success: false, message: resDel.message });
 
-			const responseUpdate = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/update-photo`, {
+			const query = { userId }; //IF USE Products.model -> types: course / product / membership / event
+			const update = {
+				$pull: {
+					uploadfiles: {
+						type: 'profile',
+						fileName,
+						//fileUrl: `/files/user/${userId}/${fileName}`
+					}
+				}
+			};
+			const options = { upsert: false }
+			const multi = false
+
+			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
-					fileName,
-					userId, // filter in DB
-					type: 'avatar',
-					action: 'delete'
+					apiKey,
+					schema: 'user', //product | order | user | layout | discount
+					query,
+					update,
+					options,
+					multi
 				}),
 				headers: {
 					'Content-Type': 'application/json'
 				}
 			});
-			const result = await responseUpdate.json();
+			const response = await res.json();
 
-			if (responseUpdate.status == 200) {
-				return { action: 'delProfilePic', success: true, message: result.message };
+			if (res.status == 200) {
+				return { action: 'delProfilePic', success: true, message: response.message };
 			} else {
-				return { action: 'delProfilePic', success: false, message: result.message };
+				return fail(400, { action: 'delProfilePic', success: false, message: response.message });
 			}
 		} catch (error) {
 			console.error('Error delProfilePic:', error);
-			return { action: 'delProfilePic', success: false, message: 'Errore rimozione' };
+			return fail(400, { action: 'delProfilePic', success: false, message: 'Errore rimozione' });
 		}
 	},
 } satisfies Actions;

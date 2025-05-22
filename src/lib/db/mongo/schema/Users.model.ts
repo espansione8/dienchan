@@ -230,9 +230,9 @@ const UserSchema = new mongoose.Schema(
 		uploadfiles: [
 			{
 				_id: false,  // This prevents MongoDB from adding _id to array elements
-				type: { type: String, enum: ['id', 'avatar'], default: 'none' },
-				filetype: { type: String, default: '' },
-				filename: { type: String, default: '' },
+				type: { type: String, enum: ['id', 'profile'], default: 'none' },
+				fileType: { type: String, default: '' },
+				fileName: { type: String, default: '' },
 				fileUrl: { type: String, default: '' }
 			}
 		],

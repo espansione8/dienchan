@@ -1,16 +1,12 @@
-import { redirect, fail } from '@sveltejs/kit';
-import type { PageServerLoad, Actions } from './$types'
-import { customAlphabet } from 'nanoid'
+import { fail } from '@sveltejs/kit';
 import { pageAuth } from '$lib/pageAuth';
+import type { PageServerLoad, Actions } from './$types'
 
 const apiKey = import.meta.env.VITE_APIKEY;
-const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
-	// if (!locals.auth) { // OLD manual mode
-	// 	throw redirect(302, '/login');
-	// }
+
 	let getTable = [];
 	let getTableNames = [];
 	try {

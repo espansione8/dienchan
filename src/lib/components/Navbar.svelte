@@ -1,39 +1,41 @@
 <script lang="ts">
-	//import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { cartProducts, emptyCart, cdata } from '$lib/stores/cart';
-	import { LogOut, ChevronDown, Menu, Megaphone, LogIn, TriangleAlert } from 'lucide-svelte';
+	import {
+		LogOut,
+		ChevronDown,
+		Menu,
+		X,
+		Megaphone,
+		LogIn,
+		TriangleAlert,
+		ShoppingCart,
+		User,
+		Layers,
+		BookOpen,
+		Package,
+		CreditCard
+	} from 'lucide-svelte';
 
-	let { user, auth } = $props();
+	const { user, auth } = $props();
 
-	let pointsBalance = $state(user?.pointsBalance || 0);
-	//if (auth) pointsBalance = user.pointsBalance;
-	let userLevel = $state(user?.level || '');
+	let pointsBalance = user?.pointsBalance || 0;
+	let level = user?.level || '';
 	let menuActive = $state(false);
-	let userName = $state(user?.name || '');
-	let userSurname = $state(user?.surname || '');
-	//let userId = $state(user?.userId || '');
-	let notification = $state('');
+	let userName = user?.name || '';
+	let userSurname = user?.surname || '';
 
-	if ($cartProducts.length < 1) {
-		notification = '';
-	}
-
-	const onBurgerclick = () => {
+	const toggleMenu = () => {
 		menuActive = !menuActive;
-		notification = '';
 	};
 
 	const redirectToLogin = () => {
-		//goto('/login');
-		//goto('/', { invalidateAll: true });
 		window.location.href = '/login';
 	};
 
 	const logOutNow = async () => {
 		try {
 			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-out`);
-			//const response = await res.json();
 			if (res.ok) {
 				emptyCart();
 				redirectToLogin();
@@ -43,354 +45,363 @@
 		}
 	};
 
-	const onClickCourse = () => {
-		notification = "Completa l'ordine PRODOTTI prima di ordinare CORSI";
-	};
-	const onClickProduct = () => {
-		notification = "Completa l'ordine CORSI prima di ordinare PRODOTTI";
+	const isActive = (path: string) => {
+		return page.url.pathname === path;
 	};
 </script>
 
-<!-- Navbar -->
-<nav class="navbar animate-color-fade {auth ? 'justify-between' : 'justify-center'}">
-	<!-- Logo e titolo-->
-	<div class="flex flex-col items-center">
-		<span class="">
-			<img alt="Logo" src="/images/logo-dien-chan-new.png" class="w-52" />
-		</span>
-		<!-- <strong> Diện Chẩn Bùi Quốc Châu ® </strong> -->
-		{#if auth}
-			<span class="text-gray-700 mx-1">
-				<strong>Buongiorno {`${userName} ${userSurname}`}</strong>
-			</span>
-			<span class="text-success mx-1">
-				<strong>Crediti: {pointsBalance}</strong>
-			</span>
-		{/if}
-	</div>
-	<!-- Menu for desktop -->
-	<div class="hidden sm:flex sm:flex-col gap-2">
-		<ul class="hidden menu sm:menu-horizontal gap-3">
-			<a
-				class="btn btn-sm btn-outline btn-accent"
-				class:active={page.url.pathname === '/membership-new/'}
-				href="/membership-new"
-				aria-current="page"
-				onclick={onBurgerclick}
-			>
-				<Megaphone /><strong>Tesseramento</strong>
-			</a>
-			<a
-				class="btn btn-sm btn-outline btn-accent"
-				class:active={page.url.pathname === '/course-shop/'}
-				href="/course-shop"
-				aria-current="page"
-				onclick={onBurgerclick}
-			>
-				<strong>Corsi</strong>
-			</a>
-			<a
-				class="btn btn-sm btn-outline btn-accent"
-				class:active={page.url.pathname === '/product-shop/'}
-				href="/product-shop"
-				aria-current="page"
-				onclick={onBurgerclick}
-			>
-				<strong>Prodotti</strong>
-			</a>
-			<a
-				class="btn btn-sm btn-outline btn-accent"
-				class:active={page.url.pathname === '/cart/'}
-				href="/cart"
-				aria-current="page"
-				onclick={onBurgerclick}
-			>
-				{#if $cartProducts.length > 0}
-					<span class="badge badge-sm"><strong>{$cdata.q1}</strong></span>
-				{/if}
-
-				<strong>Carrello</strong>
-			</a>
-			{#if auth}
-				<a
-					class="btn btn-sm btn-outline btn-accent"
-					class:active={page.url.pathname === '/profile-modify/'}
-					href="/profile-modify"
-					aria-current="page"
-					onclick={onBurgerclick}
-				>
-					<strong>Area personale</strong>
+<header class="sticky top-0 z-50 w-full bg-base-100 shadow-sm">
+	<div class="container mx-auto px-4">
+		<nav class="navbar py-2">
+			<!-- Logo and brand -->
+			<div class="flex-1">
+				<a href="/" class="flex items-center">
+					<img
+						src="/images/logo-dien-chan-new.png"
+						alt="Logo Diện Chẩn"
+						class="h-12 md:h-16 w-auto"
+					/>
 				</a>
-				{#if auth && userLevel == 'superadmin'}
-					<div class="dropdown dropdown-end">
-						<button class="btn btn-sm btn-accent btn-outline py-2">
-							<span class="flex justify-between"
-								><strong>Gestione</strong>
-								<ChevronDown class="-mt-1" /></span
-							>
-						</button>
-						<ul class="dropdown-content menu z-1 bg-base-100 p-2 rounded-lg shadow-sm w-max gap-2">
-							<li>
-								<a
-									class="btn btn-sm btn-accent btn-outline"
-									href="/course-table"
-									aria-current="page"><strong>Corsi</strong></a
-								>
-							</li>
-							<li>
-								<a
-									class="btn btn-sm btn-accent btn-outline"
-									href="/product-table"
-									aria-current="page"><strong>Prodotti</strong></a
-								>
-							</li>
-							<li>
-								<a
-									class="btn btn-sm btn-accent btn-outline"
-									href="/membership-table"
-									aria-current="page"><strong>Membership</strong></a
-								>
-							</li>
-							<li>
-								<a
-									class="btn btn-sm btn-accent btn-outline"
-									href="/layout-table"
-									aria-current="page"><strong>Modelli corsi</strong></a
-								>
-							</li>
-							<li>
-								<a class="btn btn-sm btn-accent btn-outline" href="/user-table" aria-current="page"
-									><strong>Utenti</strong></a
-								>
-							</li>
+			</div>
 
-							<li>
-								<a class="btn btn-sm btn-accent btn-outline" href="/order-table" aria-current="page"
-									><strong>Ordini</strong></a
-								>
-							</li>
-							<li>
-								<a
-									class="btn btn-sm btn-accent btn-outline"
-									href="/discount-table"
-									aria-current="page"><strong>Sconti</strong></a
-								>
-							</li>
-						</ul>
-					</div>
-				{/if}
-				{#if auth && userLevel == 'formatore'}
-					<div class="dropdown dropdown-end">
-						<button class="btn btn-sm btn-accent btn-outline py-2">
-							<span class="flex justify-between"
-								><strong>Gestione</strong>
-								<ChevronDown class="-mt-1" /></span
-							>
-						</button>
-						<ul class="dropdown-content menu z-1 bg-gray-200 p-2 rounded-lg shadow-sm w-max gap-2">
-							<li>
-								<a
-									class="btn btn-sm btn-primary btn-outline"
-									href="/course-table"
-									aria-current="page"><strong>Corsi</strong></a
-								>
-							</li>
-						</ul>
-					</div>
-				{/if}
-			{/if}
-			{#if auth}
-				<button onclick={logOutNow} class="btn btn-sm btn-outline btn-accent">
-					<span class="flex justify-center gap-1">
-						<LogOut size="16" strokeWidth={2.5} />
-						<strong>Logout</strong>
-					</span>
-				</button>
-			{:else}
-				<a href="/login" class="btn btn-sm btn-outline btn-accent">
-					<span class="flex justify-center gap-1 group-hover:text-white">
-						<LogIn size="16" strokeWidth={2.5} />
-						<strong>Login</strong>
-					</span>
-				</a>
-			{/if}
-		</ul>
-		<p class="text-red-700">
-			{#if notification.length > 0}
-				<TriangleAlert size={18} />
-			{/if}
-			<b>{notification}</b>
-		</p>
-	</div>
-	<!-- Menu for mobile -->
-	<div class="dropdown dropdown-end sm:hidden">
-		<button class="btn btn-ghost">
-			<Menu />
-		</button>
-
-		<ul
-			tabindex="-1"
-			class=" dropdown-content menu z-99 bg-indigo-200 p-2 rounded-box shadow-sm w-max gap-2"
-		>
-			<li>
+			<!-- Desktop  -->
+			<div class="hidden md:flex md:items-center md:gap-1">
 				<a
-					class="btn btn-sm h-12 mt-1 btn-outline btn-accent rounded-full"
-					class:active={page.url.pathname === '/membership-new/'}
 					href="/membership-new"
-					aria-current="page"
-					onclick={onBurgerclick}
+					class={`btn btn-sm ${isActive('/membership-new') ? 'btn-primary' : 'btn-ghost'}`}
 				>
-					<Megaphone /><strong>Tesseramento</strong>
+					<Megaphone size={16} />
+					<span>Tesseramento</span>
 				</a>
-			</li>
-			<li>
+
 				<a
-					class="btn btn-sm btn-primary border-black"
-					class:active={page.url.pathname === '/course-shop/'}
 					href="/course-shop"
-					aria-current="page"
-					onclick={onBurgerclick}
+					class={`btn btn-sm ${isActive('/course-shop') ? 'btn-primary' : 'btn-ghost'}`}
 				>
-					<strong>Corsi</strong>
+					<BookOpen size={16} />
+					<span>Corsi</span>
 				</a>
-			</li>
-			<li>
+
 				<a
-					class="btn btn-sm btn-primary border-black"
-					class:active={page.url.pathname === '/product-shop/'}
 					href="/product-shop"
-					aria-current="page"
-					onclick={onBurgerclick}
+					class={`btn btn-sm ${isActive('/product-shop') ? 'btn-primary' : 'btn-ghost'}`}
 				>
-					<strong>Prodotti</strong>
+					<Package size={16} />
+					<span>Prodotti</span>
 				</a>
-			</li>
-			<li>
+
 				<a
-					class="btn btn-sm btn-primary border-black"
-					class:active={page.url.pathname === '/cart/'}
 					href="/cart"
-					aria-current="page"
-					onclick={onBurgerclick}
+					class={`btn btn-sm ${isActive('/cart') ? 'btn-primary' : 'btn-ghost'} relative`}
 				>
+					<ShoppingCart size={16} />
+					<span>Carrello</span>
 					{#if $cartProducts.length > 0}
-						<span
-							class="badge badge-sm p-2 indicator-item rounded-full bg-blue-200 text-green-600 border-green-500"
-							><strong>{$cdata.q1}</strong></span
-						>
+						<span class="absolute -top-2 -right-2 badge badge-sm badge-primary">{$cdata.q1}</span>
+					{/if}
+				</a>
+
+				{#if auth}
+					<a
+						href="/profile-modify"
+						class={`btn btn-sm ${isActive('/profile-modify') ? 'btn-primary' : 'btn-ghost'}`}
+					>
+						<User size={16} />
+						<span>Area personale</span>
+					</a>
+
+					{#if auth && (level === 'superadmin' || level === 'formatore')}
+						<div class="dropdown dropdown-end">
+							<button class="btn btn-sm btn-ghost">
+								<Layers size={16} />
+								<span>Gestione</span>
+								<ChevronDown size={14} />
+							</button>
+
+							<ul
+								class="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2"
+							>
+								<li>
+									<a href="/course-table" class={isActive('/course-table') ? 'active' : ''}>
+										<BookOpen size={16} />
+										Corsi
+									</a>
+								</li>
+
+								{#if level === 'superadmin'}
+									<li>
+										<a href="/product-table" class={isActive('/product-table') ? 'active' : ''}>
+											<Package size={16} />
+											Prodotti
+										</a>
+									</li>
+
+									<li>
+										<a
+											href="/membership-table"
+											class={isActive('/membership-table') ? 'active' : ''}
+										>
+											<CreditCard size={16} />
+											Membership
+										</a>
+									</li>
+
+									<li>
+										<a href="/layout-table" class={isActive('/layout-table') ? 'active' : ''}>
+											<Layers size={16} />
+											Modelli corsi
+										</a>
+									</li>
+
+									<li>
+										<a href="/user-table" class={isActive('/user-table') ? 'active' : ''}>
+											<User size={16} />
+											Utenti
+										</a>
+									</li>
+
+									<li>
+										<a href="/order-table" class={isActive('/order-table') ? 'active' : ''}>
+											<ShoppingCart size={16} />
+											Ordini
+										</a>
+									</li>
+
+									<li>
+										<a href="/discount-table" class={isActive('/discount-table') ? 'active' : ''}>
+											<Megaphone size={16} />
+											Sconti
+										</a>
+									</li>
+								{/if}
+							</ul>
+						</div>
 					{/if}
 
-					<strong>Carrello</strong>
-				</a>
-			</li>
-			{#if auth}
-				<a
-					class="btn btn-sm btn-primary border-black"
-					class:active={page.url.pathname === '/profile-modify/'}
-					href="/profile-modify"
-					aria-current="page"
-					onclick={onBurgerclick}
-				>
-					<strong>Area personale</strong>
-				</a>
-
-				{#if auth && userLevel == 'superadmin'}
-					<li>
-						<h2 class="menu-title text-lg text-blue-900">Gestione ADMIN:</h2>
-						<ul class="border-2 p-2 border-blue-900 rounded-md">
-							<li>
-								<a
-									class=" btn btn-sm btn-primary btn-outline"
-									href="/course-table"
-									aria-current="page"><strong>Corsi</strong></a
-								>
-							</li>
-							<li>
-								<a
-									class="btn btn-sm btn-primary btn-outline mt-2"
-									href="/product-table"
-									aria-current="page"><strong>Prodotti</strong></a
-								>
-							</li>
-							<li>
-								<a
-									class="btn btn-sm btn-primary btn-outline mt-2"
-									href="/membership-table"
-									aria-current="page"><strong>Membership</strong></a
-								>
-							</li>
-							<li>
-								<a
-									class="btn btn-sm btn-accent btn-outline"
-									href="/layout-table"
-									aria-current="page"><strong>Modelli corsi</strong></a
-								>
-							</li>
-							<li>
-								<a
-									class="btn btn-sm btn-primary btn-outline mt-2"
-									href="/user-table"
-									aria-current="page"><strong>Utenti</strong></a
-								>
-							</li>
-
-							<li>
-								<a
-									class="btn btn-sm btn-primary btn-outline mt-2"
-									href="/order-table"
-									aria-current="page"><strong>Ordini</strong></a
-								>
-							</li>
-							<li>
-								<a
-									class="btn btn-sm btn-primary btn-outline mt-2"
-									href="/discount-table"
-									aria-current="page"><strong>Sconti</strong></a
-								>
-							</li>
-						</ul>
-					</li>
+					<button onclick={logOutNow} class="btn btn-sm btn-outline btn-error">
+						<LogOut size={16} />
+						<span>Logout</span>
+					</button>
+				{:else}
+					<a href="/login" class="btn btn-sm btn-primary">
+						<LogIn size={16} />
+						<span>Login</span>
+					</a>
 				{/if}
-				{#if auth && userLevel == 'formatore'}
-					<li>
-						<h2 class="menu-title text-blue-900">Gestione</h2>
-						<ul>
-							<li>
-								<a
-									class="btn btn-sm btn-primary btn-outline"
-									href="/course-table"
-									aria-current="page"><strong>Corsi</strong></a
-								>
-							</li>
-						</ul>
-					</li>
-				{/if}
-			{/if}
-			{#if auth}
+			</div>
+
+			<!-- Mobile menu button -->
+			<div class="flex md:hidden">
 				<button
-					onclick={logOutNow}
-					class="btn btn-sm bg-transparent rounded-md flex border-red-900 text-red-900 mx-2"
+					class="btn btn-sm btn-ghost"
+					onclick={toggleMenu}
+					aria-label={menuActive ? 'Chiudi menu' : 'Apri menu'}
+					aria-expanded={menuActive}
 				>
-					<span class="flex justify-center gap-1">
-						<LogOut size="16" strokeWidth={2.5} />
-						<strong>Logout</strong>
-					</span>
+					{#if menuActive}
+						<X size={20} />
+					{:else}
+						<Menu size={20} />
+					{/if}
 				</button>
-			{:else}
-				<a
-					href="/login"
-					class="btn btn-sm bg-transparent rounded-md flex border-green-900 text-green-900 mx-2"
-				>
-					<span class="flex justify-center gap-1">
-						<LogIn size="16" strokeWidth={2.5} />
-						<strong>Login</strong>
-					</span>
-				</a>
-			{/if}
-		</ul>
+			</div>
+		</nav>
 	</div>
-</nav>
-<hr />
 
-<style>
-</style>
+	<!-- User info bar (when authenticated) -->
+	{#if auth}
+		<div class="bg-base-200 py-2 px-4">
+			<div class="container mx-auto flex flex-wrap items-center gap-2 text-sm">
+				<div class="flex items-center gap-2">
+					<User size={16} class="text-primary" />
+					<span>Buongiorno <strong>{userName} {userSurname}</strong></span>
+				</div>
+
+				<div class="flex items-center gap-2">
+					<CreditCard size={16} class="text-success" />
+					<span>Crediti: <strong class="text-success">{pointsBalance}</strong></span>
+				</div>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Notification area -->
+	<!-- {#if notification}
+		<div class="bg-error/10 py-2">
+			<div class="container mx-auto px-4">
+				<div class="flex items-center gap-2 text-error">
+					<TriangleAlert size={16} />
+					<p><strong>{notification}</strong></p>
+				</div>
+			</div>
+		</div>
+	{/if} -->
+
+	<!-- Mobile -->
+	{#if menuActive}
+		<div class="md:hidden bg-base-100 border-t border-base-200">
+			<div class="container mx-auto px-4 py-4">
+				<ul class="menu w-full gap-2">
+					<li>
+						<a
+							href="/membership-new"
+							class={isActive('/membership-new') ? 'active' : ''}
+							onclick={toggleMenu}
+						>
+							<Megaphone size={18} />
+							Tesseramento
+						</a>
+					</li>
+
+					<li>
+						<a
+							href="/course-shop"
+							class={isActive('/course-shop') ? 'active' : ''}
+							onclick={toggleMenu}
+						>
+							<BookOpen size={18} />
+							Corsi
+						</a>
+					</li>
+
+					<li>
+						<a
+							href="/product-shop"
+							class={isActive('/product-shop') ? 'active' : ''}
+							onclick={toggleMenu}
+						>
+							<Package size={18} />
+							Prodotti
+						</a>
+					</li>
+
+					<li>
+						<a href="/cart" class={isActive('/cart') ? 'active' : ''} onclick={toggleMenu}>
+							<div class="flex items-center gap-2">
+								<ShoppingCart size={18} />
+								<span>Carrello</span>
+								{#if $cartProducts.length > 0}
+									<span class="badge badge-sm badge-primary">{$cdata.q1}</span>
+								{/if}
+							</div>
+						</a>
+					</li>
+
+					{#if auth}
+						<li>
+							<a
+								href="/profile-modify"
+								class={isActive('/profile-modify') ? 'active' : ''}
+								onclick={toggleMenu}
+							>
+								<User size={18} />
+								Area personale
+							</a>
+						</li>
+
+						{#if auth && (level === 'superadmin' || level === 'formatore')}
+							<li class="menu-title mt-4">
+								<span>Gestione</span>
+							</li>
+
+							<li>
+								<a
+									href="/course-table"
+									class={isActive('/course-table') ? 'active' : ''}
+									onclick={toggleMenu}
+								>
+									<BookOpen size={18} />
+									Corsi
+								</a>
+							</li>
+
+							{#if level === 'superadmin'}
+								<li>
+									<a
+										href="/product-table"
+										class={isActive('/product-table') ? 'active' : ''}
+										onclick={toggleMenu}
+									>
+										<Package size={18} />
+										Prodotti
+									</a>
+								</li>
+
+								<li>
+									<a
+										href="/membership-table"
+										class={isActive('/membership-table') ? 'active' : ''}
+										onclick={toggleMenu}
+									>
+										<CreditCard size={18} />
+										Membership
+									</a>
+								</li>
+
+								<li>
+									<a
+										href="/layout-table"
+										class={isActive('/layout-table') ? 'active' : ''}
+										onclick={toggleMenu}
+									>
+										<Layers size={18} />
+										Modelli corsi
+									</a>
+								</li>
+
+								<li>
+									<a
+										href="/user-table"
+										class={isActive('/user-table') ? 'active' : ''}
+										onclick={toggleMenu}
+									>
+										<User size={18} />
+										Utenti
+									</a>
+								</li>
+
+								<li>
+									<a
+										href="/order-table"
+										class={isActive('/order-table') ? 'active' : ''}
+										onclick={toggleMenu}
+									>
+										<ShoppingCart size={18} />
+										Ordini
+									</a>
+								</li>
+
+								<li>
+									<a
+										href="/discount-table"
+										class={isActive('/discount-table') ? 'active' : ''}
+										onclick={toggleMenu}
+									>
+										<Megaphone size={18} />
+										Sconti
+									</a>
+								</li>
+							{/if}
+
+							<div class="divider"></div>
+						{/if}
+
+						<li>
+							<button onclick={logOutNow} class="btn btn-outline btn-error justify-start">
+								<LogOut size={18} />
+								Logout
+							</button>
+						</li>
+					{:else}
+						<li>
+							<a href="/login" class="btn btn-primary justify-start" onclick={toggleMenu}>
+								<LogIn size={18} />
+								Login
+							</a>
+						</li>
+					{/if}
+				</ul>
+			</div>
+		</div>
+	{/if}
+</header>

@@ -3,68 +3,80 @@
 	import { invalidateAll } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
 	import DragDrop from '$lib/components/DragDrop.svelte';
+	import Modal from '$lib/components/Modal.svelte';
 	import { province, country_list } from '$lib/stores/arrays.js';
 	import {
-		Settings,
+		KeyRound,
 		X,
 		Check,
 		Eye,
 		EyeOff,
+		ToggleLeft,
+		ToggleRight,
 		Trash2,
 		Award,
 		Mail,
-		House,
-		Landmark,
-		Earth,
+		MapPin,
 		Phone,
-		Smartphone,
-		Hash,
-		Building2,
-		FolderOpen
+		User,
+		Calendar,
+		ShoppingBag,
+		Clock,
+		CreditCard,
+		ChevronDown,
+		ChevronUp,
+		Edit,
+		Camera,
+		Shield,
+		FileText,
+		Package,
+		BadgeCheck,
+		IdCard,
+		Home
 	} from 'lucide-svelte';
+	import type { ActionResult } from '@sveltejs/kit';
 
-	let { data, form } = $props();
-	let { userData, orderData } = $derived(data);
+	const { data } = $props();
+	const { userData, orderData } = $derived(data);
 
-	// remove online in province
+	// Declare the province variable
 	let provinceFilterate = $province.filter((p) => p.title !== 'Online');
-
 	let closedInput = $state(true);
-	const picFilter = $derived(userData.uploadfiles.filter((item: any) => item.type == 'avatar'));
+
+	// modal
+	let currentModal = $state('');
+	let openModal = $state(false);
+	let modalTitle = $state('');
+	let postAction = $state('?/');
+
+	//const picFilter = $derived(userData.uploadfiles.filter((item: any) => item.type == 'profile'));
+	const picFilter = $derived(
+		(userData.uploadfiles ?? []).filter((item: any) => item.type === 'profile')
+	);
+
 	const openInput = () => (closedInput = false);
 	const closeInput = () => {
-		closedInput = true;
-		refreshFields();
 		invalidateAll();
+		closedInput = true;
+		resetFields();
 	};
 
 	let name = $state(userData.name || '');
 	let surname = $state(userData.surname || '');
 	let address = $state(userData.address || '');
 	let city = $state(userData.city || '');
-	let countryState = $state(userData.county || ''); // provincia
+	let county = $state(userData.county || ''); // provincia
 	let postalCode = $state(userData.postalCode || '');
 	let country = $state(userData.country || '');
 	let phone = $state(userData.phone || '');
 	let mobilePhone = $state(userData.mobilePhone || '');
 	let email = $state(userData.email || '');
 	let membershipLevel = $state(userData.membership.membershipLevel || '');
-	let membershipStatus = $state(userData.membership.membershipStatus || '');
+	//let membershipStatus = $state(userData.membership.membershipStatus || '');
 	let membershipExpiry = $state(userData.membership.membershipExpiry || '');
-	// let businessName = $state(userData.businessData.businessName || '');
-	// let vatNumber = $state(userData.businessData.vatNumber || '');
-	// let businessAddress = $state(userData.businessData.businessAddress || '');
-	// let businessCity = $state(userData.businessData.businessCity || '');
-	// let businessCounty = $state(userData.businessData.businessCounty || '');
-	// let businessPostalCode = $state(userData.businessData.businessPostalCode || '');
-	// let businessCountry = $state(userData.businessData.businessCountry || '');
-	// let membershipArray = $state(userData.membership || []);
-	let max = $state(new Date().getFullYear());
-	let min = $derived(max - 90);
-	let years = $state([]);
 	let addressPublic = $state(userData.addressPublic || false);
 	let cityPublic = $state(userData.cityPublic || false);
-	let statePublic = $state(userData.countyPublic || false);
+	let countyPublic = $state(userData.countyPublic || false);
 	let postalCodePublic = $state(userData.postalCodePublic || false);
 	let countryPublic = $state(userData.countryPublic || false);
 	let phonePublic = $state(userData.phonePublic || false);
@@ -73,14 +85,10 @@
 	let surnamePublic = $state(userData.surnamePublic || false);
 	let emailPublic = $state(userData.emailPublic || false);
 	let level = $state(userData.level || '');
-
-	for (let i = max; i >= min; i--) {
-		years.push(i);
-	}
-
-	let resetState = $state(false);
-
-	const enableReset = () => (resetState = !resetState);
+	let activeTab = $state('profile'); // 'profile' or 'orders'
+	let expandedOrderId = $state('');
+	let passwordNew = $state('');
+	let passwordOld = $state('');
 
 	const onSwitchPublicProfile = async (type: string, value: boolean) => {
 		if (type == 'namePublic') namePublic = !value;
@@ -88,98 +96,68 @@
 		if (type == 'emailPublic') emailPublic = !value;
 		if (type == 'addressPublic') addressPublic = !value;
 		if (type == 'cityPublic') cityPublic = !value;
-		if (type == 'statePublic') statePublic = !value;
+		if (type == 'countyPublic') countyPublic = !value;
 		if (type == 'postalCodePublic') postalCodePublic = !value;
 		if (type == 'countryPublic') countryPublic = !value;
 		if (type == 'phonePublic') phonePublic = !value;
 		if (type == 'mobilePhonePublic') mobilePhonePublic = !value;
-		//userData[type] = !value;
-		// console.log('onSwitchPublicProfile', type, value, typeof namePublic, namePublic);
 	};
 
-	// pic delete
-	const onPicDelete = async (fileName: any, inputId: any) => {
-		// remove from DB
-		const responseUpdate = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/update-photo`, {
-			method: 'POST',
-			body: JSON.stringify({
-				fileName,
-				email, // filter in DB
-				type: inputId,
-				action: 'delete'
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		if (responseUpdate.status == 200) {
-			let content = (await responseUpdate.json()).message;
-			toastClosed = false;
-			notificationContent = content;
-			closeNotification();
-			invalidateAll();
-			// is_upload_submitting = false;
+	const toggleOrderDetails = (orderId: string) => {
+		if (expandedOrderId === orderId) {
+			expandedOrderId = '';
 		} else {
-			let error = (await responseUpdate.json()).message;
-			toastClosed = false;
-			notificationContent = error;
-			notificationError = true;
-			invalidateAll();
-			// is_upload_submitting = false;
-		}
-		// remove from disk
-		const responseDelete = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
-			method: 'DELETE',
-			body: JSON.stringify({
-				userId: userData.userId,
-				fileName: fileName
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		if (responseDelete.status != 200) {
-			let error = (await responseDelete.json()).message;
-			toastClosed = false;
-			notificationContent = error;
-			notificationError = true;
+			expandedOrderId = orderId;
 		}
 	};
 
-	const refreshFields = () => {
+	const formatDate = (dateString: string) => {
+		const date = new Date(dateString);
+		return new Intl.DateTimeFormat('it-IT', {
+			day: '2-digit',
+			month: '2-digit',
+			year: 'numeric'
+		}).format(date);
+	};
+
+	const resetFields = () => {
 		namePublic = userData.namePublic;
 		surnamePublic = userData.surnamePublic;
 		emailPublic = userData.emailPublic;
 		addressPublic = userData.addressPublic;
 		cityPublic = userData.cityPublic;
-		statePublic = userData.countyPublic;
+		countyPublic = userData.countyPublic;
 		postalCodePublic = userData.postalCodePublic;
 		countryPublic = userData.countryPublic;
 		phonePublic = userData.phonePublic;
 		mobilePhonePublic = userData.mobilePhonePublic;
+		passwordNew = '';
+		passwordOld = '';
 	};
 
-	$effect(() => {
-		if (form != null) {
-			async () => await invalidateAll();
-			const { action, success, message } = form;
-			if (success) {
-				closedInput = true;
-				// console.log('userData', userData);
-			} else {
-				notificationError = true;
-			}
-			clearTimeout(startTimeout);
-			closeNotification();
-			toastClosed = false;
-			notificationContent = message;
+	const onClickModal = (type: string, item: any) => {
+		currentModal = type;
+		openModal = true;
+		if (type == 'upload-photo') {
+			postAction = `?/setProfilePic`;
+			modalTitle = 'Upload foto';
 		}
-	}); // end effect
+		if (type == 'reset-password') {
+			postAction = `?/todo-reset`;
+			modalTitle = 'Cambio password';
+		}
+	};
+
+	const onCloseModal = () => {
+		openModal = false;
+		resetFields();
+		currentModal = '';
+	};
 
 	// notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
+	let toastClosed = $state(true);
+	let notificationContent = $state('');
+	let notificationError = $state(false);
 	let startTimeout: any;
 	const closeNotification = () => {
 		startTimeout = setTimeout(() => {
@@ -187,737 +165,1004 @@
 		}, 3000); // 1000 milliseconds = 1 second
 	};
 	//clearTimeout(startTimeout); // reset timer
+
+	const formSubmit = () => {
+		return async ({ result }: { result: ActionResult }) => {
+			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
+			await invalidateAll();
+			if (result.type === 'success' && result.data) {
+				const { message } = result.data; // { action, success, message, payload }
+				onCloseModal();
+				resetFields();
+				notificationContent = message;
+			}
+			if (result.type === 'failure') {
+				notificationContent = result.data.message;
+				notificationError = true;
+			}
+			if (result.type === 'error') {
+				notificationContent = result.error;
+				notificationError = true;
+			}
+			// 'update()' is called by default by use:enhance
+			// call 'await update()' if you need to ensure it completes before further client logic.
+			clearTimeout(startTimeout);
+			closeNotification();
+			toastClosed = false;
+		};
+	};
+
 	if (!userData.name && !userData.surname) {
 		toastClosed = false;
 		notificationContent = 'Registrazione effettuta, completare il profilo';
 	}
-
-	// DRAG & DROP FILE UPLOAD
-	// import { FolderOpen } from "lucide-svelte";
-	let fileInput = $state();
-	let previewUrl: string | null = $state(null);
-	let isDragging = $state(false);
-	let dragCounter = $state(0);
-
-	const handleDragEnter = (e) => {
-		e.preventDefault();
-		e.stopPropagation();
-		dragCounter++;
-		isDragging = true;
-	};
-
-	const handleDragLeave = (e) => {
-		e.preventDefault();
-		e.stopPropagation();
-		dragCounter--;
-		if (dragCounter === 0) {
-			isDragging = false;
-		}
-	};
-
-	const handleDragOver = (e) => {
-		e.preventDefault();
-		e.stopPropagation();
-		isDragging = true;
-	};
-
-	const handleDrop = (e) => {
-		e.preventDefault();
-		e.stopPropagation();
-		isDragging = false;
-		dragCounter = 0;
-
-		const files = e.dataTransfer.files;
-		if (files.length) {
-			const file = files[0];
-			// Check file type
-			if (file.type.match(/^image\/(jpg|jpeg|png|webp)$/)) {
-				fileInput.files = files; // Update the input's files
-				previewUrl = URL.createObjectURL(file);
-			}
-		}
-	};
 </script>
 
 <svelte:head>
-	<title>Area personale</title>
+	<title>Area Personale | {userData.name} {userData.surname}</title>
 </svelte:head>
 
-<div class="grid grid-cols-12 bg-gray-200 lg:gap-x-12 p-4 lg:p-8">
-	<!--section 1: profilo + dettagli fatturazione-->
-	<section class="card col-span-12 xl:col-span-6 gap-y-8 rounded-lg bg-white">
-		<div class="p-5">
-			<div class="flex flex-col sm:flex-row border-2 border-gray-300 rounded-lg">
-				<div class="card-body w-1/2 p-4 flex flex-col items-center">
-					<!-- img -->
-					{#if picFilter.length > 0 && picFilter[0]?.type == 'avatar'}
-						<figure class="mt-4">
-							<img
-								src={`/files/user/${userData.userId}/${picFilter[0].filename}`}
-								alt="avatar"
-								class="object-cover rounded-md"
-							/>
-						</figure>
-						<form class="card-body w-full" method="POST" action={`?/delProfilePic`} use:enhance>
-							<input type="hidden" name="userId" value={userData.userId} />
-							<input type="hidden" name="fileName" value={picFilter[0].filename} />
+<div
+	class="min-h-screen flex justify-center items-center p-4 bg-gradient-to-br from-teal-50 to-emerald-300"
+>
+	<div class="container mx-auto px-4">
+		<!-- Header Section -->
+		<div class="mb-8">
+			<h1 class="text-3xl font-bold text-base-content">Area Personale</h1>
+			<p class="text-base-content/70">Gestisci il tuo profilo e visualizza i tuoi ordini</p>
+		</div>
+
+		<!-- Main Content -->
+		<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+			<!-- Left Column - Profile Summary -->
+			<div class="lg:col-span-1">
+				<div class="bg-base-100 rounded-xl shadow-md overflow-hidden">
+					<!-- Profile Header -->
+					<div class="bg-primary text-primary-content p-6">
+						<div class="flex flex-col items-center">
+							<div class="relative mb-4">
+								{#if picFilter.length > 0 && picFilter[0]?.type == 'profile'}
+									<div class="avatar">
+										<div
+											class="w-48 h-48 rounded-full ring ring-emerald-600 ring-offset-base-100 ring-offset-2 overflow-hidden"
+										>
+											<img
+												src={picFilter.length > 0
+													? `/files/user/${userData.userId}/${picFilter[0].fileName}`
+													: '/images/placeholder.jpg'}
+												alt="Profile"
+												class="object-cover w-full h-full"
+											/>
+										</div>
+									</div>
+									<form method="POST" action={`?/delProfilePic`} use:enhance={formSubmit}>
+										<input type="hidden" name="userId" value={userData.userId} />
+										<input type="hidden" name="fileName" value={picFilter[0].fileName} />
+										<button
+											class="absolute bottom-0 right-0 btn btn-circle btn-lg btn-error"
+											type="submit"
+											aria-label="Delete image"
+										>
+											<Trash2 size="24" />
+										</button>
+									</form>
+								{:else}
+									<div class="avatar placeholder">
+										<div
+											class="w-48 h-48 rounded-full bg-primary-focus text-primary-content ring ring-primary ring-offset-base-100 ring-offset-2"
+										>
+											<img
+												src="/images/placeholder.jpg"
+												alt="Profile"
+												class="object-cover w-full h-full"
+											/>
+										</div>
+										<button
+											class="absolute bottom-0 right-0 btn btn-circle btn-lg btn-primary"
+											onclick={() => onClickModal('upload-photo', null)}
+										>
+											<Camera />
+										</button>
+									</div>
+								{/if}
+							</div>
+
+							<h2 class="text-2xl font-bold">{userData.name} {userData.surname}</h2>
+							<p class="opacity-90">{userData.email}</p>
+						</div>
+					</div>
+
+					<!-- Membership Info -->
+					<div class="p-6 border-b border-base-200">
+						<div class="flex items-center gap-3 mb-4">
+							<!-- <div class="badge badge-lg">
+								{membershipStatus ? 'Attivo' : 'Inattivo'}
+							</div> -->
+							<h3 class="font-semibold text-base-content flex items-center gap-2">
+								<Award size={18} class="text-primary" />
+								{membershipLevel}
+							</h3>
+						</div>
+
+						{#if membershipExpiry}
+							<div class="flex items-center gap-2 text-sm text-base-content/70">
+								<Calendar size={16} />
+								<span
+									>Scadenza: {formatDate(
+										typeof membershipExpiry === 'string'
+											? membershipExpiry
+											: membershipExpiry.toISOString()
+									)}</span
+								>
+							</div>
+						{/if}
+
+						<div class="flex items-center gap-2 text-sm text-base-content/70 mt-2">
+							<BadgeCheck size={16} />
+							<span>Livello: {level || 'Base'}</span>
+						</div>
+
+						<div class="flex items-center gap-2 text-sm text-base-content/70 mt-2">
+							<IdCard size={16} />
+							<span>ID: {userData.userId}</span>
+						</div>
+					</div>
+
+					<!-- Navigation -->
+					<div class="p-4">
+						<div class="flex flex-col gap-2">
 							<button
-								class="btn btn-sm btn-error rounded-lg border-2"
-								type="submit"
-								onclick={() => {
-									previewUrl = null;
-									fileInput.value = ''; // Reset the file input
-									URL.revokeObjectURL(previewUrl); // Clean up the object URL
-								}}
+								class="btn btn-ghost justify-start gap-3 {activeTab === 'profile'
+									? 'btn-active'
+									: ''}"
+								onclick={() => (activeTab = 'profile')}
 							>
-								<Trash2 size="24" />Elimina foto
+								<User size={18} />
+								Profilo
 							</button>
-						</form>
-					{:else}
-						<form
-							action={`?/setProfilePic`}
-							method="POST"
-							enctype="multipart/form-data"
-							use:enhance
-							class="card-body w-full"
-						>
-							<input type="hidden" name="userId" value={userData.userId} />
-							<DragDrop />
-							<button class="btn btn-sm btn-info rounded-lg border-2" type="submit">
-								Upload foto
+							<button
+								class="btn btn-ghost justify-start gap-3 {activeTab === 'orders'
+									? 'btn-active'
+									: ''}"
+								onclick={() => (activeTab = 'orders')}
+							>
+								<ShoppingBag size={18} />
+								Ordini
 							</button>
-						</form>
-					{/if}
-					<!-- img end -->
-				</div>
-				<div class="card-body p-6 w-1/2">
-					<h1 class="text-2xl font-bold text-gray-800 mb-4">
-						{#if userData.namePublic === true}
-							{userData.name}
-						{/if}
-						{#if userData.surnamePublic === true}
-							{userData.surname}
-						{/if}
-						{#if userData.surnamePublic === false && userData.namePublic === false}
-							nome privato
-						{/if}
-					</h1>
-					<a href={`/profile-public/${userData.userId}`} class="btn btn-sm w-1/2 mb-4">
-						Anteprima profilo
-					</a>
-					<hr class="border-t-2 border-gray-300 my-4" />
-					<div class="space-y-2">
-						{#if userData.emailPublic === true}
-							<div class="flex items-center">
-								<Mail class="mr-2" color="gray" />
-								<h5 class="text-gray-600"><b>Email:</b> {userData.email}</h5>
-							</div>
-						{/if}
-						{#if userData.addressPublic === true}
-							<div class="flex items-center">
-								<House class="mr-2" color="gray" />
-								<h5 class="text-gray-600"><b>Indirizzo:</b> {userData.address}</h5>
-							</div>
-						{/if}
-						{#if userData.cityPublic === true}
-							<div class="flex items-center">
-								<Landmark class="mr-2" color="gray" />
-								<h5 class="text-gray-600"><b>Città:</b> {userData.city}</h5>
-							</div>
-						{/if}
-						{#if userData.postalCodePublic === true}
-							<div class="flex items-center">
-								<Hash class="mr-2" color="gray" />
-								<h5 class="text-gray-600"><b>CAP:</b> {userData.postalCode}</h5>
-							</div>
-						{/if}
-						{#if userData.countyPublic === true}
-							<div class="flex items-center">
-								<Building2 class="mr-2" color="gray" />
-								<h5 class="text-gray-600"><b>Provincia:</b> {userData.county}</h5>
-							</div>
-						{/if}
-						{#if userData.countryPublic === true}
-							<div class="flex items-center">
-								<Earth class="mr-2" color="gray" />
-								<h5 class="text-gray-600"><b>Nazione:</b> {userData.country}</h5>
-							</div>
-						{/if}
-						{#if userData.phonePublic === true}
-							<div class="flex items-center">
-								<Phone class="mr-2" color="gray" />
-								<h5 class="text-gray-600"><b>Telefono:</b> {userData.phone}</h5>
-							</div>
-						{/if}
-						{#if userData.mobilePhonePublic === true}
-							<div class="flex items-center">
-								<Smartphone class="mr-2" color="gray" />
-								<h5 class="text-gray-600"><b>Cellulare:</b> {userData.mobilePhone}</h5>
-							</div>
-						{/if}
+							<a href="/profile-public/{userData.userId}" class="btn btn-ghost justify-start gap-3">
+								<Eye size={18} />
+								Anteprima profilo pubblico
+							</a>
+							<button
+								class="btn btn-ghost justify-start gap-3 text-error"
+								onclick={() => onClickModal('reset-password', null)}
+							>
+								<Shield size={18} />
+								Reset password
+							</button>
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
-		<!-- PROFILO -->
-		<form class="card-body pt-1" action="?/modifyUser" method="POST" use:enhance>
-			<div class="card-title bg-gray-400 glass font-bold flex justify-between p-3 my-4 rounded-lg">
-				<span> Profilo</span>
 
-				{#if closedInput}
-					<button
-						class="btn btn-outline btn-sm btn-neutral rounded-lg border-2"
-						onclick={openInput}
-					>
-						<Settings size="24" />Modifica
-					</button>
+			<!-- Right Column - Main Content -->
+			<div class="lg:col-span-2">
+				{#if activeTab === 'profile'}
+					<!-- Profile Tab -->
+					<div class="bg-base-100 rounded-xl shadow-md overflow-hidden">
+						<div
+							class="bg-gradient-to-br from-teal-300 to-emerald-100 border-b border-base-200 p-6 flex justify-between items-center"
+						>
+							<h2 class="text-xl font-bold text-base-content">Informazioni Personali</h2>
+
+							{#if closedInput}
+								<button class="btn btn-sm" onclick={openInput}>
+									<Edit size={16} />
+									Modifica
+								</button>
+							{:else}
+								<div class="flex gap-2">
+									<button class="btn btn-error btn-sm" onclick={closeInput} type="button">
+										<X size={16} />
+										Annulla
+									</button>
+									<button class="btn btn-success btn-sm" form="profile-form" type="submit">
+										<Check size={16} />
+										Salva
+									</button>
+								</div>
+							{/if}
+						</div>
+
+						<div class="p-6">
+							<form
+								id="profile-form"
+								action="?/modify"
+								method="POST"
+								use:enhance={formSubmit}
+								class="space-y-6"
+							>
+								<input type="hidden" name="userId" value={userData.userId} />
+
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+									<!-- Nome -->
+									<div class="form-control">
+										<label class="label">
+											<div class="flex w-full justify-between items-center">
+												<span class="font-semibold">Nome</span>
+												<div class="form-control">
+													<label class="label cursor-pointer gap-2" for="check-name">
+														{#if closedInput}
+															<input type="hidden" name="namePublic" checked={namePublic} />
+														{:else}
+															<input
+																type="checkbox"
+																class="hidden"
+																id="check-name"
+																name="namePublic"
+																checked={namePublic}
+																onclick={() => onSwitchPublicProfile('namePublic', namePublic)}
+															/>
+														{/if}
+
+														<span class="ml-2">
+															{#if closedInput}
+																<ToggleRight />
+															{:else if namePublic}
+																<ToggleLeft color="darkgreen" />
+															{:else}
+																<ToggleLeft color="darkred" />
+															{/if}</span
+														>
+														<span class="label-text {namePublic ? 'text-success' : 'text-error'}">
+															{namePublic ? 'Visibile' : 'Privato'}</span
+														>
+													</label>
+												</div>
+											</div>
+										</label>
+										<input
+											id="name"
+											name="name"
+											type="text"
+											class="input input-bordered w-full"
+											placeholder="Inserisci il tuo nome"
+											required
+											readonly={closedInput}
+											bind:value={name}
+										/>
+									</div>
+
+									<!-- Cognome -->
+									<div class="form-control">
+										<label class="label">
+											<div class="flex w-full justify-between items-center">
+												<span class="font-semibold">Cognome</span>
+												<div class="form-control">
+													<label class="label cursor-pointer gap-2" for="check-surnamePublic">
+														{#if closedInput}
+															<input type="hidden" name="surnamePublic" checked={surnamePublic} />
+														{:else}
+															<input
+																type="checkbox"
+																class="hidden"
+																id="check-surnamePublic"
+																name="surnamePublic"
+																checked={surnamePublic}
+																onclick={() =>
+																	onSwitchPublicProfile('surnamePublic', surnamePublic)}
+															/>
+														{/if}
+
+														<span class="ml-2">
+															{#if closedInput}
+																<ToggleRight />
+															{:else if surnamePublic}
+																<ToggleLeft color="darkgreen" />
+															{:else}
+																<ToggleLeft color="darkred" />
+															{/if}</span
+														>
+														<span
+															class="label-text {surnamePublic ? 'text-success' : 'text-error'}"
+														>
+															{surnamePublic ? 'Visibile' : 'Privato'}</span
+														>
+													</label>
+												</div>
+											</div>
+										</label>
+										<input
+											id="surname"
+											name="surname"
+											type="text"
+											class="input input-bordered w-full"
+											placeholder="Inserisci il tuo cognome"
+											required
+											readonly={closedInput}
+											bind:value={surname}
+										/>
+									</div>
+
+									<!-- Email -->
+									<div class="form-control md:col-span-2">
+										<label class="label">
+											<div class="flex w-full justify-between items-center">
+												<span class="font-semibold">Email</span>
+												<div class="form-control">
+													<label class="label cursor-pointer gap-2" for="check-emailPublic">
+														{#if closedInput}
+															<input type="hidden" name="emailPublic" checked={emailPublic} />
+														{:else}
+															<input
+																type="checkbox"
+																class="hidden"
+																id="check-emailPublic"
+																name="emailPublic"
+																checked={emailPublic}
+																onclick={() => onSwitchPublicProfile('emailPublic', emailPublic)}
+															/>
+														{/if}
+
+														<span class="ml-2">
+															{#if closedInput}
+																<ToggleRight />
+															{:else if emailPublic}
+																<ToggleLeft color="darkgreen" />
+															{:else}
+																<ToggleLeft color="darkred" />
+															{/if}</span
+														>
+														<span class="label-text {emailPublic ? 'text-success' : 'text-error'}">
+															{emailPublic ? 'Visibile' : 'Privato'}</span
+														>
+													</label>
+												</div>
+											</div>
+										</label>
+										<div class="input input-bordered flex items-center gap-2">
+											<Mail size={18} class="text-base-content/50 ml-2" />
+											<input
+												id="email"
+												name="email"
+												type="email"
+												class="flex-1 outline-none bg-transparent"
+												placeholder="esempio@email.com"
+												required
+												readonly={closedInput}
+												bind:value={email}
+											/>
+										</div>
+									</div>
+								</div>
+
+								<div class="divider">Indirizzo</div>
+
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+									<!-- Indirizzo -->
+									<div class="form-control md:col-span-2">
+										<label class="label">
+											<div class="flex w-full justify-between items-center">
+												<span class="font-semibold">Indirizzo</span>
+												<div class="form-control">
+													<label class="label cursor-pointer gap-2" for="check-addressPublic">
+														{#if closedInput}
+															<input type="hidden" name="addressPublic" checked={addressPublic} />
+														{:else}
+															<input
+																type="checkbox"
+																class="hidden"
+																id="check-addressPublic"
+																name="addressPublic"
+																checked={addressPublic}
+																onclick={() =>
+																	onSwitchPublicProfile('addressPublic', addressPublic)}
+															/>
+														{/if}
+
+														<span class="ml-2">
+															{#if closedInput}
+																<ToggleRight />
+															{:else if addressPublic}
+																<ToggleLeft color="darkgreen" />
+															{:else}
+																<ToggleLeft color="darkred" />
+															{/if}</span
+														>
+														<span
+															class="label-text {addressPublic ? 'text-success' : 'text-error'}"
+														>
+															{addressPublic ? 'Visibile' : 'Privato'}</span
+														>
+													</label>
+												</div>
+											</div>
+										</label>
+										<div class="input input-bordered flex items-center gap-2">
+											<Home size={18} class="text-base-content/50 ml-2" />
+											<input
+												id="address"
+												name="address"
+												type="text"
+												class="flex-1 outline-none bg-transparent"
+												placeholder="Via/Piazza, numero civico"
+												required
+												readonly={closedInput}
+												bind:value={address}
+											/>
+										</div>
+									</div>
+
+									<!-- Città -->
+									<div class="form-control">
+										<label class="label">
+											<div class="flex w-full justify-between items-center">
+												<span class="font-semibold">Città</span>
+												<div class="form-control">
+													<label class="label cursor-pointer gap-2" for="check-cityPublic">
+														{#if closedInput}
+															<input type="hidden" name="cityPublic" checked={cityPublic} />
+														{:else}
+															<input
+																type="checkbox"
+																class="hidden"
+																id="check-cityPublic"
+																name="cityPublic"
+																checked={cityPublic}
+																onclick={() => onSwitchPublicProfile('cityPublic', cityPublic)}
+															/>
+														{/if}
+
+														<span class="ml-2">
+															{#if closedInput}
+																<ToggleRight />
+															{:else if cityPublic}
+																<ToggleLeft color="darkgreen" />
+															{:else}
+																<ToggleLeft color="darkred" />
+															{/if}</span
+														>
+														<span class="label-text {cityPublic ? 'text-success' : 'text-error'}">
+															{cityPublic ? 'Visibile' : 'Privato'}</span
+														>
+													</label>
+												</div>
+											</div>
+										</label>
+										<input
+											id="city"
+											name="city"
+											type="text"
+											class="input input-bordered w-full"
+											placeholder="Inserisci la città"
+											required
+											readonly={closedInput}
+											bind:value={city}
+										/>
+									</div>
+
+									<!-- CAP -->
+									<div class="form-control">
+										<label class="label">
+											<div class="flex w-full justify-between items-center">
+												<span class="font-semibold">CAP</span>
+												<div class="form-control">
+													<label class="label cursor-pointer gap-2" for="check-postalCodePublic">
+														{#if closedInput}
+															<input
+																type="hidden"
+																name="postalCodePublic"
+																checked={postalCodePublic}
+															/>
+														{:else}
+															<input
+																type="checkbox"
+																class="hidden"
+																id="check-postalCodePublic"
+																name="postalCodePublic"
+																checked={postalCodePublic}
+																onclick={() =>
+																	onSwitchPublicProfile('postalCodePublic', postalCodePublic)}
+															/>
+														{/if}
+
+														<span class="ml-2">
+															{#if closedInput}
+																<ToggleRight />
+															{:else if postalCodePublic}
+																<ToggleLeft color="darkgreen" />
+															{:else}
+																<ToggleLeft color="darkred" />
+															{/if}</span
+														>
+														<span
+															class="label-text {postalCodePublic ? 'text-success' : 'text-error'}"
+														>
+															{postalCodePublic ? 'Visibile' : 'Privato'}</span
+														>
+													</label>
+												</div>
+											</div>
+										</label>
+										<input
+											id="postalCode"
+											name="postalCode"
+											type="text"
+											class="input input-bordered w-full"
+											placeholder="12345"
+											required
+											readonly={closedInput}
+											bind:value={postalCode}
+										/>
+									</div>
+
+									<!-- Provincia -->
+									<div class="form-control">
+										<label class="label">
+											<div class="flex w-full justify-between items-center">
+												<span class="font-semibold">Provincia</span>
+												<div class="form-control">
+													<label class="label cursor-pointer gap-2" for="check-countyPublic">
+														{#if closedInput}
+															<input type="hidden" name="countyPublic" checked={countyPublic} />
+														{:else}
+															<input
+																type="checkbox"
+																class="hidden"
+																id="check-countyPublic"
+																name="countyPublic"
+																checked={countyPublic}
+																onclick={() => onSwitchPublicProfile('countyPublic', countyPublic)}
+															/>
+														{/if}
+
+														<span class="ml-2">
+															{#if closedInput}
+																<ToggleRight />
+															{:else if countyPublic}
+																<ToggleLeft color="darkgreen" />
+															{:else}
+																<ToggleLeft color="darkred" />
+															{/if}</span
+														>
+														<span class="label-text {countyPublic ? 'text-success' : 'text-error'}">
+															{countyPublic ? 'Visibile' : 'Privato'}</span
+														>
+													</label>
+												</div>
+											</div>
+										</label>
+										<select
+											id="county"
+											class="select select-bordered w-full"
+											name="county"
+											required
+											disabled={closedInput}
+											bind:value={county}
+										>
+											<option value="" disabled>Seleziona provincia</option>
+											{#each provinceFilterate as provincia}
+												<option value={provincia.title}>
+													{provincia.title} ({provincia.region})
+												</option>
+											{/each}
+										</select>
+									</div>
+
+									<!-- Nazione -->
+									<div class="form-control">
+										<label class="label">
+											<div class="flex w-full justify-between items-center">
+												<span class="font-semibold">Nazione</span>
+												<div class="form-control">
+													<label class="label cursor-pointer gap-2" for="check-countryPublic">
+														{#if closedInput}
+															<input type="hidden" name="countryPublic" checked={countryPublic} />
+														{:else}
+															<input
+																type="checkbox"
+																class="hidden"
+																id="check-countryPublic"
+																name="countryPublic"
+																checked={countryPublic}
+																onclick={() =>
+																	onSwitchPublicProfile('countryPublic', countryPublic)}
+															/>
+														{/if}
+
+														<span class="ml-2">
+															{#if closedInput}
+																<ToggleRight />
+															{:else if countryPublic}
+																<ToggleLeft color="darkgreen" />
+															{:else}
+																<ToggleLeft color="darkred" />
+															{/if}</span
+														>
+														<span
+															class="label-text {countryPublic ? 'text-success' : 'text-error'}"
+														>
+															{countryPublic ? 'Visibile' : 'Privato'}</span
+														>
+													</label>
+												</div>
+											</div>
+										</label>
+										<select
+											id="country"
+											class="select select-bordered w-full"
+											name="country"
+											required
+											disabled={closedInput}
+											bind:value={country}
+										>
+											<option value="" disabled>Seleziona nazione</option>
+											{#each $country_list as countryItem}
+												<option value={countryItem}>
+													{countryItem}
+												</option>
+											{/each}
+										</select>
+									</div>
+
+									<!-- Telefono -->
+									<div class="form-control">
+										<label class="label">
+											<div class="flex w-full justify-between items-center">
+												<span class="font-semibold">Telefono</span>
+												<div class="form-control">
+													<label class="label cursor-pointer gap-2" for="check-phonePublic">
+														{#if closedInput}
+															<input type="hidden" name="phonePublic" checked={phonePublic} />
+														{:else}
+															<input
+																type="checkbox"
+																class="hidden"
+																id="check-phonePublic"
+																name="phonePublic"
+																checked={phonePublic}
+																onclick={() => onSwitchPublicProfile('phonePublic', phonePublic)}
+															/>
+														{/if}
+
+														<span class="ml-2">
+															{#if closedInput}
+																<ToggleRight />
+															{:else if phonePublic}
+																<ToggleLeft color="darkgreen" />
+															{:else}
+																<ToggleLeft color="darkred" />
+															{/if}</span
+														>
+														<span class="label-text {phonePublic ? 'text-success' : 'text-error'}">
+															{phonePublic ? 'Visibile' : 'Privato'}</span
+														>
+													</label>
+												</div>
+											</div>
+										</label>
+										<div class="input input-bordered flex items-center gap-2">
+											<Phone size={18} class="text-base-content/50 ml-2" />
+											<input
+												id="telefono"
+												name="phone"
+												type="tel"
+												class="flex-1 outline-none bg-transparent"
+												placeholder="+39 01234567"
+												readonly={closedInput}
+												bind:value={phone}
+											/>
+										</div>
+									</div>
+
+									<!-- Cellulare -->
+									<div class="form-control">
+										<label class="label">
+											<div class="flex w-full justify-between items-center">
+												<span class="font-semibold">Cellulare</span>
+												<div class="form-control">
+													<label class="label cursor-pointer gap-2" for="check-mobilePhonePublic">
+														{#if closedInput}
+															<input
+																type="hidden"
+																name="mobilePhonePublic"
+																checked={mobilePhonePublic}
+															/>
+														{:else}
+															<input
+																type="checkbox"
+																class="hidden"
+																id="check-mobilePhonePublic"
+																name="mobilePhonePublic"
+																checked={mobilePhonePublic}
+																onclick={() =>
+																	onSwitchPublicProfile('mobilePhonePublic', mobilePhonePublic)}
+															/>
+														{/if}
+
+														<span class="ml-2">
+															{#if closedInput}
+																<ToggleRight />
+															{:else if mobilePhonePublic}
+																<ToggleLeft color="darkgreen" />
+															{:else}
+																<ToggleLeft color="darkred" />
+															{/if}</span
+														>
+														<span
+															class="label-text {mobilePhonePublic ? 'text-success' : 'text-error'}"
+														>
+															{mobilePhonePublic ? 'Visibile' : 'Privato'}</span
+														>
+													</label>
+												</div>
+											</div>
+										</label>
+										<div class="input input-bordered flex items-center gap-2">
+											<Phone size={18} class="text-base-content/50 ml-2" />
+											<input
+												id="cellulare"
+												name="mobilePhone"
+												type="tel"
+												class="flex-1 outline-none bg-transparent"
+												placeholder="+39 3331234567"
+												required
+												readonly={closedInput}
+												bind:value={mobilePhone}
+											/>
+										</div>
+									</div>
+								</div>
+							</form>
+						</div>
+					</div>
 				{:else}
-					<div class="flex space-x-4">
-						<button
-							class="btn btn-outline btn-sm btn-error rounded-lg flex-1 min-w-[110px] border-2"
-							onclick={closeInput}
-							type="button"
-						>
-							<X size="24" />Annulla
-						</button>
-						<button
-							class="btn btn-outline btn-sm btn-success rounded-lg flex-1 min-w-[110px] border-2"
-							type="submit"
-						>
-							<Check size="24" />Salva
-						</button>
+					<!-- Orders Tab -->
+					<div class="bg-base-100 rounded-xl shadow-md overflow-hidden">
+						<div class="bg-primary/10 border-b border-base-200 p-6">
+							<h2 class="text-xl font-bold text-base-content">Storico Ordini</h2>
+						</div>
+
+						<div class="p-6">
+							{#if orderData.length === 0}
+								<div class="text-center py-12">
+									<div
+										class="w-20 h-20 bg-base-200 rounded-full flex items-center justify-center mx-auto mb-4"
+									>
+										<ShoppingBag size={32} class="text-base-content/50" />
+									</div>
+									<h3 class="text-xl font-bold mb-2">Nessun ordine</h3>
+									<p class="text-base-content/70 mb-6">Non hai ancora effettuato ordini</p>
+									<a href="/" class="btn btn-primary"> Inizia lo shopping </a>
+								</div>
+							{:else}
+								<div class="space-y-6">
+									{#each orderData as order, index}
+										<div class="card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
+											<div
+												class="bg-base-200 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+											>
+												<div>
+													<div class="flex items-center gap-2">
+														<Clock size={16} class="text-primary" />
+														<span class="font-medium">Ordine del {formatDate(order.createdAt)}</span
+														>
+													</div>
+													<div class="text-sm text-base-content/70 mt-1">
+														ID: {order.orderId}
+													</div>
+												</div>
+
+												<div class="flex items-center gap-3">
+													<div class="badge badge-primary">
+														{order.cart.length}
+														{order.cart.length === 1 ? 'prodotto' : 'prodotti'}
+													</div>
+													<button
+														class="btn btn-sm btn-ghost"
+														onclick={() => toggleOrderDetails(order.orderId)}
+													>
+														{#if expandedOrderId === order.orderId}
+															<ChevronUp size={18} />
+														{:else}
+															<ChevronDown size={18} />
+														{/if}
+													</button>
+												</div>
+											</div>
+
+											{#if expandedOrderId === order.orderId}
+												<div class="p-4 border-t border-base-200">
+													<div class="space-y-4">
+														{#each order.cart as item}
+															<div class="flex gap-4 p-3 bg-base-200/30 rounded-lg">
+																<div
+																	class="w-20 h-20 bg-base-200 rounded-lg overflow-hidden flex-shrink-0"
+																>
+																	{#if item.type === 'course'}
+																		<img
+																			src={item.layoutView?.urlPic || '/images/placeholder.jpg'}
+																			alt={item.title}
+																			class="w-full h-full object-cover"
+																		/>
+																	{:else}
+																		<img
+																			src={item.uploadfiles?.length > 0
+																				? `/files/${item.uploadfiles[0]?.fileUrl || '/placeholder.svg'}`
+																				: '/images/placeholder.jpg'}
+																			alt={item.title}
+																			class="w-full h-full object-cover"
+																		/>
+																	{/if}
+																</div>
+
+																<div class="flex-1">
+																	<h4 class="font-bold text-base-content">{item.title}</h4>
+
+																	{#if item.type === 'course'}
+																		<div
+																			class="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-base-content/70"
+																		>
+																			<div class="flex items-center gap-1">
+																				<Calendar size={14} />
+																				<span>{formatDate(item.eventStartDate)}</span>
+																			</div>
+																			<div class="flex items-center gap-1">
+																				<MapPin size={14} />
+																				<span>{item.county}</span>
+																			</div>
+																			<div class="flex items-center gap-1">
+																				<User size={14} />
+																				<span>{item.name} {item.surname}</span>
+																			</div>
+																		</div>
+																	{:else}
+																		<div
+																			class="flex items-center gap-2 mt-1 text-sm text-base-content/70"
+																		>
+																			<Package size={14} />
+																			<span>Quantità: {item.orderQuantity || 1}</span>
+																		</div>
+																	{/if}
+																</div>
+
+																<div class="text-right flex-shrink-0">
+																	<div class="font-bold text-primary">€ {item.price}</div>
+																</div>
+															</div>
+														{/each}
+
+														<div
+															class="flex justify-between items-center pt-3 border-t border-base-200"
+														>
+															<div class="font-medium">Totale ordine</div>
+															<div class="font-bold text-lg text-primary">
+																€ {order.cart.reduce(
+																	(total, item) => total + item.price * (item.orderQuantity || 1),
+																	0
+																)}
+															</div>
+														</div>
+													</div>
+												</div>
+											{/if}
+										</div>
+									{/each}
+								</div>
+							{/if}
+						</div>
 					</div>
 				{/if}
 			</div>
-
-			<fieldset disabled={closedInput} class="grid grid-cols-12 gap-x-4 gap-y-8">
-				<!-- UserId -->
-				<div class="form-control col-span-12 md:col-span-12">
-					<label for="userId" class="form-label">
-						<div class="flex flex-col gap-4">
-							<span class="label-text font-bold">ID utente</span>
-							<input
-								class="input input-bordered join-item w-full"
-								id="userId"
-								name="userId"
-								type="text"
-								bind:value={userData.userId}
-								readonly
-							/>
-						</div>
-					</label>
-				</div>
-
-				<!-- <input type="hidden" name="userId" value={userData.userId} /> -->
-				<!-- Nome -->
-				<div class="form-control col-span-12 md:col-span-6">
-					<label for="name" class="form-label">
-						<div class="flex items-center justify-between gap-4">
-							<span class="label-text font-bold">Nome</span>
-							<input
-								type="checkbox"
-								class="hidden"
-								id="btn-check8"
-								name="namePublic"
-								autocomplete="off"
-								checked={namePublic}
-								onclick={() => onSwitchPublicProfile('namePublic', namePublic)}
-							/>
-							<label
-								class={namePublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check8"
-							>
-								{#if namePublic}
-									<Eye size="20" color="white" strokeWidth={2.5} />
-								{:else}
-									<EyeOff size="20" color="white" strokeWidth={2.5} />
-								{/if}
-								<span class="text-white">{namePublic ? 'Pubblico' : 'Privato'}</span>
-							</label>
-						</div>
-						<input
-							id="name"
-							name="name"
-							type="text"
-							class="input input-bordered w-full rounded-md mt-2"
-							placeholder="Nome..."
-							required
-							readonly={closedInput}
-							class:is-static={closedInput}
-							bind:value={userData.name}
-						/>
-					</label>
-				</div>
-				<!-- Cognome -->
-				<div class="form-control col-span-12 md:col-span-6">
-					<label for="surname" class="form-label">
-						<div class="flex items-center justify-between gap-4">
-							<span class="label-text font-bold">Cognome</span>
-							<input
-								type="checkbox"
-								class="hidden"
-								id="btn-check9"
-								name="surnamePublic"
-								autocomplete="off"
-								checked={surnamePublic}
-								onclick={() => onSwitchPublicProfile('surnamePublic', surnamePublic)}
-							/>
-							<label
-								class={surnamePublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check9"
-							>
-								{#if surnamePublic}
-									<Eye size="20" color="white" strokeWidth={2.5} />
-								{:else}
-									<EyeOff size="20" color="white" strokeWidth={2.5} />
-								{/if}
-								<span class="text-white">{surnamePublic ? 'Pubblico' : 'Privato'}</span>
-							</label>
-						</div>
-						<input
-							id="surname"
-							name="surname"
-							type="text"
-							class="input input-bordered w-full rounded-md mt-2"
-							placeholder="Cognome..."
-							required
-							readonly={closedInput}
-							class:is-static={closedInput}
-							bind:value={userData.surname}
-						/>
-					</label>
-				</div>
-				<!-- Email -->
-				<div class="form-control col-span-12">
-					<label for="email" class="form-label">
-						<div class="flex items-center justify-between gap-4">
-							<span class="label-text font-bold">Email</span>
-							<input
-								type="checkbox"
-								class="hidden"
-								id="btn-check10"
-								name="emailPublic"
-								autocomplete="off"
-								checked={emailPublic}
-								onclick={() => onSwitchPublicProfile('emailPublic', emailPublic)}
-							/>
-							<label
-								class={emailPublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check10"
-							>
-								{#if emailPublic}
-									<Eye size="20" color="white" strokeWidth={2.5} />
-								{:else}
-									<EyeOff size="20" color="white" strokeWidth={2.5} />
-								{/if}
-								<span class="text-white">{emailPublic ? 'Pubblico' : 'Privato'}</span>
-							</label>
-						</div>
-						<input
-							id="email"
-							name="email"
-							type="email"
-							class="input input-bordered w-full rounded-md mt-2"
-							placeholder="Email..."
-							required
-							readonly={closedInput}
-							class:is-static={closedInput}
-							bind:value={userData.email}
-						/>
-					</label>
-				</div>
-				<!-- Indirizzo -->
-				<div class="form-control col-span-12">
-					<label for="address" class="form-label">
-						<div class="flex items-center justify-between gap-4">
-							<span class="label-text font-bold">Indirizzo</span>
-							<input
-								type="checkbox"
-								class="hidden"
-								id="btn-check1"
-								name="addressPublic"
-								autocomplete="off"
-								checked={addressPublic}
-								onclick={() => onSwitchPublicProfile('addressPublic', addressPublic)}
-							/>
-							<label
-								class={addressPublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check1"
-							>
-								{#if addressPublic}
-									<Eye size="20" color="white" strokeWidth={2.5} />
-								{:else}
-									<EyeOff size="20" color="white" strokeWidth={2.5} />
-								{/if}
-								<span class="text-white">{addressPublic ? 'Pubblico' : 'Privato'}</span>
-							</label>
-						</div>
-						<input
-							id="address"
-							name="address"
-							type="text"
-							class="input input-bordered w-full rounded-md mt-2"
-							placeholder="Indirizzo..."
-							required
-							readonly={closedInput}
-							class:is-static={closedInput}
-							bind:value={userData.address}
-						/>
-					</label>
-				</div>
-				<!-- Città -->
-				<div class="form-control col-span-12 md:col-span-6">
-					<label for="city" class="form-label">
-						<div class="flex items-center gap-4 justify-between">
-							<span class="label-text font-bold">Città</span>
-							<input
-								type="checkbox"
-								class="hidden"
-								id="btn-check2"
-								name="cityPublic"
-								autocomplete="off"
-								checked={cityPublic}
-								onclick={() => onSwitchPublicProfile('cityPublic', cityPublic)}
-							/>
-							<label
-								class={cityPublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check2"
-							>
-								{#if cityPublic}
-									<Eye size="20" color="white" strokeWidth={2.5} />
-								{:else}
-									<EyeOff size="20" color="white" strokeWidth={2.5} />
-								{/if}
-								<span class="text-white">{cityPublic ? 'Pubblico' : 'Privato'}</span>
-							</label>
-						</div>
-						<input
-							id="city"
-							name="city"
-							type="text"
-							class="input input-bordered w-full rounded-md mt-2"
-							placeholder="Città..."
-							required
-							readonly={closedInput}
-							class:is-static={closedInput}
-							bind:value={userData.city}
-						/>
-					</label>
-				</div>
-				<!-- Provincia -->
-				<div class="form-control col-span-12 md:col-span-6">
-					<label for="state" class="form-label">
-						<div class="flex items-center gap-4 justify-between">
-							<span class="label-text font-bold">Provincia</span>
-							<input
-								type="checkbox"
-								class="hidden"
-								id="btn-check3"
-								name="statePublic"
-								autocomplete="off"
-								checked={statePublic}
-								onclick={() => onSwitchPublicProfile('statePublic', statePublic)}
-							/>
-							<label
-								class={statePublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check3"
-							>
-								{#if statePublic}
-									<Eye size="20" color="white" strokeWidth={2.5} />
-								{:else}
-									<EyeOff size="20" color="white" strokeWidth={2.5} />
-								{/if}
-								<span class="text-white">{statePublic ? 'Pubblico' : 'Privato'}</span>
-							</label>
-						</div>
-						<!-- name="state" -->
-						<select
-							id="countryState"
-							class="select select-bordered w-full rounded-md mt-2"
-							name="countryState"
-							placeholder="Scegli"
-							required
-							disabled={closedInput}
-							bind:value={userData.county}
-						>
-							<option selected disabled>Scegli</option>
-							{#each provinceFilterate as provincia, i}
-								<option value={provincia.title}>
-									{provincia.title} ({provincia.region})
-								</option>
-							{/each}
-						</select>
-					</label>
-				</div>
-				<!-- CAP -->
-				<div class="form-control col-span-12 md:col-span-6">
-					<label for="postalcode" class="form-label">
-						<div class="flex items-center gap-4 justify-between">
-							<span class="label-text font-bold">CAP</span>
-							<input
-								type="checkbox"
-								class="hidden"
-								id="btn-check4"
-								name="postalCodePublic"
-								autocomplete="off"
-								checked={postalCodePublic}
-								onclick={() => onSwitchPublicProfile('postalCodePublic', postalCodePublic)}
-							/>
-							<label
-								class={postalCodePublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check4"
-							>
-								{#if postalCodePublic}
-									<Eye size="20" color="white" strokeWidth={2.5} />
-								{:else}
-									<EyeOff size="20" color="white" strokeWidth={2.5} />
-								{/if}
-								<span class="text-white">{postalCodePublic ? 'Pubblico' : 'Privato'}</span>
-							</label>
-						</div>
-						<input
-							id="postalCode"
-							name="postalCode"
-							type="text"
-							class="input input-bordered w-full rounded-md mt-2"
-							placeholder="CAP..."
-							required
-							readonly={closedInput}
-							class:is-static={closedInput}
-							bind:value={userData.postalCode}
-						/>
-					</label>
-				</div>
-				<!-- Nazione -->
-				<div class="form-control col-span-12 md:col-span-6">
-					<label for="country" class="form-label">
-						<div class="flex items-center gap-4 justify-between">
-							<span class="label-text font-bold">Nazione</span>
-							<input
-								type="checkbox"
-								class="hidden"
-								id="btn-check5"
-								name="countryPublic"
-								autocomplete="off"
-								checked={countryPublic}
-								onclick={() => onSwitchPublicProfile('countryPublic', countryPublic)}
-							/>
-							<label
-								class={countryPublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check5"
-							>
-								{#if countryPublic}
-									<Eye size="20" color="white" strokeWidth={2.5} />
-								{:else}
-									<EyeOff size="20" color="white" strokeWidth={2.5} />
-								{/if}
-								<span class="text-white">{countryPublic ? 'Pubblico' : 'Privato'}</span>
-							</label>
-						</div>
-						<select
-							id="country"
-							class="select select-bordered w-full rounded-md mt-2"
-							name="country"
-							placeholder="Scegli"
-							required
-							disabled={closedInput}
-							bind:value={userData.country}
-						>
-							<option selected disabled>Scegli</option>
-							{#each $country_list as country}
-								<option value={country}>
-									{country}
-								</option>
-							{/each}
-						</select>
-					</label>
-				</div>
-				<!-- Telefono -->
-				<div class="form-control col-span-12 md:col-span-6">
-					<label for="telefono" class="form-label">
-						<div class="flex items-center gap-4 justify-between">
-							<span class="label-text font-bold">Telefono</span>
-							<input
-								type="checkbox"
-								class="hidden"
-								id="btn-check6"
-								name="phonePublic"
-								autocomplete="off"
-								checked={phonePublic}
-								onclick={() => onSwitchPublicProfile('phonePublic', phonePublic)}
-							/>
-							<label
-								class={phonePublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check6"
-							>
-								{#if phonePublic}
-									<Eye size="20" color="white" strokeWidth={2.5} />
-								{:else}
-									<EyeOff size="20" color="white" strokeWidth={2.5} />
-								{/if}
-								<span class="text-white">{phonePublic ? 'Pubblico' : 'Privato'}</span>
-							</label>
-						</div>
-						<input
-							id="telefono"
-							name="phone"
-							type="text"
-							class="input input-bordered w-full rounded-md mt-2"
-							placeholder="Telefono..."
-							required
-							readonly={closedInput}
-							bind:value={userData.phone}
-						/>
-					</label>
-				</div>
-				<!-- Cellulare -->
-				<div class="form-control col-span-12 md:col-span-6">
-					<label for="cellulare" class="form-label">
-						<div class="flex items-center gap-4 justify-between">
-							<span class="label-text font-bold">Cellulare</span>
-							<input
-								type="checkbox"
-								class="hidden"
-								id="btn-check7"
-								name="mobilePhonePublic"
-								autocomplete="off"
-								checked={mobilePhonePublic}
-								onclick={() => onSwitchPublicProfile('mobilePhonePublic', mobilePhonePublic)}
-							/>
-							<label
-								class={mobilePhonePublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check7"
-							>
-								{#if mobilePhonePublic}
-									<Eye size="20" color="white" strokeWidth={2.5} />
-								{:else}
-									<EyeOff size="20" color="white" strokeWidth={2.5} />
-								{/if}
-								<span class="text-white">{mobilePhonePublic ? 'Pubblico' : 'Privato'}</span>
-							</label>
-						</div>
-						<input
-							id="cellulare"
-							name="mobilePhone"
-							type="text"
-							class="input input-bordered w-full rounded-md mt-2"
-							placeholder="Telefono..."
-							required
-							readonly={closedInput}
-							class:is-static={closedInput}
-							bind:value={userData.mobilePhone}
-						/>
-					</label>
-				</div>
-				<!-- level -->
-				<div class="form-control col-span-12 md:col-span-12">
-					<label for="userId" class="form-label">
-						<div class="flex flex-col gap-4">
-							<span class="label-text font-bold">Livello</span>
-							<input
-								class="input input-bordered join-item w-full"
-								id="level"
-								name="level"
-								type="text"
-								bind:value={userData.level}
-								readonly
-							/>
-						</div>
-					</label>
-				</div>
-			</fieldset>
-		</form>
-		<!-- end PROFILO -->
-
-		<div class="card-footer bg-transparent flex justify-center p-2">
-			<button class="btn btn-outline btn-sm btn-info rounded-lg border-2" onclick={enableReset}
-				><span>Reset password</span>
-			</button>
 		</div>
-	</section>
-	<!-- section 2 -->
-	<section class="card col-span-12 xl:col-span-6 gap-y-4 rounded-lg bg-white">
-		<div class="card-body pt-1">
-			<div class="card-body">
-				<span class=" py-2 text-xl">
-					<strong>Associato:</strong> <br />
-				</span>
-				<span class="flex items-center space-x-2 mb-4">
-					<button class="btn btn-md bg-indigo-200 rounded-full hover:bg-yellow-400">
-						<Award size="30" color="orange" strokeWidth={2.5} />
-					</button>
-					<span class="ml-4">
-						Livello: <b>{membershipLevel}</b> | Status:
-						<b>{membershipStatus ? 'Attivo' : 'Inattivo'}</b>
-						{#if userData.membership.membershipLevel == 'Socio ordinario'}
-							| Scadenza:
-							<b>{membershipExpiry}</b>
-						{/if}
-					</span>
-				</span>
-			</div>
-			<hr />
-			<div class="card-body">
-				<p class="font-bold text-xl">Storico ordini:</p>
-				{#each orderData as order}
-					<div class="bg-indigo-200 my-4 p-6 rounded-lg shadow-lg">
-						<div class="flex justify-between items-center mb-4">
-							<div class="text-orange-600 text-lg font-bold">
-								<span class="block"
-									>Data: <span class="text-gray-800">{order.createdAt.substring(0, 10)}</span></span
-								>
-							</div>
-							<div class="text-orange-600 text-sm font-medium">
-								<span class="block"
-									>Ordine ID: <span class="text-gray-900">{order.orderId}</span></span
-								>
-							</div>
-						</div>
-						{#each order.cart as course}
-							<div class="flex items-center space-x-4 mb-3">
-								<img
-									src={course.layoutView.urlPic || '/images/placeholder.jpg'}
-									alt="Immagine corso"
-									class="w-16 h-16 object-cover rounded-md"
-								/>
-								<div class="font-semibold">
-									<b>{course.title}</b> <br />
-									<span class="text-gray-600 text-sm">
-										{course.eventStartDate.substring(0, 10)} - {course.county} -
-										{course.name}
-										{course.surname}
-									</span>
-								</div>
-							</div>
-						{/each}
-					</div>
-				{/each}
-			</div>
-		</div>
-	</section>
+	</div>
 </div>
+
 <Notification {toastClosed} {notificationContent} {notificationError} />
 
-<style>
-	/* CSS */
-</style>
+{#if currentModal == 'upload-photo'}
+	<Modal isOpen={openModal} header={modalTitle}>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+			>✕</button
+		>
+
+		<form
+			action="?/setProfilePic"
+			method="POST"
+			enctype="multipart/form-data"
+			use:enhance={formSubmit}
+			class="p-8"
+		>
+			<input type="hidden" name="userId" value={userData.userId} />
+			<DragDrop />
+			<div class="modal-action">
+				<button class="btn btn-outline" onclick={onCloseModal}>Annulla</button>
+				<button class="btn btn-primary" type="submit">Carica</button>
+			</div>
+		</form>
+	</Modal>
+{/if}
+
+{#if currentModal == 'reset-password'}
+	<Modal isOpen={openModal} header={modalTitle}>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+			>✕</button
+		>
+
+		<form
+			method="POST"
+			action={postAction}
+			use:enhance={formSubmit}
+			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+		>
+			<section class="col-span-4">
+				<label for="titolo" class="form-label">
+					<p class="font-bold mb-2">Password corrente</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-gray-300 px-3"><KeyRound /></button>
+					<input
+						type="password"
+						id="passwordOld"
+						name="passwordOld"
+						placeholder="Inserisci la password corrente"
+						aria-label="Password"
+						aria-describedby="basic-password"
+						bind:value={passwordOld}
+						required
+					/>
+				</div>
+			</section>
+			<section class="col-span-4">
+				<label for="titolo" class="form-label">
+					<p class="font-bold mb-2">Nuova password</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-gray-300 px-3"><KeyRound /></button>
+					<input
+						type="password"
+						id="passwordNew"
+						name="passwordNew"
+						placeholder="Inserisci la nuova password"
+						aria-label="Password"
+						aria-describedby="basic-password"
+						bind:value={passwordNew}
+						required
+					/>
+				</div>
+			</section>
+
+			<div class="col-span-4 mt-5 flex justify-center">
+				<div class="bg-gray-50 flex justify-center">
+					<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
+					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">Conferma</button>
+				</div>
+			</div>
+		</form>
+	</Modal>
+{/if}
+
+{#if currentModal == 'delete-profile-pic'}
+	<Modal isOpen={openModal} header={modalTitle}>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+			>✕</button
+		>
+		<form
+			method="POST"
+			action={postAction}
+			use:enhance={formSubmit}
+			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+		>
+			<input type="hidden" name="userId" value={userData.userId} />
+			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
+				Conferma rimozione
+			</header>
+			<div class="col-span-4 mt-5 flex justify-center">
+				<div class="bg-gray-50 flex justify-center">
+					<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
+					<button type="submit" class="btn btn-error btn-sm mx-2 text-white">Elimina</button>
+				</div>
+			</div>
+		</form>
+	</Modal>
+{/if}

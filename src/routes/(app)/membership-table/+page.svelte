@@ -17,8 +17,8 @@
 		RefreshCcw,
 		Trash2,
 		ShieldAlert,
-		Eye,
-		EyeOff
+		ToggleRight,
+		ToggleLeft
 	} from 'lucide-svelte';
 	import type { ActionResult } from '@sveltejs/kit';
 
@@ -271,12 +271,12 @@
 								<input type="hidden" name="status" value={row.status} />
 								<span class="flex items-center">
 									{#if row.status == 'enabled'}
-										<button type="submit" class="btn btn-success btn-sm font-semibold"
-											><Eye /></button
+										<button type="submit" class="btn btn-ghost btn-sm font-semibold"
+											><ToggleRight color="darkgreen" /></button
 										>
 									{:else}
-										<button type="submit" class="btn btn-error btn-sm font-semibold"
-											><EyeOff /></button
+										<button type="submit" class="btn btn-ghost btn-sm font-semibold"
+											><ToggleLeft color="darkred" /></button
 										>
 									{/if}
 								</span>
