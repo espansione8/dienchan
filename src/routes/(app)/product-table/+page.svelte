@@ -7,7 +7,7 @@
 	import Notification from '$lib/components/Notification.svelte';
 	import DragDrop from '$lib/components/DragDrop.svelte';
 	import Modal from '$lib/components/Modal.svelte';
-	import { imgCheck } from '$lib/tools/imgCheck';
+	import { imgCheck } from '$lib/tools/tools.js';
 	import {
 		CopyPlus,
 		RefreshCcw,
@@ -44,7 +44,6 @@
 	let price = $state(0);
 	let prodId = $state('');
 	let weight = $state(0);
-	let imgPrimary = $state('');
 	let status = $state('');
 
 	const csvCreate = () => {
@@ -75,7 +74,6 @@
 		newList.forEach((obj: any) => {
 			$orderKeysToDelete.forEach((key: string) => delete (obj as any)[key]);
 		});
-
 		//console.log('newList check', newList);
 
 		//CSV UNPARSE
@@ -137,12 +135,6 @@
 			price = item.price;
 			weight = item.weight;
 			category = item.category[0];
-			if (imgCheck(item.uploadfiles, 'product-primary').length > 0) {
-				imgPrimary = `/files/product/${item.prodId}/${imgCheck(item.uploadfiles, 'product-primary')[0]}`;
-			} else {
-				imgPrimary = '/images/placeholder.jpg';
-			}
-			//console.log('imgPrimary', imgPrimary);
 		}
 		if (type == 'delete') {
 			postAction = `?/delete`;
@@ -262,17 +254,16 @@
 				<tr class="hover:bg-gray-100">
 					<td>{row.prodId}</td>
 					<td>
-						{#if imgCheck(row.uploadfiles, 'product-primary').length > 0}
+						{#if imgCheck.single(row.uploadfiles, 'product-primary') !== '/images/placeholder.jpg'}
 							<div class="card-body p-4">
 								<div class="flex items-center">
 									<figure class="flex-shrink-0">
 										<img
-											src={`/files/product/${row.prodId}/${imgCheck(row.uploadfiles, 'product-primary')[0]}`}
+											src={imgCheck.single(row.uploadfiles, 'product-primary')}
 											alt="product-primary"
 											class="object-cover rounded-md max-w-36 max-h-36 h-auto"
 										/>
 									</figure>
-
 									<form
 										method="POST"
 										action={`?/delProdPic`}
@@ -283,7 +274,7 @@
 										<input
 											type="hidden"
 											name="fileName"
-											value={imgCheck(row.uploadfiles, 'product-primary')[0]}
+											value={imgCheck.fileName(row.uploadfiles, 'product-primary')}
 										/>
 										<button
 											class="btn btn-sm btn-error rounded-lg border-2"
@@ -642,29 +633,6 @@
 				</div>
 			</section>
 
-			<!-- img -->
-			<!-- {#if imgPrimary.length > 0}
-				<section class="col-span-4">
-					<figure class="mt-4">
-						<img src={imgPrimary} alt="product-primary" class="object-cover rounded-md" />
-					</figure>
-					<button
-						class="btn btn-error mx-1 mt-4"
-						type="button"
-						onclick={() => {
-							imgPrimary = '';
-						}}>Cambia immagine</button
-					>
-				</section>
-			{:else if openModal}
-				<section class="col-span-4">
-					<label for="product-primary" class="form-label">
-						<p class="font-bold mb-2">Foto Prodotto</p>
-					</label>
-					<DragDrop inputName="product-primary" />
-				</section>
-			{/if} -->
-			<!-- img end -->
 			<section class="lg:col-span-4 mt-2">
 				<div class="col-span-4 mt-10 flex justify-center">
 					<button class="btn btn-error mx-1" type="button" onclick={onCloseModal}>Annulla</button>

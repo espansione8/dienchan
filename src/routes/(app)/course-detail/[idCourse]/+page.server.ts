@@ -66,9 +66,9 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 					'Content-Type': 'application/json'
 				}
 			});
-			if (!res.ok) {
+			if (res.status != 200) {
 				console.error('user fetch failed', res.status, await res.text());
-				return;
+				return
 			}
 			const response = await res.json();
 			userData = response.map((obj: any) => ({

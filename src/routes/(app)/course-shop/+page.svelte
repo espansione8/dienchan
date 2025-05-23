@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
+	//import { goto, invalidateAll } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
 	import CartFloat from '$lib/components/CartFloat.svelte';
-	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
+	import { cartProducts } from '$lib/stores/cart';
 	import {
 		ChevronDown,
 		ShieldAlert,
@@ -11,8 +11,7 @@
 		UserSearch,
 		TextSearch,
 		MapPinned,
-		ShoppingCart,
-		Trash2,
+		SlidersHorizontal,
 		CircleX,
 		Tags,
 		BookOpen,
@@ -25,8 +24,8 @@
 	} from 'lucide-svelte';
 	//import { province } from '$lib/stores/arrays.js';
 
-	let { data } = $props();
-	let { getTable, getTableNames, getLayout, auth } = $derived(data);
+	const { data } = $props();
+	const { getTable, getTableNames, getLayout, auth } = $derived(data);
 	let coursesList = $state(getTable);
 
 	let resetActive = $state(false);
@@ -39,10 +38,6 @@
 		riflessologo: ''
 	});
 
-	const checkCart = (id: any) => {
-		const check = $cartProducts.some((item) => item.prodId == id);
-		return check;
-	};
 	// inizializzo ordinando visualizzanco prima quelli con giorno di svolgimento più recente
 	coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
@@ -73,13 +68,6 @@
 		);
 
 	numCoursesInProvince = sortedNumCoursesInProvince;
-
-	// vecchio non c'era l'array di stringhe -> county
-	// coursesList.forEach((item) => {
-	// 	const countryState = item.county;
-	// 	numCoursesInProvince[countryState] = (numCoursesInProvince[countryState] || 0) + 1;
-	// 	// key : value ---> es: numCoursesInProvince = {"Bologna": "1", "Firenze": "2", "Roma": "3"}
-	// });
 
 	const nomiMesi = [
 		'Gennaio',
@@ -143,6 +131,18 @@
 
 	const updateFilter = () => {
 		coursesList = getTable;
+		// Evento
+		if (filtriAttivi.evento) {
+			coursesList = coursesList.filter((item) => item.layoutView.title == filtriAttivi.evento);
+		}
+		// mese
+		if (filtriAttivi.mese) {
+			const monthNumber = nomiMesi.indexOf(filtriAttivi.mese) + 1;
+			coursesList = coursesList.filter((item) => {
+				const eventMonth = new Date(item.eventStartDate).getMonth() + 1;
+				return eventMonth == monthNumber;
+			});
+		}
 		// provincia
 		if (filtriAttivi.provincia) {
 			// coursesList = coursesList.filter((item) => item.county == filtriAttivi.provincia);
@@ -154,50 +154,29 @@
 		if (filtriAttivi.riflessologo) {
 			coursesList = coursesList.filter((item) => item.userId == filtriAttivi.userId);
 		}
-		// mese
-		if (filtriAttivi.mese) {
-			const monthNumber = nomiMesi.indexOf(filtriAttivi.mese) + 1;
-			coursesList = coursesList.filter((item) => {
-				const eventMonth = new Date(item.eventStartDate).getMonth() + 1;
-				return eventMonth == monthNumber;
-			});
-		}
-		// Evento
-		if (filtriAttivi.evento) {
-			coursesList = coursesList.filter((item) => item.title == filtriAttivi.evento);
-		}
-	};
-
-	const onClickFilterProvincia = async (provinciaSelected) => {
-		resetActive = true;
-		filtriAttivi.provincia = provinciaSelected;
-		updateFilter();
 	};
 
 	const onClickFilterEvent = async (eventSelected) => {
 		resetActive = true;
-		// console.log('eventSelected', eventSelected);
 		filtriAttivi.evento = eventSelected;
 		// console.log('filtriAttivi.evento', filtriAttivi.evento);
 		updateFilter();
 	};
-
-	const onClickFilterRiflessologo = async (id, name, surname) => {
-		resetActive = true;
-		filtriAttivi.userId = id;
-		filtriAttivi.riflessologo = name + ' ' + surname;
-		updateFilter();
-	};
-
 	const onClickFilterMonth = async (monthSelected) => {
 		resetActive = true;
 		filtriAttivi.mese = monthSelected;
 		updateFilter();
 	};
-
-	const onClickInfo = (idCourse: any) => {
-		//  console.log('idCourse', idCourse);
-		goto(`/course-detail/${idCourse}`);
+	const onClickFilterProvincia = async (provinciaSelected) => {
+		resetActive = true;
+		filtriAttivi.provincia = provinciaSelected;
+		updateFilter();
+	};
+	const onClickFilterRiflessologo = async (id, name, surname) => {
+		resetActive = true;
+		filtriAttivi.userId = id;
+		filtriAttivi.riflessologo = name + ' ' + surname;
+		updateFilter();
 	};
 
 	// sort
@@ -247,17 +226,7 @@
 			<!-- Filter Header -->
 			<div class="bg-primary text-primary-content p-4 relative overflow-hidden">
 				<div class="absolute inset-0 opacity-20">
-					<!-- Using SVG pattern instead of imported icons -->
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 24 24"
-						fill="currentColor"
-						class="w-32 h-32 -rotate-12 absolute -right-8 -bottom-8"
-					>
-						<path
-							d="M18.75 12.75h1.5a.75.75 0 000-1.5h-1.5a.75.75 0 000 1.5zM12 6a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 0112 6zM12 18a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 0112 18zM3.75 6.75h1.5a.75.75 0 100-1.5h-1.5a.75.75 0 000 1.5zM5.25 18.75h-1.5a.75.75 0 010-1.5h1.5a.75.75 0 010 1.5zM3 12a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 013 12zM9 3.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5zM12.75 12a2.25 2.25 0 114.5 0 2.25 2.25 0 01-4.5 0zM9 15.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z"
-						/>
-					</svg>
+					<SlidersHorizontal class="w-32 h-32 -rotate-12 absolute -right-8 -bottom-8" />
 				</div>
 				<h2 class="text-xl font-bold relative z-10">Filtri</h2>
 				<p class="text-sm opacity-90 mt-1 relative z-10">Affina la tua ricerca</p>
@@ -563,7 +532,7 @@
 			{#each coursesList as courseData, i}
 				<div
 					class="card overflow-hidden bg-base-100 rounded-xl shadow-lg border
-	border-base-200 hover:shadow-xl transition-shadow duration-300 flex flex-col w-84"
+	border-base-200 hover:shadow-xl transition-shadow duration-300 flex flex-col w-full sm:w-81"
 					class:h-114={auth}
 					class:h-128={!auth}
 				>
@@ -635,31 +604,6 @@
 								<Info size={20} />
 								Visualizza
 							</a>
-							<!-- <a
-								class="btn btn-outline rounded-md flex items-center gap-1"
-								href="/course-detail/{courseData.prodId}"
-							>
-								<Info size={16} />
-								Dettagli
-							</a>
-
-							{#if checkCart(courseData.prodId)}
-								<button
-									class="btn btn-error flex-1 rounded-md flex items-center gap-1"
-									onclick={() => removeFromCart($cartProducts, courseData)}
-								>
-									<Trash2 size={16} />
-									Rimuovi
-								</button>
-							{:else}
-								<button
-									class="btn btn-primary flex-1 rounded-md flex items-center gap-1"
-									onclick={() => addToCart($cartProducts, courseData, false)}
-								>
-									<ShoppingCart size={16} />
-									Aggiungi
-								</button>
-							{/if} -->
 						</div>
 					</div>
 				</div>

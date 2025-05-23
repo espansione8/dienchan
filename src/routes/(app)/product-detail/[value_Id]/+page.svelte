@@ -5,7 +5,7 @@
 	import { Boxes, Tags, CircleCheck, CircleX, ShoppingCart } from 'lucide-svelte';
 	let { data } = $props();
 	let { getProduct, auth } = $derived(data);
-	import { imgCheck } from '$lib/tools/imgCheck';
+	import { imgCheck } from '$lib/tools/tools.js';
 
 	let selectedImage = $state(0);
 	let activeTab = $state('description');
@@ -99,9 +99,7 @@
 			<div class="space-y-4">
 				<div class="bg-base-100 rounded-lg overflow-hidden shadow-sm">
 					<img
-						src={imgCheck(getProduct.uploadfiles, 'product-primary').length > 0
-							? `/files/product/${getProduct.prodId}/${imgCheck(getProduct.uploadfiles, 'product-primary')[0]}`
-							: '/images/placeholder.jpg'}
+						src={imgCheck.single(getProduct.uploadfiles, 'product-primary')}
 						alt="product-primary"
 						class="w-full h-auto object-contain aspect-square"
 					/>

@@ -28,6 +28,16 @@ const LayoutSchema = new Schema(
             enum: ['enabled', 'disabled'],
             default: 'enabled'
         },
+
+        uploadfiles: [
+            {
+                _id: false,  // This prevents MongoDB from adding _id to array elements
+                type: { type: String, enum: ['product-primary', 'product-gallery', 'membership', 'course'], default: 'none' },
+                fileType: { type: String, default: '' },
+                fileName: { type: String, default: '' },
+                fileUrl: { type: String, default: '' }
+            }
+        ],
     },
     {
         collection: 'layouts',

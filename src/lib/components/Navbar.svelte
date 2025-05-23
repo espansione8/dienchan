@@ -8,7 +8,7 @@
 		X,
 		Megaphone,
 		LogIn,
-		TriangleAlert,
+		IdCard,
 		ShoppingCart,
 		User,
 		Layers,
@@ -88,6 +88,14 @@
 				>
 					<Package size={16} />
 					<span>Prodotti</span>
+				</a>
+
+				<a
+					href="/user-list"
+					class={`btn btn-sm ${isActive('/user-list') ? 'btn-primary' : 'btn-ghost'}`}
+				>
+					<IdCard size={16} />
+					<span>Albo Riflessologi</span>
 				</a>
 
 				<a
@@ -274,6 +282,11 @@
 							Prodotti
 						</a>
 					</li>
+
+					<a href="/user-list" class={isActive('/user-list') ? 'active' : ''} onclick={toggleMenu}>
+						<IdCard size={16} />
+						<span>Albo Riflessologi</span>
+					</a>
 
 					<li>
 						<a href="/cart" class={isActive('/cart') ? 'active' : ''} onclick={toggleMenu}>

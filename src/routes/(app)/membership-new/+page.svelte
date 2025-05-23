@@ -303,7 +303,7 @@
 					<div class="bg-blue-600 p-4 text-white text-center">
 						<h3 class="text-xl font-bold">SOCIO ORDINARIO</h3>
 					</div>
-					<div class="p-6">
+					<div class="p-6 flex flex-col">
 						<div class="text-center mb-6">
 							<p class="text-4xl font-bold text-blue-900">
 								25€ <span class="text-xl text-blue-700">annuali</span>
@@ -318,7 +318,7 @@
 							/>
 						</div>
 
-						<ul class="mb-8 space-y-3">
+						<ul class="mb-8 space-y-3 flex-grow">
 							<li class="flex items-center">
 								<CheckCircle class="text-blue-600 h-4 w-4 mr-2" />
 								<span>Accesso a tutti i vantaggi</span>
@@ -327,17 +327,26 @@
 								<CheckCircle class="text-blue-600 h-4 w-4 mr-2" />
 								<span>Rinnovo annuale</span>
 							</li>
+							<li class="flex items-center invisible">
+								<CheckCircle class="text-blue-600 h-4 w-4 mr-2" />
+								<span>Invisible spacer</span>
+							</li>
+							<li class="flex items-center invisible">
+								<CheckCircle class="text-blue-600 h-4 w-4 mr-2" />
+								<span>Invisible spacer</span>
+							</li>
 						</ul>
-
-						{#if !auth}
-							<button class="btn btn-primary w-full" onclick={() => onClickDialog('associate')}>
-								Associati Ora
-							</button>
-						{:else}
-							<button class="btn btn-primary w-full" onclick={() => onClickDialog('renew')}>
-								Rinnova Iscrizione
-							</button>
-						{/if}
+						<div class="mt-auto">
+							{#if !auth}
+								<button class="btn btn-primary w-full" onclick={() => onClickDialog('associate')}>
+									Associati Ora
+								</button>
+							{:else}
+								<button class="btn btn-primary w-full" onclick={() => onClickDialog('renew')}>
+									Rinnova Iscrizione
+								</button>
+							{/if}
+						</div>
 					</div>
 				</div>
 			{/if}
@@ -355,7 +364,7 @@
 						{/if}
 					</h3>
 				</div>
-				<div class="p-6">
+				<div class="p-6 flex flex-col flex-1">
 					<div class="text-center mb-6">
 						<p class="text-4xl font-bold text-blue-900">
 							390€ <span class="text-xl text-blue-700">una tantum</span>
@@ -388,19 +397,20 @@
 							<span>Accesso a vita</span>
 						</li>
 					</ul>
-
-					{#if userData?.membership?.membershipLevel != 'Socio vitalizio'}
-						<button
-							class="btn bg-yellow-500 hover:bg-yellow-600 text-white w-full"
-							onclick={() => onClickDialog('lifetime')}
-						>
-							Diventa Socio Vitalizio
-						</button>
-					{:else}
-						<div class="bg-green-100 p-3 rounded-lg text-center text-green-800">
-							<p>Sei già un Socio Vitalizio</p>
-						</div>
-					{/if}
+					<div class="mt-auto">
+						{#if userData?.membership?.membershipLevel != 'Socio vitalizio'}
+							<button
+								class="btn bg-yellow-500 hover:bg-yellow-600 text-white w-full"
+								onclick={() => onClickDialog('lifetime')}
+							>
+								Diventa Socio Vitalizio
+							</button>
+						{:else}
+							<div class="bg-green-100 p-3 rounded-lg text-center text-green-800">
+								<p>Sei già un Socio Vitalizio</p>
+							</div>
+						{/if}
+					</div>
 				</div>
 			</div>
 		</div>

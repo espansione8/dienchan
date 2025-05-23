@@ -3,7 +3,7 @@
 	import Notification from '$lib/components/Notification.svelte';
 	import CartFloat from '$lib/components/CartFloat.svelte';
 	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
-	import { imgCheck } from '$lib/tools/imgCheck';
+	import { imgCheck } from '$lib/tools/tools.js';
 	import {
 		ChevronDown,
 		ShieldAlert,
@@ -334,7 +334,7 @@
 			{#each prodList as productData, i}
 				<div
 					class="card overflow-hidden bg-base-100 rounded-xl shadow-lg border
-	border-base-200 hover:shadow-xl transition-shadow duration-300 flex flex-col w-84"
+	border-base-200 hover:shadow-xl transition-shadow duration-300 flex flex-col w-full sm:w-80"
 					class:h-128={auth}
 					class:h-115={!auth}
 				>
@@ -357,9 +357,7 @@
 							</div>
 							<div class="h-48 w-full flex items-center justify-center">
 								<img
-									src={imgCheck(productData.uploadfiles, 'product-primary').length > 0
-										? `/files/product/${productData.prodId}/${imgCheck(productData.uploadfiles, 'product-primary')[0]}`
-										: '/images/placeholder.jpg'}
+									src={imgCheck.single(productData.uploadfiles, 'product-primary')}
 									alt="product-primary"
 									class="h-full max-h-48 w-auto object-contain rounded-lg hover:scale-110 transition-transform duration-500"
 								/>

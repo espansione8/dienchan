@@ -327,9 +327,9 @@ export const actions: Actions = {
 						{
 							_id: false,
 							type: 'product-primary', //'product-primary', 'product-gallery', 'membership', 'course'
-							filetype: file.type,
-							filename: file.name,
-							fileUrl: `product/${prodId}/${file.name}`
+							fileType: file.type,
+							fileName: file.name,
+							fileUrl: `/files/product/${prodId}/${file.name}`
 						}
 					],
 				}
@@ -403,7 +403,7 @@ export const actions: Actions = {
 			const query = { prodId, type: 'product' }; // 'course', 'product', 'membership', 'event'
 			const update = {
 				$pull:
-					{ uploadfiles: { type: 'product-primary', filename: fileName } }
+					{ uploadfiles: { type: 'product-primary', fileName: fileName } }
 
 			};
 			const options = { upsert: false }

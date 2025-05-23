@@ -65,7 +65,8 @@
 						>
 					</li>
 					<li>
-						<a href="/login" class="text-sm hover:text-blue-300 transition-colors">Area Personale</a
+						<a href="/profile-modify" class="text-sm hover:text-blue-300 transition-colors"
+							>Area Personale</a
 						>
 					</li>
 					<li>

@@ -33,6 +33,10 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 				'Content-Type': 'application/json'
 			}
 		});
+		if (res.status != 200) {
+			console.error('product fetch failed', res.status, await res.text());
+			return
+		}
 		const response = await res.json();
 		getTable = response.map((obj: any) => ({
 			...obj,
@@ -71,7 +75,6 @@ export const actions: Actions = {
 		}
 		//console.log('new', title, descrShort, price, renewalLength, userId);
 		try {
-
 			const prodId = nanoid() // OLD stringHash(crypto.randomUUID());
 			const returnObj = false
 			const newDoc = {
@@ -98,6 +101,10 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				}
 			});
+			if (res.status != 200) {
+				console.error('product create failed', res.status, await res.text());
+				return fail(400, { action: 'new', success: false, message: res.text() });
+			}
 			const response = await res.json();
 
 			// SAMPLE for parallel requests
@@ -157,6 +164,10 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				}
 			});
+			if (res.status != 200) {
+				console.error('product update failed', res.status, await res.text());
+				return fail(400, { action: 'modify', success: false, message: res.text() });
+			}
 			const response = await res.json();
 			//console.log('response.message', response);
 
@@ -191,6 +202,10 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				}
 			});
+			if (res.status != 200) {
+				console.error('product remove failed', res.status, await res.text());
+				return fail(400, { action: 'delete', success: false, message: res.text() });
+			}
 			const response = await res.json();
 			//console.log('response', response);
 
@@ -244,6 +259,10 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				}
 			});
+			if (res.status != 200) {
+				console.error('product find failed', res.status, await res.text());
+				return fail(400, { action: 'filter', success: false, message: res.text() });
+			}
 			const response = await res.json();
 
 			if (res.status == 200) {
@@ -294,6 +313,10 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				}
 			});
+			if (res.status != 200) {
+				console.error('product update failed', res.status, await res.text());
+				return fail(400, { action: 'changeStatus', success: false, message: res.text() });
+			}
 			const response = await res.json();
 			//console.log('res', res);
 			if (res.status == 200) {

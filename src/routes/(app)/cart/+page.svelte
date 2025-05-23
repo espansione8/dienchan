@@ -7,7 +7,7 @@
 	import Notification from '$lib/components/Notification.svelte';
 	import Loader from '$lib/components/Loader.svelte';
 	import { country_list, province } from '$lib/stores/arrays.js';
-	import { imgCheck } from '$lib/tools/imgCheck';
+	import { imgCheck } from '$lib/tools/tools.js';
 	import {
 		Settings,
 		X,
