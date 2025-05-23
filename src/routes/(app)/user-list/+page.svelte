@@ -98,12 +98,12 @@
 			case 'alfabetico':
 				currentSort = 'alfabetico';
 				return reflexologistsList.sort((a, b) => a.surname.localeCompare(b.surname));
-			case 'recenti':
-				currentSort = 'più recenti';
-				return reflexologistsList.sort((a, b) => new Date(b.joinDate) - new Date(a.joinDate));
-			case 'esperienza':
-				currentSort = 'più esperienza';
-				return reflexologistsList.sort((a, b) => b.yearsOfExperience - a.yearsOfExperience);
+			// case 'recenti':
+			// 	currentSort = 'più recenti';
+			// 	return reflexologistsList.sort((a, b) => new Date(b.joinDate) - new Date(a.joinDate));
+			// case 'esperienza':
+			// 	currentSort = 'più esperienza';
+			// 	return reflexologistsList.sort((a, b) => b.yearsOfExperience - a.yearsOfExperience);
 			default:
 				return reflexologistsList;
 		}

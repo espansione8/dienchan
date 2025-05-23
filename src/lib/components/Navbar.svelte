@@ -283,10 +283,16 @@
 						</a>
 					</li>
 
-					<a href="/user-list" class={isActive('/user-list') ? 'active' : ''} onclick={toggleMenu}>
-						<IdCard size={16} />
-						<span>Albo Riflessologi</span>
-					</a>
+					<li>
+						<a
+							href="/user-list"
+							class={isActive('/user-list') ? 'active' : ''}
+							onclick={toggleMenu}
+						>
+							<IdCard size={16} />
+							<span>Albo Riflessologi</span>
+						</a>
+					</li>
 
 					<li>
 						<a href="/cart" class={isActive('/cart') ? 'active' : ''} onclick={toggleMenu}>

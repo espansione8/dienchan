@@ -102,10 +102,12 @@ export const actions: Actions = {
 				}
 			});
 			if (res.status != 200) {
-				console.error('product create failed', res.status, await res.text());
-				return fail(400, { action: 'new', success: false, message: res.text() });
+				const errorText = await res.text();
+				console.error('product create failed', res.status, errorText);
+				return fail(400, { action: 'new', success: false, message: errorText });
 			}
 			const response = await res.json();
+			return { action: 'new', success: true, message: response.message };
 
 			// SAMPLE for parallel requests
 			// const [resImg, response] = await Promise.all([
@@ -113,11 +115,6 @@ export const actions: Actions = {
 			// 	await res.json()
 			// ])
 
-			if (res.status == 200) {
-				return { action: 'new', success: true, message: response.message };
-			} else {
-				return fail(400, { action: 'new', success: false, message: response.message });
-			}
 		} catch (error) {
 			console.error('Error creating new membership:', error);
 			return fail(400, { action: 'new', success: false, message: 'Errore creazione membership' });
@@ -165,17 +162,13 @@ export const actions: Actions = {
 				}
 			});
 			if (res.status != 200) {
-				console.error('product update failed', res.status, await res.text());
-				return fail(400, { action: 'modify', success: false, message: res.text() });
+				const errorText = await res.text();
+				console.error('product update failed', res.status, errorText);
+				return fail(400, { action: 'modify', success: false, message: errorText });
 			}
 			const response = await res.json();
+			return { action: 'modify', success: true, message: response.message };
 			//console.log('response.message', response);
-
-			if (res.status == 200) {
-				return { action: 'modify', success: true, message: response.message };
-			} else {
-				return fail(400, { action: 'modify', success: false, message: response.message });
-			}
 		} catch (error) {
 			console.error('Error modify:', error);
 			return fail(400, { action: 'modify', success: false, message: 'Errore modify' });
@@ -203,17 +196,13 @@ export const actions: Actions = {
 				}
 			});
 			if (res.status != 200) {
-				console.error('product remove failed', res.status, await res.text());
-				return fail(400, { action: 'delete', success: false, message: res.text() });
+				const errorText = await res.text();
+				console.error('product remove failed', res.status, errorText);
+				return fail(400, { action: 'delete', success: false, message: errorText });
 			}
 			const response = await res.json();
-			//console.log('response', response);
+			return { action: 'delete', success: true, message: response.message };
 
-			if (res.status == 200) {
-				return { action: 'delete', success: true, message: response.message };
-			} else {
-				return fail(400, { action: 'delete', success: false, message: response.message });
-			}
 		} catch (error) {
 			console.error('Error delete:', error);
 			return fail(400, { action: 'delete', success: false, message: 'Errore delete' });
@@ -260,21 +249,19 @@ export const actions: Actions = {
 				}
 			});
 			if (res.status != 200) {
-				console.error('product find failed', res.status, await res.text());
-				return fail(400, { action: 'filter', success: false, message: res.text() });
+				const errorText = await res.text();
+				console.error('product find failed', res.status, errorText);
+				return fail(400, { action: 'filter', success: false, message: errorText });
 			}
 			const response = await res.json();
 
-			if (res.status == 200) {
-				const payload = response.map((obj: any) => ({
-					...obj,
-					createdAt: obj.createdAt.substring(0, 10)
-				}));
-				//console.log('response', response);
-				return { action: 'filter', success: true, message: 'Filtro attivato', payload };
-			} else {
-				return fail(400, { action: 'filter', success: false, message: 'Errore filtro' });
-			}
+			const payload = response.map((obj: any) => ({
+				...obj,
+				createdAt: obj.createdAt.substring(0, 10)
+			}));
+			//console.log('response', response);
+			return { action: 'filter', success: true, message: 'Filtro attivato', payload };
+
 		} catch (error) {
 			console.error('Error filter membership:', error);
 			return fail(400, { action: 'filter', success: false, message: 'Errore filtro 500' });
@@ -314,16 +301,14 @@ export const actions: Actions = {
 				}
 			});
 			if (res.status != 200) {
-				console.error('product update failed', res.status, await res.text());
-				return fail(400, { action: 'changeStatus', success: false, message: res.text() });
+				const errorText = await res.text();
+				console.error('product update failed', res.status, errorText);
+				return fail(400, { action: 'changeStatus', success: false, message: errorText });
 			}
 			const response = await res.json();
+			return { action: 'changeStatus', success: true, message: response.message };
 			//console.log('res', res);
-			if (res.status == 200) {
-				return { action: 'changeStatus', success: true, message: response.message };
-			} else {
-				return fail(400, { action: 'changeStatus', success: false, message: response.message });
-			}
+
 		} catch (error) {
 			console.error('Error changing status:', error);
 			return fail(400, { action: 'changeStatus', success: false, message: 'Errore changeStatus' });
