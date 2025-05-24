@@ -2,6 +2,7 @@
 import type { PageServerLoad } from './$types'
 
 const apiKey = import.meta.env.VITE_APIKEY;
+const baseURL = import.meta.env.VITE_BASE_URL;
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
 	let getTable = [];
@@ -20,7 +21,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		const limitCourses = 1000;
 		const skipCourses = 0;
 
-		const resProductsCorso = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+		const resProductsCorso = await fetch(`${baseURL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey,
@@ -55,7 +56,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		const limitUsers = 1000;
 		const skipUsers = 0;
 
-		const resName = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+		const resName = await fetch(`${baseURL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey,
@@ -79,7 +80,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		const limitLayout = 1000;
 		const skipLayout = 0;
 
-		const resLayout = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+		const resLayout = await fetch(`${baseURL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey,
@@ -97,7 +98,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		getLayout = await resLayout.json();
 
 	} catch (error) {
-		console.log('course filter fetch error:', error);
+		console.log('layout find error:', error);
 	}
 	return {
 		getTable,

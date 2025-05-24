@@ -1,458 +1,552 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
-	import {
-		LogIn,
-		UserPlus,
-		Mail,
-		KeyRound,
-		RefreshCw,
-		Lock,
-		Eye,
-		EyeOff,
-		ArrowRight
-	} from 'lucide-svelte';
+	import type { ActionResult } from '@sveltejs/kit';
+	import { goto, invalidateAll } from '$app/navigation';
+	import { enhance } from '$app/forms';
+	import { fly, fade, scale } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
 	import Notification from '$lib/components/Notification.svelte';
-	import { page } from '$app/state';
+	import Modal from '$lib/components/Modal.svelte';
+	import { UserPlus, Mail, KeyRound, Lock, Eye, EyeOff, ArrowRight } from 'lucide-svelte';
 
-	// Notification state
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-		}, 5000);
-	};
-
-	// Form state
-	let loginEmail: string = $state('');
-	let loginPassword: string = $state('');
-	let error: string = $state('');
+	let loginEmail = $state('');
+	let loginPassword = $state('');
 	let password1 = $state('');
 	let password2 = $state('');
 	let registerEmail = $state('');
-	let checkPass = $state(false);
-	let checkSecondPass = $state(false);
-	let inputRef: any = $state(null);
-	let rememberMe: boolean = $state(false);
-	let isLoading: boolean = $state(false);
-	let showPassword: boolean = $state(false);
+	let rememberMe = $state(false);
+	let showPassword = $state(false);
+	let isLogin = $state(true);
+	let resetEmail = $state('');
+	let error = $state('');
+	let loading = $state(false);
 
-	// Toggle password visibility
+	// animations states
+	let heroVisible = $state(false);
+	let cardWrapperVisible = $state(false);
+
+	// Modal
+	let openModal = $state(false);
+	let postAction = $state('?/');
+	let modalTitle = $state('');
+
+	// Floating elements animation (original)
+	const floatingElements = [
+		{ id: 1, x: 10, y: 20, delay: 0 },
+		{ id: 2, x: 80, y: 10, delay: 2 },
+		{ id: 3, x: 15, y: 70, delay: 4 },
+		{ id: 4, x: 85, y: 80, delay: 1 },
+		{ id: 5, x: 50, y: 5, delay: 3 }
+	];
+
+	$effect(() => {
+		// initial animations
+		heroVisible = true;
+		const time1 = setTimeout(() => (cardWrapperVisible = true), 200);
+		return () => {
+			clearTimeout(time1);
+		};
+	});
+
 	const togglePasswordVisibility = () => {
 		showPassword = !showPassword;
 	};
 
-	// Form submission handlers
-	const submitLogin = async () => {
-		// Reset error from previous failed attempts
-		error = '';
-		isLoading = true;
-
-		try {
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-in`, {
-				method: 'POST',
-				body: JSON.stringify({
-					loginEmail,
-					loginPassword
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			const response = await res.json();
-
-			if (res.status == 200) {
-				window.location.href = '/profile-modify';
-			} else {
-				toastClosed = false;
-				notificationContent = response.message;
-				notificationError = true;
-				error = `${response.message}`;
-			}
-		} catch (err) {
-			error = `Auth server error`;
-		} finally {
-			isLoading = false;
-		}
-	};
-
-	const submitRegistration = async () => {
-		error = '';
-		if (!checkPass || !checkSecondPass) {
-			error = "PASSWORDS DON'T MATCH ";
-			inputRef.focus();
-			return;
-		}
-
-		isLoading = true;
-
-		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-up`, {
-				method: 'POST',
-				body: JSON.stringify({ registerEmail, password1 }),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-
-			if (response.status == 200) {
-				window.location.href = '/profile-modify';
-			} else {
-				toastClosed = false;
-				notificationContent = (await response.json()).message;
-				notificationError = true;
-				error = (await response.json()).message;
-			}
-		} catch (err) {
-			error = `Auth server error`;
-		} finally {
-			isLoading = false;
-		}
-	};
-
-	// Form switching
-	let isLogin = $state(true);
 	const switchForm = () => {
 		isLogin = !isLogin;
-		error = '';
+		resetFields();
 	};
 
-	// Password reset
-	let isRecoveryModalOpen = $state(false);
-	let resetEmail = $state('');
-
-	const openRecoveryModal = () => {
-		isRecoveryModalOpen = true;
+	const resetFields = () => {
+		loginEmail = '';
+		loginPassword = '';
+		registerEmail = '';
+		password1 = '';
+		password2 = '';
+		showPassword = false;
 	};
 
-	const closeRecoveryModal = () => {
-		isRecoveryModalOpen = false;
-	};
-
-	const submitPasswordReset = async () => {
-		error = '';
-		isLoading = true;
-
-		try {
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/password-reset`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ email: resetEmail })
-			});
-
-			const response = await res.json();
-
-			if (res.ok) {
-				isRecoveryModalOpen = false;
-				toastClosed = false;
-				notificationContent = 'Password reset link sent to your email';
-				notificationError = false;
-			} else {
-				toastClosed = false;
-				notificationContent = response.message;
-				notificationError = true;
-			}
-		} catch (err) {
-			toastClosed = false;
-			notificationContent = 'Server error. Please try again later.';
-			notificationError = true;
-		} finally {
-			isLoading = false;
+	const onClickModal = (type: string, item: any) => {
+		//currentModal = type;
+		openModal = true;
+		if (type == 'reset') {
+			postAction = `?/resetPassword`;
+			modalTitle = 'Recupera Password';
 		}
 	};
 
-	// Browser language detection
-	let browserLanguage: string = $state('');
-	if (browser) {
-		const getStringBeforeDash = (inputString: string) => {
-			const parts = inputString.split('-');
-			return parts[0];
+	const onCloseModal = () => {
+		openModal = false;
+		resetFields();
+		//currentModal = '';
+	};
+
+	//notification
+	let toastClosed: boolean = $state(true);
+	let notificationContent: string = $state('');
+	let notificationError: boolean = $state(false);
+	let startTimeout: any;
+	const closeNotification = () => {
+		startTimeout = setTimeout(() => {
+			toastClosed = true;
+			notificationContent = '';
+			notificationError = false;
+		}, 3000); // 1000 milliseconds = 1 second
+	};
+	//clearTimeout(startTimeout); // reset timer
+
+	const formSubmit = () => {
+		loading = true;
+		return async ({ result }: { result: ActionResult }) => {
+			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
+			await invalidateAll();
+			if (result.type === 'success' && result.data) {
+				const { payload, message } = result.data; // { action, success, message, payload }
+
+				if (payload) {
+					notificationContent = message;
+				} else {
+					notificationContent = message;
+					try {
+						await goto('/profile-modify');
+					} catch (err) {
+						notificationContent = 'Errore durante la navigazione';
+						notificationError = true;
+					}
+
+					// setTimeout(() => {
+					// 	goto('/profile-modify');
+					// }, 6000);
+				}
+				onCloseModal();
+			}
+			if (result.type === 'failure') {
+				notificationContent = result.data.message;
+				notificationError = true;
+			}
+			if (result.type === 'error') {
+				notificationContent =
+					result.error?.message || String(result.error) || 'Si è verificato un errore';
+
+				notificationError = true;
+			}
+			// 'update()' is called by default by use:enhance
+			// call 'await update()' if you need to ensure it completes before further client logic.
+			clearTimeout(startTimeout);
+			closeNotification();
+			toastClosed = false;
+			loading = false;
 		};
-		const lang = navigator.language || navigator.languages[0];
-		browserLanguage = getStringBeforeDash(lang);
-	}
+	};
 </script>
 
-<!-- Main container with gradient background -->
-<div
-	class="min-h-screen bg-gradient-to-br from-teal-50 to-emerald-300 flex flex-col items-center justify-center p-4"
->
-	<div class="w-full max-w-md">
-		<!-- Card container -->
-		<div class="bg-base-100 rounded-xl shadow-2xl overflow-hidden">
-			<!-- Form header with tabs -->
-			<div class="flex border-b border-base-200">
-				<button
-					class={`flex-1 py-4 px-6 flex items-center justify-center gap-2 font-medium transition-all ${isLogin ? 'bg-primary/10 text-primary border-b-2 border-primary' : 'hover:bg-base-200'}`}
-					on:click={() => (isLogin = true)}
-				>
-					<LogIn size={18} />
-					<span>Accedi</span>
-				</button>
-				<!-- <button
-					class={`flex-1 py-4 px-6 flex items-center justify-center gap-2 font-medium transition-all ${!isLogin ? 'bg-primary/10 text-primary border-b-2 border-primary' : 'hover:bg-base-200'}`}
-					on:click={() => (isLogin = false)}
-				>
-					<UserPlus size={18} />
-					<span>Registrati</span>
-				</button> -->
-			</div>
+<div class="min-h-screen relative overflow-hidden bg-gradient-to-br from-teal-50 to-emerald-300">
+	<div class="absolute inset-0">
+		<div
+			class="absolute top-0 left-0 w-96 h-96 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-full blur-3xl animate-pulse"
+		></div>
+		<div
+			class="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-r from-teal-500/20 to-cyan-500/20 rounded-full blur-3xl animate-pulse"
+			style="animation-delay: 2s;"
+		></div>
+		<div
+			class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-emerald-400/10 to-teal-400/10 rounded-full blur-2xl animate-pulse"
+			style="animation-delay: 4s;"
+		></div>
+		{#each floatingElements as element}
+			<div
+				class="absolute w-4 h-4 bg-emerald-400/20 rounded-full animate-bounce"
+				style="left: {element.x}%; top: {element.y}%; animation-delay: {element.delay}s; animation-duration: 3s;"
+			></div>
+		{/each}
+	</div>
 
-			<!-- Form content -->
-			<div class="p-6">
-				<!-- Login illustration -->
-				<div class="flex justify-center mb-6">
-					<img
-						class="h-40 object-contain"
-						src={isLogin
-							? '/images/undraw_secure_login_pdn4.svg'
-							: '/images/undraw_wall_post_re_y78d.svg' || '/placeholder.svg'}
-						alt={isLogin ? 'Login illustration' : 'Registration illustration'}
-					/>
+	<div class="relative z-10 min-h-screen flex items-center justify-center p-4">
+		<div class="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
+			{#if heroVisible}
+				<div
+					class="text-center lg:text-left space-y-8"
+					in:fly|local={{ y: 30, duration: 800, easing: quintOut }}
+				>
+					<div class="relative">
+						<img
+							src="images/storia.jpg"
+							alt="Storia Dien Chan"
+							class="w-full max-w-lg mx-auto lg:mx-0 rounded-2xl shadow-2xl"
+						/>
+						<div
+							class="absolute inset-0 bg-gradient-to-t from-emerald-900/20 to-transparent rounded-2xl"
+						></div>
+					</div>
 				</div>
+			{/if}
 
-				{#if isLogin}
-					<!-- Login form -->
-					<form on:submit|preventDefault={submitLogin} class="space-y-4">
-						<!-- Email field -->
-						<div class="form-control">
-							<label for="login-email" class="label">
-								<span class="label-text font-medium">Email</span>
-							</label>
-							<div class="input input-bordered flex items-center gap-2">
-								<Mail size={18} class="text-base-content/70" />
-								<input
-									id="login-email"
-									type="email"
-									class="flex-1 bg-transparent outline-none"
-									placeholder="Il tuo indirizzo email"
-									bind:value={loginEmail}
-									required
-								/>
-							</div>
-						</div>
-
-						<!-- Password field -->
-						<div class="form-control">
-							<label for="login-password" class="label">
-								<span class="label-text font-medium">Password</span>
-							</label>
-							<div class="input input-bordered flex items-center gap-2">
-								<KeyRound size={18} class="text-base-content/70" />
-								<input
-									id="login-password"
-									type={showPassword ? 'text' : 'password'}
-									class="flex-1 bg-transparent outline-none"
-									placeholder="La tua password"
-									bind:value={loginPassword}
-									required
-								/>
-								<button
-									type="button"
-									class="text-base-content/70 hover:text-primary"
-									on:click={togglePasswordVisibility}
-								>
-									{#if showPassword}
-										<EyeOff size={18} />
-									{:else}
-										<Eye size={18} />
-									{/if}
-								</button>
-							</div>
-						</div>
-
-						<!-- Error message -->
-						{#if error}
-							<div class="bg-error/10 text-error px-4 py-2 rounded-lg text-sm">
-								{error}
-							</div>
-						{/if}
-
-						<!-- Remember me checkbox -->
-						<div class="flex items-center justify-between">
-							<label class="flex items-center gap-2 cursor-pointer">
-								<input
-									type="checkbox"
-									class="checkbox checkbox-sm checkbox-primary"
-									bind:checked={rememberMe}
-								/>
-								<span class="label-text">Ricordami</span>
-							</label>
-
-							<button
-								type="button"
-								class="text-sm text-primary hover:underline"
-								on:click={openRecoveryModal}
-							>
-								Password dimenticata?
-							</button>
-						</div>
-
-						<!-- Submit button -->
-						<button type="submit" class="btn btn-primary w-full" disabled={isLoading}>
-							{#if isLoading}
-								<span class="loading loading-spinner loading-sm"></span>
-								Accesso in corso...
-							{:else}
-								Accedi
-								<ArrowRight size={18} />
-							{/if}
-						</button>
-					</form>
-				{:else}
-					<!-- Registration form -->
-					<form on:submit|preventDefault={submitRegistration} class="space-y-4">
-						<!-- Email field -->
-						<div class="form-control">
-							<label for="register-email" class="label">
-								<span class="label-text font-medium">Email</span>
-							</label>
-							<div class="input input-bordered flex items-center gap-2">
-								<Mail size={18} class="text-base-content/70" />
-								<input
-									id="register-email"
-									type="email"
-									class="flex-1 bg-transparent outline-none"
-									placeholder="Il tuo indirizzo email"
-									bind:value={registerEmail}
-									required
-								/>
-							</div>
-						</div>
-
-						<!-- Password field -->
-						<div class="form-control">
-							<label for="register-password" class="label">
-								<div class="flex flex-col">
-									<span class="label-text font-medium">Password</span>
-									<span class="text-xs text-base-content/70"
-										>Almeno 8 caratteri con numeri e lettere</span
-									>
+			<div class="flex justify-center lg:justify-end">
+				{#if cardWrapperVisible}
+					<div
+						class="w-full max-w-md"
+						in:fly|local={{ x: 30, duration: 600, delay: 100, easing: quintOut }}
+					>
+						<div
+							class="card bg-base-100/90 backdrop-blur-xl shadow-2xl border border-base-content/10"
+						>
+							<div class="card-body p-6 md:p-8">
+								<div class="text-center mb-6">
+									<h3 class="text-2xl font-bold mb-2 card-title justify-center">
+										{isLogin ? 'Bentornato!' : 'Inizia Ora'}
+									</h3>
+									<p class="text-base-content/70">
+										{isLogin ? 'Accedi al tuo account' : 'Crea il tuo account'}
+									</p>
 								</div>
-							</label>
-							<div class="input input-bordered flex items-center gap-2">
-								<Lock size={18} class={checkPass ? 'text-success' : 'text-base-content/70'} />
-								<input
-									id="register-password"
-									type={showPassword ? 'text' : 'password'}
-									class="flex-1 bg-transparent outline-none"
-									placeholder="Crea una password"
-									bind:value={password1}
-									required
-								/>
-								<button
-									type="button"
-									class="text-base-content/70 hover:text-primary"
-									on:click={togglePasswordVisibility}
-								>
-									{#if showPassword}
-										<EyeOff size={18} />
-									{:else}
-										<Eye size={18} />
-									{/if}
-								</button>
+
+								<div role="tablist" class="tabs tabs-boxed tabs-lg bg-base-200 p-1 mb-6">
+									<button
+										role="tab"
+										class="tab flex-1 {isLogin
+											? 'tab-active !bg-base-100 !text-primary font-semibold shadow-md'
+											: 'hover:!bg-base-300/50'}"
+										onclick={switchForm}
+										disabled={isLogin}
+									>
+										Accedi
+									</button>
+									<a
+										role="tab"
+										class="tab flex-1 {!isLogin
+											? 'tab-active !bg-base-100 !text-primary font-semibold shadow-md'
+											: 'hover:!bg-base-300/50'}"
+										href="/membership-new"
+									>
+										Registrati
+									</a>
+									<!-- <button
+										role="tab"
+										class="tab flex-1 {!isLogin
+											? 'tab-active !bg-base-100 !text-primary font-semibold shadow-md'
+											: 'hover:!bg-base-300/50'}"
+										onclick={switchForm}
+										disabled={!isLogin}
+									>
+										Registrati
+									</button> -->
+								</div>
+
+								{#key isLogin}
+									<div in:fade|local={{ duration: 300, delay: 50 }} class="space-y-6">
+										{#if isLogin}
+											<!-- Login form -->
+											<form
+												method="POST"
+												action="?/login"
+												use:enhance={formSubmit}
+												class="space-y-6"
+											>
+												<!-- Email field -->
+												<div class="space-y-2">
+													<label for="login-email" class="block text-sm font-medium text-gray-700">
+														Email
+													</label>
+													<div class="relative group">
+														<div
+															class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+														>
+															<Mail
+																class="w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors"
+															/>
+														</div>
+														<input
+															id="login-email"
+															type="email"
+															name="loginEmail"
+															class="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300"
+															placeholder="il.tuo@email.com"
+															bind:value={loginEmail}
+															required
+														/>
+													</div>
+												</div>
+
+												<!-- Password field -->
+												<div class="space-y-2">
+													<label
+														for="login-password"
+														class="block text-sm font-medium text-gray-700"
+													>
+														Password
+													</label>
+													<div class="relative group">
+														<div
+															class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+														>
+															<KeyRound
+																class="w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors"
+															/>
+														</div>
+														<input
+															id="login-password"
+															type={showPassword ? 'text' : 'password'}
+															name="loginPassword"
+															class="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300"
+															placeholder="La tua password"
+															bind:value={loginPassword}
+															required
+														/>
+														<button
+															type="button"
+															class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-800 transition-colors"
+															onclick={togglePasswordVisibility}
+														>
+															{#if showPassword}
+																<EyeOff class="w-5 h-5" />
+															{:else}
+																<Eye class="w-5 h-5" />
+															{/if}
+														</button>
+													</div>
+												</div>
+
+												<!-- Remember me and forgot password -->
+												<div class="flex items-center justify-between">
+													<label class="flex items-center gap-2 cursor-pointer group">
+														<input
+															type="checkbox"
+															class="w-4 h-4 rounded border-white/20 bg-white/10 text-violet-500 focus:ring-violet-500 focus:ring-offset-0"
+															bind:checked={rememberMe}
+														/>
+														<span
+															class="text-sm text-gray-600 group-hover:text-gray-800 transition-colors"
+															>Ricordami</span
+														>
+													</label>
+
+													<button
+														type="button"
+														class="text-sm text-emerald-600 hover:text-emerald-700 transition-colors"
+														onclick={() => onClickModal('reset', null)}
+													>
+														Password dimenticata?
+													</button>
+												</div>
+
+												<!-- Error message -->
+												{#if error}
+													<div
+														class="bg-red-500/20 border border-red-500/30 text-red-200 px-4 py-3 rounded-xl text-sm"
+													>
+														{error}
+													</div>
+												{/if}
+
+												<!-- Submit button -->
+												<button
+													type="submit"
+													class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+													disabled={loading}
+												>
+													{#if loading}
+														<div
+															class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"
+														></div>
+														Accesso in corso...
+													{:else}
+														Accedi
+														<ArrowRight class="w-5 h-5" />
+													{/if}
+												</button>
+											</form>
+										{:else}
+											<form
+												method="POST"
+												action="?/register"
+												use:enhance={formSubmit}
+												class="space-y-6"
+											>
+												<!-- Email field -->
+												<div class="space-y-2">
+													<label
+														for="register-email"
+														class="block text-sm font-medium text-gray-700"
+													>
+														Email
+													</label>
+													<div class="relative group">
+														<div
+															class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+														>
+															<Mail
+																class="w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors"
+															/>
+														</div>
+														<input
+															id="register-email"
+															type="email"
+															class="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300"
+															placeholder="il.tuo@email.com"
+															bind:value={registerEmail}
+															required
+														/>
+													</div>
+												</div>
+
+												<!-- Password field -->
+												<div class="space-y-2">
+													<label
+														for="register-password"
+														class="block text-sm font-medium text-gray-700"
+													>
+														Password
+													</label>
+													<div class="relative group">
+														<div
+															class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+														>
+															<Lock
+																class="w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors"
+															/>
+														</div>
+														<input
+															id="register-password"
+															type={showPassword ? 'text' : 'password'}
+															class="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300"
+															placeholder="Crea una password sicura"
+															bind:value={password1}
+															required
+														/>
+														<button
+															type="button"
+															class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-800 transition-colors"
+															onclick={togglePasswordVisibility}
+														>
+															{#if showPassword}
+																<EyeOff class="w-5 h-5" />
+															{:else}
+																<Eye class="w-5 h-5" />
+															{/if}
+														</button>
+													</div>
+													<p class="text-xs text-purple-300">
+														Almeno 8 caratteri con numeri e lettere
+													</p>
+												</div>
+
+												<!-- Confirm Password field -->
+												<div class="space-y-2">
+													<label
+														for="confirm-password"
+														class="block text-sm font-medium text-gray-700"
+													>
+														Conferma Password
+													</label>
+													<div class="relative group">
+														<div
+															class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+														>
+															<Lock
+																class="w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors"
+															/>
+														</div>
+														<input
+															id="confirm-password"
+															type={showPassword ? 'text' : 'password'}
+															class="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300"
+															placeholder="Conferma la password"
+															bind:value={password2}
+															required
+														/>
+													</div>
+												</div>
+
+												<!-- Error message -->
+												{#if error}
+													<div
+														class="bg-red-500/20 border border-red-500/30 text-red-200 px-4 py-3 rounded-xl text-sm"
+													>
+														{error}
+													</div>
+												{/if}
+
+												<!-- Submit button -->
+												<button
+													type="submit"
+													class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+													disabled={loading}
+												>
+													{#if loading}
+														<div
+															class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"
+														></div>
+														Registrazione in corso...
+													{:else}
+														Crea Account
+														<UserPlus class="w-5 h-5" />
+													{/if}
+												</button>
+											</form>
+										{/if}
+									</div>
+								{/key}
 							</div>
 						</div>
-
-						<!-- Confirm Password field -->
-						<div class="form-control">
-							<label for="confirm-password" class="label">
-								<span class="label-text font-medium">Conferma Password</span>
-							</label>
-							<div class="input input-bordered flex items-center gap-2">
-								<Lock
-									size={18}
-									class={checkSecondPass && checkPass ? 'text-success' : 'text-base-content/70'}
-								/>
-								<input
-									id="confirm-password"
-									type={showPassword ? 'text' : 'password'}
-									class="flex-1 bg-transparent outline-none"
-									placeholder="Conferma la password"
-									bind:value={password2}
-									bind:this={inputRef}
-									required
-								/>
-							</div>
-						</div>
-
-						<!-- Error message -->
-						{#if error}
-							<div class="bg-error/10 text-error px-4 py-2 rounded-lg text-sm">
-								{error}
-							</div>
-						{/if}
-
-						<!-- Submit button -->
-						<button type="submit" class="btn btn-primary w-full" disabled={isLoading}>
-							{#if isLoading}
-								<span class="loading loading-spinner loading-sm"></span>
-								Registrazione in corso...
-							{:else}
-								Registrati
-								<UserPlus size={18} />
-							{/if}
-						</button>
-					</form>
+					</div>
 				{/if}
 			</div>
-		</div>
-
-		<!-- Footer text -->
-		<div class="text-center mt-4 text-white/80 text-sm">
-			{isLogin ? 'Non hai un account?' : 'Hai già un account?'}
-			<button class="font-medium text-white hover:underline" on:click={switchForm}>
-				{isLogin ? 'Registrati' : 'Accedi'}
-			</button>
 		</div>
 	</div>
 </div>
 
-<!-- Password recovery modal -->
-{#if isRecoveryModalOpen}
-	<div class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-		<div class="bg-base-100 rounded-lg shadow-xl max-w-md w-full p-6">
-			<h3 class="text-lg font-bold mb-4">Recupera Password</h3>
+<Notification {toastClosed} {notificationContent} {notificationError} />
 
-			<p class="text-base-content/80 mb-4">
-				Inserisci il tuo indirizzo email e ti invieremo un link per reimpostare la password.
-			</p>
+<Modal isOpen={openModal} header={modalTitle}>
+	<button
+		class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content"
+		onclick={onCloseModal}>✕</button
+	>
+	<!-- <dialog class="modal modal-bottom sm:modal-middle {openModal ? 'modal-open' : ''}"> -->
+	<div
+		class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative"
+		in:scale|local={{ start: 0.95, duration: 300, easing: quintOut }}
+		out:scale|local={{ start: 0.95, duration: 200, easing: quintOut }}
+	>
+		<!-- <button
+			class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+			onclick={() => onCloseModal}>✕</button
+		> -->
+		<!-- <h3 class="font-bold text-xl mb-4">{modalTitle}</h3> -->
+		<p class="text-base-content/70 mb-6">
+			Inserisci il tuo indirizzo email e ti invieremo un link per reimpostare la password.
+		</p>
 
-			<div class="form-control mb-4">
-				<label for="reset-email" class="label">
-					<span class="label-text font-medium">Email</span>
-				</label>
-				<div class="input input-bordered flex items-center gap-2">
-					<Mail size={18} class="text-base-content/70" />
+		<form method="POST" action={postAction} use:enhance={formSubmit} class="space-y-4">
+			<label class="form-control w-full">
+				<div class="label"><span class="label-text">Email</span></div>
+				<div class="relative group">
+					<span
+						class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-base-content/40 group-focus-within:text-primary transition-colors"
+					>
+						<Mail class="w-5 h-5" />
+					</span>
 					<input
-						id="reset-email"
+						name="resetEmail"
 						type="email"
-						class="flex-1 bg-transparent outline-none"
-						placeholder="Il tuo indirizzo email"
+						placeholder="la.tua@email.com"
+						class="input input-bordered w-full pl-10"
 						bind:value={resetEmail}
 						required
 					/>
 				</div>
-			</div>
+			</label>
 
-			<div class="flex justify-end gap-2">
-				<button class="btn btn-outline" on:click={closeRecoveryModal}> Annulla </button>
-				<button class="btn btn-primary" on:click={submitPasswordReset} disabled={isLoading}>
-					{#if isLoading}
-						<span class="loading loading-spinner loading-sm"></span>
-						Invio in corso...
-					{:else}
-						Invia Link
-					{/if}
-				</button>
+			<div class="modal-action mt-6">
+				<button type="button" class="btn flex-1" onclick={onCloseModal}>Annulla</button>
+				<button type="submit" class="btn btn-primary flex-1"> Invia Link </button>
 			</div>
-		</div>
+		</form>
 	</div>
-{/if}
+	<form method="dialog" class="modal-backdrop" onsubmit={onCloseModal}>
+		<button type="submit">close</button>
+	</form>
+	<!-- </dialog> -->
+</Modal>
 
-<Notification {toastClosed} {notificationContent} {notificationError} />
+<style>
+</style>

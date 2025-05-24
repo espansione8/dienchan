@@ -21,7 +21,7 @@
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { getTable, reflexologists } = $derived(data);
+	const { getTable } = $derived(data);
 	let reflexologistsList = $state(getTable || []);
 
 	// Filter state
