@@ -23,7 +23,7 @@ export const actions: Actions = {
 		try {
 			await dbConnect();
 			const query = { email: loginEmail }; //IF USE Products.model -> types: course / product / membership / event
-			const projection = { _id: 0, password: 1, email: 1 } // 0: exclude | 1: include
+			const projection = { email: 1, password: 1 } // 0: exclude | 1: include
 			const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 			const limit = 1;
 			const skip = 0;

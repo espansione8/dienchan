@@ -104,56 +104,6 @@
 		});
 	};
 
-	if (auth) {
-		closedInput = true;
-	}
-
-	const openInput = () => {
-		closedInput = false;
-	};
-
-	const closeInput = () => {
-		closedInput = true;
-	};
-
-	const saveInput = async () => {
-		closedInput = true;
-
-		const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/billing-data`, {
-			method: 'POST',
-			body: JSON.stringify({
-				userId: userData.userId,
-				name,
-				surname,
-				email,
-				address,
-				city,
-				county,
-				postalCode,
-				country,
-				phone,
-				mobilePhone
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		if (response.status == 200) {
-			clearTimeout(startTimeout);
-			let content = (await response.json()).message;
-			toastClosed = false;
-			notificationContent = content;
-			closeNotification();
-		}
-		if (response.status != 200) {
-			let error = (await response.json()).message;
-			toastClosed = false;
-			notificationContent = error;
-			notificationError = true;
-			closeNotification();
-		}
-	};
-
 	const onConfirmForm = async () => {
 		if (!auth) {
 			if (!checkPass || !checkSecondPass) {
@@ -263,13 +213,6 @@
 		resetFields();
 	};
 
-	const changeStatus = (event: any) => {
-		if (event.target.form) {
-			event.preventDefault();
-			event.target.form.requestSubmit();
-		}
-	};
-
 	const onClickModal = (type: string, item: any) => {
 		currentModal = type;
 		openModal = true;
@@ -372,7 +315,9 @@
 			<div class="bg-white rounded-xl shadow-md overflow-hidden">
 				<div class="bg-primary text-primary-content px-6 py-4 flex justify-between items-center">
 					<h2 class="text-xl font-bold">Il tuo carrello</h2>
-					<span class="badge badge-lg bg-white text-primary">{$cartProducts.length} prodotti</span>
+					<span class="badge badge-lg badge-outline font-semibold"
+						>{$cartProducts.length} prodotti</span
+					>
 				</div>
 
 				{#if $cartProducts.length > 0}
@@ -387,9 +332,7 @@
 													class="aspect-square bg-base-200/30 rounded-lg overflow-hidden flex items-center justify-center"
 												>
 													<img
-														src={imgCheck(item.uploadfiles, 'product-primary').length > 0
-															? `/files/product/${item.prodId || '/placeholder.svg'}/${imgCheck(item.uploadfiles, 'product-primary')[0]}`
-															: '/images/placeholder.jpg'}
+														src={imgCheck.single(item.uploadfiles, 'product-primary')}
 														alt="product"
 														class="h-full w-full object-contain p-2"
 													/>
@@ -515,20 +458,9 @@
 						</h2>
 
 						{#if auth}
-							{#if closedInput}
-								<button class="btn btn-sm btn-outline btn-primary" onclick={openInput}>
-									<Settings size={16} /> Modifica
-								</button>
-							{:else}
-								<div class="flex gap-2">
-									<button class="btn btn-sm btn-outline btn-error" onclick={closeInput}>
-										<X size={16} />
-									</button>
-									<button class="btn btn-sm btn-outline btn-success" onclick={saveInput}>
-										<Check size={16} />
-									</button>
-								</div>
-							{/if}
+							<a href="/profile-modify" class="btn btn-sm btn-outline">
+								<Settings size={16} /> Modifica
+							</a>
 						{/if}
 					</div>
 

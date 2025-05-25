@@ -1,6 +1,5 @@
 import { redirect, fail } from '@sveltejs/kit';
 import type { Actions } from './$types';
-import dbConnect from '$lib/db/mongo/database';
 
 const apiKey = import.meta.env.VITE_APIKEY;
 const baseApiUrl = import.meta.env.VITE_BASE_URL;
@@ -8,7 +7,6 @@ const baseApiUrl = import.meta.env.VITE_BASE_URL;
 export const actions: Actions = {
     default: async ({ fetch, cookies }) => {
         try {
-            await dbConnect();
             const session_id = cookies.get('session_id');
             const query = { cookieId: session_id }; // 'course', 'product', 'membership', 'event'
             const update = { $set: { cookieId: '' } };

@@ -3,13 +3,11 @@ import { fail } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
 const apiKey = import.meta.env.VITE_APIKEY;
+const baseURL = import.meta.env.VITE_BASE_URL;
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
-	// if (!locals.auth) {
-	// 	throw redirect(302, '/login');
-	// }
 
 	let getTable = [];
 	try {
@@ -18,7 +16,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 		const limit = 1000;
 		const skip = 0;
-		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+		const res = await fetch(`${baseURL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey,
@@ -59,6 +57,12 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	};
 }
 
+// SAMPLE for parallel requests
+// const [resImg, response] = await Promise.all([
+// 	await uploadImg.json(),
+// 	await res.json()
+// ])
+
 export const actions: Actions = {
 	new: async ({ request, fetch, locals }) => {
 		const userId = locals.user.userId
@@ -89,7 +93,7 @@ export const actions: Actions = {
 				userId,
 			};
 
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
+			const res = await fetch(`${baseURL}/api/mongo/create`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
@@ -108,12 +112,6 @@ export const actions: Actions = {
 			}
 			const response = await res.json();
 			return { action: 'new', success: true, message: response.message };
-
-			// SAMPLE for parallel requests
-			// const [resImg, response] = await Promise.all([
-			// 	await uploadImg.json(),
-			// 	await res.json()
-			// ])
 
 		} catch (error) {
 			console.error('Error creating new membership:', error);
@@ -147,7 +145,7 @@ export const actions: Actions = {
 			const options = { upsert: false }
 			const multi = false
 
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
+			const res = await fetch(`${baseURL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
@@ -183,7 +181,7 @@ export const actions: Actions = {
 			const query = { prodId: prodId, type: 'membership' };
 			const multi = false
 
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/remove`, {
+			const res = await fetch(`${baseURL}/api/mongo/remove`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
@@ -233,7 +231,7 @@ export const actions: Actions = {
 			const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 			const limit = 1000;
 			const skip = 0;
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+			const res = await fetch(`${baseURL}/api/mongo/find`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
@@ -286,7 +284,7 @@ export const actions: Actions = {
 			};
 			const options = { upsert: false }
 			const multi = false
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
+			const res = await fetch(`${baseURL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,

@@ -34,7 +34,7 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
 			},
 			body: JSON.stringify({
 				apiKey: import.meta.env.VITE_APIKEY,
-				schema: 'product', // Assuming you want to fetch cart items from the 'product' schema
+				schema: 'product', //product | order | user | layout | discount
 				query,
 				projection,
 				sort,

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
+	import { enhance } from '$app/forms';
 	import Notification from '$lib/components/Notification.svelte';
 	import Papa from 'papaparse';
 	import Modal from '$lib/components/Modal.svelte';
@@ -7,7 +8,7 @@
 		CopyPlus,
 		Trash2,
 		StretchHorizontal,
-		Filter,
+		Funnel,
 		Pen,
 		Settings,
 		Calculator,
@@ -17,11 +18,10 @@
 		RefreshCcw,
 		XCircle
 	} from 'lucide-svelte';
-	import { enhance } from '$app/forms';
 
-	let { data, form } = $props();
-	let { getTable, getLayout } = $derived(data);
-	let tableList = $state(getTable);
+	const { data } = $props();
+	const { getDiscount, getLayout, getProduct } = $derived(data);
+	let tableList = $state(getDiscount);
 
 	let code = $state('');
 	let typeDiscount = $state('');
@@ -114,7 +114,7 @@
 
 	const onFilterReset = () => {
 		resetActive = false;
-		tableList = getTable;
+		tableList = getDiscount;
 		invalidateAll();
 	};
 
@@ -134,8 +134,7 @@
 		membershipLevel = '';
 		notes = '';
 		selectedApplicability = 'userId';
-		tableList = getTable;
-		form = null;
+		tableList = getDiscount;
 	};
 
 	const onCloseConfirmDelete = () => {
@@ -169,31 +168,30 @@
 		}
 	};
 
-	$effect(() => {
-		if (form != null) {
-			async () => await invalidateAll();
-			const { action, success, message, filterTableList } = form;
-			if (success) {
-				closeNotification();
-				//resetFieldsModalFilter();
-				isModal = false;
-				isModalConfirmDelete = false;
-				isModalFilter = false;
-				tableList = getTable;
-				if (action == 'filterDiscount') {
-					resetActive = true;
-					tableList = filterTableList;
-				} else {
-					resetActive = false;
-				}
-			} else {
-				notificationError = true;
-			}
-			toastClosed = false;
-			notificationContent = message;
-			form = null;
-		}
-	}); // end effect
+	// $effect(() => {
+	// 	if (form != null) {
+	// 		async () => await invalidateAll();
+	// 		const { action, success, message, filterTableList } = form;
+	// 		if (success) {
+	// 			closeNotification();
+	// 			//resetFieldsModalFilter();
+	// 			isModal = false;
+	// 			isModalConfirmDelete = false;
+	// 			isModalFilter = false;
+	// 			tableList = getDiscount;
+	// 			if (action == 'filterDiscount') {
+	// 				resetActive = true;
+	// 				tableList = filterTableList;
+	// 			} else {
+	// 				resetActive = false;
+	// 			}
+	// 		} else {
+	// 			notificationError = true;
+	// 		}
+	// 		toastClosed = false;
+	// 		notificationContent = message;
+	// 	}
+	// }); // end effect
 
 	//	notification
 	let toastClosed: boolean = $state(true);
@@ -234,7 +232,7 @@
 				</button>
 			{:else}
 				<button class="btn btn-info rounded-md text-white" onclick={onOpenFilter}>
-					<Filter class="mt-1" /> Filtra
+					<Funnel class="mt-1" /> Filtra
 				</button>
 			{/if}
 			<button class="btn btn-info rounded-md text-white" onclick={() => onClickDialog('new', null)}>
@@ -404,7 +402,7 @@
 		<!-- Radio buttons and input text -->
 		<section class="col-span-4">
 			<label class="form-label">
-				<p class="font-bold mb-2"><Filter /> Uso</p>
+				<p class="font-bold mb-2"><Funnel /> Uso</p>
 			</label>
 			<div class="flex flex-wrap gap-4">
 				<label class="flex items-center">
@@ -472,13 +470,24 @@
 						<option value="Master Dien Chan">Master Dien Chan</option>
 					</select>
 				{:else if selectedApplicability == 'prodId'}
-					<input
+					<!-- <input
 						type="text"
 						name="selectId"
 						class="input input-bordered w-full"
 						placeholder="Inserisci il valore corrispondente"
 						bind:value={selectedId}
-					/>
+					/> -->
+					<select
+						id="selectId"
+						name="selectId"
+						bind:value={selectedId}
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					>
+						<option value="">Scegli prodotto</option>
+						{#each getProduct as option}
+							<option value={option.prodId}>{option.title}</option>
+						{/each}
+					</select>
 				{:else if selectedApplicability == 'layoutId'}
 					<select
 						id="selectId"

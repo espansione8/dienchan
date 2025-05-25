@@ -1,75 +1,138 @@
-import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
+import { fail } from '@sveltejs/kit';
+import { pageAuth } from '$lib/pageAuth';
 
-export const load: PageServerLoad = async ({ fetch, locals }) => {
-	//console.log('locals', locals);
-	let getTable = [];
-	let getLayout = [];
+const apiKey = import.meta.env.VITE_APIKEY;
+const baseURL = import.meta.env.VITE_BASE_URL;
 
-	let arrayField = [];
-	let arrayValue = [];
+export const load: PageServerLoad = async ({ fetch, locals, url }) => {
+	pageAuth(url.pathname, locals.auth, 'page');
 
-	if (!locals.auth) {
-		throw redirect(302, '/login');
-	}
-	//let getTableUser = [];
+	let getDiscount
+	let getLayout
+	let getProduct
+	let getUser
+
+	const discountFetch = fetch(`${baseURL}/api/mongo/find`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			apiKey: apiKey,
+			schema: 'discount', //product | order | user | layout | discount
+			query: {}, //IF USE Products.model -> types: course / product / membership / event
+			projection: { _id: 0 },// 0: exclude | 1: include
+			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+			limit: 1000,
+			skip: 0
+		})
+	});
+
+	const layoutFetch = fetch(`${baseURL}/api/mongo/find`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			apiKey: apiKey,
+			schema: 'layout', //product | order | user | layout | discount
+			query: {}, //IF USE Products.model -> types: course / product / membership / event
+			projection: { _id: 0, layoutId: 1, title: 1 },// 0: exclude | 1: include
+			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+			limit: 1000,
+			skip: 0
+		})
+	});
+
+	const productFetch = fetch(`${baseURL}/api/mongo/find`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			apiKey: apiKey,
+			schema: 'product', //product | order | user | layout | discount
+			query: { type: 'product' }, //IF USE Products.model -> type: course / product / membership / event
+			projection: { _id: 0, prodId: 1, title: 1 },// 0: exclude | 1: include
+			sort: { title: 1 }, // 1:Sort ascending | -1:Sort descending
+			limit: 1000,
+			skip: 0
+		})
+	});
+
+	const userFetch = fetch(`${baseURL}/api/mongo/find`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			apiKey: apiKey,
+			schema: 'user', //product | order | user | layout | discount
+			query: {}, //IF USE Products.model -> types: course / product / membership / event
+			projection: { userId: 1, email: 1 },// 0: exclude | 1: include
+			sort: { email: 1 }, // 1:Sort ascending | -1:Sort descending
+			limit: 1000,
+			skip: 0
+		})
+	});
 
 	try {
-		// const userData = session.user;
-		//console.log('MY DOCS userData', userData);
+		const [discountRes, layoutRes, productRes, userRes] = await Promise.all([
+			discountFetch,
+			layoutFetch,
+			productFetch,
+			userFetch
+		]);
 
-		// GET PRODUCTS
-		arrayField = [];
-		arrayValue = [];
-		const res = await fetch(`/api/finds/0/0`, { // URL:app/dashboard
-			method: 'POST',
-			body: JSON.stringify({
-				schema: 'discount',
-				arrayField,
-				arrayValue
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		const resGetTable = await res.json();
+		// discount data
+		if (discountRes.status !== 200) {
+			const errorText = await discountRes.text();
+			console.error('discount find failed', discountRes.status, errorText);
+			return fail(400, { action: 'discount', success: false, message: errorText });
+		}
+		const resGetTable = await discountRes.json();
 		if (resGetTable.length > 0) {
-			getTable = resGetTable.map((obj) => ({
+			getDiscount = resGetTable.map((obj: any) => ({
 				...obj,
 				createdAt: obj.createdAt.substring(0, 10)
 			}));
 		}
 
-		// Layout list
-		arrayField = [];
-		arrayValue = [];
-		const resLayout = await fetch(`/api/finds/0/0`, {
-			method: 'POST',
-			body: JSON.stringify({
-				schema: 'layout',
-				arrayField,
-				arrayValue
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		getLayout = await resLayout.json();
+		// layout data
+		if (layoutRes.status !== 200) {
+			const errorText = await layoutRes.text();
+			console.error('layout find failed', layoutRes.status, errorText);
+			return fail(400, { action: 'layout', success: false, message: errorText });
+		}
+		getLayout = await layoutRes.json();
+
+		// product data
+		if (productRes.status !== 200) {
+			const errorText = await productRes.text();
+			console.error('product find failed', productRes.status, errorText);
+			return fail(400, { action: 'product', success: false, message: errorText });
+		}
+		getProduct = await productRes.json();
+
+		// user data
+		if (userRes.status !== 200) {
+			const errorText = await userRes.text();
+			console.error('user find failed', userRes.status, errorText);
+			return fail(400, { action: 'user', success: false, message: errorText });
+		}
+		getUser = await userRes.json();
 
 	} catch (error) {
-		console.log('discount fetch error:', error);
+		console.log('page fetch error:', error);
 	}
-	const user = locals.user
-	if (locals.auth) {
-		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
-		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
-		user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
-	}
+
 	return {
-		getTable,
+		getDiscount,
 		getLayout,
-		auth: locals.auth,
-		userData: user,
+		getProduct,
+		getUser,
+		//auth: locals.auth,
 	};
 }
 
