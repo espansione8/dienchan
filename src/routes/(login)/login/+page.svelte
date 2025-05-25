@@ -101,10 +101,7 @@
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
 				const { payload, message } = result.data; // { action, success, message, payload }
-
 				if (payload) {
-					notificationContent = message;
-				} else {
 					notificationContent = message;
 					try {
 						await goto('/profile-modify');
@@ -112,10 +109,8 @@
 						notificationContent = 'Errore durante la navigazione';
 						notificationError = true;
 					}
-
-					// setTimeout(() => {
-					// 	goto('/profile-modify');
-					// }, 6000);
+				} else {
+					notificationContent = message;
 				}
 				onCloseModal();
 			}

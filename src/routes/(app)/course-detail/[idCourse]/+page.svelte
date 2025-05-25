@@ -222,6 +222,7 @@
 				// 	discountTostring();
 				// 	// console.log('discountList', discountList);
 				// }
+
 				if (payload) {
 					notificationContent = "L'ordine è stato inviato. Controlla lo storico nel tuo profilo";
 				} else {
@@ -241,6 +242,9 @@
 				notificationContent = result.error;
 				notificationError = true;
 			}
+			// if (result.type === 'redirect') {
+			// 	emptyCart();
+			// }
 			// 'update()' is called by default by use:enhance
 			// call 'await update()' if you need to ensure it completes before further client logic.
 			clearTimeout(startTimeout);

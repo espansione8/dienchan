@@ -90,7 +90,7 @@ export const actions: Actions = {
 					secure: process.env.NODE_ENV === 'production',
 					path: '/'
 				});
-				return { action: 'new', success: true, message: "login ok", payload: true };
+				return { action: 'login', success: true, message: "login ok", payload: true };
 			}
 
 		} catch (error: any) {

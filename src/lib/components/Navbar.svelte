@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { enhance, applyAction } from '$app/forms';
 	import { cartProducts, emptyCart, cdata } from '$lib/stores/cart';
 	import {
 		LogOut,
@@ -29,24 +30,17 @@
 		menuActive = !menuActive;
 	};
 
-	const redirectToLogin = () => {
-		window.location.href = '/login';
-	};
-
-	const logOutNow = async () => {
-		try {
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-out`);
-			if (res.ok) {
-				emptyCart();
-				redirectToLogin();
-			}
-		} catch (err) {
-			console.log('Error logout', err);
-		}
-	};
-
 	const isActive = (path: string) => {
 		return page.url.pathname === path;
+	};
+
+	const handleLogout = () => {
+		return async ({ result }) => {
+			if (result.type === 'redirect') {
+				emptyCart();
+				await applyAction(result);
+			}
+		};
 	};
 </script>
 
@@ -185,11 +179,12 @@
 							</ul>
 						</div>
 					{/if}
-
-					<button onclick={logOutNow} class="btn btn-sm btn-outline btn-error">
-						<LogOut size={16} />
-						<span>Logout</span>
-					</button>
+					<form method="POST" action="/logout" use:enhance={handleLogout}>
+						<button type="submit" class="btn btn-sm btn-outline btn-error">
+							<LogOut size={16} />
+							<span>Logout</span>
+						</button>
+					</form>
 				{:else}
 					<a href="/login" class="btn btn-sm btn-primary">
 						<LogIn size={16} />
@@ -406,7 +401,8 @@
 						{/if}
 
 						<li>
-							<button onclick={logOutNow} class="btn btn-outline btn-error justify-start">
+							<form method="POST" action="/logout" use:enhance={handleLogout}></form>
+							<button type="submit" class="btn btn-outline btn-error justify-start">
 								<LogOut size={18} />
 								Logout
 							</button>

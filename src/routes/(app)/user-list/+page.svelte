@@ -337,21 +337,24 @@
 					<div
 						class="card w-full sm:w-80 bg-base-100 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-base-200 rounded-xl"
 					>
-						<figure class="relative h-64 overflow-hidden">
-							<img
-								src={imgCheck.single(reflexologist.uploadfiles, 'profile') || '/images/avatar.png'}
-								alt={`${reflexologist.name} ${reflexologist.surname}`}
-								class="w-full h-full object-contain transition-transform duration-500 hover:scale-105"
-							/>
-							<div
-								class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4"
-							>
-								<h2 class="text-white text-xl font-bold">
-									{reflexologist.namePublic ? reflexologist.name : ''}
-									{reflexologist.surnamePublic ? reflexologist.surname : ''}
-								</h2>
-							</div>
-						</figure>
+						<a href={`/profile-public/${reflexologist.userId}`}>
+							<figure class="relative h-64 overflow-hidden flex items-center justify-center">
+								<img
+									src={imgCheck.single(reflexologist.uploadfiles, 'profile') ||
+										'/images/avatar.png'}
+									alt={`${reflexologist.name} ${reflexologist.surname}`}
+									class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+								/>
+								<div
+									class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-emerald-800/80 to-transparent p-4"
+								>
+									<h2 class="text-white text-xl font-bold">
+										{reflexologist.namePublic ? reflexologist.name : ''}
+										{reflexologist.surnamePublic ? reflexologist.surname : ''}
+									</h2>
+								</div>
+							</figure>
+						</a>
 
 						<div class="card-body p-4 relative min-h-[220px] flex flex-col">
 							<div class="space-y-2">
