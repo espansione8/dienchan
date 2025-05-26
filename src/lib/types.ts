@@ -312,3 +312,10 @@ export interface TableNames {
         title: string;
     };
 }
+
+export interface Notification {
+    id: number;
+    content: string;
+    type: 'success' | 'error' | 'info';
+    duration?: number;
+}

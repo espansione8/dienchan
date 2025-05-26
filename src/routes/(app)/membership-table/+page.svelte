@@ -150,7 +150,8 @@
 		currentModal = '';
 	};
 
-	//notification
+	// notification
+	// clearTimeout(startTimeout); // reset timer
 	let toastClosed: boolean = $state(true);
 	let notificationContent: string = $state('');
 	let notificationError: boolean = $state(false);
@@ -165,7 +166,6 @@
 			notificationError = false;
 		}, 3000); // 1000 milliseconds = 1 second
 	};
-	//clearTimeout(startTimeout); // reset timer
 
 	const formSubmit = () => {
 		return async ({ result }: { result: ActionResult }) => {
@@ -193,7 +193,6 @@
 			// 'update()' is called by default by use:enhance
 			// call 'await update()' if you need to ensure it completes before further client logic.
 			resetFields();
-			clearTimeout(startTimeout);
 			closeNotification();
 			toastClosed = false;
 		};

@@ -137,7 +137,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 }
 
 export const actions: Actions = {
-	newDiscount: async ({ request, fetch }) => {
+	new: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const code = formData.get('code');
 		const type = formData.get('type');
@@ -147,7 +147,7 @@ export const actions: Actions = {
 		const notes = formData.get('notes') || '';
 
 		if (!code || !type || !value || !selectedApplicability || !selectId) {
-			return fail(400, { action: 'newDiscount', success: false, message: 'Dati mancanti' });
+			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
 
 		try {
@@ -167,17 +167,17 @@ export const actions: Actions = {
 			});
 			const result = await response.json();
 			if (response.ok) {
-				return { action: 'newDiscount', success: true, message: result.message };
+				return { action: 'new', success: true, message: result.message };
 			} else {
-				return { action: 'newDiscount', success: false, message: result.message };
+				return { action: 'new', success: false, message: result.message };
 			}
 		} catch (error) {
-			console.error('Error creating new newDiscount:', error);
-			return { action: 'newDiscount', success: false, message: 'Errore creazione newDiscount' };
+			console.error('Error new :', error);
+			return { action: 'new', success: false, message: 'Errore new' };
 		}
 	},
 
-	modifyDiscount: async ({ request, fetch }) => {
+	modify: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const discountId = formData.get('discountId');
 		const code = formData.get('code');
@@ -197,7 +197,7 @@ export const actions: Actions = {
 		// const notes = formData.get('notes') || '';
 
 		if (!discountId || !code || !type || !value || !selectedApplicability || !selectId) {
-			return fail(400, { action: 'modifyDiscount', success: false, message: 'Dati mancanti' });
+			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
 		// discountId,
@@ -229,49 +229,17 @@ export const actions: Actions = {
 			});
 			const result = await response.json();
 			if (response.ok) {
-				return { action: 'modifyDiscount', success: true, message: result.message };
+				return { action: 'modify', success: true, message: result.message };
 			} else {
-				return { action: 'modifyDiscount', success: false, message: result.message };
+				return { action: 'modify', success: false, message: result.message };
 			}
 		} catch (error) {
-			console.error('Error creating new modifyDiscount:', error);
-			return { action: 'modifyDiscount', success: false, message: 'Errore creazione modifyDiscount' };
+			console.error('Error creating new modify:', error);
+			return { action: 'modify', success: false, message: 'Error modify' };
 		}
 	},
 
-	disableDiscount: async ({ request, fetch }) => {
-		const formData = await request.formData();
-		const discountId = formData.get('discountId');
-		const status = formData.get('status');
-		if (!discountId) {
-			return fail(400, { action: 'disableDiscount', success: false, message: 'Dati mancanti' });
-		}
-
-		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
-		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/status`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					discountId,
-					status
-				})
-			});
-			const result = await response.json();
-			if (response.status == 200) {
-				return { action: 'disableDiscount', success: true, message: result.message };
-			} else {
-				return { action: 'disableDiscount', success: false, message: result.message };
-			}
-		} catch (error) {
-			console.error('Error changing discount status:', error);
-			return { action: 'disableDiscount', success: false, message: 'Errore modifica Discount' };
-		}
-	},
-
-	deleteDiscount: async ({ request, fetch }) => {
+	delete: async ({ request, fetch }) => {
 
 		const formData = await request.formData();
 		const discountId = formData.get('discountId');
@@ -287,17 +255,17 @@ export const actions: Actions = {
 			});
 			const result = await response.json();
 			if (response.ok) {
-				return { action: 'deleteDiscount', success: true, message: result.message };
+				return { action: 'delete', success: true, message: result.message };
 			} else {
-				return { action: 'deleteDiscount', success: false, message: result.message };
+				return { action: 'delete', success: false, message: result.message };
 			}
 		} catch (error) {
-			console.error('Error deleteDiscount:', error);
-			return { action: 'deleteDiscount', success: false, message: 'Errore deleteDiscount' };
+			console.error('Error delete:', error);
+			return { action: 'delete', success: false, message: 'Error delete' };
 		}
 	},
 
-	filterDiscount: async ({ request, fetch }) => {
+	filter: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const code = formData.get('code');
 		const selectedApplicability = formData.get('selectedApplicability');
@@ -328,15 +296,72 @@ export const actions: Actions = {
 					...obj,
 					createdAt: obj.createdAt.substring(0, 10)
 				}));
-				return { action: 'filterDiscount', success: true, message: 'Filtro applicato', filterTableList };
+				return { action: 'filter', success: true, message: 'Filtro applicato', filterTableList };
 
 			} else {
-				return { action: 'filterDiscount', success: false, message: 'Sconto non trovato' };
+				return { action: 'filter', success: false, message: 'Sconto non trovato' };
 			}
 		} catch (error) {
-			console.error('Error filterDiscount:', error);
-			return { action: 'filterDiscount', success: false, message: 'Errore filterDiscount' };
+			console.error('Error filter:', error);
+			return { action: 'filter', success: false, message: 'Error filter' };
 		}
-	}
+	},
+
+	changeStatus: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const discountId = formData.get('discountId');
+		const status = formData.get('status');
+		const newStatus = status == 'enabled' ? 'disabled' : 'enabled';
+
+		if (!discountId || !status) {
+			return fail(400, { action: 'changeStatus', success: false, message: 'Dati mancanti' });
+		}
+
+		try {
+			// const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/status`, {
+			// 	method: 'POST',
+			// 	headers: {
+			// 		'Content-Type': 'application/json'
+			// 	},
+			// 	body: JSON.stringify({
+			// 		discountId,
+			// 		status
+			// 	})
+			// });
+			const query = { discountId };
+			const update = {
+				$set: {
+					status: newStatus,
+				}
+			};
+			const options = { upsert: false }
+			const multi = false
+			const res = await fetch(`${baseURL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey,
+					schema: 'discount', //product | order | user | layout | discount
+					query,
+					update,
+					options,
+					multi
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (res.status != 200) {
+				const errorText = await res.text();
+				console.error('discount update failed', res.status, errorText);
+				return fail(400, { action: 'changeStatus', success: false, message: errorText });
+			}
+			const result = await res.json();
+			return { action: 'changeStatus', success: true, message: result.message };
+
+		} catch (error) {
+			console.error('Error changeStatus:', error);
+			return { action: 'changeStatus', success: false, message: 'Error changeStatus' };
+		}
+	},
 
 } satisfies Actions;

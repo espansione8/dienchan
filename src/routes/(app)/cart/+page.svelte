@@ -6,8 +6,8 @@
 	import { cartProducts, addToCart, removeFromCart, emptyCart } from '$lib/stores/cart';
 	import Notification from '$lib/components/Notification.svelte';
 	import Loader from '$lib/components/Loader.svelte';
-	import { country_list, province } from '$lib/stores/arrays.js';
-	import { imgCheck } from '$lib/tools/tools.js';
+	import { country_list, province } from '$lib/stores/arrays';
+	import { imgCheck } from '$lib/tools/tools';
 	import {
 		Settings,
 		X,

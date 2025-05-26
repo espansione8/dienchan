@@ -160,11 +160,15 @@
 	let notificationError: boolean = $state(false);
 	let startTimeout: any;
 	const closeNotification = () => {
+		if (startTimeout) {
+			clearTimeout(startTimeout); // reset timer
+		}
 		startTimeout = setTimeout(() => {
 			toastClosed = true;
+			notificationContent = '';
+			notificationError = false;
 		}, 3000); // 1000 milliseconds = 1 second
 	};
-	//clearTimeout(startTimeout); // reset timer
 
 	$effect(() => {
 		if (form != null) {
@@ -183,7 +187,6 @@
 				notificationError = true;
 			}
 			resetFields();
-			clearTimeout(startTimeout);
 			closeNotification();
 			toastClosed = false;
 			notificationContent = message;
