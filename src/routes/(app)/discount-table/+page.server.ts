@@ -1,12 +1,9 @@
 import type { PageServerLoad, Actions } from './$types'
+import { BASE_URL, APIKEY } from '$env/static/private';
 import { fail, error } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
-const apiKey = import.meta.env.VITE_APIKEY;
-const baseURL = import.meta.env.VITE_BASE_URL;
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
-///// TODO IMPORTANT: SECURE ENV VARS .env file APIKEY= 'super_secret_api_key'
-//import { APIKEY } from '$env/static/private'; // Or $env/dynamic/private if it's truly dynamic at runtime
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
@@ -16,10 +13,10 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	let getProduct
 	let getUser
 
-	const discountFetch = fetch(`${baseURL}/api/mongo/find`, {
+	const discountFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 		method: 'POST',
 		body: JSON.stringify({
-			apiKey: apiKey,
+			apiKey: APIKEY,
 			schema: 'discount', //product | order | user | layout | discount
 			query: {}, //IF USE Products.model -> types: course / product / membership / event
 			projection: { _id: 0 },// 0: exclude | 1: include
@@ -32,10 +29,10 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		},
 	});
 
-	const layoutFetch = fetch(`${baseURL}/api/mongo/find`, {
+	const layoutFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 		method: 'POST',
 		body: JSON.stringify({
-			apiKey: apiKey,
+			apiKey: APIKEY,
 			schema: 'layout', //product | order | user | layout | discount
 			query: {}, //IF USE Products.model -> types: course / product / membership / event
 			projection: { _id: 0, layoutId: 1, title: 1 },// 0: exclude | 1: include
@@ -48,10 +45,10 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		},
 	});
 
-	const productFetch = fetch(`${baseURL}/api/mongo/find`, {
+	const productFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 		method: 'POST',
 		body: JSON.stringify({
-			apiKey: apiKey,
+			apiKey: APIKEY,
 			schema: 'product', //product | order | user | layout | discount
 			query: { type: 'product' }, //IF USE Products.model -> type: course / product / membership / event
 			projection: { _id: 0, prodId: 1, title: 1 },// 0: exclude | 1: include
@@ -64,10 +61,10 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		},
 	});
 
-	const userFetch = fetch(`${baseURL}/api/mongo/find`, {
+	const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 		method: 'POST',
 		body: JSON.stringify({
-			apiKey: apiKey,
+			apiKey: APIKEY,
 			schema: 'user', //product | order | user | layout | discount
 			query: {}, //IF USE Products.model -> types: course / product / membership / event
 			projection: { userId: 1, email: 1 },// 0: exclude | 1: include
@@ -89,12 +86,8 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		]);
 
 		if (discountRes.status !== 200 || layoutRes.status !== 200 || productRes.status !== 200 || userRes.status !== 200) {
-			const errorDiscountText = await discountRes.text();
-			const errorLayoutText = await layoutRes.text();
-			const errorProductText = await productRes.text();
-			const errorUserText = await userRes.text();
-			const errorText = `${errorDiscountText} ${errorLayoutText} ${errorProductText} ${errorUserText}`;
-			console.error('Promise.all failed', discountRes.status, errorText);
+			const errorText = `${await discountRes.text()} ${await layoutRes.text()} ${await productRes.text()} ${await userRes.text()}`;
+			console.error('Promise.all failed', discountRes.status, layoutRes.status, productRes.status, userRes.status, errorText);
 			//return fail(400, { action: 'load', success: false, message: errorText });
 			throw error(400, errorText);
 		}
@@ -138,10 +131,10 @@ export const actions: Actions = {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
 
-		const resFetch = fetch(`${baseURL}/api/mongo/create`, {
+		const resFetch = fetch(`${BASE_URL}/api/mongo/create`, {
 			method: 'POST',
 			body: JSON.stringify({
-				apiKey,
+				apiKey: APIKEY,
 				schema: 'discount', //product | order | user | layout | discount
 				newDoc: {
 					discountId: nanoid(),
@@ -190,10 +183,10 @@ export const actions: Actions = {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
-		const resFetch = fetch(`${baseURL}/api/mongo/update`, {
+		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
 			method: 'POST',
 			body: JSON.stringify({
-				apiKey,
+				apiKey: APIKEY,
 				schema: 'discount', //product | order | user | layout | discount
 				query: { discountId }, // 'course', 'product', 'membership', 'event',
 				update: {
@@ -235,10 +228,10 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const discountId = formData.get('discountId');
 
-		const resFetch = await fetch(`${baseURL}/api/mongo/remove`, {
+		const resFetch = await fetch(`${BASE_URL}/api/mongo/remove`, {
 			method: 'POST',
 			body: JSON.stringify({
-				apiKey,
+				apiKey: APIKEY,
 				schema: 'discount', //product | order | user | layout | discount
 				query: { discountId: discountId }, // 'course', 'product', 'membership', 'event'
 				multi: false,
@@ -273,10 +266,10 @@ export const actions: Actions = {
 
 
 
-		const resFetch = await fetch(`${baseURL}/api/mongo/find`, {
+		const resFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
-				apiKey,
+				apiKey: APIKEY,
 				schema: 'discount', //product | order | user | layout | discount
 				query: {
 					//type: 'course', 'product', 'membership', 'event'
@@ -322,10 +315,10 @@ export const actions: Actions = {
 			return fail(400, { action: 'changeStatus', success: false, message: 'Dati mancanti' });
 		}
 
-		const resFetch = fetch(`${baseURL}/api/mongo/update`, {
+		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
 			method: 'POST',
 			body: JSON.stringify({
-				apiKey,
+				apiKey: APIKEY,
 				schema: 'discount', //product | order | user | layout | discount
 				query: { discountId },
 				update: {

@@ -1,9 +1,10 @@
 import type { PageServerLoad, Actions } from './$types'
+import { BASE_URL, APIKEY } from '$env/static/private';
 import { fail } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
-const apiKey = import.meta.env.VITE_APIKEY;
-const baseURL = import.meta.env.VITE_BASE_URL;
+const apiKey = APIKEY;
+const baseURL = BASE_URL;
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {

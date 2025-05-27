@@ -1,8 +1,9 @@
 import type { PageServerLoad, Actions } from './$types'
+import { BASE_URL, APIKEY } from '$env/static/private';
 import { fail } from '@sveltejs/kit';
 import { hash } from '$lib/tools/hash';
 import { customAlphabet } from 'nanoid'
-const apiKey = import.meta.env.VITE_APIKEY;
+const apiKey = APIKEY;
 const salt = import.meta.env.VITE_SALT;
 
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
@@ -16,7 +17,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 		const limit = 1000;
 		const skip = 0;
-		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey,
@@ -51,7 +52,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 			const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 			const limit = 1000;
 			const skip = 0;
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+			const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
@@ -130,7 +131,7 @@ export const actions: Actions = {
 				const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 				const limit = 1;
 				const skip = 0;
-				const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+				const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 					method: 'POST',
 					body: JSON.stringify({
 						apiKey,
@@ -186,7 +187,7 @@ export const actions: Actions = {
 						// "membership.membershipStatus": true
 					};
 
-					const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
+					const res = await fetch(`${BASE_URL}/api/mongo/create`, {
 						method: 'POST',
 						body: JSON.stringify({
 							apiKey,
@@ -296,7 +297,7 @@ export const actions: Actions = {
 				cart: [cartItem]
 			};
 
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
+			const res = await fetch(`${BASE_URL}/api/mongo/create`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,

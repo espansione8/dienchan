@@ -4,7 +4,7 @@
 	// const userId = formData.get('userId');
 	// const file = formData.get('fileUpload') || '';
 
-	// const uploadImg = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
+	// const uploadImg = await fetch(`${BASE_URL}/api/uploads/files`, {
 	// 			method: 'POST',
 	// 			headers: {
 	// 				'Content-Type': 'application/json',

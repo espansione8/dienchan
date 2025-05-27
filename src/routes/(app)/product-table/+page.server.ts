@@ -1,13 +1,10 @@
 import type { PageServerLoad, Actions } from './$types'
+import { BASE_URL, APIKEY } from '$env/static/private';
 import { fail } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
 import type { Product } from '$lib/types';
-/// test
-// import dbConnect from '$lib/database';
-// import { Product } from '$lib/models/Products.model';
-
-const apiKey = import.meta.env.VITE_APIKEY;
+const apiKey = APIKEY;
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
@@ -22,7 +19,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 		const limit = 1000;
 		const skip = 0;
-		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey,
@@ -79,7 +76,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
+			const res = await fetch(`${BASE_URL}/api/mongo/create`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
@@ -137,7 +134,7 @@ export const actions: Actions = {
 		const multi = false
 
 		try {
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
+			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
@@ -166,13 +163,11 @@ export const actions: Actions = {
 	delete: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');
-
-		const apiKey = import.meta.env.VITE_APIKEY;
 		const query = { prodId: prodId };
 		const multi = false
 
 		try {
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/remove`, {
+			const res = await fetch(`${BASE_URL}/api/mongo/remove`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
@@ -215,7 +210,7 @@ export const actions: Actions = {
 			const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 			const limit = 100;
 			const skip = 0;
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+			const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
@@ -273,7 +268,7 @@ export const actions: Actions = {
 			// } else {
 			// 	return { action: 'changeStatus', success: false, message: 'update error' };
 			// }
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
+			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
@@ -309,7 +304,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			const uploadImg = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
+			const uploadImg = await fetch(`${BASE_URL}/api/uploads/files`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -342,7 +337,7 @@ export const actions: Actions = {
 				// ]
 			}
 			const multi = false
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
+			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
@@ -387,7 +382,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			const responseDelete = await fetch(`${import.meta.env.VITE_BASE_URL}/api/uploads/files`, {
+			const responseDelete = await fetch(`${BASE_URL}/api/uploads/files`, {
 				method: 'DELETE',
 				body: JSON.stringify({
 					dir: `product/${prodId}`,
@@ -408,7 +403,7 @@ export const actions: Actions = {
 			};
 			const options = { upsert: false }
 			const multi = false
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
+			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,

@@ -1,8 +1,8 @@
 //import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types'
-
-const apiKey = import.meta.env.VITE_APIKEY;
-const baseURL = import.meta.env.VITE_BASE_URL;
+import { BASE_URL, APIKEY } from '$env/static/private';
+const apiKey = APIKEY;
+const baseURL = BASE_URL;
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
 	let getTable = [];

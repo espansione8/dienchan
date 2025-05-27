@@ -1,10 +1,14 @@
-//https://github.com/m-haecker/svelte-kit-todo-app-mongoose
+import { MONGO_URI } from '$env/static/private';
 import mongoose from 'mongoose';
 
-const MONGODB_URI: string = import.meta.env.VITE_MONGO_URI;
+const MONGODB_URI: string = MONGO_URI;
+// console.log('MONGODB_URI', MONGODB_URI);
+// console.log('MONGO_URI', MONGO_URI);
+
+//const MONGODB_URI: string = import.meta.env.VITE_MONGO_URI;
 
 if (!MONGODB_URI) {
-	throw new Error('Please define the MONGODB_URI environment variable inside .env');
+	throw new Error('Please define the MONGODB_URI environment variable');
 }
 
 /**
@@ -18,7 +22,8 @@ if (!MONGODB_URI) {
 // 	cached = global.mongoose = { conn: null, promise: null };
 // }
 
-async function dbConnect() {
+// async function dbConnect() {
+const dbConnect = async () => {
 	//console.log('MONGODB_URI', typeof MONGODB_URI, MONGODB_URI);
 
 	await mongoose

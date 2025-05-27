@@ -1,9 +1,10 @@
-import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
+import { BASE_URL, APIKEY } from '$env/static/private';
+import { fail } from '@sveltejs/kit';
 import stringHash from 'string-hash';
 import { pageAuth } from '$lib/pageAuth';
 
-const apiKey = import.meta.env.VITE_APIKEY;
+const apiKey = APIKEY;
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
@@ -30,7 +31,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			query = { type: 'course' };
 		}
 
-		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey,
@@ -65,7 +66,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 		const limit = 1000;
 		const skip = 0;
-		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey,
@@ -92,7 +93,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 		const limit = 1000;
 		const skip = 0;
-		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey,
@@ -178,7 +179,7 @@ export const actions: Actions = {
 				infoExtra,
 				type: 'course',
 			};
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
+			const res = await fetch(`${BASE_URL}/api/mongo/create`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
@@ -258,7 +259,7 @@ export const actions: Actions = {
 			};
 			const options = { upsert: false }
 			const multi = false
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
+			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
@@ -291,7 +292,7 @@ export const actions: Actions = {
 		const query = { prodId: prodId, type: 'course' };//'course', 'product', 'membership', 'event'
 		const multi = false
 		try {
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/remove`, {
+			const res = await fetch(`${BASE_URL}/api/mongo/remove`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
@@ -337,7 +338,7 @@ export const actions: Actions = {
 			const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 			const limit = 1000;
 			const skip = 0;
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+			const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,

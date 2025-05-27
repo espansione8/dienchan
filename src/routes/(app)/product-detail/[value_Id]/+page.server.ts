@@ -1,7 +1,7 @@
 
 import type { PageServerLoad } from './$types'
-
-const apiKey = import.meta.env.VITE_APIKEY;
+import { BASE_URL, APIKEY } from '$env/static/private';
+const apiKey = APIKEY;
 
 export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 
@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 		const limit = 1;
 		const skip = 0;
 		const sort = {};
-		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey,

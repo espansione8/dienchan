@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { BASE_URL, APIKEY } from '$env/static/private';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { enhance } from '$app/forms';
 	//import { page } from '$app/stores';
@@ -53,7 +54,7 @@
 			status
 		};
 		try {
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/products/setStatus`, {
+			const res = await fetch(`${BASE_URL}/api/products/setStatus`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'

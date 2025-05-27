@@ -1,4 +1,5 @@
-// `${import.meta.env.VITE_BASE_URL}api/mongo/remove`
+// `${BASE_URL}/api/mongo/remove`
+import { APIKEY } from '$env/static/private';
 import { json } from '@sveltejs/kit';
 import { Product } from '$lib/server/mongo/schema/Products.model';
 import { Order } from '$lib/server/mongo/schema/Orders.model';
@@ -10,11 +11,9 @@ import type { RequestHandler } from '@sveltejs/kit';
 
 // const email = emailToCheck.replace(/\s+/g, '').toLowerCase();
 // INSTRUCTION
+// import { APIKEY, BASE_URL } from '$env/static/private';
 
-// const apiKey = import.meta.env.VITE_APIKEY;
-// const baseURL = import.meta.env.VITE_BASE_URL;
-
-// const resFetch = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/remove`, {
+// const resFetch = await fetch(`${BASE_URL}/api/mongo/remove`, {
 //     method: 'POST',
 //     body: JSON.stringify({
 //         apiKey,
@@ -27,6 +26,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 //     }
 // });
 // const res = await resFetch;
+// const response = await res.json()
 
 export const POST: RequestHandler = async ({ request }) => {
     const body = await request.json();
@@ -37,7 +37,7 @@ export const POST: RequestHandler = async ({ request }) => {
         multi,
     } = body;
 
-    if (apiKey !== import.meta.env.VITE_APIKEY) {
+    if (apiKey !== APIKEY) {
         return json({ message: 'api error' }, { status: 401 });
     }
 

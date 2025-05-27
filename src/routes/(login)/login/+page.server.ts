@@ -1,10 +1,11 @@
 // src/routes/login/+page.server.ts
 import type { Actions } from './$types';
+import { BASE_URL, APIKEY } from '$env/static/private';
 import { fail, redirect } from '@sveltejs/kit';
 import { hash } from '$lib/tools/hash';
 
-const apiKey = import.meta.env.VITE_APIKEY;
-const baseURL = import.meta.env.VITE_BASE_URL;
+const apiKey = APIKEY;
+const baseURL = BASE_URL;
 const salt = import.meta.env.VITE_SALT;
 
 export const actions: Actions = {

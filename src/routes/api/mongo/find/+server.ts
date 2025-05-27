@@ -1,4 +1,5 @@
-// `${import.meta.env.VITE_BASE_URL}/api/mongo/find`
+// `${BASE_URL}/api/mongo/find`
+import { APIKEY } from '$env/static/private';
 import { json } from '@sveltejs/kit';
 import { Product } from '$lib/server/mongo/schema/Products.model';
 import { Order } from '$lib/server/mongo/schema/Orders.model';
@@ -10,28 +11,25 @@ import type { RequestHandler } from '@sveltejs/kit';
 
 // const email = emailToCheck.replace(/\s+/g, '').toLowerCase();
 // INSTRUCTION
-// const apiKey = import.meta.env.VITE_APIKEY;
-// const query = { type: 'product', price: { $gt: 50 } };
-// const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
-// const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
-// const limit = 1;
-// const skip = 0;
-// const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+// import { APIKEY, BASE_URL } from '$env/static/private';
+
+// const resFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
 // 	method: 'POST',
 // 	body: JSON.stringify({
 // 		apiKey,
 // 		schema: 'product', //product | order | user | layout | discount
-// 		query,
-// 		projection,
-// 		sort,
-// 		limit,
-// 		skip
+// 		query: { type: 'product', price: { $gt: 50 } },
+// 		projection: { _id: 0, password: 0 }, // 0: exclude | 1: include
+// 		sort{ createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+// 		limit: 1000,
+// 		skip: 0
 // 	}),
 // 	headers: {
 // 		'Content-Type': 'application/json'
 // 	}
 // });
-// const response = await res.json();
+// const res = await resFetch;
+// const response = await res.json()
 
 export const POST: RequestHandler = async ({ request }) => {
 	const body = await request.json();
@@ -45,7 +43,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		skip
 	} = body;
 
-	if (apiKey !== import.meta.env.VITE_APIKEY) {
+	if (apiKey !== APIKEY) {
 		return json({ message: 'api error' }, { status: 401 });
 	}
 

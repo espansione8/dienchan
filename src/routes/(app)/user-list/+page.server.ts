@@ -1,8 +1,9 @@
-import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
+import { BASE_URL, APIKEY } from '$env/static/private';
+import { fail } from '@sveltejs/kit';
 import { pageAuth } from '$lib/pageAuth';
 
-const apiKey = import.meta.env.VITE_APIKEY;
+const apiKey = APIKEY;
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
@@ -14,7 +15,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 		const limit = 1000;
 		const skip = 0;
-		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey,
@@ -61,7 +62,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 // 		const arrayValue = [level, membershipLevel, email];
 
 // 		try {
-// 			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
+// 			const response = await fetch(`${BASE_URL}/api/finds/0/0`, {
 // 				method: 'POST',
 // 				body: JSON.stringify({
 // 					schema: 'user',

@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-//import axios from 'axios';
+import { BASE_URL } from '$env/static/private';
 
 const initial: any = false
 export const thisProd = writable(initial);
@@ -10,8 +10,8 @@ export const isFetching = writable(initial);
 export async function getThisProd(prodId) {
 	isFetching.set(true);
 	try {
-		//const responseProd = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/product/findId/${prodId}`);
-		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/product/findId/${prodId}`);
+		//const responseProd = await axios.get(`${BASE_URL}/api/product/findId/${prodId}`);
+		const res = await fetch(`${BASE_URL}/api/product/findId/${prodId}`);
 		const responseProd = await res.json();
 		//console.log('responseProd', responseProd);
 
@@ -37,10 +37,10 @@ export async function getThisProd(prodId) {
 			const categoryArray = responseProd.category;
 			const categoryId = categoryArray[1] || categoryArray[0];
 			// const responseProdRelated = await axios.get(
-			// 	`${import.meta.env.VITE_BASE_URL}/api/product/related/${categoryId}`
+			// 	`${BASE_URL}/api/product/related/${categoryId}`
 			// );
 			const responseProdRelated = await fetch(
-				`${import.meta.env.VITE_BASE_URL}/api/product/related/${categoryId}`
+				`${BASE_URL}/api/product/related/${categoryId}`
 			);
 			const valueSet = await responseProdRelated.json()
 			relatedProd.set(valueSet);

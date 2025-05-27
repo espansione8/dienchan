@@ -1,5 +1,6 @@
-import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
+import { BASE_URL, APIKEY } from '$env/static/private';
+import { redirect, fail } from '@sveltejs/kit';
 //import type { Locals, MembershipProduct } from '$lib/types';
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
@@ -10,7 +11,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 	let getTable = [];
 	try {
-		const path = `${import.meta.env.VITE_BASE_URL}/api/products/find/type/membership/0/0`
+		const path = `${BASE_URL}/api/products/find/type/membership/0/0`
 
 		// ADMIN course
 		const resGetTable = await fetch(path);
@@ -50,7 +51,7 @@ export const actions: Actions = {
 		}
 		//console.log('newMembership', title, descrShort, price, renewalLength, userId);
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/newProds`, {
+			const response = await fetch(`${BASE_URL}/api/newProds`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'

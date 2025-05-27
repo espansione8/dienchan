@@ -1,8 +1,9 @@
-import { redirect, error } from '@sveltejs/kit';
 import type { Actions } from './$types';
+import { BASE_URL, APIKEY } from '$env/static/private';
+import { redirect, error } from '@sveltejs/kit';
 
-const apiKey = import.meta.env.VITE_APIKEY;
-const baseApiUrl = import.meta.env.VITE_BASE_URL;
+const apiKey = APIKEY;
+const baseApiUrl = BASE_URL;
 
 export const actions: Actions = {
     default: async ({ fetch, cookies }) => {

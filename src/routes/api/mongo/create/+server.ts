@@ -1,4 +1,5 @@
-// `${import.meta.env.VITE_BASE_URL}/api/mongo/create`
+// `${BASE_URL}/api/mongo/create`
+import { APIKEY } from '$env/static/private';
 import { json } from '@sveltejs/kit';
 import dbConnect from '$lib/server/mongo/database';
 import { Product } from '$lib/server/mongo/schema/Products.model';
@@ -10,28 +11,29 @@ import type { RequestHandler } from '@sveltejs/kit';
 
 // const email = emailToCheck.replace(/\s+/g, '').toLowerCase();
 // INSTRUCTION
-// import stringHash from 'string-hash';
-// const newId = stringHash(crypto.randomUUID());
-// const apiKey = import.meta.env.VITE_APIKEY;
-// const returnObj = false // return new Doc instead of String
-// const newDoc = {
-// 	docId: newId,
-// 	title: 'product',
-// 	price: { $gt: 50 }
-// };
-// const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
+// import { APIKEY, BASE_URL } from '$env/static/private';
+// import { customAlphabet } from 'nanoid'
+// const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
+// const newId = nanoid();
+
+// const resFetch = await fetch(`${BASE_URL}/api/mongo/create`, {
 // 	method: 'POST',
 // 	body: JSON.stringify({
 // 		apiKey,
 // 		schema: 'product', //product | order | user | layout | discount
-// 		newDoc,
-//		returnObj
+// 		newDoc: {
+// 			docId: newId,
+// 			title: 'product',
+// 			price: { $gt: 50 }
+// 		},
+// 		returnObj: false
 // 	}),
 // 	headers: {
 // 		'Content-Type': 'application/json'
 // 	}
 // });
-// const response = await res.json();
+// const res = await resFetch;
+// const response = await res.json()
 
 export const POST: RequestHandler = async ({ request }) => {
 	const body = await request.json();
@@ -42,7 +44,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		returnObj
 	} = body;
 
-	if (apiKey !== import.meta.env.VITE_APIKEY) {
+	if (apiKey !== APIKEY) {
 		return json({ message: 'api error' }, { status: 401 });
 	}
 

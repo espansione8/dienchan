@@ -1,5 +1,6 @@
-import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
+import { BASE_URL, APIKEY } from '$env/static/private';
+import { fail } from '@sveltejs/kit';
 import { Product } from '$lib/server/mongo/schema/Products.model';
 
 // export const load: PageServerLoad = async ({ locals }) => {
@@ -51,7 +52,7 @@ export const actions: Actions = {
 			const findProduct = await Product.findOne({ title: membershipLevel });
 			const product = findProduct?.prodId ? findProduct : () => { return { action: 'newMembership', success: false, message: 'errore iscrizione (1)' } }
 
-			const checkUser = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/check`, {
+			const checkUser = await fetch(`${BASE_URL}/api/users/check`, {
 				method: 'POST',
 				body: JSON.stringify({
 					email
@@ -65,7 +66,7 @@ export const actions: Actions = {
 				return fail(400, { action: 'newMembership', success: false, message: resCheckUser.message });
 			}
 
-			const signUpUser = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-up-admin`, {
+			const signUpUser = await fetch(`${BASE_URL}/api/auth/sign-up-admin`, {
 				method: 'POST',
 				body: JSON.stringify({
 					name,
@@ -92,7 +93,7 @@ export const actions: Actions = {
 				return fail(400, { action: 'newMembership', success: false, message: resSignUpUser.message });
 			}
 
-			const setMembership = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/new`, {
+			const setMembership = await fetch(`${BASE_URL}/api/memberships/new`, {
 				method: 'POST',
 				body: JSON.stringify({
 					userId,
@@ -111,7 +112,7 @@ export const actions: Actions = {
 				return { action: 'newMembership', success: false, message: resMembership.message };
 			}
 
-			const makeOrder = await fetch(`${import.meta.env.VITE_BASE_URL}/api/orders/purchase`, {
+			const makeOrder = await fetch(`${BASE_URL}/api/orders/purchase`, {
 				method: 'POST',
 				body: JSON.stringify({
 					userId,
@@ -127,7 +128,7 @@ export const actions: Actions = {
 				return { action: 'newMembership', success: false, message: resMakeOrder.message };
 			}
 
-			const sendMail = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mailer/sign-up-confirm`, {
+			const sendMail = await fetch(`${BASE_URL}/api/mailer/sign-up-confirm`, {
 				method: 'POST',
 				body: JSON.stringify({ email }),
 				headers: {
@@ -172,7 +173,7 @@ export const actions: Actions = {
 			const findProduct = await Product.findOne({ title: 'Socio ordinario' });
 			const product = findProduct?.prodId ? findProduct : () => { return { action: 'newMembership', success: false, message: 'errore rinnovo (1)' } }
 
-			const response1 = await fetch(`${import.meta.env.VITE_BASE_URL}/api/memberships/renew`, {
+			const response1 = await fetch(`${BASE_URL}/api/memberships/renew`, {
 				method: 'POST',
 				body: JSON.stringify({
 					userId,
@@ -186,7 +187,7 @@ export const actions: Actions = {
 				}
 			});
 
-			const response2 = await fetch(`${import.meta.env.VITE_BASE_URL}/api/orders/purchase`, {
+			const response2 = await fetch(`${BASE_URL}/api/orders/purchase`, {
 				method: 'POST',
 				body: JSON.stringify({
 					userId: userData.userId,

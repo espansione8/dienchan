@@ -1,4 +1,5 @@
-// `${import.meta.env.VITE_BASE_URL}api/mongo/update`
+// `${BASE_URL}/api/mongo/update`
+import { APIKEY } from '$env/static/private';
 import { json } from '@sveltejs/kit';
 import { Product } from '$lib/server/mongo/schema/Products.model';
 import { Order } from '$lib/server/mongo/schema/Orders.model';
@@ -10,32 +11,29 @@ import type { RequestHandler } from '@sveltejs/kit';
 
 // const email = emailToCheck.replace(/\s+/g, '').toLowerCase(); | string.toLowerCase().trim()
 // INSTRUCTION
-// const apiKey = import.meta.env.VITE_APIKEY;
-// const query = { type: 'agent', userId: '5f8d9f4d0a1f2c1c6e1b3d' };
-// const update = {
-//     $set: {
-//         name: 'jake',
-//         age: 30
-//     }
-// };
-// const options = { upsert: false }
-// const multi = false | true
+// import { APIKEY, BASE_URL } from '$env/static/private';
 
-// const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
+// const resFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
 //     method: 'POST',
 //     body: JSON.stringify({
 //         apiKey,
 //         schema: 'user', //product | order | user | layout | discount
-//         query,
-//         update,
-//         options,
-//         multi
+//         query: { type: 'agent', userId: '5f8d9f4d0a1f2c1c6e1b3d' },
+//         update: {
+//             $set: {
+//                 name: 'jake',
+//                 age: 30
+//             }
+//         },
+//         options: { upsert: false },
+//         multi: false
 //     }),
 //     headers: {
 //         'Content-Type': 'application/json'
 //     }
 // });
-// const response = await res.json();
+// const res = await resFetch;
+// const response = await res.json()
 
 export const POST: RequestHandler = async ({ request }) => {
     const body = await request.json();
@@ -48,7 +46,7 @@ export const POST: RequestHandler = async ({ request }) => {
         multi
     } = body;
 
-    if (apiKey !== import.meta.env.VITE_APIKEY) {
+    if (apiKey !== APIKEY) {
         return json({ message: 'api error' }, { status: 401 });
     }
 

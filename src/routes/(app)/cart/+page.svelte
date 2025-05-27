@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { ActionResult } from '@sveltejs/kit';
+	import { BASE_URL, APIKEY } from '$env/static/private';
 	import { goto, invalidateAll } from '$app/navigation';
 	import Modal from '$lib/components/Modal.svelte';
 	import { enhance } from '$app/forms';
@@ -123,8 +124,8 @@
 
 	const onConfirmCart = async () => {
 		error = '';
-		let path = `${import.meta.env.VITE_BASE_URL}/api/orders/purchase-first`;
-		if (auth) path = `${import.meta.env.VITE_BASE_URL}/api/orders/purchase`;
+		let path = `${BASE_URL}/api/orders/purchase-first`;
+		if (auth) path = `${BASE_URL}/api/orders/purchase`;
 
 		const response = await fetch(path, {
 			method: 'POST',

@@ -1,8 +1,9 @@
-import { fail } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types'
+import { BASE_URL, APIKEY } from '$env/static/private';
+import { fail } from '@sveltejs/kit';
 
-const apiKey = import.meta.env.VITE_APIKEY;
-const baseURL = import.meta.env.VITE_BASE_URL;
+const apiKey = APIKEY;
+const baseURL = BASE_URL;
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
 	let getTable = [];

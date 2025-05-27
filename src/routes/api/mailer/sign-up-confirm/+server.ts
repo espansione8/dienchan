@@ -1,4 +1,5 @@
 // src/routes/api/mailer/sign-up-confirm.js
+import { BASE_URL } from '$env/static/private';
 import { json } from '@sveltejs/kit';
 import nodemailer from 'nodemailer';
 
@@ -28,8 +29,8 @@ export const POST = async ({ request }) => {
 				to: email, // list of receivers
 				subject: 'Registrazione nuovo utente Dien Chan',
 				text: `Gentile utente, \r\n ${email
-					} sei stato registrato sulla nostra app \r\n per completare la registrazione effettua il <a href="${import.meta.env.VITE_BASE_URL
-					}">LOG IN</a> e compila i dati nella sezione "Profilo" \r\n oppure copia e incolla nel tuo browser il seguente link per il primo accesso: \r\n ${import.meta.env.VITE_BASE_URL
+					} sei stato registrato sulla nostra app \r\n per completare la registrazione effettua il <a href="${BASE_URL
+					}">LOG IN</a> e compila i dati nella sezione "Profilo" \r\n oppure copia e incolla nel tuo browser il seguente link per il primo accesso: \r\n ${BASE_URL
 					} \r\n \r\n Questo è un messaggio automatico NON RISPONDERE a questa comunicazione \r\n Distinti saluti \r\n Staff Dien Chan \r\n `,
 				html: `
 				<!DOCTYPE html>
@@ -391,10 +392,10 @@ export const POST = async ({ request }) => {
 														<div class="text">
 															<h2>Gentile utente,</h2>
 															<h4>${email} sei stato registrato sulla nostra app</h4>
-															<h4>per completare la registrazione effettua il <a href="${import.meta.env.VITE_BASE_URL
+															<h4>per completare la registrazione effettua il <a href="${BASE_URL
 					}">LOG IN</a> e compila i dati nella sezione "Profilo"</h4>
 															<p>oppure copia e incolla nel tuo browser il seguente link per il primo accesso: </p>
-														<pre>${import.meta.env.VITE_BASE_URL}</pre>
+														<pre>${BASE_URL}</pre>
 														<hr/>
 														
 														<h4>Distinti saluti</h4>
@@ -406,7 +407,7 @@ export const POST = async ({ request }) => {
 													<td style="text-align: center">
 														<div class="text-author">														
 															<p>
-																<a href="${import.meta.env.VITE_BASE_URL}" class="btn btn-primary"
+																<a href="${BASE_URL}" class="btn btn-primary"
 																	>Login</a
 																>
 															</p>
@@ -427,10 +428,10 @@ export const POST = async ({ request }) => {
 				// html: `<p>Dear user</p>
 				// <p>${email} have been registered on our app</p>
 				// <p>to complete the registration please <a href="${
-				// 	import.meta.env.VITE_BASE_URL
+				// 	BASE_URL
 				// }">LOG IN</a> and fill in the data in "Profile" section</p>
 				// <p>or copy and paste in your browser the following link for the first login: </p>
-				// <pre>${import.meta.env.VITE_BASE_URL}</pre>
+				// <pre>${BASE_URL}</pre>
 				// </ hr>
 				// <p>This is an automated message DO NOT REPLY to this communication, for questions and assistance please write to support@fast-track-ip.com</p>
 				// <p>Best regards</p>

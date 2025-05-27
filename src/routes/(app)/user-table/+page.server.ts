@@ -1,8 +1,9 @@
-import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
+import { BASE_URL, APIKEY } from '$env/static/private';
+import { redirect, fail } from '@sveltejs/kit';
 import { pageAuth } from '$lib/pageAuth';
 
-const apiKey = import.meta.env.VITE_APIKEY;
+const apiKey = APIKEY;
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
@@ -14,7 +15,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
 		const limit = 1000;
 		const skip = 0;
-		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey,
@@ -66,7 +67,7 @@ export const actions: Actions = {
 
 		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-up-admin`, {
+			const response = await fetch(`${BASE_URL}/api/auth/sign-up-admin`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -130,7 +131,7 @@ export const actions: Actions = {
 		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
 
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/modify`, {
+			const response = await fetch(`${BASE_URL}/api/users/modify`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -182,7 +183,7 @@ export const actions: Actions = {
 
 		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/status`, {
+			const response = await fetch(`${BASE_URL}/api/users/status`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -209,7 +210,7 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const userId = formData.get('userId');
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/users/remove`, {
+			const response = await fetch(`${BASE_URL}/api/users/remove`, {
 				method: 'DELETE',
 				headers: {
 					'Content-Type': 'application/json'
@@ -242,7 +243,7 @@ export const actions: Actions = {
 		const arrayValue = [level, membershipLevel, email];
 
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
+			const response = await fetch(`${BASE_URL}/api/finds/0/0`, {
 				method: 'POST',
 				body: JSON.stringify({
 					schema: 'user',

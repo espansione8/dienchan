@@ -1,7 +1,8 @@
 import type { PageServerLoad, Actions } from './$types'
+import { BASE_URL, APIKEY } from '$env/static/private';
 import { fail } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid'
-const apiKey = import.meta.env.VITE_APIKEY;
+const apiKey = APIKEY;
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 
 type CartItem = {
@@ -27,13 +28,13 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
 		const limit = 1000;
 		const skip = 0;
 
-		const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
+		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
-				apiKey: import.meta.env.VITE_APIKEY,
+				apiKey: APIKEY,
 				schema: 'product', //product | order | user | layout | discount
 				query,
 				projection,
@@ -94,7 +95,7 @@ export const actions: Actions = {
 				userId,
 			};
 
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/create`, {
+			const res = await fetch(`${BASE_URL}/api/mongo/create`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
@@ -138,7 +139,7 @@ export const actions: Actions = {
 
 		try {
 			// l'api restituisce il gruppo di sconti nel database
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/check`, {
+			const response = await fetch(`${BASE_URL}/api/discounts/check`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -252,7 +253,7 @@ export const actions: Actions = {
 
 		try {
 			// l'api restituisce il gruppo di sconti nel database
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/check`, {
+			const response = await fetch(`${BASE_URL}/api/discounts/check`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -340,7 +341,7 @@ export const actions: Actions = {
 
 		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/auth/sign-up-admin`, {
+			const response = await fetch(`${BASE_URL}/api/auth/sign-up-admin`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
