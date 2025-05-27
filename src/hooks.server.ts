@@ -3,8 +3,8 @@
 //https://blog.logrocket.com/authentication-sveltekit-using-cookies/
 //https://www.youtube.com/watch?v=K1Tya6ovVOI // Protect SvelteKit Routes with Hooks
 //import { redirect } from '@sveltejs/kit';
-import { User } from '$lib/db/mongo/schema/Users.model';
-import dbConnect from '$lib/db/mongo/database';
+import { User } from '$lib/server/mongo/schema/Users.model';
+import dbConnect from '$lib/server/mongo/database';
 import type { Handle } from '@sveltejs/kit';
 
 // NOTE: src/app.d.ts to set type of event.locals.[name]

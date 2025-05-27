@@ -1,7 +1,7 @@
 // src/routes/api/discounts/modify
 import { json } from '@sveltejs/kit';
-import dbConnect from '$lib/db/mongo/database';
-import { Discount } from '$lib/db/mongo/schema/Discounts.model';
+import dbConnect from '$lib/server/mongo/database';
+import { Discount } from '$lib/server/mongo/schema/Discounts.model';
 
 //import { File } from 'nft.storage';
 

@@ -1,6 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types'
-import { Product } from '$lib/db/mongo/schema/Products.model';
+import { Product } from '$lib/server/mongo/schema/Products.model';
 
 // export const load: PageServerLoad = async ({ locals }) => {
 // 	console.log('locals', locals);
