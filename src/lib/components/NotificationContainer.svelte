@@ -21,6 +21,8 @@
 	import { fly } from 'svelte/transition';
 	import { notification } from '$lib/stores/notifications';
 	import type { Notification } from '$lib/types';
+	import { Info, CircleX, CircleCheckBig } from 'lucide-svelte';
+	// <Info /> <CircleX /> <CircleCheckBig />
 
 	let notificationList: Notification[] = $state([]);
 
@@ -33,7 +35,7 @@
 		return unsubscribe;
 	});
 
-	const handleClose = (id: string) => {
+	const handleClose = (id: number) => {
 		notification.remove(id);
 	};
 
@@ -61,6 +63,13 @@
 			<div class={getAlertClass(notification.type)}>
 				<div class="flex items-center justify-between w-full">
 					<span class="text-white font-medium flex-1 mr-3">
+						{#if notification.type === 'success'}
+							<CircleCheckBig />
+						{:else if notification.type === 'error'}
+							<CircleX />
+						{:else}
+							<Info />
+						{/if}
 						{notification.content}
 					</span>
 					<button
@@ -68,7 +77,7 @@
 						class="btn btn-circle btn-sm btn-ghost hover:bg-white/20"
 						aria-label="Close notification"
 					>
-						<X size={16} />
+						<X />
 					</button>
 				</div>
 			</div>

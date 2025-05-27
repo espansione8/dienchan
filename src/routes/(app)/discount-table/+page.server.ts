@@ -1,9 +1,12 @@
 import type { PageServerLoad, Actions } from './$types'
-import { fail } from '@sveltejs/kit';
+import { fail, error } from '@sveltejs/kit';
+import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
-
 const apiKey = import.meta.env.VITE_APIKEY;
 const baseURL = import.meta.env.VITE_BASE_URL;
+const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
+///// TODO IMPORTANT: SECURE ENV VARS .env file APIKEY= 'super_secret_api_key'
+//import { APIKEY } from '$env/static/private'; // Or $env/dynamic/private if it's truly dynamic at runtime
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
@@ -15,9 +18,6 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 
 	const discountFetch = fetch(`${baseURL}/api/mongo/find`, {
 		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
 		body: JSON.stringify({
 			apiKey: apiKey,
 			schema: 'discount', //product | order | user | layout | discount
@@ -26,14 +26,14 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
 			limit: 1000,
 			skip: 0
-		})
+		}),
+		headers: {
+			'Content-Type': 'application/json'
+		},
 	});
 
 	const layoutFetch = fetch(`${baseURL}/api/mongo/find`, {
 		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
 		body: JSON.stringify({
 			apiKey: apiKey,
 			schema: 'layout', //product | order | user | layout | discount
@@ -42,14 +42,14 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
 			limit: 1000,
 			skip: 0
-		})
+		}),
+		headers: {
+			'Content-Type': 'application/json'
+		},
 	});
 
 	const productFetch = fetch(`${baseURL}/api/mongo/find`, {
 		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
 		body: JSON.stringify({
 			apiKey: apiKey,
 			schema: 'product', //product | order | user | layout | discount
@@ -58,14 +58,14 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			sort: { title: 1 }, // 1:Sort ascending | -1:Sort descending
 			limit: 1000,
 			skip: 0
-		})
+		}),
+		headers: {
+			'Content-Type': 'application/json'
+		},
 	});
 
 	const userFetch = fetch(`${baseURL}/api/mongo/find`, {
 		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
 		body: JSON.stringify({
 			apiKey: apiKey,
 			schema: 'user', //product | order | user | layout | discount
@@ -74,7 +74,10 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			sort: { email: 1 }, // 1:Sort ascending | -1:Sort descending
 			limit: 1000,
 			skip: 0
-		})
+		}),
+		headers: {
+			'Content-Type': 'application/json'
+		},
 	});
 
 	try {
@@ -85,12 +88,17 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			userFetch
 		]);
 
-		// discount data
-		if (discountRes.status !== 200) {
-			const errorText = await discountRes.text();
-			console.error('discount find failed', discountRes.status, errorText);
-			return fail(400, { action: 'discount', success: false, message: errorText });
+		if (discountRes.status !== 200 || layoutRes.status !== 200 || productRes.status !== 200 || userRes.status !== 200) {
+			const errorDiscountText = await discountRes.text();
+			const errorLayoutText = await layoutRes.text();
+			const errorProductText = await productRes.text();
+			const errorUserText = await userRes.text();
+			const errorText = `${errorDiscountText} ${errorLayoutText} ${errorProductText} ${errorUserText}`;
+			console.error('Promise.all failed', discountRes.status, errorText);
+			//return fail(400, { action: 'load', success: false, message: errorText });
+			throw error(400, errorText);
 		}
+
 		const resGetTable = await discountRes.json();
 		if (resGetTable.length > 0) {
 			getDiscount = resGetTable.map((obj: any) => ({
@@ -98,33 +106,13 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 				createdAt: obj.createdAt.substring(0, 10)
 			}));
 		}
-
-		// layout data
-		if (layoutRes.status !== 200) {
-			const errorText = await layoutRes.text();
-			console.error('layout find failed', layoutRes.status, errorText);
-			return fail(400, { action: 'layout', success: false, message: errorText });
-		}
 		getLayout = await layoutRes.json();
-
-		// product data
-		if (productRes.status !== 200) {
-			const errorText = await productRes.text();
-			console.error('product find failed', productRes.status, errorText);
-			return fail(400, { action: 'product', success: false, message: errorText });
-		}
 		getProduct = await productRes.json();
-
-		// user data
-		if (userRes.status !== 200) {
-			const errorText = await userRes.text();
-			console.error('user find failed', userRes.status, errorText);
-			return fail(400, { action: 'user', success: false, message: errorText });
-		}
 		getUser = await userRes.json();
 
 	} catch (error) {
 		console.log('page fetch error:', error);
+		throw error(500, 'Server error');
 	}
 
 	return {
@@ -142,7 +130,7 @@ export const actions: Actions = {
 		const code = formData.get('code');
 		const type = formData.get('type');
 		const value = formData.get('value');
-		const selectedApplicability = formData.get('applicability');
+		const selectedApplicability: any = formData.get('applicability');
 		const selectId = formData.get('selectId')
 		const notes = formData.get('notes') || '';
 
@@ -150,30 +138,41 @@ export const actions: Actions = {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
 
-		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/register`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
+		const resFetch = fetch(`${baseURL}/api/mongo/create`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey,
+				schema: 'discount', //product | order | user | layout | discount
+				newDoc: {
+					discountId: nanoid(),
 					code,
 					type,
 					value,
 					selectedApplicability,
-					selectId,
+					[selectedApplicability]: selectId,
 					notes
-				})
-			});
-			const result = await response.json();
-			if (response.ok) {
-				return { action: 'new', success: true, message: result.message };
-			} else {
-				return { action: 'new', success: false, message: result.message };
+				},
+				returnObj: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
+		});
+
+		try {
+			const res = await resFetch;
+			if (res.status != 200) {
+				const errorText = await res.text();
+				console.error('user find failed', res.status, errorText);
+				return fail(400, { action: 'new', success: false, message: errorText });
+			}
+			const result = await res.json();
+
+			return { action: 'new', success: true, message: result.message };
+
 		} catch (error) {
 			console.error('Error new :', error);
-			return { action: 'new', success: false, message: 'Errore new' };
+			return { action: 'new', success: false, message: 'Error new' };
 		}
 	},
 
@@ -183,56 +182,49 @@ export const actions: Actions = {
 		const code = formData.get('code');
 		const type = formData.get('type');
 		const value = formData.get('value');
-		const selectedApplicability = formData.get('applicability');
+		const selectedApplicability: any = formData.get('applicability');
 		const selectId = formData.get('selectId');
 		const notes = formData.get('notes') || '';
-		// const code = formData.get('code');
-		// const type = formData.get('type');
-		// const value = formData.get('value');
-		// const selectedApplicability = formData.get('applicability');
-		// const userId = formData.get('userId') || '';
-		// const membershipLevel = formData.get('membershipLevel') || '';
-		// const prodId = formData.get('prodId') || '';
-		// const layoutId = formData.get('layoutId') || '';
-		// const notes = formData.get('notes') || '';
 
 		if (!discountId || !code || !type || !value || !selectedApplicability || !selectId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
-		// discountId,
-		// 			code,
-		// 			type,
-		// 			value,
-		// 			selectedApplicability,
-		// 			userId,
-		// 			membershipLevel,
-		// 			prodId,
-		// 			layoutId,
-		// 			notes
-		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
-		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/modify`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
+		const resFetch = fetch(`${baseURL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey,
+				schema: 'discount', //product | order | user | layout | discount
+				query: { discountId }, // 'course', 'product', 'membership', 'event',
+				update: {
+					$set: {
+						code: code,
+						type: type,
+						value: value,
+						selectedApplicability: selectedApplicability,
+						[selectedApplicability]: selectId, // 'userId', 'membershipLevel', 'prodId', 'layoutId'
+						notes: notes,
+					}
 				},
-				body: JSON.stringify({
-					discountId,
-					code,
-					type,
-					value,
-					selectedApplicability,
-					selectId,
-					notes
-				})
-			});
-			const result = await response.json();
-			if (response.ok) {
-				return { action: 'modify', success: true, message: result.message };
-			} else {
-				return { action: 'modify', success: false, message: result.message };
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
+		});
+
+		try {
+			const res = await resFetch;
+			if (res.status != 200) {
+				const errorText = await res.text();
+				console.error('discount update failed', res.status, errorText);
+				return fail(400, { action: 'modify', success: false, message: errorText });
+			}
+			const result = await res.json();
+
+			return { action: 'modify', success: true, message: result.message };
+
 		} catch (error) {
 			console.error('Error creating new modify:', error);
 			return { action: 'modify', success: false, message: 'Error modify' };
@@ -240,25 +232,33 @@ export const actions: Actions = {
 	},
 
 	delete: async ({ request, fetch }) => {
-
 		const formData = await request.formData();
 		const discountId = formData.get('discountId');
-		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/remove`, {
-				method: 'DELETE',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					discountId
-				})
-			});
-			const result = await response.json();
-			if (response.ok) {
-				return { action: 'delete', success: true, message: result.message };
-			} else {
-				return { action: 'delete', success: false, message: result.message };
+
+		const resFetch = await fetch(`${baseURL}/api/mongo/remove`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey,
+				schema: 'discount', //product | order | user | layout | discount
+				query: { discountId: discountId }, // 'course', 'product', 'membership', 'event'
+				multi: false,
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
+		});
+
+		try {
+			const res = await resFetch;
+			if (res.status != 200) {
+				const errorText = await res.text();
+				console.error('discount delete failed', res.status, errorText);
+				return fail(400, { action: 'delete', success: false, message: errorText });
+			}
+			const result = await res.json();
+
+			return { action: 'delete', success: true, message: result.message };
+
 		} catch (error) {
 			console.error('Error delete:', error);
 			return { action: 'delete', success: false, message: 'Error delete' };
@@ -271,36 +271,41 @@ export const actions: Actions = {
 		const selectedApplicability = formData.get('selectedApplicability');
 		const status = formData.get('status');
 
-		// console.log('level', level);
 
-		const arrayField = ['code', 'selectedApplicability', 'status'];
-		const arrayValue = [code, selectedApplicability, status];
+
+		const resFetch = await fetch(`${baseURL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey,
+				schema: 'discount', //product | order | user | layout | discount
+				query: {
+					//type: 'course', 'product', 'membership', 'event'
+					...(code && { code: { $regex: `.*${code}.*`, $options: 'i' } }),
+					...(selectedApplicability && { selectedApplicability }),
+					...(status && { status }),
+				},
+				projection: { _id: 0 }, // 0: exclude | 1: include,
+				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending,
+				limit: 1000,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 
 		try {
-			const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/finds/0/0`, {
-				method: 'POST',
-				body: JSON.stringify({
-					schema: 'discount',
-					arrayField,
-					arrayValue
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			//console.log('response', response);
-			const result = await response.json();
+			const res = await resFetch;
 
-			if (response.status == 200) {
-				const filterTableList = result.map((obj: any) => ({
-					...obj,
-					createdAt: obj.createdAt.substring(0, 10)
-				}));
-				return { action: 'filter', success: true, message: 'Filtro applicato', filterTableList };
-
-			} else {
-				return { action: 'filter', success: false, message: 'Sconto non trovato' };
+			if (res.status != 200) {
+				const errorText = await res.text();
+				console.error('discount filter failed', res.status, errorText);
+				return fail(400, { action: 'filter', success: false, message: errorText });
 			}
+			const payload = await res.json();
+
+			return { action: 'filter', success: true, message: 'Filtro attivato', payload };
+
 		} catch (error) {
 			console.error('Error filter:', error);
 			return { action: 'filter', success: false, message: 'Error filter' };
@@ -317,50 +322,39 @@ export const actions: Actions = {
 			return fail(400, { action: 'changeStatus', success: false, message: 'Dati mancanti' });
 		}
 
+		const resFetch = fetch(`${baseURL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey,
+				schema: 'discount', //product | order | user | layout | discount
+				query: { discountId },
+				update: {
+					$set: {
+						status: newStatus,
+					}
+				},
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
 		try {
-			// const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/discounts/status`, {
-			// 	method: 'POST',
-			// 	headers: {
-			// 		'Content-Type': 'application/json'
-			// 	},
-			// 	body: JSON.stringify({
-			// 		discountId,
-			// 		status
-			// 	})
-			// });
-			const query = { discountId };
-			const update = {
-				$set: {
-					status: newStatus,
-				}
-			};
-			const options = { upsert: false }
-			const multi = false
-			const res = await fetch(`${baseURL}/api/mongo/update`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey,
-					schema: 'discount', //product | order | user | layout | discount
-					query,
-					update,
-					options,
-					multi
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
+			const res = await resFetch;
 			if (res.status != 200) {
 				const errorText = await res.text();
-				console.error('discount update failed', res.status, errorText);
+				console.error('changeStatus update failed', res.status, errorText);
 				return fail(400, { action: 'changeStatus', success: false, message: errorText });
 			}
 			const result = await res.json();
+
 			return { action: 'changeStatus', success: true, message: result.message };
 
 		} catch (error) {
 			console.error('Error changeStatus:', error);
-			return { action: 'changeStatus', success: false, message: 'Error changeStatus' };
+			return fail(400, { action: 'changeStatus', success: false, message: 'Error changeStatus' });
 		}
 	},
 

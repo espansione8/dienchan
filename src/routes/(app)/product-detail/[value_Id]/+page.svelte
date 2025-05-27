@@ -25,55 +25,6 @@
 		selectedImage = index;
 	};
 
-	// test data
-
-	// const product1 = {
-	// 	name: 'Harmony Essential Oil Blend V2',
-	// 	tagline: 'Balance • Calm • Wellness',
-	// 	price: 42.99,
-	// 	salePrice: 36.99,
-	// 	rating: 4.8,
-	// 	reviewCount: 124,
-	// 	stock: 'In Stock',
-	// 	description:
-	// 		'Our signature blend combines 7 therapeutic-grade essential oils to create a harmonious balance for mind and body. Expertly crafted to reduce stress, enhance focus, and promote overall wellbeing.',
-	// 	benefits: [
-	// 		'Reduces stress and anxiety',
-	// 		'Enhances mental clarity and focus',
-	// 		'Promotes restful sleep',
-	// 		'Balances mood and emotions',
-	// 		'Supports immune function'
-	// 	],
-	// 	info: 'Organic Lavender Oil, Wild-Crafted Frankincense, Bergamot Oil, Ylang Ylang Extract, Cedarwood Oil, Chamomile Oil, Vetiver Root Oil',
-	// 	usage:
-	// 		'Apply 2-3 drops to pulse points, add to diffuser, or mix with carrier oil for massage. Use morning and evening for optimal results.',
-	// 	images: [
-	// 		'/images/placeholder.jpg',
-	// 		'/images/no_img.jpg',
-	// 		'/images/placeholder.jpg',
-	// 		'/images/no_img.jpg',
-	// 		'/images/image_placeholder.png'
-	// 	],
-	// 	features: [
-	// 		'100% Pure & Natural',
-	// 		'Ethically Sourced',
-	// 		'No Synthetic Additives',
-	// 		'Cruelty-Free'
-	// 	],
-	// 	relatedProducts: [
-	// 		{ name: 'Clarity Mind Mist', price: 28.99, image: '/images/image_placeholder.png' },
-	// 		{
-	// 			name: 'Tranquil Sleep Blend',
-	// 			price: 38.99,
-	// 			image: '/images/image_placeholder.png'
-	// 		},
-	// 		{
-	// 			name: 'Vitality Wellness Drops',
-	// 			price: 44.99,
-	// 			image: '/images/image_placeholder.png'
-	// 		}
-	// 	]
-	// };
 	// notification
 	let toastClosed = $state(true);
 	let notificationContent = $state('');
@@ -105,7 +56,7 @@
 					/>
 				</div>
 				<!-- <div class="flex space-x-3">
-				{#each getProduct.images as image, i}
+				{#each imgCheck.array as image, i}
 					<button
 						class="w-24 h-24 cursor-pointer rounded-md overflow-hidden border-2 transition-all {selectedImage ===
 						i

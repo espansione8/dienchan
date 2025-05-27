@@ -44,6 +44,7 @@
 	// };
 
 	let loading = $state(false);
+
 	let closedInput = $state(false);
 	if (auth) {
 		closedInput = true;

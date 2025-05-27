@@ -1,8 +1,7 @@
 // src/routes/login/+page.server.ts
-import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
+import { fail, redirect } from '@sveltejs/kit';
 import { hash } from '$lib/tools/hash';
-import dbConnect from '$lib/db/mongo/database';
 
 const apiKey = import.meta.env.VITE_APIKEY;
 const baseURL = import.meta.env.VITE_BASE_URL;
@@ -15,83 +14,82 @@ export const actions: Actions = {
 		const loginPassword = data.get('loginPassword') as string;
 		const rememberMe = data.get('rememberMe') === 'on'; // Checkbox value is 'on' or null
 		const cookieId = crypto.randomUUID()
+
 		let response: any;
+
+		const userFetch = fetch(`${baseURL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey,
+				schema: 'user', //product | order | user | layout | discount
+				query: { email: loginEmail }, //IF USE Products.model -> types: course / product / membership / event
+				projection: { email: 1, password: 1 }, // 0: exclude | 1: include
+				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				limit: 1,
+				skip: 0,
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			},
+		});
+
+		const updateFetch = (userEmail: string) => fetch(`${baseURL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey,
+				schema: 'user', //product | order | user | layout | discount
+				query: { email: userEmail }, //IF USE Products.model -> types: course / product / membership / event,
+				update: { $set: { cookieId } },
+				options: { upsert: false },
+				multi: false,
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			},
+		});
 
 		if (!loginEmail || !loginPassword) {
 			return fail(400, { action: 'login', success: false, message: 'Dati mancanti' });
 		}
-		try {
-			await dbConnect();
-			const query = { email: loginEmail }; //IF USE Products.model -> types: course / product / membership / event
-			const projection = { email: 1, password: 1 } // 0: exclude | 1: include
-			const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
-			const limit = 1;
-			const skip = 0;
-			const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/find`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey,
-					schema: 'user', //product | order | user | layout | discount
-					query,
-					projection,
-					sort,
-					limit,
-					skip
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
 
-			if (res.status != 200) {
-				const errorText = await res.text();
-				console.error('user find failed', res.status, errorText);
+		try {
+			// MEMO
+			// const [userRes, updateRes] = await Promise.all([ for
+			// 	userFetch,
+			// 	updateFetch(response[0].email)
+			// ]);
+
+			const userRes = await userFetch;
+
+			if (userRes.status != 200) {
+				const errorText = await userRes.text();
+				console.error('user find failed', userRes.status, errorText);
 				return fail(400, { action: 'login', success: false, message: errorText });
 			}
-			response = await res.json(); // [{ email, password }]
+			response = await userRes.json(); // [{ email, password }]
 
 			if (!response || response.length === 0 || !response[0].email || response[0].password !== hash(loginPassword, salt)) {
 				return fail(400, { action: 'login', success: false, message: 'mail o password errate' })
 			}
 
-			if (response.length > 0) {
-				const query = { email: response[0].email }; //IF USE Products.model -> types: course / product / membership / event
-				const update = { $set: { cookieId } };
-				const options = { upsert: false }
-				const multi = false
-				const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/update`, {
-					method: 'POST',
-					body: JSON.stringify({
-						apiKey,
-						schema: 'user', //product | order | user | layout | discount
-						query,
-						update,
-						options,
-						multi
-					}),
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				});
-				if (res.status != 200) {
-					const errorText = await res.text();
-					console.error('product update failed', res.status, errorText);
-					return fail(400, { action: 'modify', success: false, message: errorText });
-				}
-				// const responseUpdate = await res.json();
-				// console.log('responseUpdate', responseUpdate);
+			const updateRes = await updateFetch(response[0].email);
 
-				cookies.set('session_id', cookieId, {
-					httpOnly: true,
-					//maxAge: 60 * 60 * 24 * 7 // one week
-					//maxAge: 60 * 60 * 24 * 1 // one day
-					maxAge: rememberMe ? 60 * 60 * 24 * 365 : 60 * 60 * 24 * 1,
-					sameSite: 'strict',
-					secure: process.env.NODE_ENV === 'production',
-					path: '/'
-				});
-				return { action: 'login', success: true, message: "login ok", payload: true };
+			if (updateRes.status != 200) {
+				const errorText = await updateRes.text();
+				console.error('product update failed', updateRes.status, errorText);
+				return fail(400, { action: 'modify', success: false, message: errorText });
 			}
+
+			cookies.set('session_id', cookieId, {
+				httpOnly: true,
+				//maxAge: 60 * 60 * 24 * 7 // one week
+				//maxAge: 60 * 60 * 24 * 1 // one day
+				maxAge: rememberMe ? 60 * 60 * 24 * 365 : 60 * 60 * 24 * 1,
+				sameSite: 'strict',
+				secure: process.env.NODE_ENV === 'production',
+				path: '/'
+			});
+			return { action: 'login', success: true, message: "login ok", payload: true };
 
 		} catch (error: any) {
 			console.error('Error login:', error);

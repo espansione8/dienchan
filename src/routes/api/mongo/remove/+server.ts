@@ -10,22 +10,23 @@ import type { RequestHandler } from '@sveltejs/kit';
 
 // const email = emailToCheck.replace(/\s+/g, '').toLowerCase();
 // INSTRUCTION
+
 // const apiKey = import.meta.env.VITE_APIKEY;
-// const query = { type: 'product', price: 0 };
-// const multi = false | true
-// const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/remove`, {
+// const baseURL = import.meta.env.VITE_BASE_URL;
+
+// const resFetch = await fetch(`${import.meta.env.VITE_BASE_URL}/api/mongo/remove`, {
 //     method: 'POST',
 //     body: JSON.stringify({
 //         apiKey,
 //         schema: 'product', //product | order | user | layout | discount
-//         query,
-//         multi,
+//         query: { type: 'product', price: 0 },
+//         multi: false ,
 //     }),
 //     headers: {
 //         'Content-Type': 'application/json'
 //     }
 // });
-// const response = await res.json();
+// const res = await resFetch;
 
 export const POST: RequestHandler = async ({ request }) => {
     const body = await request.json();

@@ -179,7 +179,7 @@
 							</ul>
 						</div>
 					{/if}
-					<form method="POST" action="/logout" use:enhance={handleLogout}>
+					<form method="POST" action="/formAction/logout/" use:enhance={handleLogout}>
 						<button type="submit" class="btn btn-sm btn-outline btn-error">
 							<LogOut size={16} />
 							<span>Logout</span>
@@ -401,7 +401,7 @@
 						{/if}
 
 						<li>
-							<form method="POST" action="/logout" use:enhance={handleLogout}></form>
+							<form method="POST" action="/formAction/logout/" use:enhance={handleLogout}></form>
 							<button type="submit" class="btn btn-outline btn-error justify-start">
 								<LogOut size={18} />
 								Logout
