@@ -73,8 +73,8 @@
 	let discountErr = $state('');
 	let totalDiscount = $state(0);
 
-	let grandTotal = $state(0);
-	let subTotal = $derived(grandTotal - totalDiscount);
+	//let grandTotal = $state(0);
+	//let subTotal = $derived(grandTotal - totalDiscount);
 
 	// modal
 	let currentModal = $state('');
@@ -97,18 +97,44 @@
 		checkSecondPass = password1 === password2;
 	};
 
-	const totalCart = () => {
-		grandTotal = 0;
+	// const totalCart = () => {
+	// 	grandTotal = 0;
+	// 	$cartProducts.forEach((element: any) => {
+	// 		if (element.type == 'course') {
+	// 			//grandTotal += element.layoutView.price;
+	// 			grandTotal += element.layoutView.price * (element.orderQuantity || 1);
+	// 		} else {
+	// 			//grandTotal += element.price;
+	// 			grandTotal += element.price * (element.orderQuantity || 1);
+	// 		}
+	// 	});
+	// };
+
+	// grandTotal is now a $derived variable
+	// It will automatically re-calculate whenever $cartProducts changes
+	let grandTotal: any = $derived(() => {
+		let total = 0;
 		$cartProducts.forEach((element: any) => {
 			if (element.type == 'course') {
-				//grandTotal += element.layoutView.price;
-				grandTotal += element.layoutView.price * (element.orderQuantity || 1);
+				total += element.layoutView.price * (element.orderQuantity || 1);
 			} else {
-				//grandTotal += element.price;
-				grandTotal += element.price * (element.orderQuantity || 1);
+				total += element.price * (element.orderQuantity || 1);
 			}
 		});
-	};
+		return total;
+	});
+
+	// Reactive statement to update totalDiscount whenever grandTotal or appliedDiscountDetails changes
+	$effect(() => {
+		totalDiscount = 0;
+		if (discountArray.length > 0) {
+			discountArray.forEach((element: any) => {
+				totalDiscount += element.totalDiscount || 0;
+			});
+		}
+	});
+
+	let subTotal = $derived(grandTotal() - totalDiscount);
 
 	const onConfirmForm = async () => {
 		if (!auth) {
@@ -170,7 +196,7 @@
 
 	const onRemoveFromCart = (item: any) => {
 		removeFromCart($cartProducts, item);
-		totalCart();
+		//totalCart();
 		// totalDiscountActive();
 		// Reset discounts when cart changes
 		totalDiscount = 0;
@@ -188,7 +214,7 @@
 			removeFromCart($cartProducts, item);
 		}
 		cart = $cartProducts;
-		totalCart();
+		//totalCart();
 		// Reset discounts when quantities change
 		totalDiscount = 0;
 		stringList = '[]';
@@ -208,7 +234,7 @@
 
 	const onEmptyCart = () => {
 		emptyCart();
-		totalCart();
+		//totalCart();
 		totalDiscount = 0;
 		stringList = '[]';
 		discountList = [];
@@ -327,7 +353,7 @@
 	// $effect(() => {
 	// 	totalCart();
 	// });
-	totalCart();
+	//totalCart();
 </script>
 
 <svelte:head>
@@ -782,7 +808,7 @@
 					<div class="p-6 space-y-4">
 						<div class="flex justify-between">
 							<span>Subtotale</span>
-							<span>€ {grandTotal.toFixed(2)}</span>
+							<span>€ {grandTotal().toFixed(2)}</span>
 						</div>
 
 						{#if discountList.length > 0}
@@ -957,13 +983,13 @@
 							<tr>
 								<td>{item.title}</td>
 								<td class="text-right">{item.orderQuantity || 1}</td>
-								<td class="text-right">€ {item.price}</td>
+								<td class="text-right">€ {item.price.toFixed(2)}</td>
 							</tr>
 						{/each}
 						{#if discountList.length > 0}
 							<tr class="text-success">
 								<td colspan="2">Sconto</td>
-								<td class="text-right">- € {totalDiscount}</td>
+								<td class="text-right">- € {totalDiscount.toFixed(2)}</td>
 							</tr>
 						{/if}
 					</tbody>
@@ -971,7 +997,7 @@
 						<tr>
 							<th colspan="2">Totale</th>
 							<th class="text-right">
-								€ {subTotal}
+								€ {subTotal.toFixed(2)}
 							</th>
 						</tr>
 					</tfoot>

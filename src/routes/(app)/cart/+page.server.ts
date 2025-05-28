@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types'
 import { BASE_URL, APIKEY } from '$env/static/private';
-import { fail } from '@sveltejs/kit';
+import { fail, error } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid'
 const apiKey = APIKEY;
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
@@ -51,14 +51,22 @@ const calculateItemDiscount = (
 			const isLayout = selectedApplicability === 'layoutId' && item.layoutView?.layoutId === discount.layoutId;
 
 			if (isProduct || isLayout) {
+				const qty =
+					typeof item.orderQuantity === 'number' && item.orderQuantity > 0
+						? item.orderQuantity
+						: 1;
 				let itemDiscount = 0;
 				if (type === 'amount') {
-					itemDiscount = value * item.orderQuantity || 1;
+					itemDiscount = value * qty;
 				} else if (type === 'percent') {
-					const price = isProduct ? item.price : item.layoutView.price;
-					if (typeof item.price !== 'number') return fail(400, { action: 'discount helper', success: false, message: 'Errore calcolo' });;
-					const singleValue = (price * value) / 100;
-					itemDiscount = singleValue * item.orderQuantity || 1;
+					const rawPrice = isProduct ? item.price : item.layoutView.price;
+					const numericPrice = Number(rawPrice);
+					if (!Number.isFinite(numericPrice)) {
+						throw new Error('Invalid price while calculating discount');
+					}
+					if (typeof item.price !== 'number') return fail(400, { action: 'discount helper', success: false, message: 'Errore calcolo' });
+					const singleValue = (numericPrice * value) / 100;
+					itemDiscount = singleValue * qty;
 				}
 				totalDiscount += itemDiscount;
 			}
