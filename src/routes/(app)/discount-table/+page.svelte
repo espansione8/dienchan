@@ -2,7 +2,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import { enhance } from '$app/forms';
 	import Papa from 'papaparse';
-	import { notification } from '$lib/stores/notifications.js';
+	import { notification } from '$lib/stores/notifications';
 	import Modal from '$lib/components/Modal.svelte';
 	import Loader from '$lib/components/Loader.svelte';
 	import {

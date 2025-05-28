@@ -20,7 +20,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 // 		schema: 'product', //product | order | user | layout | discount
 // 		query: { type: 'product', price: { $gt: 50 } },
 // 		projection: { _id: 0, password: 0 }, // 0: exclude | 1: include
-// 		sort{ createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+// 		sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
 // 		limit: 1000,
 // 		skip: 0
 // 	}),

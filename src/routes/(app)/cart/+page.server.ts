@@ -6,64 +6,94 @@ const apiKey = APIKEY;
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 
 type CartItem = {
-	layoutView: { price: number };
+	prodId?: string;
+	layoutView: { layoutId?: string, price: number };
 	orderQuantity: number;
+	price: number;
 	[key: string]: any;
 };
 
-type DiscountResult = {
-	//discountId: string;
+type DiscountItem = {
+	discountId: string;
 	code: string;
-	// type: string;
-	// value: number;
-	// selectedApplicability: string;
-	totalDiscount: number;
+	type: 'amount' | 'percent';
+	value: number;
+	selectedApplicability: 'userId' | 'membershipLevel' | 'prodId' | 'layoutId';
+	status: 'active' | 'disabled';
+	userId?: string;
+	membershipLevel?: string;
+	prodId?: string;
+	layoutId?: string;
+	[key: string]: any;
 };
 
 export const load: PageServerLoad = async ({ locals, fetch }) => {
-	try {
-		const query = {};
-		const projection = {};
-		const sort = {};
-		const limit = 1000;
-		const skip = 0;
-
-		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'product', //product | order | user | layout | discount
-				query,
-				projection,
-				sort,
-				limit,
-				skip
-			})
-		});
-
-		if (!res.ok) {
-			throw new Error(`Failed to fetch data: ${res.status} ${res.statusText}`);
-		}
-
-		const response = await res.json();
-
-		return {
-			userData: locals.user || null,
-			auth: locals.auth,
-			cartItems: response // Adjust property name as needed
-		};
-	} catch (error) {
-		console.error('Error fetching data in load function:', error);
-		return {
-			userData: locals.user || null,
-			auth: locals.auth,
-			cartItems: [] // Provide a default value in case of error
-		};
-	}
+	return {
+		userData: locals.user || null,
+		auth: locals.auth,
+	};
 };
+
+
+// calculate discount for a single item used in applyDiscount/removeDiscount 
+const calculateItemDiscount = (
+	discount: DiscountItem,
+	cartArray: CartItem[],
+	originalTotal: number
+): number => {
+	const { type, value, selectedApplicability } = discount;
+	let totalDiscount = 0;
+
+	if (selectedApplicability === 'prodId' || selectedApplicability === 'layoutId') {
+		// Item-specific discounts
+		cartArray.forEach((item: CartItem) => {
+			const isProduct = selectedApplicability === 'prodId' && item.prodId === discount.prodId;
+			const isLayout = selectedApplicability === 'layoutId' && item.layoutView?.layoutId === discount.layoutId;
+
+			if (isProduct || isLayout) {
+				let itemDiscount = 0;
+				if (type === 'amount') {
+					itemDiscount = value * item.orderQuantity || 1;
+				} else if (type === 'percent') {
+					const price = isProduct ? item.price : item.layoutView.price;
+					if (typeof item.price !== 'number') return fail(400, { action: 'discount helper', success: false, message: 'Errore calcolo' });;
+					const singleValue = (price * value) / 100;
+					itemDiscount = singleValue * item.orderQuantity || 1;
+				}
+				totalDiscount += itemDiscount;
+			}
+
+			// if (isLayout) {
+			// 	let itemDiscount = 0;
+			// 	if (type === 'amount') {
+			// 		itemDiscount = value * item.orderQuantity;
+			// 	} else if (type === 'percent') {
+			// 		const singleValue = (item.layoutView.price * value) / 100;
+			// 		itemDiscount = singleValue * item.orderQuantity;
+			// 	}
+			// 	totalDiscount += itemDiscount;
+			// }
+		});
+	} else if (selectedApplicability === 'userId' || selectedApplicability === 'membershipLevel') {
+		// User-level discounts
+		if (type === 'amount') {
+			totalDiscount = value;
+		} else if (type === 'percent') {
+			totalDiscount = (originalTotal * value) / 100;
+		}
+	}
+	// else if (selectedApplicability === 'cart') {
+	// 	// Cart-level discounts
+	// 	if (type === 'amount') {
+	// 		totalDiscount = value;
+	// 	} else if (type === 'percent') {
+	// 		totalDiscount = (originalTotal * value) / 100;
+	// 	}
+
+	return totalDiscount;
+};
+
+
 
 export const actions: Actions = {
 	new: async ({ request, fetch, locals }) => {
@@ -73,7 +103,7 @@ export const actions: Actions = {
 		const descrShort = formData.get('descrShort') as string;
 		const category = formData.get('category') as string || '';
 		const price = formData.get('price') as string;
-		const prodImage = formData.get('image') as string || '';
+		//const prodImage = formData.get('image') as string || '';
 		const renewalLength = formData.get('renewalLength') as string;
 
 		if (!title || !price || !renewalLength || !userId) {
@@ -81,16 +111,14 @@ export const actions: Actions = {
 		}
 		//console.log('new', title, descrShort, price, renewalLength, userId);
 		try {
-
-			const prodId = nanoid() // OLD stringHash(crypto.randomUUID());
 			const returnObj = false
 			const newDoc = {
-				prodId,
+				orderId: nanoid(),
 				title,
 				descrShort,
 				stockQty: 1,
 				category: [category],
-				price,
+				price: Number(price),
 				renewalLength,
 				userId,
 			};
@@ -115,210 +143,236 @@ export const actions: Actions = {
 				return { action: 'new', success: false, message: response.message };
 			}
 		} catch (error) {
-			console.error('Error creating new membership:', error);
-			return { action: 'new', success: false, message: 'Errore creazione membership' };
+			console.error('Error order new:', error);
+			return { action: 'new', success: false, message: 'Error order new' };
 		}
 	},
 
 	applyDiscount: async ({ request, fetch, locals }) => {
-		const formData = await request.formData();
-		const discountCode = formData.get('discountCode') as string;
-		const grandTotal = formData.get('grandTotal') as string;
-		const originalTotal = Number(grandTotal)
-		const cart = formData.get('cart') as string;
-		const cartArray = JSON.parse(cart)
-		const discountList = formData.get('discountList') as string;
-		const discountArray = JSON.parse(discountList)  //[]   
-		const checkCode = discountArray.some((item: any) => item == discountCode);
-		// butto sempre il codice nell'array 
-		discountArray.push(discountCode);
 
-		if (!discountCode || checkCode) {
-			return fail(400, { action: 'applyDiscount', success: false, message: checkCode ? 'Sconto già applicato' : 'Dati mancanti' });
-		}
+		const discountFetch = (discountCodes: string[]) => fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey,
+				schema: 'discount',
+				query: { code: { $in: discountCodes } },
+				projection: { _id: 0, password: 0 },
+				sort: { createdAt: -1 },
+				limit: 1000,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 
 		try {
-			// l'api restituisce il gruppo di sconti nel database
-			const response = await fetch(`${BASE_URL}/api/discounts/check`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					discountArray
-				})
-			});
-			const discountGroup = await response.json();
+			const formData = await request.formData();
+			const discountCode = formData.get('discountCode') as string;
+			const cart = formData.get('cart') as string;
+			const grandTotal = formData.get('grandTotal') as string;
+			const discountList = formData.get('discountList') as string;
 
-			// mi prendo i dati del codice sconto che sto esaminando
-			const discountItem = discountGroup.find((item: any) => item.code == discountCode);
-			// Verifico solo se c'è scritto qualcosa e se è attivo
-			if (discountItem && discountItem.status == "disabled") {
-				return fail(400, { action: 'applyDiscount', success: false, message: 'Sconto non attivo' });
+			// Validate required fields
+			if (!discountCode?.trim()) {
+				return fail(400, {
+					action: 'applyDiscount',
+					success: false,
+					message: 'Codice sconto richiesto'
+				});
 			}
+
+			const originalTotal = Number(grandTotal) || 0;
+
+			let cartArray: CartItem[] = [];
+			try {
+				cartArray = JSON.parse(cart || '[]');
+			} catch {
+				return fail(400, { action: 'applyDiscount', success: false, message: 'Cart invalido' });
+			}
+			const discountArray: string[] = JSON.parse(discountList || '[]');
+
+			// Check if discount code is already applied
+			if (discountArray.includes(discountCode)) {
+				return fail(400, {
+					action: 'applyDiscount',
+					success: false,
+					message: 'Sconto già applicato'
+				});
+			}
+
+			// Create new discount array with the new code
+			const newDiscountArray = [...discountArray, discountCode];
+
+			// Fetch all discounts from database
+			const discountRes = await discountFetch(newDiscountArray);
+			const discountGroup: DiscountItem[] = await discountRes.json();
+
+			// Find the specific discount being applied
+			const discountItem = discountGroup.find((item: DiscountItem) => item.code === discountCode);
+
 			if (!discountItem) {
-				return fail(400, { action: 'applyDiscount', success: false, message: 'Sconto non trovato' });
+				return fail(400, {
+					action: 'applyDiscount',
+					success: false,
+					message: 'Codice sconto non trovato'
+				});
 			}
 
-			// controllo se il codice è applicabile, separato per poter controllare singolarmente
-			if (discountItem.selectedApplicability == 'userId' && discountItem.userId != locals.user?.userId) {
-				return fail(400, { action: 'applyDiscount', success: false, message: 'Sconto non applicabile' });
-			}
-			else if (discountItem.selectedApplicability == 'membershipLevel' && discountItem.membershipLevel != locals.user?.membership?.membershipLevel) {
-				return fail(400, { action: 'applyDiscount', success: false, message: 'Sconto non applicabile' });
-			}
-			else if (discountItem.selectedApplicability == 'prodId') {
-				// DA FARE QUANDO CI SARA' LA POSSIBILITA' DI COMPRARE I PRODOTTI, molto simile a quello sotto
-				return fail(400, { action: 'applyDiscount', success: false, message: 'Sconto non applicabile' });
-			}
-			else if (discountItem.selectedApplicability == 'layoutId') {
-				let isThere = false;
-				cartArray.forEach((item: CartItem) => {
-					if (item.layoutView.layoutId == discountItem.layoutId) {
-						isThere = true;
-					}
+			// Check if discount is active
+			if (discountItem.status === 'disabled') {
+				return fail(400, {
+					action: 'applyDiscount',
+					success: false,
+					message: 'Sconto non attivo'
 				});
-				if (!isThere) {
-					return fail(400, { action: 'applyDiscount', success: false, message: 'Sconto non applicabile' });
+			}
+
+			// Validate discount applicability
+			const validateDiscountApplicability = (
+				discount: DiscountItem,
+				user: any,
+				cartArray: CartItem[]
+			): boolean => {
+				const { selectedApplicability } = discount;
+
+				switch (selectedApplicability) {
+					case 'userId':
+						return discount.userId === user?.userId;
+
+					case 'membershipLevel':
+						return discount.membershipLevel === user?.membership?.membershipLevel;
+
+					case 'prodId':
+						return cartArray.some(item => item.prodId === discount.prodId);
+
+					case 'layoutId':
+						return cartArray.some(item => item.layoutView?.layoutId === discount.layoutId);
+
+					default:
+						return false;
 				}
-			}
-
-			// QUA DEVO ARRIVARE AVENDO GIA' VERIFICATO SE IL CODICE E' ATTIVABILE
-			if (response.status == 200) {
-				const discountApplied: DiscountResult[] = []
-				// Ciclo per ogni sconto il calcolo dello sconto
-				discountGroup.forEach((discount: any) => {
-					const { discountId, code, type, value, selectedApplicability } = discount;
-					let totalDiscount = 0;
-					// 1. ciclo gli sconti sul corso o prodotto
-					cartArray.forEach((item: CartItem) => {
-
-						if (selectedApplicability == 'prodId' || selectedApplicability == 'layoutId') {
-							if (item[selectedApplicability] == discount[selectedApplicability]) {
-								let itemDiscount = 0;
-								if (type == 'amount') {
-									itemDiscount = value * item.orderQuantity;
-								} else if (type == 'percent') {
-									const singleValue = (item.layoutView.price * value) / 100;
-									itemDiscount = singleValue * item.orderQuantity;
-								}
-								totalDiscount += itemDiscount;
-							}
-						}
-					});
-					// 2. applico gli sconti sull'utente
-					if (selectedApplicability == 'userId' || selectedApplicability == 'membershipLevel') {
-
-						let itemDiscount = 0;
-						if (type == 'amount') {
-							itemDiscount = value
-						} else if (type == 'percent') {
-							itemDiscount = (originalTotal * value) / 100;
-						}
-						totalDiscount += itemDiscount;
-					}
-
-					// 3. aggiungo il codice con il suo sconto
-					discountApplied.push({
-						//discountId,
-						code,
-						//type,
-						//value,
-						//selectedApplicability,
-						totalDiscount
-					});
+			};
+			if (!validateDiscountApplicability(discountItem, locals.user, cartArray)) {
+				return fail(400, {
+					action: 'applyDiscount',
+					success: false,
+					message: 'Sconto non applicabile'
 				});
-
-				return { action: 'applyDiscount', success: true, message: "sconto applicato", payload: { discountApplied, discountArray } };
-			} else {
-				return { action: 'applyDiscount', success: false, message: discountGroup.message };
 			}
+
+			// Calculate all discounts
+			const discountApplied = () => {
+				return discountGroup.map(discount => ({
+					code: discount.code,
+					totalDiscount: calculateItemDiscount(discount, cartArray, originalTotal)
+				}));
+			};
+			console.log('discountApplied', discountApplied());
+
+
+
+			return {
+				action: 'applyDiscount',
+				success: true,
+				message: 'Sconto applicato con successo',
+				payload: {
+					discountApplied: discountApplied(),
+					discountArray: newDiscountArray
+				}
+			};
+
 		} catch (error) {
-			console.error('Error apply Discount:', error);
-			return { action: 'applyDiscount', success: false, message: 'Errore sconto' };
+			console.error('Error applying discount:', error);
+			return fail(500, {
+				action: 'applyDiscount',
+				success: false,
+				message: 'Errore durante l\'applicazione dello sconto'
+			});
 		}
 	},
 
 	removeDiscount: async ({ request, fetch, locals }) => {
-		const formData = await request.formData();
-		const removeCode = formData.get('removeCode') as string;
-		const grandTotal = formData.get('grandTotal') as string;
-		const originalTotal = Number(grandTotal)
-		const cart = formData.get('cart') as string;
-		const cartArray = JSON.parse(cart)
-		const discountList = formData.get('discountList') as string;
-		let discountArray = JSON.parse(discountList)  //[]  
-		discountArray = discountArray.filter(item => item !== removeCode);
-		// console.log('formData', formData);
-
-		try {
-			// l'api restituisce il gruppo di sconti nel database
-			const response = await fetch(`${BASE_URL}/api/discounts/check`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					discountArray
-				})
-			});
-			const discountGroup = await response.json();
-
-			// QUA DEVO ARRIVARE AVENDO GIA' TOLTO IL CODICE SCONTO
-			if (response.status == 200) {
-				const discountApplied: DiscountResult[] = []
-				// Ciclo per ogni sconto il calcolo dello sconto
-				discountGroup.forEach((discount: any) => {
-					const { discountId, code, type, value, selectedApplicability } = discount;
-					let totalDiscount = 0;
-					// 1. ciclo gli sconti sul corso o prodotto
-					cartArray.forEach((item: CartItem) => {
-
-						if (selectedApplicability == 'prodId' || selectedApplicability == 'layoutId') {
-							if (item[selectedApplicability] == discount[selectedApplicability]) {
-								let itemDiscount = 0;
-								if (type == 'amount') {
-									itemDiscount = value * item.orderQuantity;
-								} else if (type == 'percent') {
-									const singleValue = (item.layoutView.price * value) / 100;
-									itemDiscount = singleValue * item.orderQuantity;
-								}
-								totalDiscount += itemDiscount;
-							}
-						}
-					});
-					// 2. applico gli sconti sull'utente
-					if (selectedApplicability == 'userId' || selectedApplicability == 'membershipLevel') {
-
-						let itemDiscount = 0;
-						if (type == 'amount') {
-							itemDiscount = value
-						} else if (type == 'percent') {
-							itemDiscount = (originalTotal * value) / 100;
-						}
-						totalDiscount += itemDiscount;
-					}
-
-					// 3. aggiungo il codice con il suo sconto
-					discountApplied.push({
-						//discountId,
-						code,
-						//type,
-						//value,
-						//selectedApplicability,
-						totalDiscount
-					});
-
-
-				});
-
-				return { action: 'removeDiscount', success: true, message: "sconto rimosso", payload: { discountApplied, discountArray } };
-			} else {
-				return { action: 'removeDiscount', success: false, message: discountGroup.message };
+		const discountFetch = (discountCodes: string[]) => fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey,
+				schema: 'discount',
+				query: { code: { $in: discountCodes } },
+				projection: { _id: 0, password: 0 },
+				sort: { createdAt: -1 },
+				limit: 1000,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
+		});
+		try {
+			const formData = await request.formData();
+			const removeCode = formData.get('removeCode') as string;
+			const grandTotal = formData.get('grandTotal') as string;
+			const cart = formData.get('cart') as string;
+			const discountList = formData.get('discountList') as string;
+
+			// Validate required fields
+			if (!removeCode?.trim()) {
+				return fail(400, {
+					action: 'removeDiscount',
+					success: false,
+					message: 'Codice sconto richiesto'
+				});
+			}
+
+			const originalTotal = Number(grandTotal) || 0;
+			const cartArray: CartItem[] = JSON.parse(cart || '[]');
+			let discountArray: string[] = JSON.parse(discountList || '[]');
+
+			// Remove the discount code from array
+			discountArray = discountArray.filter(code => code !== removeCode);
+
+			// If no discounts remain, return empty result
+			if (discountArray.length === 0) {
+				return {
+					action: 'removeDiscount',
+					success: true,
+					message: 'Sconto rimosso con successo',
+					payload: {
+						discountApplied: [],
+						discountArray: []
+					}
+				};
+			}
+
+			// Fetch remaining discounts from database
+			const discountRes = await discountFetch(discountArray);
+			const discountGroup: DiscountItem[] = await discountRes.json();
+
+			// Calculate remaining discounts
+			const discountApplied = () => {
+				return discountGroup.map(discount => ({
+					code: discount.code,
+					totalDiscount: calculateItemDiscount(discount, cartArray, originalTotal)
+				}));
+			};
+
+			return {
+				action: 'removeDiscount',
+				success: true,
+				message: 'Sconto rimosso con successo',
+				payload: {
+					discountApplied: discountApplied(),
+					discountArray
+				}
+			};
+
 		} catch (error) {
-			console.error('Error removeDiscount:', error);
-			return { action: 'removeDiscount', success: false, message: 'Errore sconto' };
+			console.error('Error removing discount:', error);
+			return fail(500, {
+				action: 'removeDiscount',
+				success: false,
+				message: 'Errore durante la rimozione dello sconto'
+			});
 		}
 	},
 
@@ -336,7 +390,7 @@ export const actions: Actions = {
 		const mobilePhone = formData.get('mobilePhone') || '';
 
 		if (!name || !surname || !email || !address || !postalCode || !city || !countryState || !country || !phone || !mobilePhone) {
-			return fail(400, { action: 'newUser', success: false, message: 'Dati mancanti' });
+			return fail(400, { action: 'confirmCart', success: false, message: 'Dati mancanti' });
 		}
 
 		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
@@ -361,14 +415,14 @@ export const actions: Actions = {
 			});
 			const result = await response.json();
 			if (response.ok) {
-				return { action: 'newUser', success: true, message: result.message };
+				return { action: 'confirmCart', success: true, message: result.message };
 			} else {
-				return { action: 'newUser', success: false, message: result.message };
+				return { action: 'confirmCart', success: false, message: result.message };
 			}
 		} catch (error) {
-			console.error('Error creating new newUser:', error);
-			return { action: 'newUser', success: false, message: 'Errore creazione newUser' };
+			console.error('Error confirmCart:', error);
+			return { action: 'confirmCart', success: false, message: 'Error confirmCart' };
 		}
 	},
 
-} satisfies Actions;
+} satisfies Actions;		

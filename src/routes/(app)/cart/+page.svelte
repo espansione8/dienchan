@@ -1,11 +1,10 @@
 <script lang="ts">
 	import type { ActionResult } from '@sveltejs/kit';
-	import { BASE_URL, APIKEY } from '$env/static/private';
 	import { goto, invalidateAll } from '$app/navigation';
-	import Modal from '$lib/components/Modal.svelte';
 	import { enhance } from '$app/forms';
+	import Modal from '$lib/components/Modal.svelte';
+	import { notification } from '$lib/stores/notifications';
 	import { cartProducts, addToCart, removeFromCart, emptyCart } from '$lib/stores/cart';
-	import Notification from '$lib/components/Notification.svelte';
 	import Loader from '$lib/components/Loader.svelte';
 	import { country_list, province } from '$lib/stores/arrays';
 	import { imgCheck } from '$lib/tools/tools';
@@ -33,10 +32,11 @@
 		Tag
 	} from 'lucide-svelte';
 
-	let { data, form } = $props();
-	let { userData, auth } = $derived(data);
+	const { data } = $props();
+	const { userData, auth } = $derived(data);
 
-	let loading = $state(false);
+	const BASE_URL = '';
+
 	let cart = $state($cartProducts);
 
 	let error = $state('');
@@ -45,6 +45,8 @@
 	let checkPass = $state(false);
 	let checkSecondPass = $state(false);
 	let inputRef = $state(null);
+
+	let stringList = $state('[]');
 
 	let isModalConfirm = $state(false);
 	let isModalSuccess = $state(false);
@@ -74,10 +76,12 @@
 	let grandTotal = $state(0);
 	let subTotal = $derived(grandTotal - totalDiscount);
 
+	// modal
 	let currentModal = $state('');
 	let openModal = $state(false);
 	let modalTitle = $state('');
 	let postAction = $state('?/');
+	let loading = $state(false);
 
 	const checkCart = (id: any) => {
 		const check = $cartProducts.some((item) => item.prodId == id);
@@ -93,14 +97,15 @@
 		checkSecondPass = password1 === password2;
 	};
 
-	// reset cart - original price
 	const totalCart = () => {
 		grandTotal = 0;
 		$cartProducts.forEach((element: any) => {
 			if (element.type == 'course') {
-				grandTotal += element.layoutView.price;
+				//grandTotal += element.layoutView.price;
+				grandTotal += element.layoutView.price * (element.orderQuantity || 1);
 			} else {
-				grandTotal += element.price;
+				//grandTotal += element.price;
+				grandTotal += element.price * (element.orderQuantity || 1);
 			}
 		});
 	};
@@ -115,8 +120,6 @@
 		}
 		isModalConfirm = true;
 	};
-
-	let stringList = $state('[]');
 
 	const discountTostring = () => {
 		stringList = JSON.stringify(discountList);
@@ -153,10 +156,7 @@
 
 		if (response.status == 200) {
 			isModalConfirm = false;
-			toastClosed = false;
-			notificationContent = res.message;
-			clearTimeout(startTimeout);
-			closeNotification();
+			notification.success(res.message);
 			if (auth) {
 				isModalSuccess = true;
 			} else {
@@ -164,52 +164,80 @@
 			}
 		}
 		if (response.status != 200) {
-			toastClosed = false;
-			notificationError = true;
-			notificationContent = res.message;
-			clearTimeout(startTimeout);
+			notification.error(res.message);
 		}
 	};
 
 	const onRemoveFromCart = (item: any) => {
 		removeFromCart($cartProducts, item);
-		totalDiscountActive();
+		totalCart();
+		// totalDiscountActive();
+		// Reset discounts when cart changes
+		totalDiscount = 0;
 		stringList = '[]';
 		discountList = [];
 		cart = $cartProducts;
 		discountCode = '';
+		discountErr = '';
+	};
+
+	const updateQuantity = (item: any, increment: boolean) => {
+		if (increment) {
+			addToCart($cartProducts, item, false);
+		} else {
+			removeFromCart($cartProducts, item);
+		}
+		cart = $cartProducts;
 		totalCart();
+		// Reset discounts when quantities change
+		totalDiscount = 0;
+		stringList = '[]';
+		discountList = [];
+		discountCode = '';
+		discountErr = '';
 	};
 
 	const totalDiscountActive = () => {
 		totalDiscount = 0;
 		if (discountList.length > 0) {
 			discountList.forEach((element: any) => {
-				totalDiscount += element.totalDiscount;
+				totalDiscount += element.totalDiscount || 0;
 			});
 		}
 	};
 
-	const resetFields = () => {
-		openModal = false;
-		name = '';
-		surname = '';
-		email = '';
-		address = '';
-		city = '';
-		county = 'AG';
-		postalCode = '';
-		country = 'Italy';
-		phone = '';
-		mobilePhone = '';
-		discountErr = '';
-		form = null;
-		modalTitle = '';
-		postAction = '?/';
+	const onEmptyCart = () => {
 		emptyCart();
+		totalCart();
+		totalDiscount = 0;
+		stringList = '[]';
+		discountList = [];
+		cart = $cartProducts;
+		discountCode = '';
+		discountErr = '';
 	};
 
-	const resetData = () => {
+	const resetFields = () => {
+		openModal = false;
+		if (!auth) {
+			name = '';
+			surname = '';
+			email = '';
+			address = '';
+			city = '';
+			county = 'AG';
+			postalCode = '';
+			country = 'Italy';
+			phone = '';
+			mobilePhone = '';
+		}
+		discountErr = '';
+		modalTitle = '';
+		postAction = '?/';
+		loading = false;
+	};
+
+	const refresh = () => {
 		invalidateAll();
 		resetFields();
 	};
@@ -241,212 +269,212 @@
 		currentModal = '';
 	};
 
-	//notification
-	let toastClosed = $state(true);
-	let notificationContent = $state('');
-	let notificationError = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-			notificationContent = '';
-			notificationError = false;
-		}, 3000); // 1000 milliseconds = 1 second
-	};
-
 	const formSubmit = () => {
 		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
+			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
-				const { action, success, message, payload } = result.data;
+				const { action, message, payload } = result.data; // { action, success, message, payload }
 
-				name = userData.name;
-				surname = userData.surname;
-				email = userData.email;
-				address = userData.address;
-				city = userData.city;
-				county = userData.county;
-				postalCode = userData.postalCode;
-				country = userData.country;
-				phone = userData.phone;
-				mobilePhone = userData.mobilePhone;
-				discountList = payload?.discountApplied ?? [];
-				isModalConfirm = false;
-
-				if (action == 'applyDiscount' || 'removeDiscount') {
-					discountList = payload?.discountArray;
-					discountTostring();
-					discountErr = '';
-					totalDiscountActive();
+				if (action === 'applyDiscount') {
+					if (payload?.discountApplied) {
+						discountList = payload.discountApplied;
+						discountCode = '';
+						discountErr = '';
+						totalDiscountActive();
+						discountTostring();
+					}
+					if (payload?.discountArray) {
+						stringList = JSON.stringify(payload.discountArray);
+					}
+				} else if (action === 'removeDiscount') {
+					if (payload?.discountApplied) {
+						discountList = payload.discountApplied;
+						totalDiscountActive();
+					}
+					if (payload?.discountArray) {
+						stringList = JSON.stringify(payload.discountArray);
+					}
+				} else if (action === 'confirmCart') {
+					onEmptyCart();
+					discountList = [];
+					totalDiscount = 0;
+					stringList = '[]';
+					goto('/profile-modify');
 				}
 
-				notificationContent = result.data.message;
+				notification.info(message);
 				onCloseModal();
 			}
 			if (result.type === 'failure') {
-				notificationContent = result.data.message;
-				notificationError = true;
+				notification.error(result.data.message || 'Errore ordine');
 				discountErr = result.data.message;
 				discountCode = '';
 			}
 			if (result.type === 'error') {
-				notificationContent = result.error;
-				notificationError = true;
+				notification.error(result.error.message || 'Errore Server');
 				discountErr = result.error;
 				discountCode = '';
 			}
-
-			clearTimeout(startTimeout);
-			closeNotification();
-			toastClosed = false;
+			// 'update()' is called by default by use:enhance
+			// call 'await update()' if you need to ensure it completes before further client logic.
+			resetFields();
 			loading = false;
 		};
 	};
+
+	// $effect(() => {
+	// 	totalCart();
+	// });
+	totalCart();
 </script>
 
 <svelte:head>
 	<title>Carrello</title>
 </svelte:head>
 
-<div class="container mx-auto px-4 py-8">
-	<div class="flex flex-col lg:flex-row gap-8">
-		<!-- Cart Items Section -->
-		<div class="w-full lg:w-2/3">
-			<div class="bg-white rounded-xl shadow-md overflow-hidden">
-				<div class="bg-primary text-primary-content px-6 py-4 flex justify-between items-center">
-					<h2 class="text-xl font-bold">Il tuo carrello</h2>
-					<span class="badge badge-lg badge-outline font-semibold"
-						>{$cartProducts.length} prodotti</span
-					>
-				</div>
+{#if !userData}
+	<Loader />
+{:else}
+	<div class="container mx-auto px-4 py-8">
+		<div class="flex flex-col lg:flex-row gap-8">
+			<!-- Cart Items Section -->
+			<div class="w-full lg:w-2/3">
+				<div class="bg-white rounded-xl shadow-md overflow-hidden">
+					<div class="bg-primary text-primary-content px-6 py-4 flex justify-between items-center">
+						<h2 class="text-xl font-bold">Il tuo carrello</h2>
+						<span class="badge badge-lg badge-outline font-semibold"
+							>{$cartProducts.length} prodotti</span
+						>
+					</div>
 
-				{#if $cartProducts.length > 0}
-					<div class="p-6">
-						<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-							{#each $cartProducts as item}
-								<div class="card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
-									<div class="flex flex-col h-full">
-										<div class="p-4 flex gap-4">
-											<div class="w-1/3">
-												<div
-													class="aspect-square bg-base-200/30 rounded-lg overflow-hidden flex items-center justify-center"
-												>
-													<img
-														src={imgCheck.single(item.uploadfiles, 'product-primary')}
-														alt="product"
-														class="h-full w-full object-contain p-2"
-													/>
-												</div>
-											</div>
-
-											<div class="w-2/3">
-												<div class="flex justify-between items-start">
-													<a
-														href="/course-detail/{item.prodId}"
-														class="hover:text-primary transition-colors"
+					{#if $cartProducts.length > 0}
+						<div class="p-6">
+							<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+								{#each $cartProducts as item}
+									<div class="card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
+										<div class="flex flex-col h-full">
+											<div class="p-4 flex gap-4">
+												<div class="w-1/3">
+													<div
+														class="aspect-square bg-base-200/30 rounded-lg overflow-hidden flex items-center justify-center"
 													>
-														<h3 class="text-base font-bold">{item.title}</h3>
+														<img
+															src={imgCheck.single(item.uploadfiles, 'product-primary')}
+															alt="product"
+															class="h-full w-full object-contain p-2"
+														/>
+													</div>
+												</div>
+
+												<div class="w-2/3">
+													<div class="flex justify-between items-start">
+														<a
+															href="/product-detail/{item.prodId}"
+															class="hover:text-primary transition-colors"
+														>
+															<h3 class="text-base font-bold">{item.title}</h3>
+														</a>
+														<!-- <div class="text-lg font-bold text-primary">€{item.price}</div> -->
+													</div>
+
+													<div class="flex items-center gap-2 mt-2 text-xs">
+														<Tags size={14} class="text-primary flex-shrink-0" />
+														<span class="font-medium">{item.category?.[0] || 'Categoria'}</span>
+													</div>
+
+													<div class="flex items-center gap-1 mt-2 text-xs">
+														{#if item.stockQty < 1}
+															<div class="text-error flex items-center gap-1">
+																<Boxes size={14} />
+																<span>Esaurito</span>
+															</div>
+														{:else}
+															<div class="text-success flex items-center gap-1">
+																<Boxes size={14} />
+																<span>{item.stockQty} disponibili</span>
+															</div>
+														{/if}
+													</div>
+													<div class="flex items-center gap-1 mt-1 text-xs">
+														<div class="text-lg font-bold text-primary">€ {item.price} pz</div>
+													</div>
+												</div>
+											</div>
+
+											<div
+												class="mt-auto border-t border-base-200 p-4 flex items-center justify-between"
+											>
+												<div class="flex items-center gap-2">
+													<button
+														class="btn btn-xs btn-outline btn-error"
+														onclick={() => onRemoveFromCart(item)}
+													>
+														<Trash2 size={14} />
+														Rimuovi
+													</button>
+
+													<a href="/product-detail/{item.prodId}" class="btn btn-xs btn-outline">
+														<Info size={14} />
+														Dettagli
 													</a>
-													<!-- <div class="text-lg font-bold text-primary">€{item.price}</div> -->
 												</div>
 
-												<div class="flex items-center gap-2 mt-2 text-xs">
-													<Tags size={14} class="text-primary flex-shrink-0" />
-													<span class="font-medium">{item.category?.[0] || 'Categoria'}</span>
+												<div class="join">
+													<button
+														class="join-item btn btn-xs"
+														onclick={() => updateQuantity(item, false)}
+														disabled={item.orderQuantity <= 1}>-</button
+													>
+													<input
+														type="text"
+														class="join-item input input-xs input-bordered w-10 text-center"
+														value={item.orderQuantity || 1}
+														readonly
+													/>
+													<button
+														class="join-item btn btn-xs"
+														onclick={() => updateQuantity(item, true)}
+														disabled={item.orderQuantity >= item.stockQty}>+</button
+													>
 												</div>
-
-												<div class="flex items-center gap-1 mt-2 text-xs">
-													{#if item.stockQty < 1}
-														<div class="text-error flex items-center gap-1">
-															<Boxes size={14} />
-															<span>Esaurito</span>
-														</div>
-													{:else}
-														<div class="text-success flex items-center gap-1">
-															<Boxes size={14} />
-															<span>{item.stockQty} disponibili</span>
-														</div>
-													{/if}
-												</div>
-												<div class="flex items-center gap-1 mt-1 text-xs">
-													<div class="text-lg font-bold text-primary">€ {item.price} pz</div>
-												</div>
-											</div>
-										</div>
-
-										<div
-											class="mt-auto border-t border-base-200 p-4 flex items-center justify-between"
-										>
-											<div class="flex items-center gap-2">
-												<button
-													class="btn btn-xs btn-outline btn-error"
-													onclick={() => onRemoveFromCart(item)}
-												>
-													<Trash2 size={14} />
-													Rimuovi
-												</button>
-
-												<a href="/product-detail/{item.prodId}" class="btn btn-xs btn-outline">
-													<Info size={14} />
-													Dettagli
-												</a>
-											</div>
-
-											<div class="join">
-												<button
-													class="join-item btn btn-xs"
-													onclick={() => removeFromCart($cartProducts, item)}
-													disabled={item.orderQuantity <= 1}>-</button
-												>
-												<input
-													type="text"
-													class="join-item input input-xs input-bordered w-10 text-center"
-													value={item.orderQuantity || 1}
-													readonly
-												/>
-												<button
-													class="join-item btn btn-xs"
-													onclick={() => addToCart($cartProducts, item, false)}
-													disabled={item.orderQuantity >= item.stockQty}>+</button
-												>
 											</div>
 										</div>
 									</div>
-								</div>
-							{/each}
-						</div>
+								{/each}
+							</div>
 
-						<div class="flex justify-between pt-6">
-							<button class="btn btn-outline btn-error" onclick={() => emptyCart()}>
-								<Trash2 size={16} />
-								Svuota carrello
-							</button>
+							<div class="flex justify-between pt-6">
+								<button class="btn btn-outline btn-error" onclick={() => onEmptyCart()}>
+									<Trash2 size={16} />
+									Svuota carrello
+								</button>
 
-							<a href="/product-shop" class="btn btn-outline">
-								<ArrowLeft size={16} />
-								Continua lo shopping
-							</a>
+								<a href="/product-shop" class="btn btn-outline">
+									<ArrowLeft size={16} />
+									Continua lo shopping
+								</a>
+							</div>
 						</div>
-					</div>
-				{:else}
-					<div class="p-16 flex flex-col items-center justify-center text-center">
-						<div class="w-20 h-20 bg-base-200 rounded-full flex items-center justify-center mb-4">
-							<ShoppingCart size={32} class="text-base-content/50" />
+					{:else}
+						<div class="p-16 flex flex-col items-center justify-center text-center">
+							<div class="w-20 h-20 bg-base-200 rounded-full flex items-center justify-center mb-4">
+								<ShoppingCart size={32} class="text-base-content/50" />
+							</div>
+							<h3 class="text-xl font-bold mb-2">Il tuo carrello è vuoto</h3>
+							<p class="text-base-content/70 mb-6">
+								Aggiungi alcuni prodotti per iniziare lo shopping
+							</p>
+							<a href="/product-shop" class="btn btn-primary"> Inizia lo shopping </a>
 						</div>
-						<h3 class="text-xl font-bold mb-2">Il tuo carrello è vuoto</h3>
-						<p class="text-base-content/70 mb-6">
-							Aggiungi alcuni prodotti per iniziare lo shopping
-						</p>
-						<a href="/product-shop" class="btn btn-primary"> Inizia lo shopping </a>
-					</div>
-				{/if}
+					{/if}
+				</div>
 			</div>
-		</div>
 
-		<!-- Order Summary Section -->
-		<div class="w-full lg:w-1/3 space-y-6">
-			{#if $cartProducts.length > 0}
+			<!-- Order Summary Section -->
+			<div class="w-full lg:w-1/3 space-y-6">
+				<!-- {#if $cartProducts.length > 0} -->
 				<!-- User Profile -->
 				<div class="bg-white rounded-xl shadow-md overflow-hidden">
 					<div class="bg-primary text-primary-content px-6 py-4 flex justify-between items-center">
@@ -754,20 +782,13 @@
 					<div class="p-6 space-y-4">
 						<div class="flex justify-between">
 							<span>Subtotale</span>
-							<span>€ {grandTotal}</span>
+							<span>€ {grandTotal.toFixed(2)}</span>
 						</div>
-
-						{#if !auth}
-							<div class="flex justify-between">
-								<span>Tesseramento (primo corso)</span>
-								<span>€ 25</span>
-							</div>
-						{/if}
 
 						{#if discountList.length > 0}
 							<div class="flex justify-between text-success">
 								<span>Sconto</span>
-								<span>- € {totalDiscount}</span>
+								<span>- € {totalDiscount.toFixed(2)}</span>
 							</div>
 						{/if}
 
@@ -775,16 +796,12 @@
 
 						<div class="flex justify-between font-bold text-lg">
 							<span>Totale</span>
-							{#if !auth}
-								<span class="text-primary">€ {subTotal + 25}</span>
-							{:else}
-								<span class="text-primary">€ {subTotal}</span>
-							{/if}
+							<span class="text-primary">€ {subTotal.toFixed(2)}</span>
 						</div>
 
 						<!-- Discount Code -->
 						<div class="pt-4">
-							<form method="POST" use:enhance={formSubmit}>
+							<form method="POST" action="?/applyDiscount" use:enhance={formSubmit}>
 								<label class="form-control w-full">
 									<div class="label">
 										<span class="label-text font-medium">Codice sconto</span>
@@ -802,11 +819,15 @@
 										<input type="hidden" name="grandTotal" value={grandTotal} />
 										<input type="hidden" name="discountList" value={stringList} />
 										<button
+											type="submit"
 											class="btn btn-primary"
-											formaction="?/applyDiscount"
-											disabled={!discountCode}
+											disabled={!discountCode || loading}
 										>
-											Applica
+											{#if loading}
+												<span class="loading loading-spinner loading-sm"></span>
+											{:else}
+												Applica
+											{/if}
 										</button>
 									</div>
 									{#if discountErr}
@@ -815,30 +836,32 @@
 										</div>
 									{/if}
 								</label>
+							</form>
 
-								{#if discountList.length > 0}
+							{#if discountList.length > 0}
+								<form method="POST" action="?/removeDiscount" use:enhance={formSubmit}>
 									<div class="flex flex-wrap gap-2 mt-3">
 										{#each discountList as badgeCode, i}
 											<div class="badge badge-lg bg-primary/10 text-primary gap-2">
 												<Tag size={14} />
-												{badgeCode}
+												{badgeCode.code}
 												<input type="hidden" name="cart" value={JSON.stringify($cartProducts)} />
 												<input type="hidden" name="grandTotal" value={grandTotal} />
 												<input type="hidden" name="discountList" value={stringList} />
+												<input type="hidden" name="removeCode" value={badgeCode.code} />
 												<button
 													type="submit"
 													name="removeCode"
-													value={badgeCode}
-													formaction="?/removeDiscount"
 													class="btn btn-xs btn-circle btn-ghost"
+													disabled={loading}
 												>
 													<X size={14} />
 												</button>
 											</div>
 										{/each}
 									</div>
-								{/if}
-							</form>
+								</form>
+							{/if}
 						</div>
 
 						<button
@@ -850,12 +873,11 @@
 						</button>
 					</div>
 				</div>
-			{/if}
+				<!-- {/if} -->
+			</div>
 		</div>
 	</div>
-</div>
-
-<Notification {toastClosed} {notificationContent} {notificationError} />
+{/if}
 
 <!-- Confirmation Modal -->
 <dialog id="confirmation-modal" class="modal" class:modal-open={isModalConfirm}>
@@ -938,13 +960,6 @@
 								<td class="text-right">€ {item.price}</td>
 							</tr>
 						{/each}
-						{#if !auth}
-							<tr>
-								<td>Tesseramento (primo corso)</td>
-								<td class="text-right">1</td>
-								<td class="text-right">€ 25</td>
-							</tr>
-						{/if}
 						{#if discountList.length > 0}
 							<tr class="text-success">
 								<td colspan="2">Sconto</td>
@@ -956,11 +971,7 @@
 						<tr>
 							<th colspan="2">Totale</th>
 							<th class="text-right">
-								{#if !auth}
-									€ {subTotal + 25}
-								{:else}
-									€ {subTotal}
-								{/if}
+								€ {subTotal}
 							</th>
 						</tr>
 					</tfoot>
