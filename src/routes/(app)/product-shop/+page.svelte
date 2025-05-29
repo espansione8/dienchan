@@ -347,7 +347,7 @@
 									>
 										<span class="text-xs font-semibold">PREZZO</span>
 										<div class="flex items-baseline">
-											<span class="text-2xl font-bold">€ {productData.price}</span>
+											<span class="text-2xl font-bold">€ {productData.price.toFixed(2)}</span>
 										</div>
 									</div>
 									<div

@@ -1,12 +1,8 @@
 // src/routes/login/+page.server.ts
 import type { Actions } from './$types';
-import { BASE_URL, APIKEY } from '$env/static/private';
+import { BASE_URL, APIKEY, SALT } from '$env/static/private';
 import { fail, redirect } from '@sveltejs/kit';
 import { hash } from '$lib/tools/hash';
-
-const apiKey = APIKEY;
-const baseURL = BASE_URL;
-const salt = import.meta.env.VITE_SALT;
 
 export const actions: Actions = {
 	login: async ({ request, cookies }) => {
@@ -18,10 +14,10 @@ export const actions: Actions = {
 
 		let response: any;
 
-		const userFetch = fetch(`${baseURL}/api/mongo/find`, {
+		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
-				apiKey,
+				apiKey: APIKEY,
 				schema: 'user', //product | order | user | layout | discount
 				query: { email: loginEmail }, //IF USE Products.model -> types: course / product / membership / event
 				projection: { email: 1, password: 1 }, // 0: exclude | 1: include
@@ -34,10 +30,10 @@ export const actions: Actions = {
 			},
 		});
 
-		const updateFetch = (userEmail: string) => fetch(`${baseURL}/api/mongo/update`, {
+		const updateFetch = (userEmail: string) => fetch(`${BASE_URL}/api/mongo/update`, {
 			method: 'POST',
 			body: JSON.stringify({
-				apiKey,
+				apiKey: APIKEY,
 				schema: 'user', //product | order | user | layout | discount
 				query: { email: userEmail }, //IF USE Products.model -> types: course / product / membership / event,
 				update: { $set: { cookieId } },
@@ -69,7 +65,7 @@ export const actions: Actions = {
 			}
 			response = await userRes.json(); // [{ email, password }]
 
-			if (!response || response.length === 0 || !response[0].email || response[0].password !== hash(loginPassword, salt)) {
+			if (!response || response.length === 0 || !response[0].email || response[0].password !== hash(loginPassword, SALT)) {
 				return fail(400, { action: 'login', success: false, message: 'mail o password errate' })
 			}
 
@@ -114,7 +110,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			const res = await fetch(`${baseURL}/api/auth/sign-up`, { // [cite: 16]
+			const res = await fetch(`${BASE_URL}/api/auth/sign-up`, { // [cite: 16]
 				method: 'POST',
 				body: JSON.stringify({ registerEmail, password1: password }), // Assuming API expects 'password1' [cite: 16]
 				headers: { 'Content-Type': 'application/json' }
@@ -144,7 +140,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			const res = await fetch(`${baseURL}/api/auth/password-reset`, { // [cite: 20]
+			const res = await fetch(`${BASE_URL}/api/auth/password-reset`, { // [cite: 20]
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ email: resetEmail })

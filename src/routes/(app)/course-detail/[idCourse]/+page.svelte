@@ -3,12 +3,13 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import { enhance } from '$app/forms';
 	import Modal from '$lib/components/Modal.svelte';
-	import Notification from '$lib/components/Notification.svelte';
+	import { notification } from '$lib/stores/notifications';
 	import Loader from '$lib/components/Loader.svelte';
+	import { imgCheck } from '$lib/tools/tools';
 	import { country_list, province } from '$lib/stores/arrays.js';
 	import {
 		Lock,
-		Trash2,
+		Tag,
 		Calendar,
 		MapPin,
 		User,
@@ -18,33 +19,53 @@
 		Landmark,
 		Coins,
 		Mail,
-		Phone,
-		Check,
 		ArrowLeft,
-		CheckCircle
+		CheckCircle,
+		X
 	} from 'lucide-svelte';
 
 	const { data } = $props();
 	const { getCourse, userData, auth } = $derived(data);
 
-	const userfiles = $derived(userData?.uploadfiles || []);
-	const picFilter = $derived(userfiles.filter((file: any) => file.type == 'avatar'));
+	// const userfiles = $derived(userData?.uploadfiles || []);
+	// const picFilter = $derived(userfiles.filter((file: any) => file.type == 'avatar'));
 
-	// reset cart - original price
-	// const totalCart = () => {
-	// 	grandTotal = 0;
-	// 	$cartProducts.forEach((element: any) => {
-	// 		if (element.type == 'course') {
-	// 			grandTotal += element.layoutView.price;
-	// 		} else {
-	// 			grandTotal += element.price;
-	// 		}
+	// discount
+	let discountCode = $state('');
+	let discountList = $state([]);
+
+	// cart
+	let cart = $derived([getCourse]);
+	let grandTotal: any = $derived(() => {
+		let total = 0;
+		cart.forEach((element: any) => {
+			if (element.type == 'course') {
+				total += element.layoutView.price * (element.orderQuantity || 1);
+			} else {
+				total += element.price * (element.orderQuantity || 1);
+			}
+		});
+		return total;
+	});
+	// testing NEW VERSION using reduce
+	// let totalDiscount = $derived(
+	// 	discountList.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0)
+	// );
+	let totalDiscount = $derived(() =>
+		discountList.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0)
+	);
+	// let totalDiscount = $derived(() => { // OLD VERSION using totalDiscount()
+	// 	let total = 0;
+	// 	discountList.forEach((element: any) => {
+	// 		total += element.totalDiscount || 0;
 	// 	});
-	// 	//return grandTotal;
-	// };
+	// 	return total;
+	// });
+	let subTotal = $derived(
+		auth ? grandTotal() - totalDiscount() : grandTotal() - totalDiscount() + 25
+	);
 
-	let loading = $state(false);
-
+	// form
 	let closedInput = $state(false);
 	if (auth) {
 		closedInput = true;
@@ -65,11 +86,14 @@
 		password1: '',
 		password2: ''
 	});
+
 	// Modal
 	let openModal = $state(false);
 	let postAction = $state('?/');
 	let modalTitle = $state('');
-	//let currentModal = $state('');
+	let loading = $state(false);
+	let currentModal = $state('');
+
 	let currentStep = $state(1);
 	let totalSteps = $state(3);
 	let passwordsMatch = $state(true);
@@ -169,7 +193,7 @@
 	};
 
 	const onClickModal = (type: string, item: any) => {
-		//currentModal = type;
+		currentModal = type;
 		openModal = true;
 		if (type == 'new') {
 			postAction = `?/new`;
@@ -180,22 +204,8 @@
 	const onCloseModal = () => {
 		openModal = false;
 		resetFields();
-		//currentModal = '';
+		currentModal = '';
 	};
-
-	//notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-			notificationContent = '';
-			notificationError = false;
-		}, 3000); // 1000 milliseconds = 1 second
-	};
-	//clearTimeout(startTimeout); // reset timer
 
 	const formSubmit = () => {
 		loading = true;
@@ -204,53 +214,35 @@
 			await invalidateAll();
 			//console.log('formData', formData);
 			if (result.type === 'success' && result.data) {
-				const { payload } = result.data; // { action, success, message, payload }
-				// subTotal = 0;
-				// totalDiscount = 0;
-				// discountActive = payload?.discountApplied ?? [];
-				// isModalConfirm = false;
+				const { action, message, payload } = result.data; // { action, success, message, payload }
 
-				// if (action == 'applyDiscount' || 'removeDiscount') {
-				// 	discountList = payload?.discountArray;
-				// 	discountTostring();
-				// 	discountErr = '';
-				// 	totalDiscountActive();
-				// 	// subTotal;
-				// }
-
-				// if (action == 'removeDiscount') {
-				// 	discountList = payload?.discountArray;
-				// 	discountTostring();
-				// 	// console.log('discountList', discountList);
-				// }
-
-				if (payload) {
-					notificationContent = "L'ordine è stato inviato. Controlla lo storico nel tuo profilo";
-				} else {
-					notificationContent =
-						"Benvenuto! L'ordine è stato inviato. Tra poco verrai reindirizzato sul tuo profilo.";
-					setTimeout(() => {
-						goto('/profile-modify');
-					}, 6000);
+				if (action === 'new') {
+					if (payload.redirect) {
+						setTimeout(() => {
+							goto('/profile-modify');
+						}, 6000);
+					}
+					onCloseModal();
 				}
-				onCloseModal();
+
+				if (action === 'applyDiscount' || action === 'removeDiscount') {
+					discountList = payload?.discountApplied || [];
+					discountCode = '';
+				}
+				notification.info(message);
 			}
 			if (result.type === 'failure') {
-				notificationContent = result.data.message;
-				notificationError = true;
+				notification.error(result.data.message || 'Errore carrello');
 			}
 			if (result.type === 'error') {
-				notificationContent = result.error;
-				notificationError = true;
+				notification.error(result.error.message || 'Errore Server');
 			}
 			// if (result.type === 'redirect') {
 			// 	emptyCart();
 			// }
 			// 'update()' is called by default by use:enhance
 			// call 'await update()' if you need to ensure it completes before further client logic.
-			clearTimeout(startTimeout);
-			closeNotification();
-			toastClosed = false;
+			resetFields();
 			loading = false;
 		};
 	};
@@ -329,7 +321,12 @@
 								<!-- Instructor Avatar -->
 								<div class="avatar">
 									<div class="w-24 rounded-full ring ring-blue-500 ring-offset-2">
-										{#if picFilter.length > 0}
+										<img
+											src={imgCheck.single(userData.uploadfiles, 'profile')}
+											alt="avatar"
+											loading="lazy"
+										/>
+										<!-- {#if picFilter.length > 0}
 											<img
 												src={`/files/${userData.userId}/${picFilter[0].filename}`}
 												alt="avatar"
@@ -337,7 +334,7 @@
 											/>
 										{:else}
 											<img src="/images/avatar.png" alt="avatar" loading="lazy" />
-										{/if}
+										{/if} -->
 									</div>
 								</div>
 								<div>
@@ -514,7 +511,6 @@
 		</div>
 	</div>
 {/if}
-<Notification {toastClosed} {notificationContent} {notificationError} />
 
 <Modal
 	isOpen={openModal}
@@ -891,30 +887,34 @@
 					<!-- Summary -->
 					<div class="card bg-base-200 p-4 rounded-lg">
 						<h3 class="font-bold text-lg mb-2">Riepilogo Ordine</h3>
-						<div class="divider my-1"></div>
 
-						<div class="flex justify-between items-center py-2">
-							<span class="text-base-content/80">{getCourse.layoutView.title || 'Corso'}</span>
-							<span>{getCourse.layoutView.price} €</span>
+						<div class="flex justify-between items-center py-2 border-b border-base-300">
+							<span class="text-base-content/80 font-medium"
+								>{getCourse.layoutView.title || 'Corso'}</span
+							>
+							<span class="font-semibold">{getCourse.layoutView.price.toFixed(2)} €</span>
 						</div>
+
 						{#if !auth}
-							<div class="flex justify-between items-center py-2">
-								<span class="text-base-content/80">Tesseramento per il primo corso</span>
-								<span>25 €</span>
+							<div class="flex justify-between items-center py-2 border-b border-base-300">
+								<span class="text-base-content/80 font-medium">Tesseramento per il primo corso</span
+								>
+								<span class="font-semibold">25.00 €</span>
 							</div>
 						{/if}
 
+						{#if discountList.length > 0}
+							<div class="flex justify-between items-center py-2 text-success font-medium">
+								<span>Sconto applicato</span>
+								<span>- € {totalDiscount().toFixed(2)}</span>
+							</div>
+						{/if}
 						<div class="divider my-1"></div>
 
-						<div class="flex justify-between items-center py-2 text-lg font-bold">
-							<span>Totale</span>
-							{#if !auth}
-								<span class="text-primary">{getCourse.layoutView.price + 25} €</span>
-								<input type="hidden" name="totalValue" value={getCourse.layoutView.price + 25} />
-							{:else}
-								<span class="text-primary">{getCourse.layoutView.price} €</span>
-								<input type="hidden" name="totalValue" value={getCourse.layoutView.price} />
-							{/if}
+						<div class="flex justify-between items-center pt-2 text-xl font-bold">
+							<span>Totale Finale</span>
+							<span class="text-primary">€ {subTotal.toFixed(2)}</span>
+							<input type="hidden" name="totalValue" value={subTotal} />
 						</div>
 					</div>
 				</div>
@@ -955,6 +955,66 @@
 				</div>
 			</div>
 		</form>
+		<!-- Discount Code -->
+		{#if currentStep == 3}
+			<div class="px-6 pb-6">
+				<form method="POST" action="?/applyDiscount" use:enhance={formSubmit}>
+					<label class="form-control w-full">
+						<div class="label">
+							<span class="label-text font-medium">Codice sconto</span>
+						</div>
+						<div class="flex gap-2">
+							<input
+								type="text"
+								id="discountCode"
+								name="discountCode"
+								placeholder="Inserisci il codice"
+								class="input input-bordered w-full"
+								bind:value={discountCode}
+								disabled={loading || cart.length < 1}
+							/>
+							<input type="hidden" name="cart" value={JSON.stringify(cart)} />
+							<input type="hidden" name="grandTotal" value={grandTotal} />
+							<input type="hidden" name="discountList" value={JSON.stringify(discountList)} />
+							<button type="submit" class="btn btn-primary" disabled={!discountCode || loading}>
+								{#if loading}
+									<span class="loading loading-spinner loading-sm"></span>
+								{:else}
+									Applica
+								{/if}
+							</button>
+						</div>
+					</label>
+				</form>
+
+				{#if discountList.length > 0}
+					<form method="POST" action="?/removeDiscount" use:enhance={formSubmit}>
+						<div class="flex flex-wrap gap-2 mt-3">
+							{#each discountList as badgeCode, i}
+								<div
+									class="badge badge-lg bg-primary/10 text-primary gap-2 px-4 py-2 text-sm font-semibold rounded-full"
+								>
+									<Tag size={14} />
+									{badgeCode.code}
+									<input type="hidden" name="cart" value={JSON.stringify(cart)} />
+									<input type="hidden" name="grandTotal" value={grandTotal} />
+									<input type="hidden" name="discountList" value={JSON.stringify(discountList)} />
+									<input type="hidden" name="removeCode" value={badgeCode.code} />
+									<button
+										type="submit"
+										name="removeCode"
+										class="btn btn-xs btn-circle btn-ghost"
+										disabled={loading}
+									>
+										<X size={14} />
+									</button>
+								</div>
+							{/each}
+						</div>
+					</form>
+				{/if}
+			</div>
+		{/if}
 	{/if}
 </Modal>
 

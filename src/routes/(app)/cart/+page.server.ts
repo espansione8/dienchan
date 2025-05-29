@@ -1,31 +1,9 @@
 import type { PageServerLoad, Actions } from './$types'
+import type { CartItem, DiscountItem } from '$lib/types';
 import { BASE_URL, APIKEY } from '$env/static/private';
 import { fail, error } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid'
-const apiKey = APIKEY;
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
-
-type CartItem = {
-	prodId?: string;
-	layoutView: { layoutId?: string, price: number };
-	orderQuantity: number;
-	price: number;
-	[key: string]: any;
-};
-
-type DiscountItem = {
-	discountId: string;
-	code: string;
-	type: 'amount' | 'percent';
-	value: number;
-	selectedApplicability: 'userId' | 'membershipLevel' | 'prodId' | 'layoutId';
-	status: 'active' | 'disabled';
-	userId?: string;
-	membershipLevel?: string;
-	prodId?: string;
-	layoutId?: string;
-	[key: string]: any;
-};
 
 export const load: PageServerLoad = async ({ locals, fetch }) => {
 	return {
@@ -33,7 +11,6 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
 		auth: locals.auth,
 	};
 };
-
 
 // calculate discount for a single item used in applyDiscount/removeDiscount 
 const calculateItemDiscount = (
@@ -45,7 +22,6 @@ const calculateItemDiscount = (
 	let totalDiscount = 0;
 
 	if (selectedApplicability === 'prodId' || selectedApplicability === 'layoutId') {
-		// Item-specific discounts
 		cartArray.forEach((item: CartItem) => {
 			const isProduct = selectedApplicability === 'prodId' && item.prodId === discount.prodId;
 			const isLayout = selectedApplicability === 'layoutId' && item.layoutView?.layoutId === discount.layoutId;
@@ -62,25 +38,13 @@ const calculateItemDiscount = (
 					const rawPrice = isProduct ? item.price : item.layoutView.price;
 					const numericPrice = Number(rawPrice);
 					if (!Number.isFinite(numericPrice)) {
-						throw new Error('Invalid price while calculating discount');
+						throw new Error('Errore calcolo');
 					}
-					if (typeof item.price !== 'number') return fail(400, { action: 'discount helper', success: false, message: 'Errore calcolo' });
 					const singleValue = (numericPrice * value) / 100;
 					itemDiscount = singleValue * qty;
 				}
 				totalDiscount += itemDiscount;
 			}
-
-			// if (isLayout) {
-			// 	let itemDiscount = 0;
-			// 	if (type === 'amount') {
-			// 		itemDiscount = value * item.orderQuantity;
-			// 	} else if (type === 'percent') {
-			// 		const singleValue = (item.layoutView.price * value) / 100;
-			// 		itemDiscount = singleValue * item.orderQuantity;
-			// 	}
-			// 	totalDiscount += itemDiscount;
-			// }
 		});
 	} else if (selectedApplicability === 'userId' || selectedApplicability === 'membershipLevel') {
 		// User-level discounts
@@ -100,8 +64,6 @@ const calculateItemDiscount = (
 
 	return totalDiscount;
 };
-
-
 
 export const actions: Actions = {
 	new: async ({ request, fetch, locals }) => {
@@ -134,7 +96,7 @@ export const actions: Actions = {
 			const res = await fetch(`${BASE_URL}/api/mongo/create`, {
 				method: 'POST',
 				body: JSON.stringify({
-					apiKey,
+					apiKey: APIKEY,
 					schema: 'order', //product | order | user | layout | discount
 					newDoc,
 					returnObj
@@ -157,11 +119,10 @@ export const actions: Actions = {
 	},
 
 	applyDiscount: async ({ request, fetch, locals }) => {
-
 		const discountFetch = (discountCodes: string[]) => fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
-				apiKey,
+				apiKey: APIKEY,
 				schema: 'discount',
 				query: { code: { $in: discountCodes } },
 				projection: { _id: 0, password: 0 },
@@ -180,8 +141,16 @@ export const actions: Actions = {
 			const cart = formData.get('cart') as string;
 			const grandTotal = formData.get('grandTotal') as string;
 			const discountList = formData.get('discountList') as string;
+			const originalTotal = Number(grandTotal) || 0;
+			const discountArray: string[] = JSON.parse(discountList || '[]').map(item => item.code);
+			const cartArray: CartItem[] = JSON.parse(cart || '[]');
+			// let cartArray: CartItem[] = [];
+			// try {
+			// 	cartArray = JSON.parse(cart || '[]');
+			// } catch {
+			// 	return fail(400, { action: 'applyDiscount', success: false, message: 'Cart invalido' });
+			// }
 
-			// Validate required fields
 			if (!discountCode?.trim()) {
 				return fail(400, {
 					action: 'applyDiscount',
@@ -190,17 +159,6 @@ export const actions: Actions = {
 				});
 			}
 
-			const originalTotal = Number(grandTotal) || 0;
-
-			let cartArray: CartItem[] = [];
-			try {
-				cartArray = JSON.parse(cart || '[]');
-			} catch {
-				return fail(400, { action: 'applyDiscount', success: false, message: 'Cart invalido' });
-			}
-			const discountArray: string[] = JSON.parse(discountList || '[]');
-
-			// Check if discount code is already applied
 			if (discountArray.includes(discountCode)) {
 				return fail(400, {
 					action: 'applyDiscount',
@@ -209,12 +167,12 @@ export const actions: Actions = {
 				});
 			}
 
-			// Create new discount array with the new code
+			// Fetch all discounts from database that match new array
 			const newDiscountArray = [...discountArray, discountCode];
-
-			// Fetch all discounts from database
 			const discountRes = await discountFetch(newDiscountArray);
 			const discountGroup: DiscountItem[] = await discountRes.json();
+			console.log('newDiscountArray', newDiscountArray);
+			console.log('discountGroup', discountGroup);
 
 			// Find the specific discount being applied
 			const discountItem = discountGroup.find((item: DiscountItem) => item.code === discountCode);
@@ -227,7 +185,6 @@ export const actions: Actions = {
 				});
 			}
 
-			// Check if discount is active
 			if (discountItem.status === 'disabled') {
 				return fail(400, {
 					action: 'applyDiscount',
@@ -236,7 +193,6 @@ export const actions: Actions = {
 				});
 			}
 
-			// Validate discount applicability
 			const validateDiscountApplicability = (
 				discount: DiscountItem,
 				user: any,
@@ -276,9 +232,6 @@ export const actions: Actions = {
 					totalDiscount: calculateItemDiscount(discount, cartArray, originalTotal)
 				}));
 			};
-			console.log('discountApplied', discountApplied());
-
-
 
 			return {
 				action: 'applyDiscount',
@@ -286,7 +239,6 @@ export const actions: Actions = {
 				message: 'Sconto applicato con successo',
 				payload: {
 					discountApplied: discountApplied(),
-					discountArray: newDiscountArray
 				}
 			};
 
@@ -304,7 +256,7 @@ export const actions: Actions = {
 		const discountFetch = (discountCodes: string[]) => fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
-				apiKey,
+				apiKey: APIKEY,
 				schema: 'discount',
 				query: { code: { $in: discountCodes } },
 				projection: { _id: 0, password: 0 },
@@ -322,8 +274,10 @@ export const actions: Actions = {
 			const grandTotal = formData.get('grandTotal') as string;
 			const cart = formData.get('cart') as string;
 			const discountList = formData.get('discountList') as string;
+			const originalTotal = Number(grandTotal) || 0;
+			const cartArray: CartItem[] = JSON.parse(cart || '[]');
+			let discountArray: string[] = JSON.parse(discountList || '[]').map(item => item.code);
 
-			// Validate required fields
 			if (!removeCode?.trim()) {
 				return fail(400, {
 					action: 'removeDiscount',
@@ -332,14 +286,10 @@ export const actions: Actions = {
 				});
 			}
 
-			const originalTotal = Number(grandTotal) || 0;
-			const cartArray: CartItem[] = JSON.parse(cart || '[]');
-			let discountArray: string[] = JSON.parse(discountList || '[]');
-
 			// Remove the discount code from array
 			discountArray = discountArray.filter(code => code !== removeCode);
 
-			// If no discounts remain, return empty result
+			// IF no discounts remain, return empty result
 			if (discountArray.length === 0) {
 				return {
 					action: 'removeDiscount',
@@ -347,7 +297,6 @@ export const actions: Actions = {
 					message: 'Sconto rimosso con successo',
 					payload: {
 						discountApplied: [],
-						discountArray: []
 					}
 				};
 			}
@@ -370,7 +319,6 @@ export const actions: Actions = {
 				message: 'Sconto rimosso con successo',
 				payload: {
 					discountApplied: discountApplied(),
-					discountArray
 				}
 			};
 

@@ -37,8 +37,6 @@
 
 	const BASE_URL = '';
 
-	let cart = $state($cartProducts);
-
 	let error = $state('');
 	let password1 = $state('');
 	let password2 = $state('');
@@ -46,35 +44,25 @@
 	let checkSecondPass = $state(false);
 	let inputRef = $state(null);
 
-	let stringList = $state('[]');
+	let formData = $state({
+		name: userData?.name || '',
+		surname: userData?.surname || '',
+		email: userData?.email || '',
+		address: userData?.address || '',
+		city: userData?.city || '',
+		county: userData?.county || 'AG', // provincia
+		postalCode: userData?.postalCode || '',
+		country: userData?.country || 'Italy',
+		phone: userData?.phone || '',
+		mobilePhone: userData?.mobilePhone || '',
+		paymentType: 'bonifico'
+	});
 
-	let isModalConfirm = $state(false);
-	let isModalSuccess = $state(false);
-	let isModalSuccessLogin = $state(false);
-
-	let name = $state(userData?.name || '');
-	let surname = $state(userData?.surname || '');
-	let email = $state(userData?.email || '');
-	let address = $state(userData?.address || '');
-	let city = $state(userData?.city || '');
-	let county = $state(userData?.county || 'AG'); // provincia
-	let postalCode = $state(userData?.postalCode || '');
-	let country = $state(userData?.country || 'Italy');
-	let phone = $state(userData?.phone || '');
-	let mobilePhone = $state(userData?.mobilePhone || '');
-	let paymentType = $state('bonifico');
 	let closedInput = $state(false);
 
+	// discount
 	let discountCode = $state('');
-	let discountApplied = $state(false);
-	let discountError = $state(false);
 	let discountList = $state([]);
-	let discountArray = $state([]);
-	let discountErr = $state('');
-	let totalDiscount = $state(0);
-
-	//let grandTotal = $state(0);
-	//let subTotal = $derived(grandTotal - totalDiscount);
 
 	// modal
 	let currentModal = $state('');
@@ -83,35 +71,12 @@
 	let postAction = $state('?/');
 	let loading = $state(false);
 
-	const checkCart = (id: any) => {
-		const check = $cartProducts.some((item) => item.prodId == id);
-		return check;
-	};
+	let isModalConfirm = $state(false);
+	let isModalSuccess = $state(false);
+	let isModalSuccessLogin = $state(false);
 
-	const testPass = () => {
-		checkPass = password1.length >= 8;
-		checkSecondPass = password1 === password2;
-	};
-
-	const testSecondPass = () => {
-		checkSecondPass = password1 === password2;
-	};
-
-	// const totalCart = () => {
-	// 	grandTotal = 0;
-	// 	$cartProducts.forEach((element: any) => {
-	// 		if (element.type == 'course') {
-	// 			//grandTotal += element.layoutView.price;
-	// 			grandTotal += element.layoutView.price * (element.orderQuantity || 1);
-	// 		} else {
-	// 			//grandTotal += element.price;
-	// 			grandTotal += element.price * (element.orderQuantity || 1);
-	// 		}
-	// 	});
-	// };
-
-	// grandTotal is now a $derived variable
-	// It will automatically re-calculate whenever $cartProducts changes
+	// cart
+	let cart = $state($cartProducts);
 	let grandTotal: any = $derived(() => {
 		let total = 0;
 		$cartProducts.forEach((element: any) => {
@@ -123,18 +88,27 @@
 		});
 		return total;
 	});
+	// testing NEW VERSION using reduce
+	let totalDiscount = $derived(() =>
+		discountList.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0)
+	);
+	// let totalDiscount = $derived(() => { // OLD VERSION using totalDiscount()
+	// 	let total = 0;
+	// 	discountList.forEach((element: any) => {
+	// 		total += element.totalDiscount || 0;
+	// 	});
+	// 	return total;
+	// });
+	let subTotal = $derived(grandTotal() - totalDiscount());
 
-	// Reactive statement to update totalDiscount whenever grandTotal or appliedDiscountDetails changes
-	$effect(() => {
-		totalDiscount = 0;
-		if (discountArray.length > 0) {
-			discountArray.forEach((element: any) => {
-				totalDiscount += element.totalDiscount || 0;
-			});
-		}
-	});
+	const testPass = () => {
+		checkPass = password1.length >= 8;
+		checkSecondPass = password1 === password2;
+	};
 
-	let subTotal = $derived(grandTotal() - totalDiscount);
+	const testSecondPass = () => {
+		checkSecondPass = password1 === password2;
+	};
 
 	const onConfirmForm = async () => {
 		if (!auth) {
@@ -147,10 +121,6 @@
 		isModalConfirm = true;
 	};
 
-	const discountTostring = () => {
-		stringList = JSON.stringify(discountList);
-	};
-
 	const onConfirmCart = async () => {
 		error = '';
 		let path = `${BASE_URL}/api/orders/purchase-first`;
@@ -159,19 +129,19 @@
 		const response = await fetch(path, {
 			method: 'POST',
 			body: JSON.stringify({
-				name,
-				surname,
-				email,
-				password1, // only registration
-				address,
-				city,
-				county,
-				postalCode,
-				country,
-				phone,
-				mobilePhone,
+				name: formData.name,
+				surname: formData.surname,
+				email: formData.email,
+				address: formData.address,
+				city: formData.city,
+				county: formData.county,
+				postalCode: formData.postalCode,
+				country: formData.country,
+				phone: formData.phone,
+				mobilePhone: formData.mobilePhone,
+				password1, //  only registration
+				paymentType: formData.paymentType,
 				cart: $cartProducts,
-				paymentType,
 				userId: userData.userId
 			}),
 			headers: {
@@ -196,15 +166,9 @@
 
 	const onRemoveFromCart = (item: any) => {
 		removeFromCart($cartProducts, item);
-		//totalCart();
-		// totalDiscountActive();
-		// Reset discounts when cart changes
-		totalDiscount = 0;
-		stringList = '[]';
 		discountList = [];
 		cart = $cartProducts;
 		discountCode = '';
-		discountErr = '';
 	};
 
 	const updateQuantity = (item: any, increment: boolean) => {
@@ -214,50 +178,34 @@
 			removeFromCart($cartProducts, item);
 		}
 		cart = $cartProducts;
-		//totalCart();
-		// Reset discounts when quantities change
-		totalDiscount = 0;
-		stringList = '[]';
+		// reset discount
 		discountList = [];
 		discountCode = '';
-		discountErr = '';
-	};
-
-	const totalDiscountActive = () => {
-		totalDiscount = 0;
-		if (discountList.length > 0) {
-			discountList.forEach((element: any) => {
-				totalDiscount += element.totalDiscount || 0;
-			});
-		}
 	};
 
 	const onEmptyCart = () => {
 		emptyCart();
-		//totalCart();
-		totalDiscount = 0;
-		stringList = '[]';
+		// reset discounts;
 		discountList = [];
-		cart = $cartProducts;
 		discountCode = '';
-		discountErr = '';
+		cart = $cartProducts;
 	};
 
 	const resetFields = () => {
 		openModal = false;
 		if (!auth) {
-			name = '';
-			surname = '';
-			email = '';
-			address = '';
-			city = '';
-			county = 'AG';
-			postalCode = '';
-			country = 'Italy';
-			phone = '';
-			mobilePhone = '';
+			formData.name = '';
+			formData.surname = '';
+			formData.email = '';
+			formData.address = '';
+			formData.city = '';
+			formData.county = 'AG';
+			formData.postalCode = '';
+			formData.country = 'Italy';
+			formData.phone = '';
+			formData.mobilePhone = '';
+			formData.paymentType = 'bonifico';
 		}
-		discountErr = '';
 		modalTitle = '';
 		postAction = '?/';
 		loading = false;
@@ -303,44 +251,20 @@
 			if (result.type === 'success' && result.data) {
 				const { action, message, payload } = result.data; // { action, success, message, payload }
 
-				if (action === 'applyDiscount') {
-					if (payload?.discountApplied) {
-						discountList = payload.discountApplied;
-						discountCode = '';
-						discountErr = '';
-						totalDiscountActive();
-						discountTostring();
-					}
-					if (payload?.discountArray) {
-						stringList = JSON.stringify(payload.discountArray);
-					}
-				} else if (action === 'removeDiscount') {
-					if (payload?.discountApplied) {
-						discountList = payload.discountApplied;
-						totalDiscountActive();
-					}
-					if (payload?.discountArray) {
-						stringList = JSON.stringify(payload.discountArray);
-					}
-				} else if (action === 'confirmCart') {
-					onEmptyCart();
-					discountList = [];
-					totalDiscount = 0;
-					stringList = '[]';
-					goto('/profile-modify');
+				if (action === 'applyDiscount' || action === 'removeDiscount') {
+					discountList = payload?.discountApplied || [];
+					discountCode = '';
 				}
 
 				notification.info(message);
 				onCloseModal();
 			}
 			if (result.type === 'failure') {
-				notification.error(result.data.message || 'Errore ordine');
-				discountErr = result.data.message;
+				notification.error(result.data.message || 'Errore carrello');
 				discountCode = '';
 			}
 			if (result.type === 'error') {
-				notification.error(result.error.message || 'Errore Server');
-				discountErr = result.error;
+				notification.error(result.error.message || 'Errore ');
 				discountCode = '';
 			}
 			// 'update()' is called by default by use:enhance
@@ -349,11 +273,6 @@
 			loading = false;
 		};
 	};
-
-	// $effect(() => {
-	// 	totalCart();
-	// });
-	//totalCart();
 </script>
 
 <svelte:head>
@@ -536,7 +455,7 @@
 											placeholder="Inserisci il tuo nome"
 											required
 											readonly={closedInput}
-											bind:value={name}
+											bind:value={formData.name}
 										/>
 									</div>
 
@@ -553,7 +472,7 @@
 											placeholder="Inserisci il tuo cognome"
 											required
 											readonly={closedInput}
-											bind:value={surname}
+											bind:value={formData.surname}
 										/>
 									</div>
 								</div>
@@ -573,7 +492,7 @@
 											placeholder="esempio@email.com"
 											required
 											readonly={closedInput}
-											bind:value={email}
+											bind:value={formData.email}
 										/>
 									</div>
 								</div>
@@ -655,7 +574,7 @@
 												class="flex-1 outline-none bg-transparent"
 												placeholder="+39 01234567"
 												readonly={closedInput}
-												bind:value={phone}
+												bind:value={formData.phone}
 											/>
 										</div>
 									</div>
@@ -677,7 +596,7 @@
 												placeholder="+39 3331234567"
 												required
 												readonly={closedInput}
-												bind:value={mobilePhone}
+												bind:value={formData.mobilePhone}
 											/>
 										</div>
 									</div>
@@ -700,7 +619,7 @@
 											placeholder="Via/Piazza, numero civico"
 											required
 											readonly={closedInput}
-											bind:value={address}
+											bind:value={formData.address}
 										/>
 									</div>
 								</div>
@@ -719,7 +638,7 @@
 											placeholder="Inserisci la città"
 											required
 											readonly={closedInput}
-											bind:value={city}
+											bind:value={formData.city}
 										/>
 									</div>
 
@@ -736,7 +655,7 @@
 											placeholder="12345"
 											required
 											readonly={closedInput}
-											bind:value={postalCode}
+											bind:value={formData.postalCode}
 										/>
 									</div>
 								</div>
@@ -753,7 +672,7 @@
 											name="county"
 											required
 											disabled={closedInput}
-											bind:value={county}
+											bind:value={formData.county}
 										>
 											<option value="" disabled>Seleziona provincia</option>
 											{#each $province as provincia, i}
@@ -765,7 +684,7 @@
 											{/each}
 										</select>
 										{#if closedInput}
-											<input type="hidden" name="county" value={county} />
+											<input type="hidden" name="county" value={formData.county} />
 										{/if}
 									</div>
 
@@ -780,7 +699,7 @@
 											name="country"
 											required
 											disabled={closedInput}
-											bind:value={country}
+											bind:value={formData.country}
 										>
 											<option value="" disabled>Seleziona nazione</option>
 											{#each $country_list as countryItem}
@@ -790,7 +709,7 @@
 											{/each}
 										</select>
 										{#if closedInput}
-											<input type="hidden" name="country" value={country} />
+											<input type="hidden" name="country" value={formData.country} />
 										{/if}
 									</div>
 								</div>
@@ -814,7 +733,7 @@
 						{#if discountList.length > 0}
 							<div class="flex justify-between text-success">
 								<span>Sconto</span>
-								<span>- € {totalDiscount.toFixed(2)}</span>
+								<span>- € {totalDiscount().toFixed(2)}</span>
 							</div>
 						{/if}
 
@@ -840,10 +759,11 @@
 											placeholder="Inserisci il codice"
 											class="input input-bordered w-full"
 											bind:value={discountCode}
+											disabled={loading || $cartProducts.length < 1}
 										/>
 										<input type="hidden" name="cart" value={JSON.stringify($cartProducts)} />
 										<input type="hidden" name="grandTotal" value={grandTotal} />
-										<input type="hidden" name="discountList" value={stringList} />
+										<input type="hidden" name="discountList" value={JSON.stringify(discountList)} />
 										<button
 											type="submit"
 											class="btn btn-primary"
@@ -856,11 +776,6 @@
 											{/if}
 										</button>
 									</div>
-									{#if discountErr}
-										<div class="label">
-											<span class="label-text-alt text-error">{discountErr}</span>
-										</div>
-									{/if}
 								</label>
 							</form>
 
@@ -873,7 +788,11 @@
 												{badgeCode.code}
 												<input type="hidden" name="cart" value={JSON.stringify($cartProducts)} />
 												<input type="hidden" name="grandTotal" value={grandTotal} />
-												<input type="hidden" name="discountList" value={stringList} />
+												<input
+													type="hidden"
+													name="discountList"
+													value={JSON.stringify(discountList)}
+												/>
 												<input type="hidden" name="removeCode" value={badgeCode.code} />
 												<button
 													type="submit"
@@ -917,23 +836,23 @@
 				<div class="grid grid-cols-2 gap-2">
 					<div>
 						<p class="text-sm text-base-content/70">Nome</p>
-						<p class="font-medium">{name}</p>
+						<p class="font-medium">{formData.name}</p>
 					</div>
 					<div>
 						<p class="text-sm text-base-content/70">Cognome</p>
-						<p class="font-medium">{surname}</p>
+						<p class="font-medium">{formData.surname}</p>
 					</div>
 					<div class="col-span-2">
 						<p class="text-sm text-base-content/70">Email</p>
-						<p class="font-medium">{email}</p>
+						<p class="font-medium">{formData.email}</p>
 					</div>
 					<div>
 						<p class="text-sm text-base-content/70">Telefono</p>
-						<p class="font-medium">{phone || 'Non specificato'}</p>
+						<p class="font-medium">{formData.phone || 'Non specificato'}</p>
 					</div>
 					<div>
 						<p class="text-sm text-base-content/70">Cellulare</p>
-						<p class="font-medium">{mobilePhone}</p>
+						<p class="font-medium">{formData.mobilePhone}</p>
 					</div>
 				</div>
 			</div>
@@ -944,23 +863,23 @@
 				<div class="grid grid-cols-2 gap-2">
 					<div class="col-span-2">
 						<p class="text-sm text-base-content/70">Indirizzo</p>
-						<p class="font-medium">{address}</p>
+						<p class="font-medium">{formData.address}</p>
 					</div>
 					<div>
 						<p class="text-sm text-base-content/70">Città</p>
-						<p class="font-medium">{city}</p>
+						<p class="font-medium">{formData.city}</p>
 					</div>
 					<div>
 						<p class="text-sm text-base-content/70">CAP</p>
-						<p class="font-medium">{postalCode}</p>
+						<p class="font-medium">{formData.postalCode}</p>
 					</div>
 					<div>
 						<p class="text-sm text-base-content/70">Provincia</p>
-						<p class="font-medium">{county}</p>
+						<p class="font-medium">{formData.county}</p>
 					</div>
 					<div>
 						<p class="text-sm text-base-content/70">Nazione</p>
-						<p class="font-medium">{country}</p>
+						<p class="font-medium">{formData.country}</p>
 					</div>
 				</div>
 			</div>
@@ -989,7 +908,7 @@
 						{#if discountList.length > 0}
 							<tr class="text-success">
 								<td colspan="2">Sconto</td>
-								<td class="text-right">- € {totalDiscount.toFixed(2)}</td>
+								<td class="text-right">- € {totalDiscount().toFixed(2)}</td>
 							</tr>
 						{/if}
 					</tbody>
@@ -1011,15 +930,15 @@
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 				<label
 					class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
-					class:border-primary={paymentType === 'bonifico'}
-					class:bg-base-200={paymentType === 'bonifico'}
+					class:border-primary={formData.paymentType === 'bonifico'}
+					class:bg-base-200={formData.paymentType === 'bonifico'}
 				>
 					<input
 						type="radio"
 						name="payment"
 						value="bonifico"
 						class="hidden"
-						bind:group={paymentType}
+						bind:group={formData.paymentType}
 					/>
 					<Landmark class="h-8 w-8 text-primary" />
 					<span class="text-center font-medium">Bonifico Bancario</span>
@@ -1027,15 +946,15 @@
 
 				<label
 					class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
-					class:border-primary={paymentType === 'paypal'}
-					class:bg-base-200={paymentType === 'paypal'}
+					class:border-primary={formData.paymentType === 'paypal'}
+					class:bg-base-200={formData.paymentType === 'paypal'}
 				>
 					<input
 						type="radio"
 						name="payment"
 						value="paypal"
 						class="hidden"
-						bind:group={paymentType}
+						bind:group={formData.paymentType}
 					/>
 					<CreditCard class="h-8 w-8 text-primary" />
 					<span class="text-center font-medium">Paypal</span>
@@ -1043,15 +962,15 @@
 
 				<label
 					class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
-					class:border-primary={paymentType === 'contanti'}
-					class:bg-base-200={paymentType === 'contanti'}
+					class:border-primary={formData.paymentType === 'contanti'}
+					class:bg-base-200={formData.paymentType === 'contanti'}
 				>
 					<input
 						type="radio"
 						name="payment"
 						value="contanti"
 						class="hidden"
-						bind:group={paymentType}
+						bind:group={formData.paymentType}
 					/>
 					<HandCoins class="h-8 w-8 text-primary" />
 					<span class="text-center font-medium">Contanti (all'inizio corso)</span>

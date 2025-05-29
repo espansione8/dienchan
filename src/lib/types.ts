@@ -213,6 +213,28 @@ export type MembershipProduct = {
     // Add other membership
 };
 
+export type CartItem = {
+    prodId?: string;
+    layoutView: { layoutId?: string, price: number };
+    orderQuantity: number;
+    price: number;
+    [key: string]: any;
+};
+
+export type DiscountItem = {
+    discountId: string;
+    code: string;
+    type: 'amount' | 'percent';
+    value: number;
+    selectedApplicability: 'userId' | 'membershipLevel' | 'prodId' | 'layoutId';
+    status: 'active' | 'disabled';
+    userId?: string;
+    membershipLevel?: string;
+    prodId?: string;
+    layoutId?: string;
+    [key: string]: any;
+};
+
 export interface Order {
     orderDate: string;
     orderId: string;
