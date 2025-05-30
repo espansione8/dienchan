@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { ActionResult } from '@sveltejs/kit';
 	import { invalidateAll } from '$app/navigation';
 	import { enhance } from '$app/forms';
 	import Papa from 'papaparse';
@@ -19,7 +20,6 @@
 		RefreshCcw,
 		XCircle
 	} from 'lucide-svelte';
-	import type { ActionResult } from '@sveltejs/kit';
 
 	const { data } = $props();
 	const { getDiscount, getLayout, getProduct } = $derived(data);

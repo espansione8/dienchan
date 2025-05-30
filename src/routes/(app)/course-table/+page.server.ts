@@ -362,7 +362,7 @@ export const actions: Actions = {
 					eventStartDate: obj.eventStartDate.substring(0, 10),
 					timeStartDate: obj.eventStartDate.substring(11, 16)
 				}));
-				return { action: 'filter', success: true, message: 'Filtro applicato', filterTableList };
+				return { action: 'filter', success: true, message: 'Filtro applicato', payload: filterTableList };
 
 			} else {
 				return { action: 'filter', success: false, message: 'Corso non trovato' };

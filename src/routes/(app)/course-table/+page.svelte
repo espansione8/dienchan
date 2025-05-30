@@ -1,10 +1,12 @@
 <script lang="ts">
+	import type { ActionResult } from '@sveltejs/kit';
 	import { goto, invalidateAll } from '$app/navigation';
 	import Papa from 'papaparse';
 	import { enhance } from '$app/forms';
-	import Notification from '$lib/components/Notification.svelte';
+	import { notification } from '$lib/stores/notifications';
 	import { province, months, days, hours, minutes } from '$lib/stores/arrays';
 	import Modal from '$lib/components/Modal.svelte';
+	import Loader from '$lib/components/Loader.svelte';
 	import {
 		Funnel,
 		XCircle,
@@ -23,9 +25,12 @@
 		ShieldAlert
 	} from 'lucide-svelte';
 
-	let { data, form } = $props();
-	let { getTable, getTableNames, userData, getLayout } = $derived(data);
+	const { data } = $props();
+	const { getTable, getTableNames, userData, getLayout } = $derived(data);
+
 	let tableList = $state(getTable);
+
+	let loading = $state(false);
 
 	const now = new Date();
 	let currentYear = now.getFullYear().toString();
@@ -472,11 +477,9 @@
 		postAction = '?/';
 		mode = '';
 		provinceArray = [];
-
-		form = null;
 	};
 
-	const resetData = () => {
+	const refresh = () => {
 		invalidateAll();
 		resetFields();
 		resetActive = false;
@@ -498,16 +501,10 @@
 				if (!notificationEmail.includes(item)) {
 					notificationEmail.push(item);
 				} else {
-					notificationError = true;
-					notificationContent = 'Email già inserita';
-					toastClosed = false;
-					closeNotification();
+					notification.error('Email già inserita');
 				}
 			} else {
-				notificationError = true;
-				notificationContent = 'Email NON valida';
-				toastClosed = false;
-				closeNotification();
+				notification.error('Email NON valida');
 			}
 		}
 		if (type == 'tag')
@@ -515,16 +512,10 @@
 				if (!tagArray.includes(item)) {
 					tagArray.push(item);
 				} else {
-					notificationError = true;
-					notificationContent = 'Tag già inserito';
-					toastClosed = false;
-					closeNotification();
+					notification.error('Tag già inserito');
 				}
 			} else {
-				notificationError = true;
-				notificationContent = 'Tag NON valido';
-				toastClosed = false;
-				closeNotification();
+				notification.error('Tag NON valido');
 			}
 		if (type == 'province') {
 			if (county != '') {
@@ -532,16 +523,10 @@
 					provinceArray.push(item);
 					county = '';
 				} else {
-					notificationError = true;
-					notificationContent = 'Provincia già inserita';
-					toastClosed = false;
-					closeNotification();
+					notification.error('Provincia già inserita');
 				}
 			} else {
-				notificationError = true;
-				notificationContent = 'Provincia NON valida';
-				toastClosed = false;
-				closeNotification();
+				notification.error('Provincia NON valida');
 			}
 		}
 
@@ -613,53 +598,53 @@
 		currentModal = '';
 		currentDialog = '';
 		resetFields();
-		tableList = getTable;
 	};
+	const onCloseModify = () => {
+		openModal = false;
+		currentModal = '';
+		currentDialog = '';
+		refresh();
+	};
+
 	// CHECK WHY
 	// const onChangeRadioMode = () => {
 	// 	location = '';
 	// 	provinceArray = [];
 	// };
 
-	$effect(() => {
-		if (form != null) {
-			async () => await invalidateAll();
-			const { action, success, message, filterTableList } = form;
-			if (success) {
-				notificationError = false;
-				openModal = false;
-				resetActive = false;
+	const formSubmit = () => {
+		loading = true;
+		console.log('submit');
+
+		return async ({ result }: { result: ActionResult }) => {
+			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
+			await invalidateAll();
+			if (result.type === 'success' && result.data) {
+				const { action, message, payload } = result.data; // { action, success, message, payload }
 				if (action == 'filter') {
 					resetActive = true;
-					tableList = filterTableList;
+					tableList = payload;
+					console.log('tableList', tableList);
+					console.log('payload', payload);
 				} else {
 					resetActive = false;
 					tableList = getTable;
 				}
-			} else {
-				notificationError = true;
-				// errMessage = message;
+				notification.info(message);
+				openModal = false;
 			}
+			if (result.type === 'failure') {
+				notification.error(result.data.message);
+			}
+			if (result.type === 'error') {
+				notification.error(result.error.message);
+			}
+			// 'update()' is called by default by use:enhance
+			// call 'await update()' if you need to ensure it completes before further client logic.
 			resetFields();
-			clearTimeout(startTimeout);
-			closeNotification();
-			toastClosed = false;
-			notificationContent = message;
-			form = null;
-		}
-	}); // end effect
-
-	//notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-		}, 3000); // 1000 milliseconds = 1 second
+			loading = false;
+		};
 	};
-	//clearTimeout(startTimeout); // reset timer
 </script>
 
 <svelte:head>
@@ -670,11 +655,11 @@
 	<div class="flex flex-col gap-4 mb-4">
 		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Lista corsi</h1>
 		<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
-			<button class="btn btn-info text-white w-full sm:w-auto" onclick={resetData}>
+			<button class="btn btn-info text-white w-full sm:w-auto" onclick={refresh}>
 				<RefreshCcw />
 			</button>
 			{#if resetActive == true}
-				<button class="btn btn-error rounded-md text-white" onclick={resetData}>
+				<button class="btn btn-error rounded-md text-white" onclick={refresh}>
 					<XCircle class="mt-1" /> Reset Filtro
 				</button>
 			{:else}
@@ -765,17 +750,15 @@
 	{/if}
 </div>
 
-<Notification {toastClosed} {notificationContent} {notificationError} />
-
 {#if currentModal == 'modify' || currentModal == 'new'}
 	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-4xl">
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModify}
 			>✕</button
 		>
 		<form
 			method="POST"
 			action={postAction}
-			use:enhance
+			use:enhance={formSubmit}
 			class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 		>
 			{#if currentDialog == 'modify'}
@@ -1243,7 +1226,7 @@
 			<!-- button -->
 			<div class="col-span-4 mt-5 flex justify-center">
 				<div class="bg-gray-50 flex justify-center">
-					<button class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
+					<button class="btn btn-error btn-sm mx-2" onclick={onCloseModify}> Annulla </button>
 
 					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">
 						{#if currentDialog == 'new'}
@@ -1267,7 +1250,7 @@
 		<form
 			method="POST"
 			action={postAction}
-			use:enhance
+			use:enhance={formSubmit}
 			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 		>
 			<input type="hidden" name="prodId" value={prodId} />
@@ -1289,7 +1272,7 @@
 		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
 			>✕</button
 		>
-		<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
+		<form method="POST" action={postAction} use:enhance={formSubmit} class="p-6 space-y-6">
 			<div class="space-y-4">
 				<div>
 					<label for="county" class="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
