@@ -215,6 +215,8 @@ export type MembershipProduct = {
 
 export type CartItem = {
     prodId?: string;
+    title: string;
+    type: string;
     layoutView: { layoutId?: string, price: number };
     orderQuantity: number;
     price: number;
@@ -238,6 +240,8 @@ export type DiscountItem = {
 export interface Order {
     orderDate: string;
     orderId: string;
+    title: string;
+    item: string;
     userView?: {
         email: string;
         name: string;
@@ -252,6 +256,8 @@ export interface Order {
         county: string;
     };
     cart: {
+        title: string;
+        type: string;
         layoutView: {
             title: string;
             urlPic: string;

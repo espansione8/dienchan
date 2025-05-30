@@ -22,14 +22,15 @@
 		Trash2,
 		CreditCard,
 		Landmark,
-		HandCoins,
+		Pen,
 		Mail,
 		Phone,
 		User,
 		MapPin,
 		ArrowLeft,
 		CheckCircle,
-		Tag
+		Tag,
+		HandCoins
 	} from 'lucide-svelte';
 
 	const { data } = $props();
@@ -55,10 +56,11 @@
 		country: userData?.country || 'Italy',
 		phone: userData?.phone || '',
 		mobilePhone: userData?.mobilePhone || '',
-		paymentType: 'bonifico'
+		paymentType: 'bonifico',
+		orderNotes: ''
 	});
 
-	let closedInput = $state(false);
+	let closedInput = $state(true);
 
 	// discount
 	let discountCode = $state('');
@@ -110,59 +112,48 @@
 		checkSecondPass = password1 === password2;
 	};
 
-	const onConfirmForm = async () => {
-		if (!auth) {
-			if (!checkPass || !checkSecondPass) {
-				error = 'CONTROLLARE LE PASSWORD';
-				inputRef.focus();
-				return;
-			}
-		}
-		isModalConfirm = true;
-	};
+	// const onConfirmCart = async () => {
+	// 	error = '';
+	// 	let path = `${BASE_URL}/api/orders/purchase-first`;
+	// 	if (auth) path = `${BASE_URL}/api/orders/purchase`;
 
-	const onConfirmCart = async () => {
-		error = '';
-		let path = `${BASE_URL}/api/orders/purchase-first`;
-		if (auth) path = `${BASE_URL}/api/orders/purchase`;
+	// 	const response = await fetch(path, {
+	// 		method: 'POST',
+	// 		body: JSON.stringify({
+	// 			name: formData.name,
+	// 			surname: formData.surname,
+	// 			email: formData.email,
+	// 			address: formData.address,
+	// 			city: formData.city,
+	// 			county: formData.county,
+	// 			postalCode: formData.postalCode,
+	// 			country: formData.country,
+	// 			phone: formData.phone,
+	// 			mobilePhone: formData.mobilePhone,
+	// 			password1, //  only registration
+	// 			paymentType: formData.paymentType,
+	// 			cart: $cartProducts,
+	// 			userId: userData.userId
+	// 		}),
+	// 		headers: {
+	// 			'Content-Type': 'application/json'
+	// 		}
+	// 	});
+	// 	const res = await response.json();
 
-		const response = await fetch(path, {
-			method: 'POST',
-			body: JSON.stringify({
-				name: formData.name,
-				surname: formData.surname,
-				email: formData.email,
-				address: formData.address,
-				city: formData.city,
-				county: formData.county,
-				postalCode: formData.postalCode,
-				country: formData.country,
-				phone: formData.phone,
-				mobilePhone: formData.mobilePhone,
-				password1, //  only registration
-				paymentType: formData.paymentType,
-				cart: $cartProducts,
-				userId: userData.userId
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		const res = await response.json();
-
-		if (response.status == 200) {
-			isModalConfirm = false;
-			notification.success(res.message);
-			if (auth) {
-				isModalSuccess = true;
-			} else {
-				isModalSuccessLogin = true;
-			}
-		}
-		if (response.status != 200) {
-			notification.error(res.message);
-		}
-	};
+	// 	if (response.status == 200) {
+	// 		isModalConfirm = false;
+	// 		notification.success(res.message);
+	// 		if (auth) {
+	// 			isModalSuccess = true;
+	// 		} else {
+	// 			isModalSuccessLogin = true;
+	// 		}
+	// 	}
+	// 	if (response.status != 200) {
+	// 		notification.error(res.message);
+	// 	}
+	// };
 
 	const onRemoveFromCart = (item: any) => {
 		removeFromCart($cartProducts, item);
@@ -221,20 +212,20 @@
 		openModal = true;
 		if (type == 'new') {
 			postAction = `?/new`;
-			modalTitle = 'Nuovo';
+			modalTitle = 'Riepilogo Ordine';
 		}
-		if (type == 'modify') {
-			postAction = `?/modify`;
-			modalTitle = 'Modifica';
-		}
-		if (type == 'delete') {
-			postAction = `?/delete`;
-			modalTitle = 'Elimina';
-		}
-		if (type == 'filter') {
-			postAction = `?/filter`;
-			modalTitle = 'Filtra';
-		}
+		// if (type == 'modify') {
+		// 	postAction = `?/modify`;
+		// 	modalTitle = 'Modifica';
+		// }
+		// if (type == 'delete') {
+		// 	postAction = `?/delete`;
+		// 	modalTitle = 'Elimina';
+		// }
+		// if (type == 'filter') {
+		// 	postAction = `?/filter`;
+		// 	modalTitle = 'Filtra';
+		// }
 	};
 
 	const onCloseModal = () => {
@@ -251,13 +242,17 @@
 			if (result.type === 'success' && result.data) {
 				const { action, message, payload } = result.data; // { action, success, message, payload }
 
+				if (action === 'new') {
+					onEmptyCart();
+					currentModal = 'success';
+				}
 				if (action === 'applyDiscount' || action === 'removeDiscount') {
 					discountList = payload?.discountApplied || [];
 					discountCode = '';
 				}
 
 				notification.info(message);
-				onCloseModal();
+				//onCloseModal();
 			}
 			if (result.type === 'failure') {
 				notification.error(result.data.message || 'Errore carrello');
@@ -267,6 +262,9 @@
 				notification.error(result.error.message || 'Errore ');
 				discountCode = '';
 			}
+			// if (result.type === 'redirect') {
+			// 	emptyCart();
+			// }
 			// 'update()' is called by default by use:enhance
 			// call 'await update()' if you need to ensure it completes before further client logic.
 			resetFields();
@@ -713,6 +711,60 @@
 										{/if}
 									</div>
 								</div>
+								<div class="divider my-2 font-medium text-primary">Metodo di Pagamento</div>
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<!-- <div class="grid grid-cols-1 md:grid-cols-3 gap-4"> -->
+									<div class="form-control w-full">
+										<label
+											class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
+											class:border-primary={formData.paymentType === 'bonifico'}
+											class:bg-base-200={formData.paymentType === 'bonifico'}
+										>
+											<input
+												type="radio"
+												name="payment"
+												value="bonifico"
+												class="hidden"
+												bind:group={formData.paymentType}
+											/>
+											<Landmark class="h-8 w-8 text-primary" />
+											<span class="text-center font-medium">Bonifico Bancario</span>
+										</label>
+									</div>
+									<div class="form-control w-full">
+										<label
+											class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
+											class:border-primary={formData.paymentType === 'paypal'}
+											class:bg-base-200={formData.paymentType === 'paypal'}
+										>
+											<input
+												type="radio"
+												name="payment"
+												value="paypal"
+												class="hidden"
+												bind:group={formData.paymentType}
+											/>
+											<CreditCard class="h-8 w-8 text-primary" />
+											<span class="text-center font-medium">Paypal</span>
+										</label>
+									</div>
+									<!-- <label
+				class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
+				class:border-primary={formData.paymentType === 'contanti'}
+				class:bg-base-200={formData.paymentType === 'contanti'}
+			>
+				<input
+					type="radio"
+					name="payment"
+					value="contanti"
+					class="hidden"
+					bind:group={formData.paymentType}
+				/>
+				<HandCoins class="h-8 w-8 text-primary" />
+				<span class="text-center font-medium">Contanti (all'inizio corso)</span>
+			</label> -->
+									<!-- </div> -->
+								</div>
 							</div>
 						</form>
 					</div>
@@ -762,7 +814,7 @@
 											disabled={loading || $cartProducts.length < 1}
 										/>
 										<input type="hidden" name="cart" value={JSON.stringify($cartProducts)} />
-										<input type="hidden" name="grandTotal" value={grandTotal} />
+										<input type="hidden" name="grandTotal" value={grandTotal()} />
 										<input type="hidden" name="discountList" value={JSON.stringify(discountList)} />
 										<button
 											type="submit"
@@ -787,7 +839,7 @@
 												<Tag size={14} />
 												{badgeCode.code}
 												<input type="hidden" name="cart" value={JSON.stringify($cartProducts)} />
-												<input type="hidden" name="grandTotal" value={grandTotal} />
+												<input type="hidden" name="grandTotal" value={grandTotal()} />
 												<input
 													type="hidden"
 													name="discountList"
@@ -811,7 +863,7 @@
 
 						<button
 							class="btn btn-primary w-full mt-4"
-							onclick={onConfirmForm}
+							onclick={() => onClickModal('new', null)}
 							disabled={$cartProducts.length === 0}
 						>
 							Procedi al checkout
@@ -824,205 +876,229 @@
 	</div>
 {/if}
 
-<!-- Confirmation Modal -->
-<dialog id="confirmation-modal" class="modal" class:modal-open={isModalConfirm}>
-	<div class="modal-box max-w-3xl">
-		<h3 class="font-bold text-xl text-center mb-6">Riepilogo Ordine</h3>
+{#if currentModal == 'new'}
+	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-3xl p-6">
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+			>✕</button
+		>
+		{#if loading}
+			<Loader />
+		{:else}
+			<div class="">
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 mt-4">
+					<div class="space-y-4">
+						<h4 class="font-medium text-primary">Informazioni Personali</h4>
 
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-			<div class="space-y-4">
-				<h4 class="font-medium text-primary">Informazioni Personali</h4>
+						<div class="grid grid-cols-2 gap-2">
+							<div>
+								<p class="text-sm text-base-content/70">Nome</p>
+								<p class="font-medium">{formData.name}</p>
+							</div>
+							<div>
+								<p class="text-sm text-base-content/70">Cognome</p>
+								<p class="font-medium">{formData.surname}</p>
+							</div>
+							<div class="col-span-2">
+								<p class="text-sm text-base-content/70">Email</p>
+								<p class="font-medium">{formData.email}</p>
+							</div>
+							<div>
+								<p class="text-sm text-base-content/70">Telefono</p>
+								<p class="font-medium">{formData.phone || 'Non specificato'}</p>
+							</div>
+							<div>
+								<p class="text-sm text-base-content/70">Cellulare</p>
+								<p class="font-medium">{formData.mobilePhone}</p>
+							</div>
+						</div>
+					</div>
 
-				<div class="grid grid-cols-2 gap-2">
-					<div>
-						<p class="text-sm text-base-content/70">Nome</p>
-						<p class="font-medium">{formData.name}</p>
-					</div>
-					<div>
-						<p class="text-sm text-base-content/70">Cognome</p>
-						<p class="font-medium">{formData.surname}</p>
-					</div>
-					<div class="col-span-2">
-						<p class="text-sm text-base-content/70">Email</p>
-						<p class="font-medium">{formData.email}</p>
-					</div>
-					<div>
-						<p class="text-sm text-base-content/70">Telefono</p>
-						<p class="font-medium">{formData.phone || 'Non specificato'}</p>
-					</div>
-					<div>
-						<p class="text-sm text-base-content/70">Cellulare</p>
-						<p class="font-medium">{formData.mobilePhone}</p>
+					<div class="space-y-4">
+						<h4 class="font-medium text-primary">Indirizzo di Spedizione</h4>
+
+						<div class="grid grid-cols-2 gap-2">
+							<div class="col-span-2">
+								<p class="text-sm text-base-content/70">Indirizzo</p>
+								<p class="font-medium">{formData.address}</p>
+							</div>
+							<div>
+								<p class="text-sm text-base-content/70">Città</p>
+								<p class="font-medium">{formData.city}</p>
+							</div>
+							<div>
+								<p class="text-sm text-base-content/70">CAP</p>
+								<p class="font-medium">{formData.postalCode}</p>
+							</div>
+							<div>
+								<p class="text-sm text-base-content/70">Provincia</p>
+								<p class="font-medium">{formData.county}</p>
+							</div>
+							<div>
+								<p class="text-sm text-base-content/70">Nazione</p>
+								<p class="font-medium">{formData.country}</p>
+							</div>
+						</div>
 					</div>
 				</div>
-			</div>
 
-			<div class="space-y-4">
-				<h4 class="font-medium text-primary">Indirizzo di Spedizione</h4>
+				<div class="space-y-4 mb-6">
+					<h4 class="font-medium text-primary">Prodotti</h4>
 
-				<div class="grid grid-cols-2 gap-2">
-					<div class="col-span-2">
-						<p class="text-sm text-base-content/70">Indirizzo</p>
-						<p class="font-medium">{formData.address}</p>
-					</div>
-					<div>
-						<p class="text-sm text-base-content/70">Città</p>
-						<p class="font-medium">{formData.city}</p>
-					</div>
-					<div>
-						<p class="text-sm text-base-content/70">CAP</p>
-						<p class="font-medium">{formData.postalCode}</p>
-					</div>
-					<div>
-						<p class="text-sm text-base-content/70">Provincia</p>
-						<p class="font-medium">{formData.county}</p>
-					</div>
-					<div>
-						<p class="text-sm text-base-content/70">Nazione</p>
-						<p class="font-medium">{formData.country}</p>
+					<div class="overflow-x-auto">
+						<table class="table table-zebra w-full">
+							<thead>
+								<tr>
+									<th>Prodotto</th>
+									<th class="text-right">Quantità</th>
+									<th class="text-right">Prezzo</th>
+								</tr>
+							</thead>
+							<tbody>
+								{#each $cartProducts as item}
+									<tr>
+										<td>{item.title}</td>
+										<td class="text-right">{item.orderQuantity || 1}</td>
+										<td class="text-right">€ {item.price.toFixed(2)}</td>
+									</tr>
+								{/each}
+								{#if discountList.length > 0}
+									<tr class="text-success">
+										<td colspan="2">Sconto</td>
+										<td class="text-right">- € {totalDiscount().toFixed(2)}</td>
+									</tr>
+								{/if}
+							</tbody>
+							<tfoot>
+								<tr>
+									<th colspan="2">Totale</th>
+									<th class="text-right">
+										€ {subTotal.toFixed(2)}
+									</th>
+								</tr>
+							</tfoot>
+						</table>
 					</div>
 				</div>
+
+				<!-- <div class="space-y-4">
+					<h4 class="font-medium text-primary">Metodo di Pagamento</h4>
+
+					<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<label
+							class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
+							class:border-primary={formData.paymentType === 'bonifico'}
+							class:bg-base-200={formData.paymentType === 'bonifico'}
+						>
+							<input
+								type="radio"
+								name="payment"
+								value="bonifico"
+								class="hidden"
+								bind:group={formData.paymentType}
+							/>
+							<Landmark class="h-8 w-8 text-primary" />
+							<span class="text-center font-medium">Bonifico Bancario</span>
+						</label>
+
+						<label
+							class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
+							class:border-primary={formData.paymentType === 'paypal'}
+							class:bg-base-200={formData.paymentType === 'paypal'}
+						>
+							<input
+								type="radio"
+								name="payment"
+								value="paypal"
+								class="hidden"
+								bind:group={formData.paymentType}
+							/>
+							<CreditCard class="h-8 w-8 text-primary" />
+							<span class="text-center font-medium">Paypal</span>
+						</label>
+
+						<label
+							class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
+							class:border-primary={formData.paymentType === 'contanti'}
+							class:bg-base-200={formData.paymentType === 'contanti'}
+						>
+							<input
+								type="radio"
+								name="payment"
+								value="contanti"
+								class="hidden"
+								bind:group={formData.paymentType}
+							/>
+							<HandCoins class="h-8 w-8 text-primary" />
+							<span class="text-center font-medium">Contanti (all'inizio corso)</span>
+						</label>
+					</div>
+				</div> -->
+				<form method="POST" action={postAction} use:enhance={formSubmit} class="">
+					<input type="hidden" name="name" value={formData.name} />
+					<input type="hidden" name="surname" value={formData.surname} />
+					<input type="hidden" name="email" value={formData.email} />
+					{#if !auth}
+						<input type="hidden" name="password1" value={password1} />
+						<input type="hidden" name="password2" value={password2} />
+					{/if}
+					<input type="hidden" name="address" value={formData.address} />
+					<input type="hidden" name="city" value={formData.city} />
+					<input type="hidden" name="county" value={formData.county} />
+					<input type="hidden" name="postalCode" value={formData.postalCode} />
+					<input type="hidden" name="country" value={formData.country} />
+					<input type="hidden" name="phone" value={formData.phone} />
+					<input type="hidden" name="mobilePhone" value={formData.mobilePhone} />
+					<input type="hidden" name="payment" value={formData.paymentType} />
+					<input type="hidden" name="cart" value={JSON.stringify(cart)} />
+					<input type="hidden" name="totalValue" value={subTotal} />
+					<input type="hidden" name="discountList" value={JSON.stringify(discountList)} />
+					<div class="modal-action">
+						<button class="btn btn-outline btn-error" onclick={onCloseModal}> Annulla </button>
+						<button type="submit" class="btn btn-primary"> Conferma Acquisto </button>
+					</div>
+				</form>
+			</div>
+		{/if}
+	</Modal>
+{/if}
+
+{#if currentModal == 'success'}
+	<dialog id="success-modal" class="modal modal-open">
+		<div class="modal-box text-center">
+			<div
+				class="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-4"
+			>
+				<CheckCircle size={40} class="text-success" />
+			</div>
+			<h3 class="font-bold text-xl mb-2">Ordine Confermato</h3>
+			<p class="py-2">Puoi vedere lo storico ordini nell'AREA PERSONALE.</p>
+			<div class="modal-action justify-center">
+				<button class="btn btn-primary" onclick={onCloseModal}> Chiudi </button>
 			</div>
 		</div>
+		<form method="dialog" class="modal-backdrop">
+			<button onclick={onCloseModal}>close</button>
+		</form>
+	</dialog>
+{/if}
 
-		<div class="space-y-4 mb-6">
-			<h4 class="font-medium text-primary">Prodotti</h4>
-
-			<div class="overflow-x-auto">
-				<table class="table table-zebra w-full">
-					<thead>
-						<tr>
-							<th>Prodotto</th>
-							<th class="text-right">Quantità</th>
-							<th class="text-right">Prezzo</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each $cartProducts as item}
-							<tr>
-								<td>{item.title}</td>
-								<td class="text-right">{item.orderQuantity || 1}</td>
-								<td class="text-right">€ {item.price.toFixed(2)}</td>
-							</tr>
-						{/each}
-						{#if discountList.length > 0}
-							<tr class="text-success">
-								<td colspan="2">Sconto</td>
-								<td class="text-right">- € {totalDiscount().toFixed(2)}</td>
-							</tr>
-						{/if}
-					</tbody>
-					<tfoot>
-						<tr>
-							<th colspan="2">Totale</th>
-							<th class="text-right">
-								€ {subTotal.toFixed(2)}
-							</th>
-						</tr>
-					</tfoot>
-				</table>
+{#if currentModal == 'newUser'}
+	<dialog id="success-login-modal" class="modal modal-open">
+		<div class="modal-box text-center">
+			<div
+				class="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-4"
+			>
+				<CheckCircle size={40} class="text-success" />
+			</div>
+			<h3 class="font-bold text-xl mb-2">Ordine Confermato</h3>
+			<p class="py-2 font-medium">Ora puoi fare LOGIN con EMAIL e PASSWORD</p>
+			<p class="py-1">per completare il PROFILO e vedere il tuo STORICO ordini</p>
+			<div class="modal-action justify-center">
+				<button class="btn btn-primary" onclick={onCloseModal}> Chiudi </button>
 			</div>
 		</div>
-
-		<div class="space-y-4">
-			<h4 class="font-medium text-primary">Metodo di Pagamento</h4>
-
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<label
-					class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
-					class:border-primary={formData.paymentType === 'bonifico'}
-					class:bg-base-200={formData.paymentType === 'bonifico'}
-				>
-					<input
-						type="radio"
-						name="payment"
-						value="bonifico"
-						class="hidden"
-						bind:group={formData.paymentType}
-					/>
-					<Landmark class="h-8 w-8 text-primary" />
-					<span class="text-center font-medium">Bonifico Bancario</span>
-				</label>
-
-				<label
-					class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
-					class:border-primary={formData.paymentType === 'paypal'}
-					class:bg-base-200={formData.paymentType === 'paypal'}
-				>
-					<input
-						type="radio"
-						name="payment"
-						value="paypal"
-						class="hidden"
-						bind:group={formData.paymentType}
-					/>
-					<CreditCard class="h-8 w-8 text-primary" />
-					<span class="text-center font-medium">Paypal</span>
-				</label>
-
-				<label
-					class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
-					class:border-primary={formData.paymentType === 'contanti'}
-					class:bg-base-200={formData.paymentType === 'contanti'}
-				>
-					<input
-						type="radio"
-						name="payment"
-						value="contanti"
-						class="hidden"
-						bind:group={formData.paymentType}
-					/>
-					<HandCoins class="h-8 w-8 text-primary" />
-					<span class="text-center font-medium">Contanti (all'inizio corso)</span>
-				</label>
-			</div>
-		</div>
-
-		<div class="modal-action">
-			<button class="btn btn-outline btn-error" onclick={() => (isModalConfirm = false)}>
-				Annulla
-			</button>
-			<button class="btn btn-primary" onclick={() => onConfirmCart()}> Conferma Acquisto </button>
-		</div>
-	</div>
-	<form method="dialog" class="modal-backdrop">
-		<button onclick={() => (isModalConfirm = false)}>close</button>
-	</form>
-</dialog>
-
-<!-- Success Modal (Logged In) -->
-<dialog id="success-modal" class="modal" class:modal-open={isModalSuccess}>
-	<div class="modal-box text-center">
-		<div class="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-4">
-			<CheckCircle size={40} class="text-success" />
-		</div>
-		<h3 class="font-bold text-xl mb-2">Ordine Confermato</h3>
-		<p class="py-2">Puoi vedere lo storico ordini nella pagina: Impostazioni.</p>
-		<div class="modal-action justify-center">
-			<button class="btn btn-primary" onclick={() => (isModalSuccess = false)}> Chiudi </button>
-		</div>
-	</div>
-	<form method="dialog" class="modal-backdrop">
-		<button onclick={() => (isModalSuccess = false)}>close</button>
-	</form>
-</dialog>
-
-<!-- Success Modal (New User) -->
-<dialog id="success-login-modal" class="modal" class:modal-open={isModalSuccessLogin}>
-	<div class="modal-box text-center">
-		<div class="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-4">
-			<CheckCircle size={40} class="text-success" />
-		</div>
-		<h3 class="font-bold text-xl mb-2">Ordine Confermato</h3>
-		<p class="py-2 font-medium">Ora puoi fare LOGIN con EMAIL e PASSWORD</p>
-		<p class="py-1">per completare il PROFILO e vedere il tuo STORICO ordini</p>
-		<div class="modal-action justify-center">
-			<button class="btn btn-primary" onclick={() => (isModalSuccessLogin = false)}>
-				Chiudi
-			</button>
-		</div>
-	</div>
-	<form method="dialog" class="modal-backdrop">
-		<button onclick={() => (isModalSuccessLogin = false)}>close</button>
-	</form>
-</dialog>
+		<form method="dialog" class="modal-backdrop">
+			<button onclick={onCloseModal}>close</button>
+		</form>
+	</dialog>
+{/if}

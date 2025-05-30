@@ -25,10 +25,7 @@
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { getCourse, userData, auth } = $derived(data);
-
-	// const userfiles = $derived(userData?.uploadfiles || []);
-	// const picFilter = $derived(userfiles.filter((file: any) => file.type == 'avatar'));
+	const { getCourse, userData, auth } = data;
 
 	// discount
 	let discountCode = $state('');
@@ -48,9 +45,6 @@
 		return total;
 	});
 	// testing NEW VERSION using reduce
-	// let totalDiscount = $derived(
-	// 	discountList.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0)
-	// );
 	let totalDiscount = $derived(() =>
 		discountList.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0)
 	);
@@ -82,10 +76,10 @@
 		country: userData?.country || 'Italy',
 		phone: userData?.phone || '',
 		mobilePhone: userData?.mobilePhone || '',
-		payment: 'Bonifico bancario',
-		password1: '',
-		password2: ''
+		payment: 'Bonifico bancario'
 	});
+	let password1: string = $state('');
+	let password2: string = $state('');
 
 	// Modal
 	let openModal = $state(false);
@@ -94,6 +88,7 @@
 	let loading = $state(false);
 	let currentModal = $state('');
 
+	// Modal step
 	let currentStep = $state(1);
 	let totalSteps = $state(3);
 	let passwordsMatch = $state(true);
@@ -110,13 +105,13 @@
 		formData.phone = userData?.phone || '';
 		formData.mobilePhone = userData?.mobilePhone || '';
 		formData.payment = 'Bonifico bancario';
-		formData.password1 = '';
-		formData.password2 = '';
+		password1 = '';
+		password2 = '';
 	};
 
 	const checkPasswordsMatch = () => {
-		if (!auth && formData.password1 && formData.password2) {
-			passwordsMatch = formData.password1 === formData.password2;
+		if (!auth && password1 && password2) {
+			passwordsMatch = password1 === password2;
 		} else {
 			passwordsMatch = true;
 		}
@@ -154,10 +149,10 @@
 		}
 
 		if (!auth) {
-			if (!formData.password1 || !formData.password2 || formData.password1.length < 8) {
+			if (!password1 || !password2 || password1.length < 8) {
 				return false;
 			}
-			if (formData.password1 !== formData.password2) {
+			if (password1 !== password2) {
 				return false;
 			}
 		}
@@ -222,13 +217,13 @@
 							goto('/profile-modify');
 						}, 6000);
 					}
-					onCloseModal();
 				}
 
 				if (action === 'applyDiscount' || action === 'removeDiscount') {
 					discountList = payload?.discountApplied || [];
 					discountCode = '';
 				}
+				onCloseModal();
 				notification.info(message);
 			}
 			if (result.type === 'failure') {
@@ -355,6 +350,89 @@
 								<CreditCard class="w-5 h-5" /> Acquista Ora
 							</button>
 							<!-- </div> -->
+							{#if discountList.length > 0}
+								<div>
+									<p class="text-accent">Sconto Applicato</p>
+									<p class="font-medium text-xl text-blue-900">
+										- {totalDiscount().toFixed(2)} €
+									</p>
+								</div>
+							{/if}
+							<!-- Discount Code -->
+							<div class="pb-6">
+								{#if loading}
+									<Loader />
+								{:else}
+									<form method="POST" action="?/applyDiscount" use:enhance={formSubmit}>
+										<label class="form-control">
+											<div class="label">
+												<span class="label-text font-medium">Codice sconto</span>
+											</div>
+											<div class="flex gap-2">
+												<input
+													type="text"
+													id="discountCode"
+													name="discountCode"
+													placeholder="Inserisci il codice"
+													class="input input-bordered"
+													bind:value={discountCode}
+													disabled={loading || cart.length < 1}
+												/>
+												<input type="hidden" name="cart" value={JSON.stringify(cart)} />
+												<input type="hidden" name="grandTotal" value={grandTotal()} />
+												<input
+													type="hidden"
+													name="discountList"
+													value={JSON.stringify(discountList)}
+												/>
+												<button
+													type="submit"
+													class="btn btn-primary"
+													disabled={!discountCode || loading}
+												>
+													{#if loading}
+														<span class="loading loading-spinner loading-sm"></span>
+													{:else}
+														Applica
+													{/if}
+												</button>
+											</div>
+										</label>
+									</form>
+								{/if}
+
+								{#if discountList.length > 0}
+									<form method="POST" action="?/removeDiscount" use:enhance={formSubmit}>
+										<div class="flex flex-wrap gap-2 mt-3">
+											{#each discountList as badgeCode, i}
+												<div
+													class="badge badge-lg bg-primary/10 text-primary gap-2 px-4 py-2 text-sm font-semibold rounded-full"
+												>
+													<Tag size={14} />
+													{badgeCode.code}
+													<input type="hidden" name="cart" value={JSON.stringify(cart)} />
+													<input type="hidden" name="grandTotal" value={grandTotal()} />
+													<input
+														type="hidden"
+														name="discountList"
+														value={JSON.stringify(discountList)}
+													/>
+													<input type="hidden" name="removeCode" value={badgeCode.code} />
+													<button
+														type="submit"
+														name="removeCode"
+														class="btn btn-xs btn-circle btn-ghost"
+														disabled={loading}
+													>
+														<X size={14} />
+													</button>
+												</div>
+											{/each}
+										</div>
+									</form>
+								{/if}
+							</div>
+							<!-- end Discount Code -->
 						</div>
 					</div>
 				</div>
@@ -474,8 +552,18 @@
 									</div>
 									<div>
 										<p class="text-sm text-gray-500">Prezzo</p>
-										<p class="font-medium text-xl text-blue-900">{getCourse.layoutView.price} €</p>
+										<p class="font-medium text-xl text-blue-900">
+											{getCourse.layoutView.price.toFixed(2)} €
+										</p>
 									</div>
+									{#if discountList.length > 0}
+										<div>
+											<p class="text-sm text-gray-500">Sconto Applicato</p>
+											<p class="font-medium text-xl text-blue-900">
+												- {totalDiscount().toFixed(2)} €
+											</p>
+										</div>
+									{/if}
 								</div>
 
 								{#if !auth}
@@ -636,7 +724,7 @@
 										type="password"
 										placeholder="Inserisci la password"
 										aria-label="Password"
-										bind:value={formData.password1}
+										bind:value={password1}
 										minlength="8"
 										required={!auth}
 										onblur={checkPasswordsMatch}
@@ -657,7 +745,7 @@
 									<Lock
 										size={18}
 										class="ml-2"
-										color={passwordsMatch ? (formData.password2 ? 'green' : 'currentColor') : 'red'}
+										color={passwordsMatch ? (password2 ? 'green' : 'currentColor') : 'red'}
 									/>
 									<input
 										class="flex-1 outline-none bg-transparent"
@@ -665,7 +753,7 @@
 										name="password2"
 										type="password"
 										placeholder="Conferma la password"
-										bind:value={formData.password2}
+										bind:value={password2}
 										minlength="8"
 										required={!auth}
 										oninput={checkPasswordsMatch}
@@ -956,7 +1044,7 @@
 			</div>
 		</form>
 		<!-- Discount Code -->
-		{#if currentStep == 3}
+		<!-- {#if currentStep == 3}
 			<div class="px-6 pb-6">
 				<form method="POST" action="?/applyDiscount" use:enhance={formSubmit}>
 					<label class="form-control w-full">
@@ -1014,7 +1102,7 @@
 					</form>
 				{/if}
 			</div>
-		{/if}
+		{/if} -->
 	{/if}
 </Modal>
 

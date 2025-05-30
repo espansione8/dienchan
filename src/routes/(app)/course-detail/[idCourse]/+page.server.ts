@@ -163,21 +163,16 @@ export const actions: Actions = {
 		if (!locals.auth) {
 			let userExist = false;
 			try {
-				const query = { email };
-				const projection = { _id: 0, email: 1 } // 0: exclude | 1: include
-				const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
-				const limit = 1;
-				const skip = 0;
 				const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 					method: 'POST',
 					body: JSON.stringify({
 						apiKey: APIKEY,
 						schema: 'user', //product | order | user | layout | discount
-						query,
-						projection,
-						sort,
-						limit,
-						skip
+						query: { email },
+						projection: { email: 1 },
+						sort: { createdAt: -1 },
+						limit: 1,
+						skip: 0
 					}),
 					headers: {
 						'Content-Type': 'application/json'
@@ -411,8 +406,8 @@ export const actions: Actions = {
 			const newDiscountArray = [...discountArray, discountCode];
 			const discountRes = await discountFetch(newDiscountArray);
 			const discountGroup: DiscountItem[] = await discountRes.json();
-			console.log('newDiscountArray', newDiscountArray);
-			console.log('discountGroup', discountGroup);
+			// console.log('newDiscountArray', newDiscountArray);
+			// console.log('discountGroup', discountGroup);
 
 			// Find the specific discount being applied
 			const discountItem = discountGroup.find((item: DiscountItem) => item.code === discountCode);

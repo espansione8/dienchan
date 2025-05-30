@@ -14,7 +14,7 @@
 		Trash2,
 		FileCog
 	} from 'lucide-svelte';
-	import type { Order, TableNames } from '$lib/types';
+	import type { Order, TableNames, Product } from '$lib/types';
 
 	let { data, form } = $props();
 	let { getTable, getTableNames } = $derived(data);
@@ -270,13 +270,13 @@
 								{#if item.type == 'course'}
 									<span>{item.layoutView.title}</span>
 								{:else}
-									<span>{item.layoutView.title}: {item.orderQuantity}</span>
+									<span>{item.title}: {item.orderQuantity}</span>
 								{/if}
 							{/each}
 						</div>
 					</td>
 					<!-- Totale -->
-					<td>€ {row.totalValue}</td>
+					<td>€ {row.totalValue.toFixed(2)}</td>
 					<!-- Tipo pagamento -->
 					<td>
 						{row.payment.method} / {row.payment.statusPayment}

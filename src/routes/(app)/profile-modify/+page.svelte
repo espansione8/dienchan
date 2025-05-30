@@ -1,10 +1,12 @@
 <script lang="ts">
+	import type { ActionResult } from '@sveltejs/kit';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import Notification from '$lib/components/Notification.svelte';
 	import DragDrop from '$lib/components/DragDrop.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import { province, country_list } from '$lib/stores/arrays.js';
+	import { imgCheck } from '$lib/tools/tools';
 	import {
 		KeyRound,
 		X,
@@ -34,7 +36,6 @@
 		IdCard,
 		Home
 	} from 'lucide-svelte';
-	import type { ActionResult } from '@sveltejs/kit';
 
 	const { data } = $props();
 	const { userData, orderData } = $derived(data);
@@ -987,9 +988,7 @@
 																		/>
 																	{:else}
 																		<img
-																			src={item.uploadfiles?.length > 0
-																				? `/files/${item.uploadfiles[0]?.fileUrl || '/placeholder.svg'}`
-																				: '/images/placeholder.jpg'}
+																			src={imgCheck.single(item.uploadfiles, 'product-primary')}
 																			alt={item.title}
 																			class="w-full h-full object-cover"
 																		/>
