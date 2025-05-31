@@ -269,8 +269,10 @@
 							{#each row.cart as item}
 								{#if item.type == 'course'}
 									<span>{item.layoutView.title}</span>
+								{:else if item.type == 'membership'}
+									<span>{item.title}</span>
 								{:else}
-									<span>{item.title}: {item.orderQuantity}</span>
+									<span>{item.title}: {item.orderQuantity || 1}</span>
 								{/if}
 							{/each}
 						</div>

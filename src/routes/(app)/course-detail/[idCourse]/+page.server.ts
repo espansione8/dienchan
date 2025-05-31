@@ -126,6 +126,7 @@ const calculateItemDiscount = (
 
 export const actions: Actions = {
 	new: async ({ request, fetch, locals, cookies }) => {
+
 		const formData = await request.formData();
 		const name = formData.get('name');
 		const surname = formData.get('surname');
@@ -144,9 +145,47 @@ export const actions: Actions = {
 		const cart = formData.get('cart');
 		const cartItem = JSON.parse(String(cart)) || null;
 
+		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { email },
+				projection: { email: 1 },
+				sort: { createdAt: -1 },
+				limit: 1,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+
+		const membershipFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'product', //product | order | user | layout | discount
+				query: { type: 'membership', title: 'Socio Ordinario' }, //IF USE Products.model -> type: course / product / membership / event
+				projection: { _id: 0, userView: 0, layoutView: 0 }, // 0: exclude | 1: include
+				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				limit: 1,
+				skip: 0,
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			},
+		});
+
 		//const file = formData.get('image') || '';
 		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
 		let currentUserId: string = locals.user?.userId ?? '';
+		let membership = []
+		let userExist = false;
+
+		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || !cart) {
+			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
+		}
 
 		if (!locals.auth && (password1 != password2)) {
 			return fail(400, { action: 'new', success: false, message: 'Password non corrispondenti' });
@@ -156,33 +195,24 @@ export const actions: Actions = {
 			return fail(400, { action: 'new', success: false, message: 'Password non valide' });
 		}
 
-		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || !cart) {
-			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
-		}
-
 		if (!locals.auth) {
-			let userExist = false;
 			try {
-				const res = await fetch(`${BASE_URL}/api/mongo/find`, {
-					method: 'POST',
-					body: JSON.stringify({
-						apiKey: APIKEY,
-						schema: 'user', //product | order | user | layout | discount
-						query: { email },
-						projection: { email: 1 },
-						sort: { createdAt: -1 },
-						limit: 1,
-						skip: 0
-					}),
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				});
-				if (res.status != 200) {
-					console.error('user fetch failed', res.status, await res.text());
+				const membershipRes = await membershipFetch
+				if (membershipRes.status != 200) {
+					return fail(400, { action: 'new', success: false, message: await membershipRes.text() });
+				}
+				membership = await membershipRes.json()
+
+				if (membership.length < 1) {
+					return fail(400, { action: 'new', success: false, message: "Missing membership" });
+				}
+
+				const userRes = await userFetch
+				if (userRes.status != 200) {
+					console.error('user fetch failed', userRes.status, await userRes.text());
 					return fail(400, { action: 'new', success: false, message: 'errore database user' });
 				}
-				const response = await res.json();
+				const response = await userRes.json();
 				if (response.length > 0) {
 					userExist = true;
 					return fail(400, { action: 'new', success: false, message: 'email esistente' });
@@ -192,40 +222,34 @@ export const actions: Actions = {
 			}
 			if (!userExist) {
 				try {
-					const userId = nanoid() // OLD stringHash(crypto.randomUUID());
-					///console.log('new userId', userId);
-					const userCode = crypto.randomUUID()
 					const cookieId = crypto.randomUUID()
-					const returnObj = true
-					const newDoc = {
-						userId,
-						userCode,
-						name,
-						surname,
-						email,
-						address,
-						postalCode,
-						city,
-						county,
-						country,
-						phone,
-						mobilePhone,
-						password: hash(password1, SALT),
-						cookieId,
-						// "membership.membershipLevel": 'Socio ordinario',
-						// "membership.membershipSignUp": new Date(),
-						// "membership.membershipActivation": new Date(),
-						// "membership.membershipExpiry": new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-						// "membership.membershipStatus": true
-					};
-
 					const res = await fetch(`${BASE_URL}/api/mongo/create`, {
 						method: 'POST',
 						body: JSON.stringify({
 							apiKey: APIKEY,
 							schema: 'user', //product | order | user | layout | discount
-							newDoc,
-							returnObj
+							newDoc: {
+								userId: nanoid(),
+								userCode: crypto.randomUUID(),
+								name,
+								surname,
+								email,
+								address,
+								postalCode,
+								city,
+								county,
+								country,
+								phone,
+								mobilePhone,
+								password: hash(password1, SALT),
+								cookieId,
+								// "membership.membershipLevel": 'Socio ordinario',
+								// "membership.membershipSignUp": new Date(),
+								// "membership.membershipActivation": new Date(),
+								// "membership.membershipExpiry": new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+								// "membership.membershipStatus": true
+							},
+							returnObj: true
 						}),
 						headers: {
 							'Content-Type': 'application/json'
@@ -246,20 +270,17 @@ export const actions: Actions = {
 						path: '/'
 					});
 
-				} catch (error) {
-					console.error('Error creating new user:', error);
+				} catch (err) {
+					console.error('Error creating new user:', err);
 					return fail(400, { action: 'user', success: false, message: 'Error new user' });
 				}
 			}
 		}
 
 		try {
-			const orderId = nanoid() // OLD stringHash(crypto.randomUUID());
-			const orderCode = crypto.randomUUID()
-			const returnObj = false
 			const newDoc = {
-				orderId,
-				orderCode,
+				// orderId: nanoid(),
+				// orderCode: crypto.randomUUID(),
 				userId: currentUserId,
 				status: 'requested',
 				orderDate: new Date(),
@@ -270,7 +291,7 @@ export const actions: Actions = {
 				agencyId: '',
 				orderConfirmed: false,
 				totalPoints: 0,
-				totalValue: Number(totalValue),
+				// totalValue: Number(totalValue),
 				totalVAT: 0,
 				browser: '',
 				orderIp: '',
@@ -321,23 +342,56 @@ export const actions: Actions = {
 					points: '',
 					value: ''
 				},
-				cart: [cartItem]
+				//cart: [cartItem]
 			};
 
+			if (!userExist) {
+				// Membership order
+				const resMembership = await fetch(`${BASE_URL}/api/mongo/create`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'order', //product | order | user | layout | discount
+						newDoc: {
+							orderId: nanoid(),
+							orderCode: crypto.randomUUID(),
+							totalValue: Number(25),
+							...newDoc,
+							cart: membership
+						},
+						returnObj: false
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+				if (!resMembership.ok) {
+					return fail(400, { action: 'new', success: false, message: await resMembership.text() });
+				}
+			}
+			// Recalculate to prevent client-side manipulation
+
+			// Cart order
 			const res = await fetch(`${BASE_URL}/api/mongo/create`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey: APIKEY,
 					schema: 'order', //product | order | user | layout | discount
-					newDoc,
-					returnObj
+					newDoc: {
+						orderId: nanoid(),
+						orderCode: crypto.randomUUID(),
+						totalValue: Number(totalValue),
+						...newDoc,
+						cart: [cartItem]
+					},
+					returnObj: false
 				}),
 				headers: {
 					'Content-Type': 'application/json'
 				}
 			});
 
-			if (res.status != 200) {
+			if (!res.ok) {
 				return fail(400, { action: 'new', success: false, message: await res.text() });
 			}
 
