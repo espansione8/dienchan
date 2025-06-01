@@ -26,7 +26,7 @@ export const handle: Handle = async ({ event, resolve, }) => {
 
 			if (getSession) {
 				//event.locals.user = getSession.email;
-				event.locals.user = getSession || {};
+				event.locals.user = getSession || null;
 				event.locals.auth = true;
 				//event.locals.session = session_id;
 				const response = await resolve(event);
@@ -39,7 +39,7 @@ export const handle: Handle = async ({ event, resolve, }) => {
 		}
 	}
 	// DEFINE in +layout.server.ts in root
-	event.locals.user = {};
+	event.locals.user = null;
 	event.locals.auth = false;
 	// FRONTEND USE
 	// import { page } from '$app/stores';

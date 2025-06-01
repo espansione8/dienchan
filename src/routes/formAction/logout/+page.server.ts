@@ -29,13 +29,13 @@ export const actions: Actions = {
         });
 
         try {
+            cookies.delete('session_id', { path: '/' });
             const res = await resFetch;
             if (res.status != 200) {
                 const errorText = await res.text();
                 console.error('sign-out failed', res.status, errorText);
                 throw error(400, errorText);
             }
-            cookies.delete('session_id', { path: '/' });
         } catch (err) {
             console.error('ERROR logout:', err);
             throw error(500, 'ERROR logout');

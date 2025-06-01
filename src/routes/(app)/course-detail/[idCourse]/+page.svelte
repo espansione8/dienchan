@@ -215,7 +215,7 @@
 					if (payload.redirect) {
 						setTimeout(() => {
 							goto('/profile-modify');
-						}, 6000);
+						}, 4000);
 					}
 				}
 

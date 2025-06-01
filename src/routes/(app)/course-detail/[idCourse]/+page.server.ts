@@ -166,7 +166,7 @@ export const actions: Actions = {
 			body: JSON.stringify({
 				apiKey: APIKEY,
 				schema: 'product', //product | order | user | layout | discount
-				query: { type: 'membership', title: 'Socio Ordinario' }, //IF USE Products.model -> type: course / product / membership / event
+				query: { type: 'membership', title: 'Socio ordinario' }, //IF USE Products.model -> type: course / product / membership / event
 				projection: { _id: 0, userView: 0, layoutView: 0 }, // 0: exclude | 1: include
 				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
 				limit: 1,
@@ -345,7 +345,7 @@ export const actions: Actions = {
 				//cart: [cartItem]
 			};
 
-			if (!userExist) {
+			if (!userExist && membership.length > 0) {
 				// Membership order
 				const resMembership = await fetch(`${BASE_URL}/api/mongo/create`, {
 					method: 'POST',
@@ -355,7 +355,7 @@ export const actions: Actions = {
 						newDoc: {
 							orderId: nanoid(),
 							orderCode: crypto.randomUUID(),
-							totalValue: Number(25),
+							totalValue: Number(membership[0]?.price || 25.00),
 							...newDoc,
 							cart: membership
 						},

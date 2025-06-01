@@ -4,10 +4,10 @@ import type { PageServerLoad } from './$types'
 export const load: PageServerLoad = async ({ locals }) => {
 	//const { session } = await parent(); // get data from +layout.server.ts
 	//console.log('params', params);
-	console.log('locals', locals.auth);
+	//console.log('locals', locals.auth);
 
 	if (!locals?.auth) {
-		throw redirect(302, '/course-shop');
+		throw redirect(302, '/membership-new');
 	} else {
 		throw redirect(302, '/profile-modify');
 	}

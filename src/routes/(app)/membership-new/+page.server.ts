@@ -1,218 +1,383 @@
 import type { PageServerLoad, Actions } from './$types'
-import { BASE_URL, APIKEY } from '$env/static/private';
-import { fail } from '@sveltejs/kit';
-import { Product } from '$lib/server/mongo/schema/Products.model';
+import { BASE_URL, APIKEY, SALT } from '$env/static/private';
+import { error, fail } from '@sveltejs/kit';
+import { hash } from '$lib/tools/hash';
+import { customAlphabet } from 'nanoid'
+const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 
-// export const load: PageServerLoad = async ({ locals }) => {
-// 	console.log('locals', locals);
-// 	if (!locals.auth) {
-// 		throw redirect(302, '/login');
-// 	}
-// 	console.log('locals.data', locals.data);
+export const load: PageServerLoad = async ({ fetch, locals, params }) => {
+	let getMembership = [];
 
+	const user = locals.user
+	const membershipFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+		method: 'POST',
+		body: JSON.stringify({
+			apiKey: APIKEY,
+			schema: 'product', //product | order | user | layout | discount
+			//query: { type: 'membership' },
+			query: {
+				$or: [
+					{ title: 'Socio vitalizio' },
+					{ title: 'Socio ordinario' }
+				],
+				type: 'membership' //IF USE Products.model -> types: course / product / membership / event
+			},
+			projection: { _id: 0 }, // 0: exclude | 1: include
+			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+			limit: 100,
+			skip: 0,
+		}),
+		headers: {
+			'Content-Type': 'application/json'
+		},
+	});
 
-// 	let user = locals.user
-// 	if (locals.auth) {
-// 		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
-// 		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
-// 		user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
-// 	}
+	try {
+		const membershipRes = await membershipFetch;
+		if (membershipRes.status != 200) {
+			console.error('user fetch failed', membershipRes.status, await membershipRes.text());
+			throw error(400, 'membershipFetch failed');
+		}
+		getMembership = await membershipRes.json();
 
-// 	return {
-// 		//sessionAuth: session.auth,
-// 		//userEmail: session.user.email,
-// 		userData: user,
-// 		auth: locals.auth
-// 	};
-// }
+	} catch (error) {
+		console.log('membershipFetch error:', error);
+		throw error(500, 'Server error');
+	}
+	if (locals.auth) {
+		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
+		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
+		user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
+	}
+	return {
+		userData: user,
+		auth: locals.auth,
+		getMembership
+	};
+}
 
 export const actions: Actions = {
-	newMembership: async ({ request, fetch }) => {
+	new: async ({ request, fetch, locals, cookies }) => {
+
 		const formData = await request.formData();
 		const name = formData.get('name');
 		const surname = formData.get('surname');
 		const email = formData.get('email');
 		const address = formData.get('address');
-		const postalCode = formData.get('postalCode');
 		const city = formData.get('city');
-		const countryState = formData.get('countryState');
+		const county = formData.get('county');
+		const postalCode = formData.get('postalCode');
 		const country = formData.get('country');
-		const phone = formData.get('phone');
-		const mobilePhone = formData.get('mobilePhone');
-		const password1 = formData.get('password1');
-		const paymentType = formData.get('radio-paymentType');
-		const membershipLevel = formData.get('membershipLevel')
-		let userId = ''
+		const phone = formData.get('phone') || '';
+		const mobilePhone = formData.get('mobilePhone') || '';
+		const payment = formData.get('payment');
+		const membershipLevel = formData.get('membershipLevel') || '';
+		const password1: any = formData.get('password1') || '';
+		const password2 = formData.get('password2') || '';
+		const totalValue = formData.get('totalValue');
+		const cart = formData.get('cart');
+		const cartItem = JSON.parse(String(cart)) || null;
 
-		if (!name || !surname || !email || !address || !postalCode || !city || !countryState || !country || !password1 || !paymentType) {
-			console.log('newMembership', name, surname, email, address, postalCode, city, countryState, country, password1, paymentType);
-			return fail(400, { action: 'newMembership', success: false, message: 'Dati mancanti' });
-		}
-		try {
-			const findProduct = await Product.findOne({ title: membershipLevel });
-			const product = findProduct?.prodId ? findProduct : () => { return { action: 'newMembership', success: false, message: 'errore iscrizione (1)' } }
+		// TODO if membershipLevel === 'Socio vitalizio' UPDATE user.membership.membershipExpiry
 
-			const checkUser = await fetch(`${BASE_URL}/api/users/check`, {
-				method: 'POST',
-				body: JSON.stringify({
-					email
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			const resCheckUser = await checkUser.json();
-			if (checkUser.status != 200) {
-				return fail(400, { action: 'newMembership', success: false, message: resCheckUser.message });
+		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { email },
+				projection: { email: 1 },
+				sort: { createdAt: -1 },
+				limit: 1,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
+		})
 
-			const signUpUser = await fetch(`${BASE_URL}/api/auth/sign-up-admin`, {
-				method: 'POST',
-				body: JSON.stringify({
+		const membershipFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'product', //product | order | user | layout | discount
+				query: { type: 'membership', title: membershipLevel }, //IF USE Products.model -> type: course / product / membership / event
+				projection: { _id: 0, userView: 0, layoutView: 0 }, // 0: exclude | 1: include
+				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				limit: 1,
+				skip: 0,
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			},
+		});
+
+		//const file = formData.get('image') || '';
+		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
+		let currentUserId: string = locals.user?.userId ?? '';
+		let membership = []
+		let userExist = false;
+
+		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || !cart) {
+			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
+		}
+
+		if (!locals.auth && (password1 != password2)) {
+			return fail(400, { action: 'new', success: false, message: 'Password non corrispondenti' });
+		}
+
+		if (!locals.auth && (password1 == '' || password2 == '')) {
+			return fail(400, { action: 'new', success: false, message: 'Password non valide' });
+		}
+
+		if (!locals.auth) {
+			try {
+				const membershipRes = await membershipFetch
+				if (membershipRes.status != 200) {
+					return fail(400, { action: 'new', success: false, message: await membershipRes.text() });
+				}
+				membership = await membershipRes.json()
+
+				if (membership.length < 1) {
+					return fail(400, { action: 'new', success: false, message: "Missing membership" });
+				}
+
+				const userRes = await userFetch
+				if (userRes.status != 200) {
+					console.error('user fetch failed', userRes.status, await userRes.text());
+					return fail(400, { action: 'new', success: false, message: 'errore database user' });
+				}
+				const response = await userRes.json();
+				if (response.length > 0) {
+					userExist = true;
+					return fail(400, { action: 'new', success: false, message: 'email esistente' });
+				}
+			} catch (error) {
+				console.log('userCheck error:', error);
+			}
+			if (!userExist) {
+				try {
+					const cookieId = crypto.randomUUID()
+					const res = await fetch(`${BASE_URL}/api/mongo/create`, {
+						method: 'POST',
+						body: JSON.stringify({
+							apiKey: APIKEY,
+							schema: 'user', //product | order | user | layout | discount
+							newDoc: {
+								userId: nanoid(),
+								userCode: crypto.randomUUID(),
+								name,
+								surname,
+								email,
+								address,
+								postalCode,
+								city,
+								county,
+								country,
+								phone,
+								mobilePhone,
+								password: hash(password1, SALT),
+								cookieId,
+								// "membership.membershipLevel": 'Socio ordinario',
+								// "membership.membershipSignUp": new Date(),
+								// "membership.membershipActivation": new Date(),
+								// "membership.membershipExpiry": new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+								// "membership.membershipStatus": true
+							},
+							returnObj: true
+						}),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					});
+					if (res.status != 200) {
+						return fail(400, { action: 'user', success: false, message: await res.text() });
+					}
+					const response = await res.json();
+					currentUserId = response.userId;
+
+					cookies.set('session_id', cookieId, {
+						httpOnly: true,
+						//maxAge: 60 * 60 * 24 * 7 // one week
+						maxAge: 60 * 60 * 24, // one day
+						sameSite: 'strict',
+						secure: process.env.NODE_ENV === 'production',
+						path: '/'
+					});
+
+				} catch (err) {
+					console.error('Error creating new user:', err);
+					return fail(400, { action: 'user', success: false, message: 'Error new user' });
+				}
+			}
+		}
+
+		try {
+			const newDoc = {
+				// orderId: nanoid(),
+				// orderCode: crypto.randomUUID(),
+				userId: currentUserId,
+				status: 'requested',
+				orderDate: new Date(),
+				orderConfirmDate: null,
+				promotionId: '',
+				promotionName: '',
+				promoterId: '',
+				agencyId: '',
+				orderConfirmed: false,
+				totalPoints: 0,
+				// totalValue: Number(totalValue),
+				totalVAT: 0,
+				browser: '',
+				orderIp: '',
+				orderNotes: '',
+				invoicing: {
 					name,
 					surname,
-					email,
+					businessName: '',
+					vatNumber: '',
 					address,
-					postalCode,
 					city,
-					countryState,
+					county,
+					postalCode,
+					state: '',
+					region: '',
 					country,
+					invoiceNotes: '',
+					email,
+					phone,
+					mobilePhone
+				},
+				shipping: {
+					name,
+					surname,
+					address,
+					city,
+					county,
+					postalCode,
+					state: '',
+					region: '',
+					country,
+					deliveryNotes: '',
+					email,
 					phone,
 					mobilePhone,
-					password1
-				}),
-				headers: {
-					'Content-Type': 'application/json'
+					// tracking: {
+					// 	company: '',
+					// 	trackingNumber: '',
+					// 	trackingLink: '',
+					// 	status: '',
+					// 	estimatedDelivery: new Date()
+					// }
+				},
+				payment: {
+					method: payment,
+					statusPayment: 'pending',
+					transactionId: '',
+					points: '',
+					value: ''
+				},
+				//cart: [cartItem]
+			};
+
+			if (!userExist && membership.length > 0) {
+				// Membership order
+				const resMembership = await fetch(`${BASE_URL}/api/mongo/create`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'order', //product | order | user | layout | discount
+						newDoc: {
+							orderId: nanoid(),
+							orderCode: crypto.randomUUID(),
+							totalValue: Number(membership[0]?.price || 25.00),
+							...newDoc,
+							cart: membership
+						},
+						returnObj: false
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+				if (!resMembership.ok) {
+					return fail(400, { action: 'new', success: false, message: await resMembership.text() });
 				}
-			});
-			const resSignUpUser = await signUpUser.json();
-			if (signUpUser.status == 200) {
-				userId = resSignUpUser.userId;
-			}
-			if (signUpUser.status != 200) {
-				return fail(400, { action: 'newMembership', success: false, message: resSignUpUser.message });
 			}
 
-			const setMembership = await fetch(`${BASE_URL}/api/memberships/new`, {
-				method: 'POST',
-				body: JSON.stringify({
-					userId,
-					membershipLevel: paymentType == 'bonifico' ? 'Socio inattivo' : 'Socio ordinario',
-					membershipSignUp: new Date(),
-					membershipActivation: new Date(),
-					membershipExpiry: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-					membershipStatus: true
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			const resMembership = await setMembership.json()
-			if (setMembership.status != 200) {
-				return { action: 'newMembership', success: false, message: resMembership.message };
-			}
-
-			const makeOrder = await fetch(`${BASE_URL}/api/orders/purchase`, {
-				method: 'POST',
-				body: JSON.stringify({
-					userId,
-					paymentType,
-					cart: [product],
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			const resMakeOrder = await makeOrder.json();
-			if (makeOrder.status != 200) {
-				return { action: 'newMembership', success: false, message: resMakeOrder.message };
-			}
-
-			const sendMail = await fetch(`${BASE_URL}/api/mailer/sign-up-confirm`, {
-				method: 'POST',
-				body: JSON.stringify({ email }),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-
-			const resSendMail = await sendMail.json();
-			if (sendMail.status != 200) {
-				return { action: 'newMembership', success: false, message: resSendMail.message };
-			}
-
-			if (setMembership.status == 200 || makeOrder.status == 200) {
-				return { action: 'newMembership', success: true, message: "Iscrizione avvenuta con successo, ora puoi effettuare il LOGIN" };
+			if (locals.auth) {
+				return { action: 'new', success: true, message: "L'ordine è stato inviato. Controlla lo storico nel tuo profilo", payload: { redirect: false } };
 			} else {
-				return { action: 'newMembership', success: false, message: "iscrizione fallita" };
+				return { action: 'new', success: true, message: "Benvenuto! L'ordine è stato inviato. Tra poco verrai reindirizzato sul tuo profilo.", payload: { redirect: true } };
 			}
 
 		} catch (error) {
-			console.error('Error creating new membership:', error);
-			return { action: 'newMembership', success: false, message: 'Errore creazione membership' };
+			console.error('Error creating new order:', error);
+			return fail(400, { action: 'new', success: false, message: 'Error new order' });
 		}
 	},
 
 	renewMembership: async ({ request, fetch, locals }) => {
-		const userData = locals.user;
-		const formData = await request.formData();
-		const userId = userData.userId;
-		const membershipActivation = userData.membership.membershipExpiry;
-		const membershipStatus = true;
-		const paymentType = formData.get('radio-paymentType');
-		// add 1 year
-		const newExpire = new Date();
-		newExpire.setFullYear(newExpire.getFullYear() + 1);
-		const membershipExpiry = newExpire.toISOString().substring(0, 10);
+		return { action: 'renewMembership', success: true, message: "tessera rinnovata con successo" };
+		// const userData = locals.user;
+		// const formData = await request.formData();
+		// const userId = userData.userId;
+		// const membershipActivation = userData.membership.membershipExpiry;
+		// const membershipStatus = true;
+		// const paymentType = formData.get('radio-paymentType');
+		// // add 1 year
+		// const newExpire = new Date();
+		// newExpire.setFullYear(newExpire.getFullYear() + 1);
+		// const membershipExpiry = newExpire.toISOString().substring(0, 10);
 
-		if (!paymentType) {
-			//console.log('renewMembership', name, surname, email, address, postalCode, city, countryState, country, password1, paymentType);
-			return fail(400, { action: 'renewMembership', success: false, message: 'Dati mancanti' });
-		}
-		try {
-			const findProduct = await Product.findOne({ title: 'Socio ordinario' });
-			const product = findProduct?.prodId ? findProduct : () => { return { action: 'newMembership', success: false, message: 'errore rinnovo (1)' } }
+		// if (!paymentType) {
+		// 	//console.log('renewMembership', name, surname, email, address, postalCode, city, countryState, country, password1, paymentType);
+		// 	return fail(400, { action: 'renewMembership', success: false, message: 'Dati mancanti' });
+		// }
+		// try {
+		// 	const findProduct = await Product.findOne({ title: 'Socio ordinario' });
+		// 	const product = findProduct?.prodId ? findProduct : () => { return { action: 'newMembership', success: false, message: 'errore rinnovo (1)' } }
 
-			const response1 = await fetch(`${BASE_URL}/api/memberships/renew`, {
-				method: 'POST',
-				body: JSON.stringify({
-					userId,
-					membershipActivation,
-					membershipExpiry,
-					membershipStatus,
-					paymentType
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
+		// 	const response1 = await fetch(`${BASE_URL}/api/memberships/renew`, {
+		// 		method: 'POST',
+		// 		body: JSON.stringify({
+		// 			userId,
+		// 			membershipActivation,
+		// 			membershipExpiry,
+		// 			membershipStatus,
+		// 			paymentType
+		// 		}),
+		// 		headers: {
+		// 			'Content-Type': 'application/json'
+		// 		}
+		// 	});
 
-			const response2 = await fetch(`${BASE_URL}/api/orders/purchase`, {
-				method: 'POST',
-				body: JSON.stringify({
-					userId: userData.userId,
-					cart: [product],
-					paymentType,
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
+		// 	const response2 = await fetch(`${BASE_URL}/api/orders/purchase`, {
+		// 		method: 'POST',
+		// 		body: JSON.stringify({
+		// 			userId: userData.userId,
+		// 			cart: [product],
+		// 			paymentType,
+		// 		}),
+		// 		headers: {
+		// 			'Content-Type': 'application/json'
+		// 		}
+		// 	});
 
-			const resMembership = await response1.json();
-			const resOrder = await response2.json();
-			//console.log(response1, response2)
+		// 	const resMembership = await response1.json();
+		// 	const resOrder = await response2.json();
+		// 	//console.log(response1, response2)
 
-			if (response1.status == 200 && response2.status == 200) {
-				return { action: 'renewMembership', success: true, message: "tessera rinnovata con successo" };
-			} else {
-				console.log(resMembership.message, resOrder.message);
-				return { action: 'renewMembership', success: false, message: "errore rinnovo tessera" };
-			}
-		} catch (error) {
-			console.error('Error creating new membership:', error);
-			return { action: 'renewMembership', success: false, message: 'Errore creazione renewMembership' };
-		}
+		// 	if (response1.status == 200 && response2.status == 200) {
+		// 		return { action: 'renewMembership', success: true, message: "tessera rinnovata con successo" };
+		// 	} else {
+		// 		console.log(resMembership.message, resOrder.message);
+		// 		return { action: 'renewMembership', success: false, message: "errore rinnovo tessera" };
+		// 	}
+		// } catch (error) {
+		// 	console.error('Error creating new membership:', error);
+		// 	return { action: 'renewMembership', success: false, message: 'Errore creazione renewMembership' };
+		// }
 	},
 
 } satisfies Actions;
