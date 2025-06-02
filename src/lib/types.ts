@@ -330,6 +330,7 @@ export interface Product {
     }>;
     status: 'enabled' | 'disabled';
     hasFile?: boolean;
+    createdAt: string;
 }
 
 export interface TableNames {

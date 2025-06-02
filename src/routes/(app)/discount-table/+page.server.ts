@@ -209,7 +209,7 @@ export const actions: Actions = {
 
 		try {
 			const res = await resFetch;
-			if (res.status != 200) {
+			if (!res.ok) {
 				const errorText = await res.text();
 				console.error('discount update failed', res.status, errorText);
 				return fail(400, { action: 'modify', success: false, message: errorText });

@@ -4,7 +4,6 @@ import { fail } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
 import type { Product } from '$lib/types';
-const apiKey = APIKEY;
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
@@ -22,7 +21,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
-				apiKey,
+				apiKey: APIKEY,
 				schema: 'product', //product | order | user | layout | discount
 				query,
 				projection,
@@ -59,7 +58,6 @@ export const actions: Actions = {
 		const weight = formData.get('weight');
 		const price = formData.get('price');
 
-		const returnObj = false
 		const newDoc = {
 			prodId,
 			title,
@@ -69,37 +67,38 @@ export const actions: Actions = {
 			category: [category],
 			price,
 		};
-		//console.log('newDoc', newDoc);
 
 		if (!title || !descrShort || !stockQty || !price || !weight) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
 
-		try {
-			const res = await fetch(`${BASE_URL}/api/mongo/create`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey,
-					schema: 'product', //product | order | user | layout | discount
-					newDoc,
-					returnObj
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			const response = await res.json();
-			// console.log('res', res);
-			// console.log('response', response);
-
-			if (res.status == 200) {
-				return { action: 'new', success: true, message: response.message };
-			} else {
-				return { action: 'new', success: false, message: response.message };
+		const resFetch = fetch(`${BASE_URL}/api/mongo/create`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'product', //product | order | user | layout | discount
+				newDoc,
+				returnObj: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
+		});
+
+		try {
+			const res = await resFetch;
+			if (res.status != 200) {
+				const errorText = await res.text();
+				console.error('user find failed', res.status, errorText);
+				return fail(400, { action: 'new', success: false, message: errorText });
+			}
+			const result = await res.json();
+
+			return { action: 'new', success: true, message: result.message };
+
 		} catch (error) {
-			console.error('Error creating new prod:', error);
-			return { action: 'new', success: false, message: 'Errore creazione' };
+			console.error('Error new :', error);
+			return { action: 'new', success: false, message: 'Error new' };
 		}
 	},
 
@@ -117,77 +116,81 @@ export const actions: Actions = {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
-		const query = { prodId, type: 'product' };
-		const update = {
-			$set: {
-				title,
-				descrShort,
-				stockQty,
-				price,
-				weight,
-				category,
+		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'product', //product | order | user | layout | discount
+				query: { prodId, type: 'product' },
+				update: {
+					$set: {
+						title,
+						descrShort,
+						stockQty,
+						price,
+						weight,
+						category,
+					}
+				},
+				options: {
+					upsert: false,
+				},
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
-		};
-		const options = {
-			upsert: false,
-		};
-		const multi = false
+		});
 
 		try {
-			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey,
-					schema: 'product', //product | order | user | layout | discount
-					query,
-					update,
-					options,
-					multi
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			const response = await res.json();
-			if (res.status == 200) {
-				return { action: 'modify', success: true, message: response.message };
-			} else {
-				return { action: 'modify', success: false, message: response.message };
+			const res = await resFetch;
+
+			if (res.status != 200) {
+				const errorText = await res.text();
+				console.error('discount update failed', res.status, errorText);
+				return fail(400, { action: 'modify', success: false, message: errorText });
 			}
+			const result = await res.json();
+			console.log('result modify', result);
+			return { action: 'modify', success: true, message: result.message };
+
 		} catch (error) {
-			console.error('Error modify:', error);
-			return { action: 'modify', success: false, message: 'Errore modify' };
+			console.error('Error creating new modify:', error);
+			return { action: 'modify', success: false, message: 'Error modify' };
 		}
 	},
 
 	delete: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');
-		const query = { prodId: prodId };
-		const multi = false
+
+		const resFetch = fetch(`${BASE_URL}/api/mongo/remove`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'product', //product | order | user | layout | discount
+				query: { prodId: prodId },
+				multi: false,
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 
 		try {
-			const res = await fetch(`${BASE_URL}/api/mongo/remove`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey,
-					schema: 'product', //product | order | user | layout | discount
-					query,
-					multi,
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			const response = await res.json();
-			if (res.status == 200) {
-				return { action: 'delete', success: true, message: response.message };
-			} else {
-				return { action: 'delete', success: false, message: response.message };
+			const res = await resFetch;
+			if (res.status != 200) {
+				const errorText = await res.text();
+				console.error('discount delete failed', res.status, errorText);
+				return fail(400, { action: 'delete', success: false, message: errorText });
 			}
+			const result = await res.json();
+
+			return { action: 'delete', success: true, message: result.message };
+
 		} catch (error) {
 			console.error('Error delete:', error);
-			return { action: 'delete', success: false, message: 'Errore delete' };
+			return { action: 'delete', success: false, message: 'Error delete' };
 		}
 	},
 
@@ -198,99 +201,88 @@ export const actions: Actions = {
 		const category = formData.get('category');
 		const status = formData.get('status');
 
-		try {
-			const query = {
-				type: 'product',
-				...(prodId && { prodId }),
-				...(title && { title: { $regex: `.*${title}.*`, $options: 'i' } }),
-				...(category && { category }),
-				...(status && { status }),
-			};
-			const projection = { _id: 0 } // 0: exclude | 1: include
-			const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
-			const limit = 100;
-			const skip = 0;
-			const res = await fetch(`${BASE_URL}/api/mongo/find`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey,
-					schema: 'product', //product | order | user | layout | discount
-					query,
-					projection,
-					sort,
-					limit,
-					skip
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			const response = await res.json();
-
-			if (res.status == 200) {
-				const filterTableList = response.map((obj: any) => ({
-					...obj,
-					createdAt: obj.createdAt.substring(0, 10)
-				}));
-				return { action: 'filter', success: true, message: 'Filtro applicato', filterTableList };
-
-			} else {
-				return { action: 'filter', success: false, message: 'Errore filtro' };
+		const resFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'product', //product | order | user | layout | discount
+				query: {
+					type: 'product',
+					...(prodId && { prodId }),
+					...(title && { title: { $regex: `.*${title}.*`, $options: 'i' } }),
+					...(category && { category }),
+					...(status && { status }),
+				},
+				projection: { _id: 0 },
+				sort: { createdAt: -1 },
+				limit: 1000,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
+		});
+
+		try {
+			const res = await resFetch;
+
+			if (res.status != 200) {
+				const errorText = await res.text();
+				console.error('discount filter failed', res.status, errorText);
+				return fail(400, { action: 'filter', success: false, message: errorText });
+			}
+			const payload = await res.json();
+
+			return { action: 'filter', success: true, message: 'Filtro attivato', payload };
+
 		} catch (error) {
 			console.error('Error filter:', error);
-			return { action: 'filter', success: false, message: 'Errore filter' };
+			return { action: 'filter', success: false, message: 'Error filter' };
 		}
 	},
 
 	changeStatus: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');
-		let status = formData.get('status');
+		const status = formData.get('status');
+		const newStatus = status == 'enabled' ? 'disabled' : 'enabled';
 		if (!prodId || !status) {
 			return fail(400, { action: 'changeStatus', success: false, message: 'Dati mancanti' });
 		}
-		status = status == 'enabled' ? 'disabled' : 'enabled';
-		const query = { prodId: prodId };
-		const update = {
-			$set: {
-				status: status,
+
+		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'product', //product | order | user | layout | discount
+				query: { prodId: prodId },
+				update: {
+					$set: {
+						status: newStatus,
+					}
+				},
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
-		};
-		const options = { upsert: false }
-		const multi = false
-		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
+		});
+
 		try {
-			// await dbConnect();
-			// const res = await Product.updateOne(query, update, options).lean().exec();
-			// if (res.matchedCount > 0) {
-			// 	return { action: 'changeStatus', success: true, message: 'update ok' };
-			// } else {
-			// 	return { action: 'changeStatus', success: false, message: 'update error' };
-			// }
-			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey,
-					schema: 'product', //product | order | user | layout | discount
-					query,
-					update,
-					options,
-					multi
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			const response = await res.json();
-			if (res.status == 200) {
-				return { action: 'changeStatus', success: true, message: response.message };
-			} else {
-				return { action: 'changeStatus', success: false, message: response.message };
+			const res = await resFetch;
+			if (res.status != 200) {
+				const errorText = await res.text();
+				console.error('changeStatus update failed', res.status, errorText);
+				return fail(400, { action: 'changeStatus', success: false, message: errorText });
 			}
+			const result = await res.json();
+
+			return { action: 'changeStatus', success: true, message: result.message };
+
 		} catch (error) {
-			console.error('Error changing status:', error);
-			return { action: 'changeStatus', success: false, message: 'Errore changeStatus' };
+			console.error('Error changeStatus:', error);
+			return fail(400, { action: 'changeStatus', success: false, message: 'Error changeStatus' });
 		}
 	},
 
@@ -340,7 +332,7 @@ export const actions: Actions = {
 			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
-					apiKey,
+					apiKey: APIKEY,
 					schema: 'product', //product | order | user | layout | discount
 					query,
 					update,
@@ -406,7 +398,7 @@ export const actions: Actions = {
 			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
-					apiKey,
+					apiKey: APIKEY,
 					schema: 'product', //product | order | user | layout | discount
 					query,
 					update,
