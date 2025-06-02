@@ -235,9 +235,9 @@
 	};
 
 	const formSubmit = () => {
-		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
 			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
+			loading = true;
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
 				const { action, message, payload } = result.data; // { action, success, message, payload }

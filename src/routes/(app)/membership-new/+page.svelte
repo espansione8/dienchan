@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { ActionResult } from '@sveltejs/kit';
+	import type { CartItem } from './$types';
 	import { enhance } from '$app/forms';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { notification } from '$lib/stores/notifications';
@@ -46,20 +47,20 @@
 		}
 	];
 
-	if (auth) {
-		userData.membership.membershipExpiry = userData.membership.membershipExpiry
-			.toString()
-			.substring(0, 10);
-		userData.membership.membershipSignUp = userData.membership.membershipSignUp
-			.toString()
-			.substring(0, 10);
-		userData.membership.membershipActivation = userData.membership.membershipActivation
-			.toString()
-			.substring(0, 10);
-	}
+	// if (auth) {
+	// 	userData.membership.membershipExpiry = userData.membership.membershipExpiry
+	// 		.toString()
+	// 		.substring(0, 10);
+	// 	userData.membership.membershipSignUp = userData.membership.membershipSignUp
+	// 		.toString()
+	// 		.substring(0, 10);
+	// 	userData.membership.membershipActivation = userData.membership.membershipActivation
+	// 		.toString()
+	// 		.substring(0, 10);
+	// }
 
 	// form
-	let cartItem = $state();
+	let cartItem: CartItem = $state();
 	let closedInput = $state(false);
 	if (auth) {
 		closedInput = true;
@@ -214,44 +215,6 @@
 		currentModal = '';
 	};
 
-	// const onClickDialog = (type: string) => {
-	// 	currentDialog = type;
-	// 	isModal = true;
-
-	// 	if (type == 'associate') {
-	// 		postAction = `?/newMembership`;
-	// 		modalTitle = 'Nuova iscrizione socio ordinario';
-	// 		membershipLevel = 'Socio ordinario';
-	// 	}
-	// 	if (type == 'lifetime') {
-	// 		postAction = `?/newLifetime`;
-	// 		modalTitle = 'Nuova iscrizione socio vitalizio';
-	// 		membershipLevel = 'Socio vitalizio';
-	// 	}
-	// 	if (type == 'renew') {
-	// 		postAction = `?/renewMembership`;
-	// 		modalTitle = 'Rinnovo iscrizione';
-	// 		const nextYear = new Date(newExpire);
-	// 		nextYear.setFullYear(nextYear.getFullYear() + 1);
-	// 		newExpire = nextYear.toISOString().substring(0, 10);
-	// 	}
-	// };
-
-	// $effect(() => {
-	// 	if (form != null) {
-	// 		invalidateAll();
-	// 		const { action, success, message } = form;
-	// 		if (success) {
-	// 			fieldReset();
-	// 			isModal = false;
-	// 		} else {
-	// 			notificationError = true;
-	// 		}
-	// 		closeNotification();
-	// 		toastClosed = false;
-	// 		notificationContent = message;
-	// 	}
-	// });
 	const formSubmit = () => {
 		return async ({ result }: { result: ActionResult }) => {
 			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
@@ -1063,7 +1026,9 @@
 							<h3 class="font-bold text-lg mb-2">Riepilogo Ordine</h3>
 
 							<div class="flex justify-between items-center py-2 border-b border-base-300">
-								<span class="text-base-content/80 font-medium">{cartItem?.title || 'Corso'}</span>
+								<span class="text-base-content/80 font-medium"
+									>{cartItem?.title || 'Tesseramento'}</span
+								>
 								<span class="font-semibold">{cartItem?.price || 0} €</span>
 							</div>
 
@@ -1091,7 +1056,7 @@
 							</div>
 						</div>
 					</div>
-					<input type="hidden" name="cart" value={JSON.stringify(cartItem)} />
+					<!-- <input type="hidden" name="cart" value={JSON.stringify(cartItem)} /> -->
 					<input type="hidden" name="membershipLevel" value={formData.membershipLevel} />
 				</div>
 
@@ -1132,6 +1097,7 @@
 		{/if}
 	</Modal>
 {/if}
+
 {#if currentModal == 'renew'}
 	<Modal
 		isOpen={openModal}
@@ -1238,63 +1204,6 @@
 								</div>
 								<div class="validator-hint hidden">Inserire email valida</div>
 							</div>
-
-							{#if !auth}
-								<div class="form-control w-full">
-									<label for="password" class="label">
-										<span class="label-text font-medium">
-											Password <span class="text-xs">
-												(Almeno 8 caratteri con numeri e lettere)
-											</span>
-										</span>
-									</label>
-									<div class="input validator input-bordered flex items-center gap-2 pr-2">
-										<Lock size={18} class="ml-2" />
-										<input
-											class="flex-1 outline-none bg-transparent"
-											id="password"
-											name="password1"
-											type="password"
-											placeholder="Inserisci la password"
-											aria-label="Password"
-											bind:value={password1}
-											minlength="8"
-											required={!auth}
-											onblur={checkPasswordsMatch}
-										/>
-									</div>
-									<div class="validator-hint hidden">Inserire password valida</div>
-								</div>
-
-								<div class="form-control w-full">
-									<label for="password2" class="label">
-										<span class="label-text font-medium">
-											Conferma password {#if !passwordsMatch}
-												<span class="text-error text-xs"> (non corrispondente) </span>
-											{/if}</span
-										>
-									</label>
-									<div class="input validator input-bordered flex items-center gap-2 pr-2">
-										<Lock
-											size={18}
-											class="ml-2"
-											color={passwordsMatch ? (password2 ? 'green' : 'currentColor') : 'red'}
-										/>
-										<input
-											class="flex-1 outline-none bg-transparent"
-											id="password2"
-											name="password2"
-											type="password"
-											placeholder="Conferma la password"
-											bind:value={password2}
-											minlength="8"
-											required={!auth}
-											oninput={checkPasswordsMatch}
-										/>
-									</div>
-									<div class="validator-hint hidden">Inserire password valida</div>
-								</div>
-							{/if}
 
 							<div class="form-control w-full">
 								<label for="telefono" class="label">
@@ -1514,21 +1423,6 @@
 								<span class="font-semibold">€ 25.00</span>
 							</div>
 
-							<!-- {#if !auth}
-								<div class="flex justify-between items-center py-2 border-b border-base-300">
-									<span class="text-base-content/80 font-medium"
-										>Tesseramento per il primo corso</span
-									>
-									<span class="font-semibold">25.00 €</span>
-								</div>
-							{/if} -->
-
-							<!-- {#if discountList.length > 0}
-								<div class="flex justify-between items-center py-2 text-success font-medium">
-									<span>Sconto applicato</span>
-									<span>- € {totalDiscount().toFixed(2)}</span>
-								</div>
-							{/if} -->
 							<div class="divider my-1"></div>
 
 							<div class="flex justify-between items-center pt-2 text-xl font-bold">

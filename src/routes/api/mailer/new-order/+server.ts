@@ -1,29 +1,40 @@
-// /api/mailer/order-bank-mail
-import { json as json$1 } from '@sveltejs/kit';
+// `${BASE_URL}/api/mailer/new-order`
+import type { RequestHandler } from '@sveltejs/kit';
+import { APIKEY, MAILER_HOST, MAILER_PORT, MAILER_USER, MAILER_PASS } from '$env/static/private';
+import { json } from '@sveltejs/kit';
 import nodemailer from 'nodemailer';
 // test
 export const POST = async ({ request }) => {
 	const body = await request.json();
-	console.log('mailer/order-bank-mail', body);
+	const {
+		apiKey,
+		name,
+		surname,
+		email,
+		idUuidv4,
+		totalPoints,
+		totalInvoice
+	} = body;
+
 	try {
 		const mailer = async () => {
 			// create reusable transporter object using the default SMTP transport
 			const transporter = nodemailer.createTransport({
-				host: import.meta.env.VITE_MAILER_HOST,
-				port: import.meta.env.VITE_MAILER_PORT,
-				secure: true, // true for 465, false for other ports
+				host: MAILER_HOST,
+				port: Number(MAILER_PORT),
+				secure: false, // true for 465, false for other ports
 				auth: {
-					user: import.meta.env.VITE_MAILER_USER,
-					pass: import.meta.env.VITE_MAILER_PASS
+					user: MAILER_USER,
+					pass: MAILER_PASS
 				}
 			});
 
 			// send mail with defined transport object
 			const info = await transporter.sendMail({
 				from: '"Fast Track IP System" <info@fast-track-ip.com>', // sender address
-				to: body.email, // list of receivers
-				subject: `Fast Track - Order ${body.idUuidv4}`,
-				text: `Dear ${body.name} ${body.surname}. \r\n We received your order ID ${body.idUuidv4} of ${body.totalPoints} Credit \r\n for a total of ${body.totalInvoice} incl. VAT. \r\n To complete the purchase please send the above amount to this IBAN XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX, \r\n This is an automated message DO NOT REPLY to this communication, for question and assistance please write to support@fast-track-ip.com including your order ID. \r\n \r\n Best Regards\r\n Fast Track IP Staff \r\n \r\n `,
+				to: email, // list of receivers
+				subject: `Fast Track - Order ${idUuidv4}`,
+				text: `Dear ${name} ${surname}. \r\n We received your order ID ${idUuidv4} of ${totalPoints} Credit \r\n for a total of ${totalInvoice} incl. VAT. \r\n To complete the purchase please send the above amount to this IBAN XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX, \r\n This is an automated message DO NOT REPLY to this communication, for question and assistance please write to support@fast-track-ip.com including your order ID. \r\n \r\n Best Regards\r\n Fast Track IP Staff \r\n \r\n `,
 
 				html: `
 				<!DOCTYPE html>
@@ -383,9 +394,9 @@ export const POST = async ({ request }) => {
 												<tr>
 													<td style="padding: 0 2.5em; text-align: center; padding-bottom: 3em">
 														<div class="text">
-															<h2>Hello ${body.name} ${body.surname},</h2>
-															<h4>we received your order <br>ID ${body.idUuidv4}</h4>
-															<h4>of ${body.totalPoints} Credit for a total of ${body.totalInvoice} EURO incl. VAT </h4>
+															<h2>Hello ${name} ${surname},</h2>
+															<h4>we received your order <br>ID ${idUuidv4}</h4>
+															<h4>of ${totalPoints} Credit for a total of ${totalInvoice} EURO incl. VAT </h4>
 														</div>
 													</td>
 												</tr>
@@ -499,9 +510,9 @@ export const POST = async ({ request }) => {
 					</body>
 				</html>
 				` // html body
-				// html: `<p>Dear ${body.name} ${body.surname},</p>
-				// <p>we received your order ID ${body.idUuidv4}</p>
-				// <p> of ${body.totalPoints} Credit for a total of ${body.totalInvoice} incl. VAT </p>
+				// html: `<p>Dear ${name} ${surname},</p>
+				// <p>we received your order ID ${idUuidv4}</p>
+				// <p> of ${totalPoints} Credit for a total of ${totalInvoice} incl. VAT </p>
 				// <p>To complete the purchase please send the above amount to this IBAN XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</p>
 				// </ hr>
 				// <p>This is an automated message DO NOT REPLY to this communication, for questions and assistance please write to support@fast-track-ip.com including your order ID.</p>
@@ -515,7 +526,7 @@ export const POST = async ({ request }) => {
 		};
 		mailer().catch(console.error);
 
-		return json$1(
+		return json(
 			{
 				message: `Email processed`
 			},

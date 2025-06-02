@@ -41,6 +41,8 @@
 	let modalTitle = $state('');
 	let postAction = $state('?/');
 
+	let loading = $state(false);
+
 	// CSV download
 	const csvCreate = () => {
 		let csv = $state('');
@@ -170,6 +172,7 @@
 	const formSubmit = () => {
 		return async ({ result }: { result: ActionResult }) => {
 			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
+			loading = true;
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
 				const { action, message, payload } = result.data; // { action, success, message, payload }
@@ -195,6 +198,7 @@
 			resetFields();
 			closeNotification();
 			toastClosed = false;
+			loading = false;
 		};
 	};
 </script>

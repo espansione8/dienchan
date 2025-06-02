@@ -16,7 +16,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 // const resFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
 //     method: 'POST',
 //     body: JSON.stringify({
-//         apiKey,
+//         apiKey:APIKEY,
 //         schema: 'user', //product | order | user | layout | discount
 //         query: { type: 'agent', userId: '5f8d9f4d0a1f2c1c6e1b3d' },
 //         update: {
@@ -33,6 +33,9 @@ import type { RequestHandler } from '@sveltejs/kit';
 //     }
 // });
 // const res = await resFetch;
+// if (!res.ok) {
+//     return fail(400, { action: 'renew', success: false, message: await res.text() });
+// }
 // const response = await res.json()
 
 export const POST: RequestHandler = async ({ request }) => {

@@ -33,6 +33,9 @@ import type { RequestHandler } from '@sveltejs/kit';
 // 	}
 // });
 // const res = await resFetch;
+// if (!res.ok) {
+//     return fail(400, { action: 'renew', success: false, message: await res.text() });
+// }
 // const response = await res.json()
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -69,6 +72,6 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	} catch (err) {
 		console.log('insert ERROR:', err);
-		return json({ message: 'insert ERROR' }, { status: 505 });
+		return json({ message: 'insert ERROR' }, { status: 500 });
 	}
 };

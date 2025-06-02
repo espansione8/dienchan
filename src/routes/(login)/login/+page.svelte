@@ -4,10 +4,12 @@
 	import { enhance } from '$app/forms';
 	import { fly, fade, scale } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
-	import Notification from '$lib/components/Notification.svelte';
+	import { notification } from '$lib/stores/notifications';
 	import Modal from '$lib/components/Modal.svelte';
+	import Loader from '$lib/components/Loader.svelte';
 	import { UserPlus, Mail, KeyRound, Lock, Eye, EyeOff, ArrowRight } from 'lucide-svelte';
 
+	// form
 	let loginEmail = $state('');
 	let loginPassword = $state('');
 	let password1 = $state('');
@@ -18,7 +20,6 @@
 	let isLogin = $state(true);
 	let resetEmail = $state('');
 	let error = $state('');
-	let loading = $state(false);
 
 	// animations states
 	let heroVisible = $state(false);
@@ -28,6 +29,8 @@
 	let openModal = $state(false);
 	let postAction = $state('?/');
 	let modalTitle = $state('');
+
+	let loading = $state(false);
 
 	// Floating elements animation (original)
 	const floatingElements = [
@@ -80,55 +83,36 @@
 		//currentModal = '';
 	};
 
-	//notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-			notificationContent = '';
-			notificationError = false;
-		}, 3000); // 1000 milliseconds = 1 second
-	};
-	//clearTimeout(startTimeout); // reset timer
-
 	const formSubmit = () => {
-		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
 			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
+			loading = true;
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
 				const { payload, message } = result.data; // { action, success, message, payload }
 				if (payload) {
-					notificationContent = message;
+					notification.success(message);
 					try {
 						await goto('/profile-modify');
 					} catch (err) {
-						notificationContent = 'Errore durante la navigazione';
-						notificationError = true;
+						notification.error('Errore durante la navigazione');
 					}
 				} else {
-					notificationContent = message;
+					notification.success(message);
 				}
 				onCloseModal();
 			}
 			if (result.type === 'failure') {
-				notificationContent = result.data.message;
-				notificationError = true;
+				notification.error(result.data.message);
 			}
 			if (result.type === 'error') {
-				notificationContent =
-					result.error?.message || String(result.error) || 'Si è verificato un errore';
-
-				notificationError = true;
+				notification.error(
+					result.error?.message || String(result.error) || 'Si è verificato un errore'
+				);
 			}
 			// 'update()' is called by default by use:enhance
 			// call 'await update()' if you need to ensure it completes before further client logic.
-			clearTimeout(startTimeout);
-			closeNotification();
-			toastClosed = false;
+
 			loading = false;
 		};
 	};
@@ -316,7 +300,7 @@
 
 													<button
 														type="button"
-														class="text-sm text-emerald-600 hover:text-emerald-700 transition-colors"
+														class="text-sm text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer"
 														onclick={() => onClickModal('reset', null)}
 													>
 														Password dimenticata?
@@ -489,8 +473,6 @@
 	</div>
 </div>
 
-<Notification {toastClosed} {notificationContent} {notificationError} />
-
 <Modal isOpen={openModal} header={modalTitle}>
 	<button
 		class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content"
@@ -532,8 +514,12 @@
 			</label>
 
 			<div class="modal-action mt-6">
-				<button type="button" class="btn flex-1" onclick={onCloseModal}>Annulla</button>
-				<button type="submit" class="btn btn-primary flex-1"> Invia Link </button>
+				{#if loading}
+					<Loader />
+				{:else}
+					<button type="button" class="btn flex-1" onclick={onCloseModal}>Annulla</button>
+					<button type="submit" class="btn btn-primary flex-1"> Invia Link </button>
+				{/if}
 			</div>
 		</form>
 	</div>

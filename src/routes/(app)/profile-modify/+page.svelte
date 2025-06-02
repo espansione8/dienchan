@@ -38,7 +38,7 @@
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { userData, orderData } = $derived(data);
+	const { userData, orderData } = data;
 
 	// Declare the province variable
 	let provinceFilterate = $province.filter((p) => p.title !== 'Online');
@@ -90,6 +90,8 @@
 	let expandedOrderId = $state('');
 	let passwordNew = $state('');
 	let passwordOld = $state('');
+
+	let loading = $state(false);
 
 	const onSwitchPublicProfile = async (type: string, value: boolean) => {
 		if (type == 'namePublic') namePublic = !value;
@@ -169,6 +171,7 @@
 
 	const formSubmit = () => {
 		return async ({ result }: { result: ActionResult }) => {
+			loading = true;
 			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
@@ -190,6 +193,7 @@
 			clearTimeout(startTimeout);
 			closeNotification();
 			toastClosed = false;
+			loading = false;
 		};
 	};
 
@@ -276,9 +280,12 @@
 					<!-- Membership Info -->
 					<div class="p-6 border-b border-base-200">
 						<div class="flex items-center gap-3 mb-4">
-							<!-- <div class="badge badge-lg">
-								{membershipStatus ? 'Attivo' : 'Inattivo'}
-							</div> -->
+							{#if userData.membership.membershipStatus}
+								<div class="badge badge-lg badge-success">Attivo</div>
+							{:else}
+								<div class="badge badge-lg badge-error">Scaduto</div>
+							{/if}
+
 							<h3 class="font-semibold text-base-content flex items-center gap-2">
 								<Award size={18} class="text-primary" />
 								{membershipLevel}

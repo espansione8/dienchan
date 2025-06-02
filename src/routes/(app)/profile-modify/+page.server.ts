@@ -217,28 +217,23 @@ export const actions: Actions = {
 			const resImg = await uploadImg.json();
 			if (uploadImg.status != 200) return fail(400, { action: 'setProfilePic', success: false, message: resImg.message })
 
-			const query = { userId }; //IF USE Products.model -> types: course / product / membership / event
-			const update = {
-				$push: {
-					uploadfiles: {
-						type: 'profile',
-						fileName: file.name,
-						fileUrl: `/files/user/${userId}/${file.name}`
-					}
-				}
-			};
-			const options = { upsert: false }
-			const multi = false
-
 			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey,
 					schema: 'user', //product | order | user | layout | discount
-					query,
-					update,
-					options,
-					multi
+					query: { userId }, //IF USE Products.model -> types: course / product / membership / event,
+					update: {
+						$push: {
+							uploadfiles: {
+								type: 'profile',
+								fileName: file.name,
+								fileUrl: `/files/user/${userId}/${file.name}`
+							}
+						}
+					},
+					options: { upsert: false },
+					multi: false
 				}),
 				headers: {
 					'Content-Type': 'application/json'

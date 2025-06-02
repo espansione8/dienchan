@@ -3,6 +3,8 @@ import type { Actions } from './$types';
 import { BASE_URL, APIKEY, SALT } from '$env/static/private';
 import { fail, redirect } from '@sveltejs/kit';
 import { hash } from '$lib/tools/hash';
+import { customAlphabet } from 'nanoid'
+const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 6)
 
 export const actions: Actions = {
 	login: async ({ request, cookies }) => {
@@ -58,7 +60,7 @@ export const actions: Actions = {
 
 			const userRes = await userFetch;
 
-			if (userRes.status != 200) {
+			if (!userRes.ok) {
 				const errorText = await userRes.text();
 				console.error('user find failed', userRes.status, errorText);
 				return fail(400, { action: 'login', success: false, message: errorText });
@@ -71,7 +73,7 @@ export const actions: Actions = {
 
 			const updateRes = await updateFetch(response[0].email);
 
-			if (updateRes.status != 200) {
+			if (!updateRes.ok) {
 				const errorText = await updateRes.text();
 				console.error('product update failed', updateRes.status, errorText);
 				return fail(400, { action: 'modify', success: false, message: errorText });
@@ -95,6 +97,7 @@ export const actions: Actions = {
 	},
 
 	register: async ({ request }) => {
+		// TODO
 		return { action: 'register', success: true, message: "test ok" };
 		const data = await request.formData();
 		const registerEmail = data.get('registerEmail') as string;
@@ -131,27 +134,62 @@ export const actions: Actions = {
 	},
 
 	resetPassword: async ({ request }) => {
-		return { action: 'resetPassword', success: true, message: "test ok" };
 		const data = await request.formData();
 		const resetEmail = data.get('resetEmail') as string;
+		const newPass = nanoid();
+		const hashed = hash(newPass, SALT);
+
+		//console.log('newPass', newPass);
+
 
 		if (!resetEmail) {
-			return fail(400, { resetEmail, error: 'L\'email è obbligatoria.', form: 'resetPassword' });
+			return fail(400, { action: 'resetPassword', success: false, message: 'L\'email è obbligatoria.' });
 		}
 
-		try {
-			const res = await fetch(`${BASE_URL}/api/auth/password-reset`, { // [cite: 20]
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email: resetEmail })
-			});
-
-			if (res.ok) {
-				return { success: true, message: 'Link per il reset della password inviato. Controlla la tua email.', form: 'resetPassword' }; // [cite: 20, 21]
-			} else {
-				const responseData = await res.json();
-				return fail(res.status, { resetEmail, error: responseData.message || 'Impossibile inviare il link di reset.', form: 'resetPassword' }); // [cite: 21]
+		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { email: resetEmail },
+				update: {
+					$set: {
+						password: hashed
+					}
+				},
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
+		});
+		const mailFetch = fetch(`${BASE_URL}/api/mailer/recover-password`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				email: resetEmail,
+				password: newPass
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		try {
+			const res = await resFetch;
+			if (!res.ok) {
+				return fail(400, { action: 'resetPassword', success: false, message: await res.text() });
+			}
+
+			const mailRes = await mailFetch;
+			if (!mailRes.ok) {
+				return fail(400, { action: 'resetPassword', success: false, message: await mailRes.text() });
+			}
+			//const getMailer = await mailRes.json();
+
+			return { action: 'resetPassword', success: true, message: 'Nuova password inviata. Controllate l\'email' };
+
 		} catch (err: any) {
 			console.error('Password reset error:', err);
 			return fail(500, { resetEmail, error: 'Errore del server. Riprova più tardi.', form: 'resetPassword' }); // [cite: 21, 22]

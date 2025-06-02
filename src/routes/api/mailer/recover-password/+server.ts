@@ -1,38 +1,44 @@
-// /api/mailer/share-page
-import { json as json$1 } from '@sveltejs/kit';
+// `${BASE_URL}/api/mailer/recover-password`
+import type { RequestHandler } from '@sveltejs/kit';
+import { APIKEY, MAILER_HOST, MAILER_PORT, MAILER_USER, MAILER_PASS } from '$env/static/private';
+import { json } from '@sveltejs/kit';
 import nodemailer from 'nodemailer';
 
-export const POST = async ({ request }) => {
+export const POST: RequestHandler = async ({ request }) => {
 	const body = await request.json();
-	let mailResponse = false;
-	//let info: unknown
+	const {
+		apiKey,
+		email,
+		password
+	} = body;
+
+	if (apiKey !== APIKEY) {
+		return json({ message: 'api error' }, { status: 401 });
+	}
+
+	if (!email || !password) {
+		return json({ message: 'Email and password are required' }, { status: 400 });
+	}
 
 	try {
 		const mailer = async () => {
 			// create reusable transporter object using the default SMTP transport
 			const transporter = nodemailer.createTransport({
-				host: import.meta.env.VITE_MAILER_HOST,
-				port: import.meta.env.VITE_MAILER_PORT,
-				secure: true, // true for 465, false for other ports
+				host: MAILER_HOST,
+				port: Number(MAILER_PORT),
+				secure: false, // true for 465, false for other ports
 				auth: {
-					user: import.meta.env.VITE_MAILER_USER,
-					pass: import.meta.env.VITE_MAILER_PASS
+					user: MAILER_USER,
+					pass: MAILER_PASS
 				}
 			});
 
 			// send mail with defined transport object
 			const info = await transporter.sendMail({
-				from: '"Fast Track IP System" <info@fast-track-ip.com>', // sender address
-				to: body.shareEmail, // list of receivers
-				subject: `QR page ${body.pagetitle}`, // Subject line
-				attachments: [
-					{
-						filename: 'qr.png',
-						path: body.QRcode,
-						cid: 'qrpiclink'
-					}
-				],
-				text: `link to page ${body.pageUrl}`, // plain text body
+				from: '"Notifiche Dienchan" <no-reply@riflessologiadienchan.it>', // sender address
+				to: email, // list of receivers
+				subject: 'Ripristino accesso', // Subject line
+				text: `Gentile utente ${email}, abbiamo ricevuto la sua richiesta di reset password. La preghiamo di utilizzare: ${password} per effettuare il login e cambiare la password con una nuova nel suo profilo.`, // plain text body
 				html: `
 				<!DOCTYPE html>
 				<html
@@ -391,22 +397,12 @@ export const POST = async ({ request }) => {
 												<tr>
 													<td style="padding: 0 2.5em; text-align: center; padding-bottom: 3em">
 														<div class="text">
-															<h2>Hello,</h2>
-															<h3>our user ${body.userEmail} is sharing his QR page</h3>
-															<h2>${body.pagetitle}</h2>
-														</div>
-													</td>
-												</tr>
-												<tr>
-													<td style="text-align: center">
-														<div class="text-author">														
-															<p>
-																<a href="${body.pageUrl}" class="btn btn-primary"
-																	>View Page</a
-																>
-															</p>
-															<h4>OR use the QR code below</h4>
-															<p><a href="${body.pageUrl}"><img src="cid:qrpiclink" alt="qr-code1" style="max-width: 300px;" /></a></p>
+															<h2>Gentile utente ${email},</h2>
+															<h4>abbiamo ricevuto la sua richiesta di reset password.</h4>
+															<h4>La preghiamo di utilizzare:<br>${password}</h4>
+															<h4>per effettuare il login e cambiare la password con una nuova nel suo profilo</h4>
+															<p>Cordiali saluti</p>
+															<p>Riflessologiadienchan.it</p>
 														</div>
 													</td>
 												</tr>
@@ -414,143 +410,32 @@ export const POST = async ({ request }) => {
 										</td>
 									</tr>
 									<!-- end tr -->
-									<!-- 1 Column Text + Button : END -->
-								</table>
-								<table
-									align="center"
-									role="presentation"
-									cellspacing="0"
-									cellpadding="0"
-									border="0"
-									width="100%"
-									style="margin: auto"
-								>
-									<tr>
-										<td valign="middle" class="bg_light footer email-section">
-											<table>
-												<tr>
-													<td valign="top" width="33.333%" style="padding-top: 20px">
-														<table
-															role="presentation"
-															cellspacing="0"
-															cellpadding="0"
-															border="0"
-															width="100%"
-														>
-															<tr>
-																<td style="text-align: left; padding-right: 10px">
-																	<h3 class="heading">About</h3>
-																	<p>
-																		FAST TRACK IP is building trust in the online environment as a key to
-																		the economic and social development.
-																	</p>
-																</td>
-															</tr>
-														</table>
-													</td>
-													<td valign="top" width="33.333%" style="padding-top: 20px">
-														<table
-															role="presentation"
-															cellspacing="0"
-															cellpadding="0"
-															border="0"
-															width="100%"
-														>
-															<tr>
-																<td style="text-align: left; padding-left: 5px; padding-right: 5px">
-																	<h3 class="heading">Contact Info</h3>
-																	<ul>
-																		<li>
-																			<span class="text">7V Stefan Karadzha, Sofia, 1000, Bulgaria</span>
-																		</li>
-																		<li><span class="text">floor 2, office 25</span></li>
-																	</ul>
-																</td>
-															</tr>
-														</table>
-													</td>
-													<td valign="top" width="33.333%" style="padding-top: 20px">
-														<table
-															role="presentation"
-															cellspacing="0"
-															cellpadding="0"
-															border="0"
-															width="100%"
-														>
-															<tr>
-																<td style="text-align: left; padding-left: 10px">
-																	<h3 class="heading">Useful Links</h3>
-																	<ul>
-																		<li><a href="https://www.fast-track-ip.com/">Home</a></li>
-																		<li><a href="https://portal.fast-track-ip.com/login/">Services</a></li>
-																	</ul>
-																</td>
-															</tr>
-														</table>
-													</td>
-												</tr>
-											</table>
-										</td>
-									</tr>
-									<!-- end: tr -->
+									<!-- END -->
 								</table>
 							</div>
 						</center>
 					</body>
 				</html>
 				` // html body
-				// html: `<p>Dear Sir / Dear Madam, </p>
-				// <p>our user ${body.userEmail} is sharing to you his QR page, click on this link to open it: <a href="${body.pageUrl}">${body.pageUrl}</a></p>
-				// <p>as you can scan this QR to view on your device</p>
+				// html: `<p>Dear user ${body.email},</p>
+				// <p>we received your password reset request</p>
+				// <p>please use: ${body.password} to login </p>
+				// <p>and change the password with a new one in your profile</p>
 				// </ hr>
-				// <p><a href="${body.pageUrl}"><img src="cid:qrpiclink" alt="qr-code1" style="max-width: 300px;" /></a></p>
+				// <p>This is an automated message DO NOT REPLY to this communication, for questions and assistance please write to support@fast-track-ip.com.</p>
 				// <p>Best regards</p>
-				// <p>Fast Track IP</p>
-				// `
+				// <p>Fast Track IP</p>`
 				// html body
 			});
-			console.log('Message sent: %s', typeof info.messageId, info.messageId);
-			if (info.messageId) {
-				mailResponse = true;
-			}
+
+			console.log('Message sent: %s', info.messageId);
 			// Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
 		};
+		mailer().catch(console.error);
+		return json({ message: 'Recupero password inviato', status: 200 });
 
-		await mailer().catch((err) => {
-			console.log('mailer catch err:', err);
-		});
-		//await mailer().catch(console.error);
-		//console.log('mailResponse', mailResponse);
-
-		if (mailResponse) {
-			return json$1(
-				{
-					message: `Email sent`
-				},
-				{
-					status: 200
-				}
-			);
-		} else {
-			return json$1(
-				{
-					message: `Email not sent`
-				},
-				{
-					status: 500
-				}
-			);
-		}
 	} catch (err) {
-		console.log('sharePage ERROR:', err);
-		//throw new Error("@1migration task: Migrate this return statement (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292701)");
-		return new Response(JSON.stringify({ errors: `sharePage ERR: ${err}` }), {
-			status: 500,
-			headers: {
-				'content-type': 'application/json; charset=utf-8'
-			}
-		});
-		//////
-		//return Promise.reject(new Error(`recoverUser ERR: ${err}`));
+		console.log('recoverPass ERROR:', err);
+		return json({ message: 'recoverPass ERROR' }, { status: 500 });
 	}
 };

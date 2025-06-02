@@ -25,7 +25,7 @@
 	//import { province } from '$lib/stores/arrays.js';
 
 	const { data } = $props();
-	const { getTable, getTableNames, getLayout, auth } = $derived(data);
+	const { getTable, getTableNames, getLayout, auth } = data;
 	let coursesList = $state(getTable);
 
 	let resetActive = $state(false);
@@ -42,7 +42,7 @@
 	coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
 	// cycle to count the number of courses in each province
-	let numCoursesInProvince: any = {};
+	let numCoursesInProvince: any = $state({});
 	coursesList.forEach((item) => {
 		item.county.forEach((province) => {
 			numCoursesInProvince[province] = (numCoursesInProvince[province] || 0) + 1;
@@ -112,15 +112,15 @@
 	const onFilterReset = () => {
 		// invalidateAll();
 		resetActive = false;
-		coursesList = getTable || '';
+		coursesList = getTable || [];
 		coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
 		filtriAttivi = {
 			mese: '',
 			provincia: '',
 			evento: '',
-			riflessologo: '',
-			userId: ''
+			riflessologo: ''
+			//userId: ''
 		};
 
 		// chiude gli accordion
@@ -152,7 +152,7 @@
 		}
 		// riflessologo
 		if (filtriAttivi.riflessologo) {
-			coursesList = coursesList.filter((item) => item.userId == filtriAttivi.userId);
+			coursesList = coursesList.filter((item) => item.userId == filtriAttivi.riflessologo);
 		}
 	};
 
@@ -174,8 +174,8 @@
 	};
 	const onClickFilterRiflessologo = async (id, name, surname) => {
 		resetActive = true;
-		filtriAttivi.userId = id;
-		filtriAttivi.riflessologo = name + ' ' + surname;
+		filtriAttivi.riflessologo = id;
+		//filtriAttivi.riflessologo = name + ' ' + surname;
 		updateFilter();
 	};
 
