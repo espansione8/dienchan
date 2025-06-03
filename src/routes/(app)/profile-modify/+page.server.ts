@@ -1,9 +1,8 @@
 import type { PageServerLoad, Actions } from './$types'
-import { BASE_URL, APIKEY } from '$env/static/private';
+import { BASE_URL, APIKEY, SALT } from '$env/static/private';
 import { fail } from '@sveltejs/kit';
 import { pageAuth } from '$lib/pageAuth';
-
-const apiKey = APIKEY;
+import { hash } from '$lib/tools/hash';
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
@@ -11,28 +10,25 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	let getOrder = [];
 	// console.log('locals.user.userId', locals.user.userId);
 
+	const resFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+		method: 'POST',
+		body: JSON.stringify({
+			apiKey: APIKEY,
+			schema: 'order', //product | order | user | layout | discount
+			query: { userId: locals.user.userId }, //IF USE Products.model -> types: course / product / membership / event,
+			projection: { _id: 0 },  // 0: exclude | 1: include
+			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+			limit: 1000,
+			skip: 0
+		}),
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	});
+
 	try {
-		const query = { userId: locals.user.userId }; //IF USE Products.model -> types: course / product / membership / event
-		const projection = { _id: 0 } // 0: exclude | 1: include
-		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
-		const limit = 1000;
-		const skip = 0;
-		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey,
-				schema: 'order', //product | order | user | layout | discount
-				query,
-				projection,
-				sort,
-				limit,
-				skip
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		if (res.status != 200) {
+		const res = await resFetch;
+		if (!res.ok) {
 			console.error('orders fetch error:', res.status, await res.text());
 			return fail(400, { action: 'page load', success: false, message: await res.text() });
 		}
@@ -94,56 +90,51 @@ export const actions: Actions = {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
-		try {
-			const query = { userId }; //IF USE Products.model -> types: course / product / membership / event
-			const update = {
-				$set: {
-					name,
-					surname,
-					email,
-					address,
-					postalCode,
-					city,
-					county,
-					country,
-					phone,
-					mobilePhone,
-					//level,
-					namePublic,
-					surnamePublic,
-					emailPublic,
-					addressPublic,
-					cityPublic,
-					postalCodePublic,
-					countyPublic,
-					countryPublic,
-					phonePublic,
-					mobilePhonePublic,
-				}
-			};
-			const options = { upsert: false }
-			const multi = false
-
-			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey,
-					schema: 'user', //product | order | user | layout | discount
-					query,
-					update,
-					options,
-					multi
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-
-			if (res.status != 200) {
-				return fail(400, { action: 'modify', success: false, message: await res.text() });
+		const updateFecth = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { userId }, //IF USE Products.model -> types: course / product / membership / event,
+				update: {
+					$set: {
+						name,
+						surname,
+						email,
+						address,
+						postalCode,
+						city,
+						county,
+						country,
+						phone,
+						mobilePhone,
+						//level,
+						namePublic,
+						surnamePublic,
+						emailPublic,
+						addressPublic,
+						cityPublic,
+						postalCodePublic,
+						countyPublic,
+						countryPublic,
+						phonePublic,
+						mobilePhonePublic,
+					}
+				},
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
+		});
 
-			const response = await res.json();
+		try {
+			const updateRes = await updateFecth;
+			if (!updateRes.ok) {
+				return fail(400, { action: 'modify', success: false, message: await updateRes.text() });
+			}
+			const response = await updateRes.json();
 			return { action: 'modify', success: true, message: response.message };
 
 		} catch (error) {
@@ -160,36 +151,33 @@ export const actions: Actions = {
 		}
 		const newStatus = status == 'enabled' ? 'disabled' : 'enabled';
 		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
-		try {
-			const query = { prodId: prodId, type: 'membership' };
-			const update = {
-				$set: {
-					status: newStatus,
-				}
-			};
-			const options = { upsert: false }
-			const multi = false
-			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey,
-					schema: 'product', //product | order | user | layout | discount
-					query,
-					update,
-					options,
-					multi
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			const response = await res.json();
-			//console.log('res', res);
-			if (res.status == 200) {
-				return { action: 'changeStatus', success: true, message: response.message };
-			} else {
-				return fail(400, { action: 'changeStatus', success: false, message: response.message });
+		const updateFecth = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'product', //product | order | user | layout | discount
+				query: { prodId: prodId, type: 'membership' },
+				update: {
+					$set: {
+						status: newStatus,
+					}
+				},
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
+		});
+		try {
+			const updateRes = await updateFecth;
+			if (!updateRes.ok) {
+				return fail(400, { action: 'changeStatus', success: false, message: await updateRes.text() });
+			}
+			const response = await updateRes.json();
+
+			return { action: 'changeStatus', success: true, message: response.message };
+
 		} catch (error) {
 			console.error('Error changing status:', error);
 			return fail(400, { action: 'changeStatus', success: false, message: 'Errore changeStatus' });
@@ -208,19 +196,19 @@ export const actions: Actions = {
 			const uploadImg = await fetch(`${BASE_URL}/api/uploads/files`, {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json',
+					//'Content-Type': 'application/json',
 					'x-file-name': file.name,
 					'x-folder-name': `user/${userId}`
 				},
 				body: file
 			});
-			const resImg = await uploadImg.json();
-			if (uploadImg.status != 200) return fail(400, { action: 'setProfilePic', success: false, message: resImg.message })
+
+			if (!uploadImg.ok) return fail(400, { action: 'setProfilePic', success: false, message: await uploadImg.text() })
 
 			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
-					apiKey,
+					apiKey: APIKEY,
 					schema: 'user', //product | order | user | layout | discount
 					query: { userId }, //IF USE Products.model -> types: course / product / membership / event,
 					update: {
@@ -239,13 +227,11 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				}
 			});
-			const response = await res.json();
 
-			if (res.status == 200) {
-				return { action: 'setProfilePic', success: true, message: 'Immagine caricata' };
-			} else {
-				return fail(400, { action: 'setProfilePic', success: false, message: response.message });
-			}
+			if (!res.ok) return fail(400, { action: 'setProfilePic', success: false, message: await res.text() })
+
+			return { action: 'setProfilePic', success: true, message: 'Immagine caricata' };
+
 		} catch (error) {
 			console.error('Error upload:', error);
 			return fail(400, { action: 'setProfilePic', success: false, message: 'Errore upload' });
@@ -272,46 +258,105 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				}
 			});
-			const resDel = await responseDelete.json();
-			if (responseDelete.status != 200) return fail(400, { action: 'delProfilePic', success: false, message: resDel.message });
-
-			const query = { userId }; //IF USE Products.model -> types: course / product / membership / event
-			const update = {
-				$pull: {
-					uploadfiles: {
-						type: 'profile',
-						fileName,
-						//fileUrl: `/files/user/${userId}/${fileName}`
-					}
-				}
-			};
-			const options = { upsert: false }
-			const multi = false
+			if (!responseDelete.ok) return fail(400, { action: 'delProfilePic', success: false, message: await responseDelete.text() });
 
 			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
-					apiKey,
+					apiKey: APIKEY,
 					schema: 'user', //product | order | user | layout | discount
-					query,
-					update,
-					options,
-					multi
+					query: { userId }, //IF USE Products.model -> types: course / product / membership / event,
+					update: {
+						$pull: {
+							uploadfiles: {
+								type: 'profile',
+								fileName,
+								//fileUrl: `/files/user/${userId}/${fileName}`
+							}
+						}
+					},
+					options: { upsert: false },
+					multi: false
 				}),
 				headers: {
 					'Content-Type': 'application/json'
 				}
 			});
+			if (!res.ok) return fail(400, { action: 'delProfilePic', success: false, message: await res.text() });
 			const response = await res.json();
 
-			if (res.status == 200) {
-				return { action: 'delProfilePic', success: true, message: response.message };
-			} else {
-				return fail(400, { action: 'delProfilePic', success: false, message: response.message });
-			}
+			return { action: 'delProfilePic', success: true, message: response.message };
+
 		} catch (error) {
 			console.error('Error delProfilePic:', error);
 			return fail(400, { action: 'delProfilePic', success: false, message: 'Errore rimozione' });
+		}
+	},
+	changePassword: async ({ request, fetch, locals }) => {
+		const formData = await request.formData();
+		const passwordOld = formData.get('passwordOld') as string;
+		const passwordNew = formData.get('passwordNew') as string;
+		const userId = locals.user.userId;
+
+		if (!passwordOld || !passwordNew || !userId) {
+			return fail(400, { action: 'changePassword', success: false, message: 'Dati mancanti' });
+		}
+
+		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { userId }, //IF USE Products.model -> types: course / product / membership / event
+				projection: { password: 1 }, // 0: exclude | 1: include
+				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				limit: 1,
+				skip: 0,
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			},
+		});
+
+		const updateFecth = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { userId }, //IF USE Products.model -> types: course / product / membership / event,
+				update: {
+					$set: {
+						password: hash(passwordNew, SALT)
+					}
+				},
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		try {
+			const userRes = await userFetch;
+			if (!userRes.ok) return fail(400, { action: 'changePassword', success: false, message: await userRes.text() });
+
+			const user = await userRes.json();
+			if (!user || user.length === 0 || user[0].password !== hash(passwordOld, SALT)) {
+				return fail(400, { action: 'changePassword', success: false, message: 'Password errata' })
+			}
+
+			const updateRes = await updateFecth;
+			if (!updateRes.ok) {
+				return fail(400, { action: 'changePassword', success: false, message: await updateRes.text() });
+			}
+			const update = await updateRes.json();
+
+			return { action: 'changePassword', success: true, message: update.message };
+
+		} catch (error) {
+			console.error('Error changePassword:', error);
+			return fail(400, { action: 'changePassword', success: false, message: 'Errore changePassword' });
 		}
 	},
 } satisfies Actions;

@@ -479,7 +479,7 @@
 				method="POST"
 				action={postAction}
 				use:enhance={formSubmit}
-				class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 			>
 				{#if currentDialog == 'modify'}
 					<section class="col-span-4 md:col-span-4">

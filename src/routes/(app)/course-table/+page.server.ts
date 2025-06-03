@@ -108,7 +108,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		console.log('page fetch error:', error);
 		throw error(500, 'Server error');
 	}
-	console.log('getTable', getTable.length);
+	//console.log('getTable', getTable.length);
 	return {
 		getTable,
 		getLayout,

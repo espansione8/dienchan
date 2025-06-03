@@ -13,10 +13,10 @@ import type { RequestHandler } from '@sveltejs/kit';
 // INSTRUCTION
 // import { APIKEY, BASE_URL } from '$env/static/private';
 
-// const resFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+// const resFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 // 	method: 'POST',
 // 	body: JSON.stringify({
-// 		apiKey,
+// 		 apiKey: APIKEY,
 // 		schema: 'product', //product | order | user | layout | discount
 // 		query: { type: 'product', price: { $gt: 50 } },
 // 		projection: { _id: 0, password: 0 }, // 0: exclude | 1: include

@@ -16,10 +16,10 @@ import type { RequestHandler } from '@sveltejs/kit';
 // const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 // const newId = nanoid();
 
-// const resFetch = await fetch(`${BASE_URL}/api/mongo/create`, {
+// const resFetch = fetch(`${BASE_URL}/api/mongo/create`, {
 // 	method: 'POST',
 // 	body: JSON.stringify({
-// 		apiKey,
+// 		 apiKey: APIKEY,
 // 		schema: 'product', //product | order | user | layout | discount
 // 		newDoc: {
 // 			docId: newId,

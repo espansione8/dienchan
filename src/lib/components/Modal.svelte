@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { scale } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
 	let {
 		isOpen = $bindable(false), // custom Dienchan, default use $bindable(false)
 		header = '',
@@ -39,7 +41,11 @@
 </script>
 
 <dialog id="modal" class="modal" class:modal-open={isOpen}>
-	<div class={modalCSS}>
+	<div
+		class={modalCSS}
+		in:scale|local={{ start: 0.9, duration: 400, easing: quintOut }}
+		out:scale|local={{ start: 0.9, duration: 200, easing: quintOut }}
+	>
 		<!-- <button
 			class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
 			onclick={() => (isOpen = false)}>✕</button
@@ -53,9 +59,9 @@
 		<div class="container mx-auto">
 			{@render children()}
 		</div>
-		<div class="divider divider-info"></div>
+		<!-- <div class="divider divider-primary"></div>
 		<div class={footerCSS}>
 			{footer}
-		</div>
+		</div> -->
 	</div>
 </dialog>

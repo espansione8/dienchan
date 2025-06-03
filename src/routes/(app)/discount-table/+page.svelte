@@ -48,8 +48,8 @@
 	let loading = $state(false);
 
 	const csvCreate = () => {
-		let csv = $state('');
-		let newList: any = $state();
+		//let csv = $state('');
+		//let newList: any = $state();
 
 		const flattenObject = (obj: any, prefix = '') => {
 			return Object.keys(obj).reduce((acc, k) => {
@@ -67,7 +67,7 @@
 			return flattenObject(obj);
 		});
 
-		newList = flattenedArray.map((obj: any) => ({
+		const newList = flattenedArray.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt?.substring(0, 10)
 			// birthdate: obj.birthdate?.substring(0, 10)
@@ -80,7 +80,7 @@
 		//console.log('newList user', newList);
 
 		//CSV UNPARSE
-		csv = Papa.unparse(newList, {
+		const csv = Papa.unparse(newList, {
 			quotes: false,
 			quoteChar: '"',
 			escapeChar: '"',
@@ -299,195 +299,205 @@
 {/if}
 
 {#if currentModal == 'new'}
-	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-4xl">
+	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-2xl">
+		<!-- <Modal isOpen={openModal} header={modalTitle} cssClass="max-w-4xl"> -->
 		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
 			>✕</button
 		>
-		{#if loading}
-			<Loader />
-		{:else}
-			<form
-				method="POST"
-				action={postAction}
-				use:enhance={formSubmit}
+		<div class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative">
+			{#if loading}
+				<Loader />
+			{:else}
+				<form
+					method="POST"
+					action={postAction}
+					use:enhance={formSubmit}
+					class="grid grid-cols-2 bg-base-100 grid-rows-[min-content] gap-x-4 gap-y-4"
+				>
+					<!-- 
 				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-			>
-				<fieldset class="fieldset col-span-4">
-					<legend class="fieldset-legend">Codice sconto</legend>
-					<!-- <span class="label">Optional</span> -->
-					<div class="join w-full">
-						<div class="join-item btn pointer-events-none"><Pen /></div>
-						<input
-							class="input join-item flex-1"
-							id="titolo"
-							name="code"
-							type="text"
-							placeholder="Codice"
-							aria-label="Titolo"
-							aria-describedby="basic-titolo"
-							bind:value={code}
-							required
-						/>
-					</div>
-				</fieldset>
-
-				<fieldset class="fieldset col-span-4 md:col-span-2">
-					<legend class="fieldset-legend">Tipologia</legend>
-					<!-- <span class="label">Optional</span> -->
-					<div class="join w-full">
-						<div class="join-item btn pointer-events-none"><StretchHorizontal /></div>
-						<select
-							class="select join-item flex-1"
-							id="categoria"
-							name="type"
-							aria-label="Categoria"
-							aria-describedby="basic-categoria"
-							bind:value={typeDiscount}
-							required
-						>
-							<option disabled selected>Scegli</option>
-							<option value="percent">Percentuale %</option>
-							<option value="amount">Valore fisso €</option>
-						</select>
-					</div>
-				</fieldset>
-
-				<fieldset class="fieldset col-span-4 md:col-span-2">
-					<legend class="fieldset-legend">Valore</legend>
-					<!-- <span class="label">Optional</span> -->
-					<div class="join w-full">
-						<div class="join-item btn pointer-events-none"><Calculator /></div>
-						<input
-							class="input join-item flex-1"
-							id="value"
-							type="number"
-							name="value"
-							aria-label="value"
-							aria-describedby="value"
-							bind:value
-							required
-						/>
-					</div>
-				</fieldset>
-
-				<fieldset class="fieldset col-span-4">
-					<div class="flex flex-col sm:flex-row sm:flex-wrap gap-4">
-						<label class="form-label">
-							<p class="font-bold mb-2"><Funnel /> Categoria</p>
+			 -->
+					<section class="col-span-4">
+						<label for="titolo" class="form-label">
+							<p class="font-bold mb-2 label">Codice sconto</p>
 						</label>
-						<label class="flex items-center">
+						<div class="join join-horizontal rounded-md w-full">
+							<button type="button" class="join-item bg-primary/20 px-3">
+								<Pen class="text-emerald-500" />
+							</button>
 							<input
-								type="radio"
-								name="applicability"
-								value="user"
-								class="radio radio-primary mr-2"
-								bind:group={selectedApplicability}
-							/>
-							<span>Email utente</span>
-						</label>
-						<label class="flex items-center">
-							<input
-								type="radio"
-								name="applicability"
-								value="membershipLevel"
-								class="radio radio-primary mr-2"
-								bind:group={selectedApplicability}
-							/>
-							<span>Membership</span>
-						</label>
-						<label class="flex items-center">
-							<input
-								type="radio"
-								name="applicability"
-								value="prodId"
-								class="radio radio-primary mr-2"
-								bind:group={selectedApplicability}
-							/>
-							<span>Prodotto</span>
-						</label>
-						<label class="flex items-center">
-							<input
-								type="radio"
-								name="applicability"
-								value="layoutId"
-								class="radio radio-primary mr-2"
-								bind:group={selectedApplicability}
-							/>
-							<span>Tipo Corso</span>
-						</label>
-					</div>
-					<div class="mt-2">
-						{#if selectedApplicability == 'user'}
-							<input
-								type="text"
-								name="selectId"
-								class="input w-full"
-								placeholder="Inserisci EMAIL utente"
-								bind:value={selectedId}
-							/>
-							<!-- <input
-								type="text"
-								name="selectId"
 								class="input input-bordered w-full"
-								placeholder="Inserisci il valore corrispondente"
-								bind:value={selectedId}
-							/> -->
-						{:else if selectedApplicability == 'membershipLevel'}
-							<select name="selectId" bind:value={selectedId} class="select w-full">
-								<option value="">Seleziona il livello associato</option>
-								<option value="Socio inattivo">Socio inattivo</option>
-								<option value="Socio ordinario">Socio ordinario</option>
-								<option value="Socio sostenitore">Socio sostenitore</option>
-								<option value="Socio vitalizio">Socio vitalizio</option>
-								<option value="Socio contributore">Socio contributore</option>
-								<option value="Master Dien Chan">Master Dien Chan</option>
-							</select>
-						{:else if selectedApplicability == 'prodId'}
-							<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full">
-								<option value="">Scegli prodotto</option>
-								{#each getProduct as option}
-									<option value={option.prodId}>{option.title}</option>
-								{/each}
-							</select>
-						{:else if selectedApplicability == 'layoutId'}
-							<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full">
-								<option value="">Scegli un tipo</option>
-								{#each getLayout as option}
-									<option value={option.layoutId}>{option.title}</option>
-								{/each}
-							</select>
-						{/if}
-					</div>
-				</fieldset>
+								id="titolo"
+								name="code"
+								type="text"
+								placeholder="Codice"
+								aria-label="Titolo"
+								aria-describedby="basic-titolo"
+								bind:value={code}
+								required
+							/>
+						</div>
+					</section>
 
-				<fieldset class="col-span-4">
-					<legend class="fieldset-legend">note</legend>
-					<!-- <label for="descrizione" class="form-label">
-						<p class="font-bold mb-2">Note</p>
-					</label> -->
-					<div class="join w-full">
-						<div class="join-item btn pointer-events-none h-24"><Pen /></div>
-						<textarea
-							class="textarea join-item w-full"
-							id="descrizione"
-							name="notes"
-							placeholder="Descrizione"
-							aria-label="descrizione"
-							aria-describedby="basic-descrizione"
-							bind:value={notes}
-						></textarea>
-					</div>
-				</fieldset>
+					<section class="col-span-4 md:col-span-2">
+						<label for="categoria" class="form-label">
+							<p class="font-bold mb-2 label">Tipologia</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button type="button" class="join-item bg-primary/20 px-3">
+								<StretchHorizontal class="text-emerald-500" />
+							</button>
+							<select
+								class="select join-item w-full"
+								id="categoria"
+								name="type"
+								aria-label="Categoria"
+								aria-describedby="basic-categoria"
+								bind:value={typeDiscount}
+								required
+							>
+								<option disabled selected>Scegli</option>
+								<option value="percent">Percentuale %</option>
+								<option value="amount">Valore fisso €</option>
+							</select>
+						</div>
+					</section>
 
-				<div class="col-span-4 mt-5 flex justify-center">
-					<div class="bg-gray-50 flex justify-center">
-						<button class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
+					<section class="col-span-4 md:col-span-2">
+						<label for="categoria" class="form-label">
+							<p class="font-bold mb-2 label">Valore</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button type="button" class="join-item bg-primary/20 px-3"
+								><Calculator class="text-emerald-500" /></button
+							>
+							<input
+								class="input join-item w-full"
+								id="value"
+								type="number"
+								name="value"
+								aria-label="value"
+								aria-describedby="value"
+								required
+							/>
+						</div>
+					</section>
 
-						<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
+					<section class="col-span-4">
+						<div class="flex flex-col sm:flex-row sm:flex-wrap gap-4">
+							<label for="categoria" class="form-label">
+								<p class="font-bold mb-2 label">Categoria:</p>
+							</label>
+							<label class="flex items-center">
+								<input
+									type="radio"
+									name="applicability"
+									value="user"
+									class="radio radio-primary mr-2"
+									bind:group={selectedApplicability}
+								/>
+								<span>Email utente</span>
+							</label>
+							<label class="flex items-center">
+								<input
+									type="radio"
+									name="applicability"
+									value="membershipLevel"
+									class="radio radio-primary mr-2"
+									bind:group={selectedApplicability}
+								/>
+								<span>Membership</span>
+							</label>
+							<label class="flex items-center">
+								<input
+									type="radio"
+									name="applicability"
+									value="prodId"
+									class="radio radio-primary mr-2"
+									bind:group={selectedApplicability}
+								/>
+								<span>Prodotto</span>
+							</label>
+							<label class="flex items-center">
+								<input
+									type="radio"
+									name="applicability"
+									value="layoutId"
+									class="radio radio-primary mr-2"
+									bind:group={selectedApplicability}
+								/>
+								<span>Tipo Corso</span>
+							</label>
+						</div>
+						<div class="mt-2">
+							{#if selectedApplicability == 'user'}
+								<input
+									type="text"
+									name="selectId"
+									class="input w-full"
+									placeholder="Inserisci EMAIL utente"
+									bind:value={selectedId}
+								/>
+							{:else if selectedApplicability == 'membershipLevel'}
+								<select name="selectId" bind:value={selectedId} class="select w-full">
+									<option value="">Seleziona il livello associato</option>
+									<option value="Socio inattivo">Socio inattivo</option>
+									<option value="Socio ordinario">Socio ordinario</option>
+									<option value="Socio sostenitore">Socio sostenitore</option>
+									<option value="Socio vitalizio">Socio vitalizio</option>
+									<option value="Socio contributore">Socio contributore</option>
+									<option value="Master Dien Chan">Master Dien Chan</option>
+								</select>
+							{:else if selectedApplicability == 'prodId'}
+								<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full">
+									<option value="">Scegli prodotto</option>
+									{#each getProduct as option}
+										<option value={option.prodId}>{option.title}</option>
+									{/each}
+								</select>
+							{:else if selectedApplicability == 'layoutId'}
+								<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full">
+									<option value="">Scegli un tipo</option>
+									{#each getLayout as option}
+										<option value={option.layoutId}>{option.title}</option>
+									{/each}
+								</select>
+							{/if}
+						</div>
+					</section>
+
+					<section class="col-span-4">
+						<label for="categoria" class="form-label">
+							<p class="font-bold mb-2 label">Note</p>
+						</label>
+						<div class="join w-full">
+							<div class="join-item btn pointer-events-none h-24">
+								<Pen class="text-emerald-500" />
+							</div>
+							<textarea
+								class="textarea join-item w-full"
+								id="descrizione"
+								name="notes"
+								placeholder="Descrizione"
+								aria-label="descrizione"
+								aria-describedby="basic-descrizione"
+								bind:value={notes}
+							></textarea>
+						</div>
+					</section>
+
+					<div class="col-span-4 mt-5 flex justify-center">
+						<div class="bg-gray-50 flex justify-center">
+							<button class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
+
+							<button type="submit" class="btn btn-success btn-sm mx-2 text-white">
+								Registra
+							</button>
+						</div>
 					</div>
-				</div>
-			</form>
-		{/if}
+				</form>
+			{/if}
+		</div>
 	</Modal>
 {/if}
 

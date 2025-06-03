@@ -5,6 +5,7 @@
 	import Notification from '$lib/components/Notification.svelte';
 	import DragDrop from '$lib/components/DragDrop.svelte';
 	import Modal from '$lib/components/Modal.svelte';
+	import Loader from '$lib/components/Loader.svelte';
 	import { province, country_list } from '$lib/stores/arrays.js';
 	import { imgCheck } from '$lib/tools/tools';
 	import {
@@ -38,7 +39,7 @@
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { userData, orderData } = data;
+	const { userData, orderData } = $derived(data);
 
 	// Declare the province variable
 	let provinceFilterate = $province.filter((p) => p.title !== 'Online');
@@ -88,8 +89,8 @@
 	let level = $state(userData.level || '');
 	let activeTab = $state('profile'); // 'profile' or 'orders'
 	let expandedOrderId = $state('');
-	let passwordNew = $state('');
-	let passwordOld = $state('');
+	// let passwordNew = $state('');
+	// let passwordOld = $state('');
 
 	let loading = $state(false);
 
@@ -134,8 +135,8 @@
 		countryPublic = userData.countryPublic;
 		phonePublic = userData.phonePublic;
 		mobilePhonePublic = userData.mobilePhonePublic;
-		passwordNew = '';
-		passwordOld = '';
+		// passwordNew = '';
+		// passwordOld = '';
 	};
 
 	const onClickModal = (type: string, item: any) => {
@@ -146,7 +147,7 @@
 			modalTitle = 'Upload foto';
 		}
 		if (type == 'reset-password') {
-			postAction = `?/todo-reset`;
+			postAction = `?/changePassword`;
 			modalTitle = 'Cambio password';
 		}
 	};
@@ -1071,21 +1072,28 @@
 		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
 			>✕</button
 		>
-
-		<form
-			action="?/setProfilePic"
-			method="POST"
-			enctype="multipart/form-data"
-			use:enhance={formSubmit}
-			class="p-8"
-		>
-			<input type="hidden" name="userId" value={userData.userId} />
-			<DragDrop />
-			<div class="modal-action">
-				<button class="btn btn-outline" onclick={onCloseModal}>Annulla</button>
-				<button class="btn btn-primary" type="submit">Carica</button>
-			</div>
-		</form>
+		<div class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative">
+			{#if loading}
+				<Loader />
+			{:else}
+				<form
+					action="?/setProfilePic"
+					method="POST"
+					enctype="multipart/form-data"
+					use:enhance={formSubmit}
+					class="grid grid-cols-2 bg-base-100 grid-rows-[min-content]"
+				>
+					<input type="hidden" name="userId" value={userData.userId} />
+					<div class="col-span-2">
+						<DragDrop />
+					</div>
+					<div class="modal-action col-span-2">
+						<button class="btn btn-outline" onclick={onCloseModal}>Annulla</button>
+						<button class="btn btn-primary" type="submit">Carica</button>
+					</div>
+				</form>
+			{/if}
+		</div>
 	</Modal>
 {/if}
 
@@ -1094,81 +1102,62 @@
 		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
 			>✕</button
 		>
-
-		<form
-			method="POST"
-			action={postAction}
-			use:enhance={formSubmit}
-			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-		>
-			<section class="col-span-4">
-				<label for="titolo" class="form-label">
-					<p class="font-bold mb-2">Password corrente</p>
-				</label>
-				<div class="join join-horizontal w-full">
-					<button class="join-item bg-gray-300 px-3"><KeyRound /></button>
-					<input
-						type="password"
-						id="passwordOld"
-						name="passwordOld"
-						placeholder="Inserisci la password corrente"
-						aria-label="Password"
-						aria-describedby="basic-password"
-						bind:value={passwordOld}
-						required
-					/>
-				</div>
-			</section>
-			<section class="col-span-4">
-				<label for="titolo" class="form-label">
-					<p class="font-bold mb-2">Nuova password</p>
-				</label>
-				<div class="join join-horizontal w-full">
-					<button class="join-item bg-gray-300 px-3"><KeyRound /></button>
-					<input
-						type="password"
-						id="passwordNew"
-						name="passwordNew"
-						placeholder="Inserisci la nuova password"
-						aria-label="Password"
-						aria-describedby="basic-password"
-						bind:value={passwordNew}
-						required
-					/>
-				</div>
-			</section>
-
-			<div class="col-span-4 mt-5 flex justify-center">
-				<div class="bg-gray-50 flex justify-center">
-					<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
-					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">Conferma</button>
-				</div>
-			</div>
-		</form>
-	</Modal>
-{/if}
-
-{#if currentModal == 'delete-profile-pic'}
-	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
-		<form
-			method="POST"
-			action={postAction}
-			use:enhance={formSubmit}
-			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-		>
-			<input type="hidden" name="userId" value={userData.userId} />
-			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
-				Conferma rimozione
-			</header>
-			<div class="col-span-4 mt-5 flex justify-center">
-				<div class="bg-gray-50 flex justify-center">
-					<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
-					<button type="submit" class="btn btn-error btn-sm mx-2 text-white">Elimina</button>
-				</div>
-			</div>
-		</form>
+		<div class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative">
+			{#if loading}
+				<Loader />
+			{:else}
+				<!-- <h3 class="font-bold text-xl mb-4">Cambio password</h3> -->
+				<!-- <p class="text-base-content/70 mb-6">Cambia la password</p> -->
+				<form
+					method="POST"
+					action={postAction}
+					use:enhance={formSubmit}
+					class="grid grid-cols-2 bg-base-100 grid-rows-[min-content]"
+				>
+					<section class="col-span-2">
+						<label for="passwordOld" class="form-label">
+							<p class="font-bold mb-2 label">Password Corrente</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button type="button" class="join-item bg-primary/20 px-3">
+								<Mail class="text-emerald-500" />
+							</button>
+							<input
+								name="passwordOld"
+								type="text"
+								placeholder="inserisci password"
+								class="input input-bordered w-full"
+								required
+							/>
+						</div>
+					</section>
+					<section class="col-span-2">
+						<label for="passwordNew" class="form-label">
+							<p class="font-bold mb-2 label">Nuova Password</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button type="button" class="join-item bg-primary/20 px-3"
+								><Mail class="text-emerald-500" /></button
+							>
+							<input
+								name="passwordNew"
+								type="text"
+								placeholder="inserisci password"
+								class="input input-bordered w-full"
+								required
+							/>
+						</div>
+					</section>
+					<div class="modal-action mt-6 col-span-2">
+						{#if loading}
+							<Loader />
+						{:else}
+							<button type="button" class="btn flex-1" onclick={onCloseModal}>Annulla</button>
+							<button type="submit" class="btn btn-primary flex-1">Cambia Password </button>
+						{/if}
+					</div>
+				</form>
+			{/if}
+		</div>
 	</Modal>
 {/if}

@@ -2,7 +2,7 @@
 	import type { ActionResult } from '@sveltejs/kit';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { enhance } from '$app/forms';
-	import { fly, fade, scale } from 'svelte/transition';
+	import { fly, fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { notification } from '$lib/stores/notifications';
 	import Modal from '$lib/components/Modal.svelte';
@@ -478,42 +478,38 @@
 		class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content"
 		onclick={onCloseModal}>✕</button
 	>
-	<!-- <dialog class="modal modal-bottom sm:modal-middle {openModal ? 'modal-open' : ''}"> -->
-	<div
-		class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative"
-		in:scale|local={{ start: 0.95, duration: 300, easing: quintOut }}
-		out:scale|local={{ start: 0.95, duration: 200, easing: quintOut }}
-	>
-		<!-- <button
-			class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-			onclick={() => onCloseModal}>✕</button
-		> -->
+	<div class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative">
 		<!-- <h3 class="font-bold text-xl mb-4">{modalTitle}</h3> -->
 		<p class="text-base-content/70 mb-6">
 			Inserisci il tuo indirizzo email e ti invieremo un link per reimpostare la password.
 		</p>
 
-		<form method="POST" action={postAction} use:enhance={formSubmit} class="space-y-4">
-			<label class="form-control w-full">
-				<div class="label"><span class="label-text">Email</span></div>
-				<div class="relative group">
-					<span
-						class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-base-content/40 group-focus-within:text-primary transition-colors"
+		<form
+			method="POST"
+			action={postAction}
+			use:enhance={formSubmit}
+			class="grid grid-cols-2 bg-base-100 grid-rows-[min-content]"
+		>
+			<section class="col-span-2">
+				<label for="price" class="form-label">
+					<p class="font-bold mb-2 label">Email</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button type="button" class="join-item bg-primary/20 px-3"
+						><Mail class="text-emerald-500" /></button
 					>
-						<Mail class="w-5 h-5" />
-					</span>
 					<input
 						name="resetEmail"
 						type="email"
 						placeholder="la.tua@email.com"
-						class="input input-bordered w-full pl-10"
+						class="input input-primary w-full pl-10"
 						bind:value={resetEmail}
 						required
 					/>
 				</div>
-			</label>
+			</section>
 
-			<div class="modal-action mt-6">
+			<div class="modal-action mt-6 col-span-2">
 				{#if loading}
 					<Loader />
 				{:else}
@@ -523,10 +519,6 @@
 			</div>
 		</form>
 	</div>
-	<form method="dialog" class="modal-backdrop" onsubmit={onCloseModal}>
-		<button type="submit">close</button>
-	</form>
-	<!-- </dialog> -->
 </Modal>
 
 <style>
