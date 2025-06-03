@@ -160,7 +160,7 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				}
 			});
-			if (res.status != 200) {
+			if (!res.ok) {
 				const errorText = await res.text();
 				console.error('product update failed', res.status, errorText);
 				return fail(400, { action: 'modify', success: false, message: errorText });
@@ -194,7 +194,7 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				}
 			});
-			if (res.status != 200) {
+			if (!res.ok) {
 				const errorText = await res.text();
 				console.error('product remove failed', res.status, errorText);
 				return fail(400, { action: 'delete', success: false, message: errorText });
@@ -247,7 +247,7 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				}
 			});
-			if (res.status != 200) {
+			if (!res.ok) {
 				const errorText = await res.text();
 				console.error('product find failed', res.status, errorText);
 				return fail(400, { action: 'filter', success: false, message: errorText });
@@ -299,7 +299,7 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				}
 			});
-			if (res.status != 200) {
+			if (!res.ok) {
 				const errorText = await res.text();
 				console.error('product update failed', res.status, errorText);
 				return fail(400, { action: 'changeStatus', success: false, message: errorText });

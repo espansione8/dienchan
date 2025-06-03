@@ -30,7 +30,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 				'Content-Type': 'application/json'
 			}
 		});
-		if (res.status != 200) {
+		if (!res.ok) {
 			const errorText = await res.text();
 			console.error('user fetch failed', res.status, errorText);
 			return

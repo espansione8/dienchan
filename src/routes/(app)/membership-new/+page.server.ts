@@ -188,7 +188,7 @@ export const actions: Actions = {
 							'Content-Type': 'application/json'
 						}
 					});
-					if (res.status != 200) {
+					if (!res.ok) {
 						return fail(400, { action: 'user', success: false, message: await res.text() });
 					}
 					const response = await res.json();

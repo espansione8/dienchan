@@ -36,7 +36,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			}
 		});
 
-		if (res.status != 200) {
+		if (!res.ok) {
 			const errorText = await res.text();
 			console.error('product find failed', res.status, errorText);
 			return fail(400, { action: 'load', success: false, message: errorText });

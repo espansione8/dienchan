@@ -27,7 +27,7 @@
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { getTable, getTableNames, userData, getLayout } = data;
+	const { getTable, getTableNames, userData, getLayout } = $derived(data);
 	let tableList = $state(getTable);
 	let loading = $state(false);
 

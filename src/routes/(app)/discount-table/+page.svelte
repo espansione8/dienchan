@@ -725,7 +725,7 @@
 		{:else}
 			<form method="POST" action={postAction} use:enhance={formSubmit}>
 				<input type="hidden" name="discountId" value={discountId} />
-				<div class="flex justify-center space-x-10 mt-4">
+				<div class="flex justify-center space-x-10 my-4">
 					<button class="btn btn-error btn-md" type="button" onclick={onCloseModal}>Annulla</button>
 					<button class="btn btn-success btn-md text-white" type="submit"><Trash2 />Conferma</button
 					>

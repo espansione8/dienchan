@@ -143,7 +143,7 @@ export const actions: Actions = {
 						'Content-Type': 'application/json'
 					}
 				});
-				if (res.status != 200) {
+				if (!res.ok) {
 					console.error('user fetch failed', res.status, await res.text());
 					return fail(400, { action: 'new', success: false, message: 'errore database user' });
 				}
@@ -192,7 +192,7 @@ export const actions: Actions = {
 							'Content-Type': 'application/json'
 						}
 					});
-					if (res.status != 200) {
+					if (!res.ok) {
 						return fail(400, { action: 'user', success: false, message: await res.text() });
 					}
 					const response = await res.json();
@@ -298,7 +298,7 @@ export const actions: Actions = {
 				}
 			});
 
-			if (res.status != 200) {
+			if (!res.ok) {
 				return fail(400, { action: 'new', success: false, message: await res.text() });
 			}
 

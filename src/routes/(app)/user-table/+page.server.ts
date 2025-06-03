@@ -1,7 +1,9 @@
 import type { PageServerLoad, Actions } from './$types'
 import { BASE_URL, APIKEY } from '$env/static/private';
-import { redirect, fail } from '@sveltejs/kit';
+import { fail, error } from '@sveltejs/kit';
 import { pageAuth } from '$lib/pageAuth';
+import { customAlphabet } from 'nanoid'
+const nanoid = customAlphabet('0123456789', 12)
 
 const apiKey = APIKEY;
 
@@ -9,43 +11,51 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
 
 	let getTable = [];
+
+	const userFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+		method: 'POST',
+		body: JSON.stringify({
+			apiKey,
+			schema: 'user', //product | order | user | layout | discount
+			query: {},
+			projection: { _id: 0, password: 0 },
+			sort: { createdAt: -1 },
+			limit: 1000,
+			skip: 0
+		}),
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	});
+
+
 	try {
-		const query = {};
-		const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
-		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
-		const limit = 1000;
-		const skip = 0;
-		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey,
-				schema: 'user', //product | order | user | layout | discount
-				query,
-				projection,
-				sort,
-				limit,
-				skip
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		const response = await res.json();
-		getTable = response.map((obj: any) => ({
+
+		const userRes = await userFetch;
+
+		if (userRes.status !== 200) {
+			console.error('user fetch failed', userRes.status, await userRes.text());
+			throw error(400, 'user fetch failed');
+		}
+
+		getTable = await userRes.json();
+		getTable = getTable.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10)
 		}));
+
 	} catch (error) {
-		console.log('userfetch error:', error);
+		console.log('getUser fetch error:', error);
+		throw error(500, 'Server error');
 	}
 
 	return {
-		getTable,
+		getTable
 	};
 }
 
 export const actions: Actions = {
-	newUser: async ({ request, fetch }) => {
+	new: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const name = formData.get('name');
 		const surname = formData.get('surname');
@@ -53,7 +63,7 @@ export const actions: Actions = {
 		const address = formData.get('address');
 		const postalCode = formData.get('postalCode') || '';
 		const city = formData.get('city') || '';
-		const countryState = formData.get('countryState') || '';
+		const county = formData.get('county') || '';
 		const country = formData.get('country') || '';
 		const phone = formData.get('phone') || '';
 		const mobilePhone = formData.get('mobilePhone') || '';
@@ -61,45 +71,57 @@ export const actions: Actions = {
 		const level = formData.get('level') || '';
 
 
-		if (!name || !surname || !email || !address || !postalCode || !city || !countryState || !country || !phone || !mobilePhone || !password1 || !level) {
+		if (!name || !surname || !email || !address || !postalCode || !city || !county || !country || !phone || !mobilePhone || !password1 || !level) {
 			return fail(400, { action: 'newUser', success: false, message: 'Dati mancanti' });
 		}
 
-		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
-		try {
-			const response = await fetch(`${BASE_URL}/api/auth/sign-up-admin`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
+
+		const resFetch = fetch(`${BASE_URL}/api/mongo/create`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				newDoc: {
+					userId: nanoid(),
 					name,
 					surname,
 					email,
 					address,
 					postalCode,
 					city,
-					countryState,
+					county,
 					country,
 					phone,
 					mobilePhone,
 					password1,
 					level
-				})
-			});
-			const result = await response.json();
-			if (response.ok) {
-				return { action: 'newUser', success: true, message: result.message };
-			} else {
-				return { action: 'newUser', success: false, message: result.message };
+				},
+				returnObj: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
+		});
+
+
+		try {
+			const res = await resFetch;
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('user find failed', res.status, errorText);
+				return fail(400, { action: 'new', success: false, message: errorText });
+			}
+			const result = await res.json();
+
+			return { action: 'new', success: true, message: result.message };
+
 		} catch (error) {
-			console.error('Error creating new newUser:', error);
-			return { action: 'newUser', success: false, message: 'Errore creazione newUser' };
+			console.error('Error user new :', error);
+			return { action: 'new', success: false, message: 'Error user new' };
 		}
 	},
 
-	modifyUser: async ({ request, fetch }) => {
+	modify: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const userId = formData.get('userId');
 		const name = formData.get('name');
@@ -108,7 +130,7 @@ export const actions: Actions = {
 		const address = formData.get('address');
 		const postalCode = formData.get('postalCode') || '';
 		const city = formData.get('city') || '';
-		const countryState = formData.get('countryState') || '';
+		const county = formData.get('county') || '';
 		const country = formData.get('country') || '';
 		const phone = formData.get('phone') || '';
 		const mobilePhone = formData.get('mobilePhone') || '';
@@ -124,152 +146,191 @@ export const actions: Actions = {
 		const phonePublic = !!(formData.get('phonePublic') || '');
 		const mobilePhonePublic = !!(formData.get('mobilePhonePublic') || '');
 
-		if (!name || !surname || !email || !address || !postalCode || !city || !countryState || !country || !phone || !mobilePhone || !level) {
+		if (!name || !surname || !email || !address || !postalCode || !city || !county || !country || !phone || !mobilePhone || !level) {
 			return fail(400, { action: 'newUser', success: false, message: 'Dati mancanti' });
 		}
 
-		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
-		try {
 
-			const response = await fetch(`${BASE_URL}/api/users/modify`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
+		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { userId },
+				update: {
+					$set: {
+						name,
+						surname,
+						email,
+						address,
+						postalCode,
+						city,
+						county,
+						country,
+						phone,
+						mobilePhone,
+						level,
+						namePublic,
+						surnamePublic,
+						emailPublic,
+						addressPublic,
+						cityPublic,
+						statePublic,
+						postalCodePublic,
+						countryPublic,
+						phonePublic,
+						mobilePhonePublic
+					}
 				},
-				body: JSON.stringify({
-					userId,
-					name,
-					surname,
-					email,
-					address,
-					postalCode,
-					city,
-					countryState,
-					country,
-					phone,
-					mobilePhone,
-					level,
-					namePublic,
-					surnamePublic,
-					emailPublic,
-					addressPublic,
-					cityPublic,
-					statePublic,
-					postalCodePublic,
-					countryPublic,
-					phonePublic,
-					mobilePhonePublic
-				})
-			});
-			const result = await response.json();
-			if (response.ok) {
-				return { action: 'modifyUser', success: true, message: result.message };
-			} else {
-				return { action: 'modifyUser', success: false, message: result.message };
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
+		});
+
+		try {
+			const res = await resFetch;
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('user update failed', res.status, errorText);
+				return fail(400, { action: 'modify', success: false, message: errorText });
+			}
+			const result = await res.json();
+
+			return { action: 'modify', success: true, message: result.message };
+
 		} catch (error) {
-			console.error('Error creating new modifyUser:', error);
-			return { action: 'modifyUser', success: false, message: 'Errore creazione modifyUser' };
+			console.error('Error user modify:', error);
+			return { action: 'modify', success: false, message: 'Error user modify' };
 		}
 	},
 
-	disableUser: async ({ request, fetch }) => {
+	delete: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const userId = formData.get('userId');
-		const status = formData.get('status');
-		if (!userId) {
-			return fail(400, { action: 'disableUser', success: false, message: 'Dati mancanti' });
-		}
 
-		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
-		try {
-			const response = await fetch(`${BASE_URL}/api/users/status`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					userId,
-					status
-				})
-			});
-			const result = await response.json();
-			if (response.status == 200) {
-				return { action: 'disableUser', success: true, message: result.message };
-			} else {
-				return { action: 'disableUser', success: false, message: result.message };
+		const resFetch = fetch(`${BASE_URL}/api/mongo/remove`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { userId: userId }, // 'course', 'product', 'membership', 'event'
+				multi: false,
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
+		});
+
+		try {
+			const res = await resFetch;
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('user delete failed', res.status, errorText);
+				return fail(400, { action: 'delete', success: false, message: errorText });
+			}
+			const result = await res.json();
+
+			return { action: 'delete', success: true, message: result.message };
+
 		} catch (error) {
-			console.error('Error changing User status:', error);
-			return { action: 'disableUser', success: false, message: 'Errore modifica User' };
+			console.error('Error delete:', error);
+			return { action: 'delete', success: false, message: 'Error user delete' };
 		}
 	},
 
-	deleteUser: async ({ request, fetch }) => {
-
-		const formData = await request.formData();
-		const userId = formData.get('userId');
-		try {
-			const response = await fetch(`${BASE_URL}/api/users/remove`, {
-				method: 'DELETE',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					userId
-				})
-			});
-			const result = await response.json();
-			if (response.ok) {
-				return { action: 'deleteUser', success: true, message: result.message };
-			} else {
-				return { action: 'deleteUser', success: false, message: result.message };
-			}
-		} catch (error) {
-			console.error('Error deleteUser:', error);
-			return { action: 'deleteUser', success: false, message: 'Errore deleteUser' };
-		}
-	},
-
-	filterUser: async ({ request, fetch }) => {
+	filter: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const level = formData.get('level');
 		const membershipLevel = formData.get('membershipLevel');
 		const email = formData.get('email');
-
-		console.log('level', level);
-
 		const arrayField = ['level', 'membership.membershipLevel', 'email'];
 		const arrayValue = [level, membershipLevel, email];
 
-		try {
-			const response = await fetch(`${BASE_URL}/api/finds/0/0`, {
-				method: 'POST',
-				body: JSON.stringify({
-					schema: 'user',
-					arrayField,
-					arrayValue
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			//console.log('response', response);
-			const result = await response.json();
-
-			if (response.status == 200) {
-				const filterTableList = result.map((obj: any) => ({
-					...obj,
-					createdAt: obj.createdAt.substring(0, 10)
-				}));
-				return { action: 'filterUser', success: true, message: 'Filtro applicato', filterTableList };
-
-			} else {
-				return { action: 'filterUser', success: false, message: 'Utente non trovato' };
+		const resFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: {
+					...(level && { level }),
+					...(membershipLevel && { ['membership.membershipLevel']: membershipLevel }),
+					...(email && { email })
+				},
+				projection: { _id: 0 }, // 0: exclude | 1: include,
+				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending,
+				limit: 1000,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
+		});
+
+		try {
+			const res = await resFetch;
+
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('discount filter failed', res.status, errorText);
+				return fail(400, { action: 'filter', success: false, message: errorText });
+			}
+			const payload = await res.json();
+
+			return { action: 'filter', success: true, message: 'Filtro attivato', payload };
+
 		} catch (error) {
-			console.error('Error filterUser:', error);
-			return { action: 'filterUser', success: false, message: 'Errore filterUser' };
+			console.error('Error user filter:', error);
+			return { action: 'filter', success: false, message: 'Error user filter' };
+		}
+
+	},
+
+
+	changeStatus: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const userId = formData.get('userId');
+		const status = formData.get('status');
+		const newStatus = status == 'enabled' ? 'disabled' : 'enabled';
+		if (!userId) {
+			return fail(400, { action: 'disableUser', success: false, message: 'Dati mancanti' });
+		}
+
+		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { userId },
+				update: {
+					$set: {
+						status: newStatus,
+					}
+				},
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		try {
+			const res = await resFetch;
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('changeStatus update failed', res.status, errorText);
+				return fail(400, { action: 'changeStatus', success: false, message: errorText });
+			}
+			const result = await res.json();
+
+			return { action: 'changeStatus', success: true, message: result.message };
+
+		} catch (error) {
+			console.error('Error changeStatus:', error);
+			return fail(400, { action: 'changeStatus', success: false, message: 'Error changeStatus' });
 		}
 	}
 } satisfies Actions;
