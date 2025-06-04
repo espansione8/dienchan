@@ -110,6 +110,38 @@ export const actions: Actions = {
 			},
 		});
 
+		const vitalizioFetch = (userId) => fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { userId: userId },
+				update: {
+					$set: {
+						'membership.membershipLevel': 'Socio vitalizio',
+						'membership.membershipStatus': true,
+						'membership.membershipExpiry': new Date(Date.now() + 36500 * 24 * 60 * 60 * 1000),
+					}
+				},
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		const mailFetch = (email, order) => fetch(`${BASE_URL}/api/mailer/new-order`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				email,
+				order
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 		//const file = formData.get('image') || '';
 		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
 		let currentUserId: string = locals.user?.userId ?? '';
@@ -128,20 +160,19 @@ export const actions: Actions = {
 			return fail(400, { action: 'new', success: false, message: 'Password non valide' });
 		}
 
-		if (!locals.auth) {
-			try {
-				const membershipRes = await membershipFetch
-				if (membershipRes.status != 200) {
-					return fail(400, { action: 'new', success: false, message: await membershipRes.text() });
-				}
-				membership = await membershipRes.json()
+		try {
+			const membershipRes = await membershipFetch
+			if (!membershipRes.ok) {
+				return fail(400, { action: 'new', success: false, message: await membershipRes.text() });
+			}
+			membership = await membershipRes.json()
+			if (membership.length < 1) {
+				return fail(400, { action: 'new', success: false, message: "Missing membership" });
+			}
 
-				if (membership.length < 1) {
-					return fail(400, { action: 'new', success: false, message: "Missing membership" });
-				}
-
+			if (!locals.auth) {
 				const userRes = await userFetch
-				if (userRes.status != 200) {
+				if (!userRes.ok) {
 					console.error('user fetch failed', userRes.status, await userRes.text());
 					return fail(400, { action: 'new', success: false, message: 'errore database user' });
 				}
@@ -150,67 +181,65 @@ export const actions: Actions = {
 					userExist = true;
 					return fail(400, { action: 'new', success: false, message: 'email esistente' });
 				}
-			} catch (error) {
-				console.log('userCheck error:', error);
-			}
-			if (!userExist) {
-				try {
-					const cookieId = crypto.randomUUID()
-					const res = await fetch(`${BASE_URL}/api/mongo/create`, {
-						method: 'POST',
-						body: JSON.stringify({
-							apiKey: APIKEY,
-							schema: 'user', //product | order | user | layout | discount
-							newDoc: {
-								userId: nanoid(),
-								userCode: crypto.randomUUID(),
-								name,
-								surname,
-								email,
-								address,
-								postalCode,
-								city,
-								county,
-								country,
-								phone,
-								mobilePhone,
-								password: hash(password1, SALT),
-								cookieId,
-								// "membership.membershipLevel": 'Socio ordinario',
-								// "membership.membershipSignUp": new Date(),
-								// "membership.membershipActivation": new Date(),
-								// "membership.membershipExpiry": new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-								// "membership.membershipStatus": true
-							},
-							returnObj: true
-						}),
-						headers: {
-							'Content-Type': 'application/json'
-						}
-					});
-					if (!res.ok) {
-						return fail(400, { action: 'user', success: false, message: await res.text() });
+
+				const cookieId = crypto.randomUUID()
+				const resNewUser = await fetch(`${BASE_URL}/api/mongo/create`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'user', //product | order | user | layout | discount
+						newDoc: {
+							userId: nanoid(),
+							userCode: crypto.randomUUID(),
+							name,
+							surname,
+							email,
+							address,
+							postalCode,
+							city,
+							county,
+							country,
+							phone,
+							mobilePhone,
+							password: hash(password1, SALT),
+							cookieId,
+							// "membership.membershipLevel": 'Socio ordinario',
+							// "membership.membershipSignUp": new Date(),
+							// "membership.membershipActivation": new Date(),
+							// "membership.membershipExpiry": new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+							// "membership.membershipStatus": true
+						},
+						returnObj: true
+					}),
+					headers: {
+						'Content-Type': 'application/json'
 					}
-					const response = await res.json();
-					currentUserId = response.userId;
-
-					cookies.set('session_id', cookieId, {
-						httpOnly: true,
-						//maxAge: 60 * 60 * 24 * 7 // one week
-						maxAge: 60 * 60 * 24, // one day
-						sameSite: 'strict',
-						secure: process.env.NODE_ENV === 'production',
-						path: '/'
-					});
-
-				} catch (err) {
-					console.error('Error creating new user:', err);
-					return fail(400, { action: 'user', success: false, message: 'Error new user' });
+				});
+				if (!resNewUser.ok) {
+					return fail(400, { action: 'resNewUser', success: false, message: await resNewUser.text() });
 				}
-			}
-		}
+				const newUser = await resNewUser.json();
+				currentUserId = newUser.userId;
 
-		try {
+				userExist = true;
+
+				cookies.set('session_id', cookieId, {
+					httpOnly: true,
+					//maxAge: 60 * 60 * 24 * 7 // one week
+					maxAge: 60 * 60 * 24, // one day
+					sameSite: 'strict',
+					secure: process.env.NODE_ENV === 'production',
+					path: '/'
+				});
+			} else {
+				currentUserId = locals.user.userId
+				userExist = true
+			}
+			// } catch (error) {
+			// 	console.log('userCheck error:', error);
+			// }
+
+			// try {
 			const newDoc = {
 				// orderId: nanoid(),
 				// orderCode: crypto.randomUUID(),
@@ -277,30 +306,44 @@ export const actions: Actions = {
 				},
 				//cart: [cartItem]
 			};
+			console.log(userExist, membershipLevel, membership);
 
-			if (!userExist && membership.length > 0) {
-				// Membership order
-				const resMembership = await fetch(`${BASE_URL}/api/mongo/create`, {
-					method: 'POST',
-					body: JSON.stringify({
-						apiKey: APIKEY,
-						schema: 'order', //product | order | user | layout | discount
-						newDoc: {
-							orderId: nanoid(),
-							orderCode: crypto.randomUUID(),
-							totalValue: Number(membership[0]?.price || 25.00),
-							...newDoc,
-							cart: membership
-						},
-						returnObj: false
-					}),
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				});
-				if (!resMembership.ok) {
-					return fail(400, { action: 'new', success: false, message: await resMembership.text() });
+			if (!userExist || membership.length < 1) return fail(400, { action: 'new', success: false, message: "Errore Ordine" })
+
+			// Membership order
+			const resMembership = await fetch(`${BASE_URL}/api/mongo/create`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'order', //product | order | user | layout | discount
+					newDoc: {
+						orderId: nanoid(),
+						orderCode: crypto.randomUUID(),
+						totalValue: Number(membership[0]?.price || 25.00),
+						...newDoc,
+						cart: membership
+					},
+					returnObj: true
+				}),
+				headers: {
+					'Content-Type': 'application/json'
 				}
+			});
+			if (!resMembership.ok) {
+				return fail(400, { action: 'new', success: false, message: await resMembership.text() });
+			}
+
+			if (membershipLevel === 'Socio vitalizio') {
+				const resVitalizio = await vitalizioFetch(currentUserId);
+				if (!resVitalizio.ok) {
+					return fail(400, { action: 'new', success: false, message: await resVitalizio.text() });
+				}
+			}
+
+			const order = await resMembership.json();
+			const mailRes = await mailFetch(email, order);
+			if (!mailRes.ok) {
+				return fail(400, { action: 'new', success: false, message: await mailRes.text() });
 			}
 
 			if (locals.auth) {
@@ -336,26 +379,6 @@ export const actions: Actions = {
 		} else {
 			newExpire = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
 		}
-
-		const updateFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'user', //product | order | user | layout | discount
-				query: { userId: userId },
-				update: {
-					$set: {
-						'membership.membershipExpiry': newExpire,
-						'membership.membershipStatus': true,
-					}
-				},
-				options: { upsert: false },
-				multi: false
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
 
 		const membershipFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
@@ -444,7 +467,40 @@ export const actions: Actions = {
 					},
 					cart: membership
 				},
-				returnObj: false
+				returnObj: true
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { userId: userId },
+				update: {
+					$set: {
+						'membership.membershipLevel': 'Socio ordinario',
+						'membership.membershipExpiry': newExpire,
+						'membership.membershipStatus': true,
+					}
+				},
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		const mailFetch = (email, order) => fetch(`${BASE_URL}/api/mailer/new-order`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				email,
+				order
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -470,6 +526,14 @@ export const actions: Actions = {
 			const resUpdate = await updateFetch;
 			if (!resUpdate.ok) {
 				return fail(400, { action: 'renew', success: false, message: await resUpdate.text() });
+			}
+
+			const order = await orderFetchRes.json();
+			const mailRes = await mailFetch(userData.email, order);
+			//console.log('mailRes', await mailRes.json());
+
+			if (!mailRes.ok) {
+				return fail(400, { action: 'renew', success: false, message: await mailRes.text() });
 			}
 
 			return { action: 'renew', success: true, message: "tessera rinnovata con successo" };

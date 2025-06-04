@@ -48,165 +48,161 @@
 	<div class="container mx-auto px-4">
 		<nav class="navbar py-2">
 			<!-- Logo and brand -->
-			<div class="flex-1">
+			<div class="flex flex-1 items-center justify-between">
 				<a href="/" class="flex items-center">
-					<img
-						src="/images/logo-dien-chan-new.png"
-						alt="Logo Diện Chẩn"
-						class="h-12 md:h-16 w-auto"
-					/>
-				</a>
-			</div>
-
-			<!-- Desktop  -->
-			<div class="hidden md:flex md:items-center md:gap-1">
-				<a
-					href="/membership-new"
-					class={`btn btn-sm ${isActive('/membership-new') ? 'btn-primary' : 'btn-ghost'}`}
-				>
-					<Megaphone size={16} />
-					<span>Tesseramento</span>
+					<img src="/images/logo-dien-chan-new.png" alt="Logo Diện Chẩn" class="h-12 md:h-16" />
 				</a>
 
-				<a
-					href="/course-shop"
-					class={`btn btn-sm ${isActive('/course-shop') ? 'btn-primary' : 'btn-ghost'}`}
-				>
-					<BookOpen size={16} />
-					<span>Corsi</span>
-				</a>
-
-				<a
-					href="/product-shop"
-					class={`btn btn-sm ${isActive('/product-shop') ? 'btn-primary' : 'btn-ghost'}`}
-				>
-					<Package size={16} />
-					<span>Prodotti</span>
-				</a>
-
-				<a
-					href="/user-list"
-					class={`btn btn-sm ${isActive('/user-list') ? 'btn-primary' : 'btn-ghost'}`}
-				>
-					<IdCard size={16} />
-					<span>Albo Riflessologi</span>
-				</a>
-
-				<a
-					href="/cart"
-					class={`btn btn-sm ${isActive('/cart') ? 'btn-primary' : 'btn-ghost'} relative`}
-				>
-					<ShoppingCart size={16} />
-					<span>Carrello</span>
-					{#if $cartProducts.length > 0}
-						<span class="absolute -top-2 -right-2 badge badge-sm badge-primary">{$cdata.q1}</span>
-					{/if}
-				</a>
-
-				{#if auth}
+				<!-- Desktop  -->
+				<div class="hidden md:flex md:items-center md:gap-1">
 					<a
-						href="/profile-modify"
-						class={`btn btn-sm ${isActive('/profile-modify') ? 'btn-primary' : 'btn-ghost'}`}
+						href="/membership-new"
+						class={`btn btn-sm ${isActive('/membership-new') ? 'btn-primary' : 'btn-ghost'}`}
 					>
-						<User size={16} />
-						<span>Area personale</span>
+						<Megaphone size={16} />
+						<span>Tesseramento</span>
 					</a>
 
-					{#if auth && (level === 'superadmin' || level === 'formatore')}
-						<div class="dropdown dropdown-end">
-							<button class="btn btn-sm btn-ghost">
-								<Layers size={16} />
-								<span>Gestione</span>
-								<ChevronDown size={14} />
+					<a
+						href="/course-shop"
+						class={`btn btn-sm ${isActive('/course-shop') ? 'btn-primary' : 'btn-ghost'}`}
+					>
+						<BookOpen size={16} />
+						<span>Corsi</span>
+					</a>
+
+					<a
+						href="/product-shop"
+						class={`btn btn-sm ${isActive('/product-shop') ? 'btn-primary' : 'btn-ghost'}`}
+					>
+						<Package size={16} />
+						<span>Prodotti</span>
+					</a>
+
+					<a
+						href="/user-list"
+						class={`btn btn-sm ${isActive('/user-list') ? 'btn-primary' : 'btn-ghost'}`}
+					>
+						<IdCard size={16} />
+						<span>Albo Riflessologi</span>
+					</a>
+
+					<a
+						href="/cart"
+						class={`btn btn-sm ${isActive('/cart') ? 'btn-primary' : 'btn-ghost'} relative`}
+					>
+						<ShoppingCart size={16} />
+						<span>Carrello</span>
+						{#if $cartProducts.length > 0}
+							<span class="absolute -top-2 -right-2 badge badge-sm badge-primary">{$cdata.q1}</span>
+						{/if}
+					</a>
+
+					{#if auth}
+						<a
+							href="/profile-modify"
+							class={`btn btn-sm ${isActive('/profile-modify') ? 'btn-primary' : 'btn-ghost'}`}
+						>
+							<User size={16} />
+							<span>Area personale</span>
+						</a>
+
+						{#if auth && (level === 'superadmin' || level === 'formatore')}
+							<div class="dropdown dropdown-end">
+								<button class="btn btn-sm btn-ghost">
+									<Layers size={16} />
+									<span>Gestione</span>
+									<ChevronDown size={14} />
+								</button>
+
+								<ul
+									class="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2"
+								>
+									<li>
+										<a href="/course-table" class={isActive('/course-table') ? 'active' : ''}>
+											<BookOpen size={16} />
+											Corsi
+										</a>
+									</li>
+
+									{#if level === 'superadmin'}
+										<li>
+											<a href="/product-table" class={isActive('/product-table') ? 'active' : ''}>
+												<Package size={16} />
+												Prodotti
+											</a>
+										</li>
+
+										<li>
+											<a
+												href="/membership-table"
+												class={isActive('/membership-table') ? 'active' : ''}
+											>
+												<CreditCard size={16} />
+												Membership
+											</a>
+										</li>
+
+										<li>
+											<a href="/layout-table" class={isActive('/layout-table') ? 'active' : ''}>
+												<Layers size={16} />
+												Modelli corsi
+											</a>
+										</li>
+
+										<li>
+											<a href="/user-table" class={isActive('/user-table') ? 'active' : ''}>
+												<User size={16} />
+												Utenti
+											</a>
+										</li>
+
+										<li>
+											<a href="/order-table" class={isActive('/order-table') ? 'active' : ''}>
+												<ShoppingCart size={16} />
+												Ordini
+											</a>
+										</li>
+
+										<li>
+											<a href="/discount-table" class={isActive('/discount-table') ? 'active' : ''}>
+												<Megaphone size={16} />
+												Sconti
+											</a>
+										</li>
+									{/if}
+								</ul>
+							</div>
+						{/if}
+						<form method="POST" action="/formAction/logout/" use:enhance={handleLogout}>
+							<button type="submit" class="btn btn-sm btn-outline btn-error">
+								<LogOut size={16} />
+								<span>Logout</span>
 							</button>
-
-							<ul
-								class="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2"
-							>
-								<li>
-									<a href="/course-table" class={isActive('/course-table') ? 'active' : ''}>
-										<BookOpen size={16} />
-										Corsi
-									</a>
-								</li>
-
-								{#if level === 'superadmin'}
-									<li>
-										<a href="/product-table" class={isActive('/product-table') ? 'active' : ''}>
-											<Package size={16} />
-											Prodotti
-										</a>
-									</li>
-
-									<li>
-										<a
-											href="/membership-table"
-											class={isActive('/membership-table') ? 'active' : ''}
-										>
-											<CreditCard size={16} />
-											Membership
-										</a>
-									</li>
-
-									<li>
-										<a href="/layout-table" class={isActive('/layout-table') ? 'active' : ''}>
-											<Layers size={16} />
-											Modelli corsi
-										</a>
-									</li>
-
-									<li>
-										<a href="/user-table" class={isActive('/user-table') ? 'active' : ''}>
-											<User size={16} />
-											Utenti
-										</a>
-									</li>
-
-									<li>
-										<a href="/order-table" class={isActive('/order-table') ? 'active' : ''}>
-											<ShoppingCart size={16} />
-											Ordini
-										</a>
-									</li>
-
-									<li>
-										<a href="/discount-table" class={isActive('/discount-table') ? 'active' : ''}>
-											<Megaphone size={16} />
-											Sconti
-										</a>
-									</li>
-								{/if}
-							</ul>
-						</div>
-					{/if}
-					<form method="POST" action="/formAction/logout/" use:enhance={handleLogout}>
-						<button type="submit" class="btn btn-sm btn-outline btn-error">
-							<LogOut size={16} />
-							<span>Logout</span>
-						</button>
-					</form>
-				{:else}
-					<a href="/login" class="btn btn-sm btn-primary">
-						<LogIn size={16} />
-						<span>Login</span>
-					</a>
-				{/if}
-			</div>
-
-			<!-- Mobile menu button -->
-			<div class="flex md:hidden">
-				<button
-					class="btn btn-sm btn-ghost"
-					onclick={toggleMenu}
-					aria-label={menuActive ? 'Chiudi menu' : 'Apri menu'}
-					aria-expanded={menuActive}
-				>
-					{#if menuActive}
-						<X size={20} />
+						</form>
 					{:else}
-						<Menu size={20} />
+						<a href="/login" class="btn btn-sm btn-primary">
+							<LogIn size={16} />
+							<span>Login</span>
+						</a>
 					{/if}
-				</button>
+				</div>
+
+				<!-- Mobile menu button -->
+				<div class="flex md:hidden">
+					<button
+						class="btn btn-sm btn-ghost"
+						onclick={toggleMenu}
+						aria-label={menuActive ? 'Chiudi menu' : 'Apri menu'}
+						aria-expanded={menuActive}
+					>
+						{#if menuActive}
+							<X size={20} />
+						{:else}
+							<Menu size={20} />
+						{/if}
+					</button>
+				</div>
 			</div>
 		</nav>
 	</div>
@@ -401,11 +397,12 @@
 						{/if}
 
 						<li>
-							<form method="POST" action="/formAction/logout/" use:enhance={handleLogout}></form>
-							<button type="submit" class="btn btn-outline btn-error justify-start">
-								<LogOut size={18} />
-								Logout
-							</button>
+							<form method="POST" action="/formAction/logout/" use:enhance={handleLogout}>
+								<button type="submit" class="btn btn-outline btn-error justify-start">
+									<LogOut size={18} />
+									Logout
+								</button>
+							</form>
 						</li>
 					{:else}
 						<li>

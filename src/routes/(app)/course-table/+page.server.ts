@@ -31,13 +31,11 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		}
 	});
 
-
 	const riflessologyFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 		method: 'POST',
 		body: JSON.stringify({
 			apiKey: APIKEY,
 			schema: 'user', //product | order | user | layout | discount
-
 			query: {
 				$or: [
 					{ level: 'formatore' },
@@ -46,9 +44,6 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 				],
 				status: "enabled" //IF USE Products.model -> types: course / product / membership / event
 			},
-
-
-
 			projection: { _id: 0, password: 0 },
 			sort: { createdAt: -1 },
 			limit: 1000,
@@ -75,20 +70,18 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		}
 	});
 
-
 	try {
 		const [courseRes, riflessologyRes, modelsRes] = await Promise.all([
 			courseFetch,
 			riflessologyFetch,
 			modelsFetch]);
 
-		if (courseRes.status !== 200 || riflessologyRes.status !== 200 || modelsRes.status !== 200) {
+		if (!courseRes.ok || !riflessologyRes.ok || !modelsRes.ok) {
 			const errorText = `${await courseRes.text()} ${await riflessologyRes.text()} ${await modelsRes.text()} `;
 			console.error('Promise.all failed', courseRes.status, riflessologyRes.status, modelsRes.status, errorText);
 			//return fail(400, { action: 'load', success: false, message: errorText });
 			throw error(400, errorText);
 		}
-
 
 		const resGetTable = await courseRes.json();
 		if (resGetTable.length > 0) {
@@ -99,6 +92,10 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 				timeStartDate: obj.eventStartDate.substring(11, 16),
 				//timeEndDate: obj.eventEndDate.substring(11, 16),
 			}));
+
+			if (user.level == 'formatore') {
+				getTable = getTable.filter((obj: any) => obj.userId == user.userId);
+			}
 		}
 
 		getTableNames = await riflessologyRes.json();
@@ -235,13 +232,13 @@ export const actions: Actions = {
 		const surname = locals.user.surname
 		const eventStartDate = formData.get('eventStartDate');
 		const stockQty = formData.get('stockQty') || 0;
-		const provinceArray = formData.get('provinceArray') || '';
+		const provinceArray = formData.get('provinceArray') as string;
 		const province = provinceArray.split(",");
 		const location = formData.get('location');
 		const layoutId = formData.get('layoutId');
-		const tagArray = formData.get('tagArray') || "";
+		const tagArray = formData.get('tagArray') as string;
 		const tag = tagArray.split(",");
-		const arrayEmail = formData.get('notificationEmail') || "";
+		const arrayEmail = formData.get('notificationEmail') as string;
 		const notificationEmail = arrayEmail.split(",");
 		const infoExtra = formData.get('infoExtra');
 
@@ -249,29 +246,26 @@ export const actions: Actions = {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
 
-		const newDoc = {
-			prodId: nanoid(),
-			layoutId,
-			userId,
-			name,
-			surname,
-			eventStartDate,
-			stockQty,
-			county: province,
-			location,
-			notificationEmail,
-			tag,
-			infoExtra,
-			type: 'course',
-		};
-
-
 		const resFetch = fetch(`${BASE_URL}/api/mongo/create`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
 				schema: 'product', //product | order | user | layout | discount
-				newDoc,
+				newDoc: {
+					prodId: nanoid(),
+					layoutId,
+					userId,
+					name,
+					surname,
+					eventStartDate,
+					stockQty,
+					county: province,
+					location,
+					notificationEmail,
+					tag,
+					infoExtra,
+					type: 'course',
+				},
 				returnObj: false
 			}),
 			headers: {
@@ -300,7 +294,7 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const eventStartDate = formData.get('eventStartDate');
 		const stockQty = formData.get('stockQty') || 0;
-		const provinceArray = formData.get('provinceArray') || '';
+		const provinceArray = formData.get('provinceArray') as string;
 		const province = provinceArray.split(",");
 		const location = formData.get('location');
 		const layoutId = formData.get('layoutId');
@@ -323,7 +317,6 @@ export const actions: Actions = {
 		if (!eventStartDate || !stockQty || !provinceArray || !location || !layoutId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
-
 
 		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
 			method: 'POST',

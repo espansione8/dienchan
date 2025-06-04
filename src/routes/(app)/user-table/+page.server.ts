@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 
 	let getTable = [];
 
-	const userFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+	const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 		method: 'POST',
 		body: JSON.stringify({
 			apiKey,
@@ -246,8 +246,8 @@ export const actions: Actions = {
 		const level = formData.get('level');
 		const membershipLevel = formData.get('membershipLevel');
 		const email = formData.get('email');
-		const arrayField = ['level', 'membership.membershipLevel', 'email'];
-		const arrayValue = [level, membershipLevel, email];
+		// const arrayField = ['level', 'membership.membershipLevel', 'email'];
+		// const arrayValue = [level, membershipLevel, email];
 
 		const resFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',

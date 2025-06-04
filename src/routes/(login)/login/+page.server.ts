@@ -146,6 +146,22 @@ export const actions: Actions = {
 			return fail(400, { action: 'resetPassword', success: false, message: 'L\'email è obbligatoria.' });
 		}
 
+		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { email: resetEmail },
+				projection: { email: 1 }, // 0: exclude | 1: include
+				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				limit: 1,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
 		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -164,6 +180,7 @@ export const actions: Actions = {
 				'Content-Type': 'application/json'
 			}
 		});
+
 		const mailFetch = fetch(`${BASE_URL}/api/mailer/recover-password`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -177,14 +194,24 @@ export const actions: Actions = {
 		});
 
 		try {
+			const userRes = await userFetch;
+			if (!userRes.ok) {
+				return fail(400, { action: 'resetPassword', success: false, message: "Errore controllo utente" });
+			}
+			const user = await userRes.json();
+
+			if (user.length == 0 || user[0].email != resetEmail) {
+				return fail(400, { action: 'resetPassword', success: false, message: "Utente non trovato" });
+			}
+
 			const res = await resFetch;
 			if (!res.ok) {
-				return fail(400, { action: 'resetPassword', success: false, message: await res.text() });
+				return fail(400, { action: 'resetPassword', success: false, message: 'Errore reset password' });
 			}
 
 			const mailRes = await mailFetch;
 			if (!mailRes.ok) {
-				return fail(400, { action: 'resetPassword', success: false, message: await mailRes.text() });
+				return fail(400, { action: 'resetPassword', success: false, message: "Errore invio Email" });
 			}
 			//const getMailer = await mailRes.json();
 

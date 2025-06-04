@@ -1,20 +1,27 @@
-// `${BASE_URL}/api/mailer/new-order`
+// `${BASE_URL}/api/mailer/recover-password`
 import type { RequestHandler } from '@sveltejs/kit';
 import { APIKEY, MAILER_HOST, MAILER_PORT, MAILER_USER, MAILER_PASS } from '$env/static/private';
 import { json } from '@sveltejs/kit';
 import nodemailer from 'nodemailer';
-// test
-export const POST = async ({ request }) => {
+
+export const POST: RequestHandler = async ({ request }) => {
 	const body = await request.json();
 	const {
 		apiKey,
-		name,
-		surname,
 		email,
-		idUuidv4,
-		totalPoints,
-		totalInvoice
+		order
 	} = body;
+
+	const { orderId, createdAt, totalValue, invoicing, payment, cart } = order;
+	const { name, surname, address, city, county, postalCode, country } = invoicing
+
+	if (apiKey !== APIKEY) {
+		return json({ message: 'api error' }, { status: 401 });
+	}
+
+	if (!email || !order) {
+		return json({ message: 'Data missing' }, { status: 400 });
+	}
 
 	try {
 		const mailer = async () => {
@@ -31,11 +38,10 @@ export const POST = async ({ request }) => {
 
 			// send mail with defined transport object
 			const info = await transporter.sendMail({
-				from: '"Fast Track IP System" <info@fast-track-ip.com>', // sender address
+				from: '"Notifiche Dienchan" <no-reply@riflessologiadienchan.it>', // sender address
 				to: email, // list of receivers
-				subject: `Fast Track - Order ${idUuidv4}`,
-				text: `Dear ${name} ${surname}. \r\n We received your order ID ${idUuidv4} of ${totalPoints} Credit \r\n for a total of ${totalInvoice} incl. VAT. \r\n To complete the purchase please send the above amount to this IBAN XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX, \r\n This is an automated message DO NOT REPLY to this communication, for question and assistance please write to support@fast-track-ip.com including your order ID. \r\n \r\n Best Regards\r\n Fast Track IP Staff \r\n \r\n `,
-
+				subject: `Il tuo Ordine #${orderId} è Confermato! 🎉`, // Subject line
+				text: `Gentile utente ${email}, abbiamo ricevuto il suo ordine ID: ${orderId} controlli i dettagli nel suo profilo.`, // plain text body
 				html: `
 				<!DOCTYPE html>
 				<html
@@ -46,22 +52,15 @@ export const POST = async ({ request }) => {
 				>
 					<head>
 						<meta charset="utf-8" />
-						<!-- utf-8 works for most cases -->
 						<meta name="viewport" content="width=device-width" />
-						<!-- Forcing initial-scale shouldn't be necessary -->
 						<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-						<!-- Use the latest (edge) version of IE rendering engine -->
 						<meta name="x-apple-disable-message-reformatting" />
-						<!-- Disable auto-scale in iOS 10 Mail entirely -->
-						<title></title>
-						<!-- The title tag shows in email notifications, like Android 4.4. -->
-
+						<title>Conferma Ordine #[ID_ORDINE]</title>
 						<link
 							href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,500,600,700"
 							rel="stylesheet"
 						/>
 
-						<!-- CSS Reset : BEGIN -->
 						<style>
 							/* What it does: Remove spaces around the email design added by some email clients. */
 							/* Beware: It can remove the padding / margin and add a background color to the compose a reply window. */
@@ -105,15 +104,16 @@ export const POST = async ({ request }) => {
 								-ms-interpolation-mode: bicubic;
 							}
 
-							/* What it does: Prevents Windows 10 Mail from underlining links despite inline CSS. Styles for underlined links should be inline. */
+							/* What it does: Prevents Windows 10 Mail from underlining links despite inline CSS.
+							Styles for underlined links should be inline. */
 							a {
 								text-decoration: none;
 							}
 
 							/* What it does: A work-around for email clients meddling in triggered links. */
-							*[x-apple-data-detectors],  /* iOS */
-				.unstyle-auto-detected-links *,
-				.aBn {
+							*[x-apple-data-detectors], /* iOS */
+							.unstyle-auto-detected-links *,
+							.aBn {
 								border-bottom: 0 !important;
 								cursor: default !important;
 								color: inherit !important;
@@ -163,9 +163,6 @@ export const POST = async ({ request }) => {
 							}
 						</style>
 
-						<!-- CSS Reset : END -->
-
-						<!-- Progressive Enhancements : BEGIN -->
 						<style>
 							.primary {
 								background: #0b5ed7;
@@ -281,7 +278,6 @@ export const POST = async ({ request }) => {
 								font-weight: 600;
 								color: #000;
 							}
-
 							.text-author {
 								border: 1px solid rgba(0, 0, 0, 0.05);
 								max-width: 50%;
@@ -302,9 +298,7 @@ export const POST = async ({ request }) => {
 								display: inline-block;
 								margin-right: 10px;
 							}
-
 							/*FOOTER*/
-
 							.footer {
 								border-top: 1px solid rgba(0, 0, 0, 0.05);
 								color: rgba(0, 0, 0, 0.5);
@@ -324,12 +318,10 @@ export const POST = async ({ request }) => {
 							.footer ul li a {
 								color: rgba(0, 0, 0, 1);
 							}
-
 							@media screen and (max-width: 500px) {
 							}
 						</style>
 					</head>
-
 					<body
 						width="100%"
 						style="
@@ -352,10 +344,9 @@ export const POST = async ({ request }) => {
 									font-family: sans-serif;
 								"
 							>
-								&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
+								&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
 							</div>
 							<div style="max-width: 600px; margin: 0 auto" class="email-container">
-								<!-- BEGIN BODY -->
 								<table
 									align="center"
 									role="presentation"
@@ -367,157 +358,141 @@ export const POST = async ({ request }) => {
 								>
 									<tr>
 										<td valign="top" class="bg_white" style="padding: 1em 2.5em 0 2.5em">
-											<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+											<table
+												role="presentation"
+												border="0"
+												cellpadding="0"
+												cellspacing="0"
+												width="100%"
+											>
 												<tr>
 													<td class="logo" style="text-align: center">
 														<img
-															src="https://portal.fast-track-ip.com/images/fast-track_logo_dark.png"
+															src="https://riflessologiadienchan.it/wp-content/uploads/2025/06/Associazione_Dien_Chan_BQC_LOGO.png"
 															alt="logo"
 															style="
-																width: 100px;
+																width: 300px;
 																max-width: 600px;
 																height: auto;
 																margin: auto;
 																display: block;
 															"
 														/>
-														<h1><a href="https://portal.fast-track-ip.com">Fast Track IP</a></h1>
+														<h1><a href="https://riflessologiadienchan.it/">Riflessologia Dienchan</a></h1>
 													</td>
 												</tr>
 											</table>
 										</td>
 									</tr>
-									<!-- end tr -->
 									<tr>
 										<td valign="middle" class="hero bg_white" style="padding: 2em 0 4em 0">
-											<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+											<table
+												role="presentation"
+												border="0"
+												cellpadding="0"
+												cellspacing="0"
+												width="100%"
+											>
 												<tr>
 													<td style="padding: 0 2.5em; text-align: center; padding-bottom: 3em">
 														<div class="text">
-															<h2>Hello ${name} ${surname},</h2>
-															<h4>we received your order <br>ID ${idUuidv4}</h4>
-															<h4>of ${totalPoints} Credit for a total of ${totalInvoice} EURO incl. VAT </h4>
-														</div>
-													</td>
-												</tr>
-												<tr>
-													<td style="text-align: center">
-														<div class="text-author">														
-														<p>To complete the purchase please send the above amount to this<br>
-														<b>IBAN BG94BGUS91601409477300</b></p>
-														<p>BULGARIAN-AMERICAN<br>CREDIT BANK,<br>SLAVYANSKA STR, 2,<br>SOFIA, Bulgaria</p>
-														<p>SWIFT: BGUSBGSFXXX</p>
-														<h4>for other currencies</h4>
-															<p>BG15BGUS91601009477300 - BGN</p>
-															<p>BG59BGUS91601109477300- USD</p>
-														</div>
-													</td>
-												</tr>
-												<tr>
-													<td style="padding: 0 2.5em; text-align: center; padding-bottom: 3em">
-														<div class="text">
-														<p>Best regards</p>
-														<p>Fast Track IP Staff</p>
+															<h2>Il tuo Ordine ${orderId} è Confermato! 🎉</h2>
+															<h4>Ciao ${name} ${surname},</h4>
+															<p>
+																Grazie mille per il tuo recente acquisto su Riflessologia Dienchan! Siamo
+																felici che tu abbia scelto noi.
+															</p>
+															<p>
+																Il tuo ordine ${orderId} è stato confermato con successo e lo
+																stiamo preparando. Riceverai un'altra email di notifica non appena il tuo
+																pacco sarà spedito, con i dettagli per tracciare la consegna.
+															</p>
+
+															<h4 style="margin-top: 2em; color: #000;">Riepilogo del tuo ordine:</h4>
+															<ul style="list-style: none; padding: 0; margin: 1em 0;">
+																<li style="margin-bottom: 0.5em;"><strong>Numero d'ordine:</strong> #${orderId}</li>
+																<li style="margin-bottom: 0.5em;"><strong>Data dell'ordine:</strong> ${createdAt}</li>
+																<li style="margin-bottom: 0.5em;"><strong>Totale ordine:</strong> ${totalValue.toFixed(2)}€</li><li style="margin-bottom: 0.5em;"><strong>Metodo di pagamento:</strong> ${payment.method}</li>
+															</ul>
+
+															<h4 style="margin-top: 2em; color: #000;">Prodotti acquistati:</h4>
+															<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 1em; border-collapse: collapse;">
+																<thead style="background-color: #f7fafa;">
+																	<tr>
+																		<th style="padding: 8px; border: 1px solid #ddd; text-align: left; color: #000;">Prodotto</th>
+																		<th style="padding: 8px; border: 1px solid #ddd; text-align: right; color: #000;">Quantità</th>
+																		<th style="padding: 8px; border: 1px solid #ddd; text-align: right; color: #000;">Prezzo</th>
+																	</tr>
+																</thead>
+																<tbody>
+																	${cart
+						.map(
+							(item) => `
+																			<tr>
+																				<td style="padding: 8px; border: 1px solid #ddd; text-align: left; color: #000;">${item.type == 'course' ? item.layoutView.title : item.title}</td>
+																				<td style="padding: 8px; border: 1px solid #ddd; text-align: right; color: #000;">${item.orderQuantity || 1}</td>
+																				<td style="padding: 8px; border: 1px solid #ddd; text-align: right; color: #000;">${item.price.toFixed(2)}€</td>
+																			</tr>
+																		`
+						).join('')}
+																	</tbody>
+																<tfoot>
+																	<tr>
+																		<td colspan="2" style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold; color: #000;">Totale</td>
+																		<td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold; color: #000;">${totalValue.toFixed(2)}€</td}</td>
+																	</tr>
+																</tfoot>
+															</table>
+
+															<h4 style="margin-top: 2em; color: #000;">Indirizzo di spedizione:</h4>
+															<ul style="list-style: none; padding: 0; margin: 1em 0;">
+																<li style="margin-bottom: 0.5em;">${name} ${surname}</li>
+																<li style="margin-bottom: 0.5em;">${address}</li>
+																<li style="margin-bottom: 0.5em;">${postalCode} ${city} ${county}</li>
+																<li style="margin-bottom: 0.5em;">${country}</li>
+															</ul>
+
+															<h4 style="margin-top: 2em; color: #000;">Metodo di pagamento:</h4>
+															<p style="margin-top: 0.5em;">${payment.method}</p>
+
+															<p style="margin-top: 2em;">
+																Puoi visualizzare i dettagli completi del tuo ordine in qualsiasi momento
+																accedendo alla tua area personale:
+															</p>
+															<p>
+																<a href="${'#'}" class="btn btn-primary">
+																	Visualizza il mio Ordine
+																</a>
+															</p>
+															<p style="margin-top: 2em;">
+																Se hai domande o hai bisogno di assistenza, non esitare a contattarci
+																rispondendo a questa email o visitando la nostra pagina
+																<a href="${'#'}" style="color: #0b5ed7;">Contatti</a>.
+															</p>
+															<p>Ti ringraziamo ancora per la fiducia. Non vediamo l'ora che tu riceva i tuoi nuovi articoli!</p>
+															<p>A presto,</p>
+															<p>Il team di Riflessologia Dienchan</p>
+															<p><a href="https://riflessologiadienchan.it/" style="color: #0b5ed7;">https://riflessologiadienchan.it/</a></p>
 														</div>
 													</td>
 												</tr>
 											</table>
 										</td>
 									</tr>
-									<!-- end tr -->
-									<!-- 1 Column Text + Button : END -->
-								</table>
-								<table
-									align="center"
-									role="presentation"
-									cellspacing="0"
-									cellpadding="0"
-									border="0"
-									width="100%"
-									style="margin: auto"
-								>
-									<tr>
-										<td valign="middle" class="bg_light footer email-section">
-											<table>
-												<tr>
-													<td valign="top" width="33.333%" style="padding-top: 20px">
-														<table
-															role="presentation"
-															cellspacing="0"
-															cellpadding="0"
-															border="0"
-															width="100%"
-														>
-															<tr>
-																<td style="text-align: left; padding-right: 10px">
-																	<h3 class="heading">About</h3>
-																	<p>
-																		FAST TRACK IP is building trust in the online environment as a key to
-																		the economic and social development.
-																	</p>
-																</td>
-															</tr>
-														</table>
-													</td>
-													<td valign="top" width="33.333%" style="padding-top: 20px">
-														<table
-															role="presentation"
-															cellspacing="0"
-															cellpadding="0"
-															border="0"
-															width="100%"
-														>
-															<tr>
-																<td style="text-align: left; padding-left: 5px; padding-right: 5px">
-																	<h3 class="heading">Contact Info</h3>
-																	<ul>
-																		<li>
-																			<span class="text">7V Stefan Karadzha, Sofia, 1000, Bulgaria</span>
-																		</li>
-																		<li><span class="text">floor 2, office 25</span></li>
-																	</ul>
-																</td>
-															</tr>
-														</table>
-													</td>
-													<td valign="top" width="33.333%" style="padding-top: 20px">
-														<table
-															role="presentation"
-															cellspacing="0"
-															cellpadding="0"
-															border="0"
-															width="100%"
-														>
-															<tr>
-																<td style="text-align: left; padding-left: 10px">
-																	<h3 class="heading">Useful Links</h3>
-																	<ul>
-																		<li><a href="https://www.fast-track-ip.com/">Home</a></li>
-																		<li><a href="https://portal.fast-track-ip.com/login/">Services</a></li>
-																	</ul>
-																</td>
-															</tr>
-														</table>
-													</td>
-												</tr>
-											</table>
-										</td>
-									</tr>
-									<!-- end: tr -->
-								</table>
+									</table>
 							</div>
 						</center>
 					</body>
 				</html>
 				` // html body
-				// html: `<p>Dear ${name} ${surname},</p>
-				// <p>we received your order ID ${idUuidv4}</p>
-				// <p> of ${totalPoints} Credit for a total of ${totalInvoice} incl. VAT </p>
-				// <p>To complete the purchase please send the above amount to this IBAN XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</p>
+				// html: `<p>Dear user ${body.email},</p>
+				// <p>we received your password reset request</p>
+				// <p>please use: ${body.password} to login </p>
+				// <p>and change the password with a new one in your profile</p>
 				// </ hr>
-				// <p>This is an automated message DO NOT REPLY to this communication, for questions and assistance please write to support@fast-track-ip.com including your order ID.</p>
+				// <p>This is an automated message DO NOT REPLY to this communication, for questions and assistance please write to support@fast-track-ip.com.</p>
 				// <p>Best regards</p>
-				// <p>Fast Track IP Staff</p>`
+				// <p>Fast Track IP</p>`
 				// html body
 			});
 
@@ -525,25 +500,10 @@ export const POST = async ({ request }) => {
 			// Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
 		};
 		mailer().catch(console.error);
+		return json({ message: 'New order sent', status: 200 });
 
-		return json(
-			{
-				message: `Email processed`
-			},
-			{
-				status: 200
-			}
-		);
 	} catch (err) {
-		console.log('order purchase mail ERR::', err);
-		//throw new Error("@1migration task: Migrate this return statement (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292701)");
-		return new Response(JSON.stringify({ errors: `order purchase mail ERR` }), {
-			status: 500,
-			headers: {
-				'content-type': 'application/json; charset=utf-8'
-			}
-		});
-		//////
-		//return Promise.reject(new Error(`ERR: ${err}`));
+		console.log('New order  ERROR:', err);
+		return json({ message: 'New order  ERROR' }, { status: 500 });
 	}
 };

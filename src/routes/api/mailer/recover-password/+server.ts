@@ -374,17 +374,17 @@ export const POST: RequestHandler = async ({ request }) => {
 												<tr>
 													<td class="logo" style="text-align: center">
 														<img
-															src="https://portal.fast-track-ip.com/images/fast-track_logo_dark.png"
+															src="https://riflessologiadienchan.it/wp-content/uploads/2025/06/Associazione_Dien_Chan_BQC_LOGO.png"
 															alt="logo"
 															style="
-																width: 100px;
+																width: 300px;
 																max-width: 600px;
 																height: auto;
 																margin: auto;
 																display: block;
 															"
 														/>
-														<h1><a href="https://portal.fast-track-ip.com">Fast Track IP</a></h1>
+														<h1><a href="https://riflessologiadienchan.it/">Riflessologia Dienchan</a></h1>
 													</td>
 												</tr>
 											</table>
@@ -432,7 +432,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			// Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
 		};
 		mailer().catch(console.error);
-		return json({ message: 'Recupero password inviato', status: 200 });
+		return json({ message: 'Password recovery sent', status: 200 });
 
 	} catch (err) {
 		console.log('recoverPass ERROR:', err);
