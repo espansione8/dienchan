@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
+	import type { ActionResult } from '@sveltejs/kit';
+	import { invalidateAll } from '$app/navigation';
 	import Papa from 'papaparse';
 	import { orderKeysToDelete, province } from '$lib/stores/arrays';
-	import Notification from '$lib/components/Notification.svelte';
+	import { notification } from '$lib/stores/notifications';
 	import Modal from '$lib/components/Modal.svelte';
 	import { enhance } from '$app/forms';
+	import Loader from '$lib/components/Loader.svelte';
 	import {
 		Funnel,
 		XCircle,
@@ -16,7 +18,7 @@
 	} from 'lucide-svelte';
 	import type { Order, TableNames, Product } from '$lib/types';
 
-	let { data, form } = $props();
+	let { data } = $props();
 	let { getTable, getTableNames } = $derived(data);
 	let tableList = $state<Order[]>(getTable || []);
 	let tableNames = $state<TableNames[]>(getTableNames || []);
@@ -36,6 +38,7 @@
 	let surname = $state('');
 	let email = $state('');
 
+	let loading = $state(false);
 	//modal detail
 	let orderDetail = $state(tableList[0]);
 
@@ -114,6 +117,7 @@
 		resetFields();
 		resetActive = false;
 		tableList = getTable;
+		notification.info('Pagina ricaricata');
 	};
 
 	const onClickModal = (type: string, item: any) => {
@@ -150,45 +154,35 @@
 		currentModal = '';
 	};
 
-	//notification
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-		}, 3000); // 1000 milliseconds = 1 second
-	};
-	//clearTimeout(startTimeout); // reset timer
-
-	$effect(() => {
-		//console.log('form', form);
-		if (form != null) {
-			//console.log('form triggered');
-			async () => await invalidateAll(); // MUST be async/await or tableList = getTable will trigger infinite loop
-			const { action, success, message, filterTableList } = form;
-			if (success) {
-				//console.log('filterTableList effect', filterTableList);
-				currentModal = '';
+	const formSubmit = () => {
+		return async ({ result }: { result: ActionResult }) => {
+			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
+			loading = true;
+			await invalidateAll();
+			if (result.type === 'success' && result.data) {
+				const { action, message, payload } = result.data; // { action, success, message, payload }
 				if (action == 'filter') {
 					resetActive = true;
-					tableList = filterTableList;
+					tableList = payload;
 				} else {
 					resetActive = false;
 					tableList = getTable;
 				}
-			} else {
-				notificationError = true;
+				notification.info(message);
+				onCloseModal();
 			}
+			if (result.type === 'failure') {
+				notification.error(result.data.message);
+			}
+			if (result.type === 'error') {
+				notification.error(result.error.message);
+			}
+			// 'update()' is called by default by use:enhance
+			// call 'await update()' if you need to ensure it completes before further client logic.
 			resetFields();
-			clearTimeout(startTimeout);
-			closeNotification();
-			toastClosed = false;
-			notificationContent = message;
-			form = null; // reset form
-		}
-	}); // end effect
+			loading = false;
+		};
+	};
 </script>
 
 <svelte:head>
@@ -318,378 +312,398 @@
 	{/if}
 </div>
 
-<Notification {toastClosed} {notificationContent} {notificationError} />
-
 {#if currentModal == 'modify'}
-	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
-		<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
-			<div class="flex flex-wrap -mx-2">
-				<div class="w-full md:w-full px-2 mb-4 font-bold">Dati utente</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="orderId" class="block text-sm font-medium text-gray-700 mb-1">ID ordine</label
-					>
-					<input
-						type="text"
-						id="orderId"
-						name="orderId"
-						value={orderDetail.orderId}
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-						readonly
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-					<input
-						type="email"
-						id="email"
-						name="email"
-						value={orderDetail.shipping?.email}
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-					<input
-						type="text"
-						id="name"
-						name="name"
-						value={orderDetail.shipping?.name}
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="surname" class="block text-sm font-medium text-gray-700 mb-1">Cognome</label>
-					<input
-						type="text"
-						id="surname"
-						name="surname"
-						value={orderDetail.shipping?.surname}
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-full px-2 mb-4 font-bold">Dati di spedizione</div>
-
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="city" class="block text-sm font-medium text-gray-700 mb-1">Città</label>
-					<input
-						type="text"
-						id="city"
-						name="city"
-						value={orderDetail.shipping?.city}
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="address" class="block text-sm font-medium text-gray-700 mb-1">Indirizzo</label
-					>
-					<input
-						type="text"
-						id="address"
-						name="address"
-						value={orderDetail.shipping?.address}
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="postalCode" class="block text-sm font-medium text-gray-700 mb-1"
-						>Codice Postale</label
-					>
-					<input
-						type="text"
-						id="postalCode"
-						name="postalCode"
-						value={orderDetail.shipping?.postalCode}
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="county" class="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
-					<select
-						id="county"
-						name="county"
-						value={orderDetail.shipping.county}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					>
-						<option value="">Scegli una Provincia {orderDetail.shipping.county}</option>
-						{#each $province as provincia}
-							<option value={provincia.title}>{provincia.title}</option>
-						{/each}
-					</select>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="country" class="block text-sm font-medium text-gray-700 mb-1">Paese</label>
-					<input
-						type="text"
-						id="country"
-						name="country"
-						value={orderDetail.shipping?.country}
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
-					<input
-						type="text"
-						id="phone"
-						name="phone"
-						value={orderDetail.shipping?.phone}
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="mobile" class="block text-sm font-medium text-gray-700 mb-1">Cellulare</label>
-					<input
-						type="text"
-						id="mobile"
-						name="mobile"
-						value={orderDetail.shipping?.mobile}
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-1"
-						>Metodo di pagamento</label
-					>
-					<select
-						id="paymentMethod"
-						name="paymentMethod"
-						value={orderDetail.payment.method}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					>
-						<option value="">Scegli un metodo</option>
-						<option value="bonifico">Bonifico</option>
-						<option value="paypal">Paypal</option>
-						<option value="contanti">Contanti</option>
-					</select>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="status" class="block text-sm font-medium text-gray-700 mb-1"
-						>Stato ordine</label
-					>
-					<select
-						id="status"
-						name="status"
-						bind:value={status}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					>
-						<option value="">Scegli uno status</option>
-						<option value="requested">Richiesta in corso</option>
-						<option value="confirmed">Confermato</option>
-						<option value="cancelled">Cancellato</option>
-						<option value="exported">esportato</option>
-					</select>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="status" class="block text-sm font-medium text-gray-700 mb-1"
-						>Stato pagamento</label
-					>
-					<select
-						id="status"
-						name="status"
-						value={orderDetail.payment.statusPayment}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					>
-						<option value="">Scegli uno status</option>
-						<option value="pending">Pending</option>
-						<option value="done">Confermato</option>
-						<option value="canceled">Cancellato</option>
-					</select>
-				</div>
-			</div>
-
-			<div class="col-span-2 flex flex-wrap justify-center w-full gap-3 my-4">
-				{#each orderDetail?.cart as item}
-					<div
-						class="flex items-center w-full max-w-96 bg-indigo-100 rounded-lg shadow-md overflow-hidden"
-					>
-						<div class="w-1/3 p-3">
-							<img
-								src={item.layoutView.urlPic || '/images/placeholder.jpg'}
-								alt="Immagine corso"
-								class="w-full h-full object-cover"
-							/>
-						</div>
-						<div class="w-2/3 p-4">
-							<p class="text-center text-sm font-semibold">
-								{item.layoutView.title}
-							</p>
-							<p class="text-center text-sm font-semibold">
-								{item.layoutView.price}€
-							</p>
-							<p class="text-center text-sm font-semibold">
-								quantita': {item.orderQuantity}
-							</p>
-						</div>
+	{#if loading}
+		<Loader />
+	{:else}
+		<Modal isOpen={openModal} header={modalTitle}>
+			<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+				>✕</button
+			>
+			<form method="POST" action={postAction} use:enhance={formSubmit} class="p-6 space-y-6">
+				<div class="flex flex-wrap -mx-2">
+					<div class="w-full md:w-full px-2 mb-4 font-bold">Dati utente</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="orderId" class="block text-sm font-medium text-gray-700 mb-1"
+							>ID ordine</label
+						>
+						<input
+							type="text"
+							id="orderId"
+							name="orderId"
+							value={orderDetail.orderId}
+							class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+							readonly
+						/>
 					</div>
-				{/each}
-			</div>
-			<div class="col-span-2 text-center mt-3">
-				<h2 class="text-lg font-bold">Totale Carrello:</h2>
-				<p class="text-xl font-semibold text-black-800">{orderDetail.totalValue} €</p>
-			</div>
-			<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
-				<button
-					class="btn btn-error btn-sm rounded-md hover:bg-red-300"
-					type="button"
-					onclick={onCloseModal}
-				>
-					Annulla
-				</button>
-				<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit">
-					Modifica
-				</button>
-			</div>
-		</form>
-	</Modal>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+						<input
+							type="email"
+							id="email"
+							name="email"
+							value={orderDetail.shipping?.email}
+							class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						/>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+						<input
+							type="text"
+							id="name"
+							name="name"
+							value={orderDetail.shipping?.name}
+							class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						/>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="surname" class="block text-sm font-medium text-gray-700 mb-1">Cognome</label
+						>
+						<input
+							type="text"
+							id="surname"
+							name="surname"
+							value={orderDetail.shipping?.surname}
+							class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						/>
+					</div>
+					<div class="w-full md:w-full px-2 mb-4 font-bold">Dati di spedizione</div>
+
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="city" class="block text-sm font-medium text-gray-700 mb-1">Città</label>
+						<input
+							type="text"
+							id="city"
+							name="city"
+							value={orderDetail.shipping?.city}
+							class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						/>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="address" class="block text-sm font-medium text-gray-700 mb-1"
+							>Indirizzo</label
+						>
+						<input
+							type="text"
+							id="address"
+							name="address"
+							value={orderDetail.shipping?.address}
+							class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						/>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="postalCode" class="block text-sm font-medium text-gray-700 mb-1"
+							>Codice Postale</label
+						>
+						<input
+							type="text"
+							id="postalCode"
+							name="postalCode"
+							value={orderDetail.shipping?.postalCode}
+							class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						/>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="county" class="block text-sm font-medium text-gray-700 mb-1"
+							>Provincia</label
+						>
+						<select
+							id="county"
+							name="county"
+							value={orderDetail.shipping?.county}
+							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						>
+							<option value="">Scegli una Provincia {orderDetail.shipping.county}</option>
+							{#each $province as provincia}
+								<option value={provincia.title}>{provincia.title}</option>
+							{/each}
+						</select>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="country" class="block text-sm font-medium text-gray-700 mb-1">Paese</label>
+						<input
+							type="text"
+							id="country"
+							name="country"
+							value={orderDetail.shipping?.country}
+							class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						/>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
+						<input
+							type="text"
+							id="phone"
+							name="phone"
+							value={orderDetail.shipping?.phone}
+							class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						/>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="mobile" class="block text-sm font-medium text-gray-700 mb-1"
+							>Cellulare</label
+						>
+						<input
+							type="text"
+							id="mobile"
+							name="mobile"
+							value={orderDetail.shipping?.mobile}
+							class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						/>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-1"
+							>Metodo di pagamento</label
+						>
+						<select
+							id="paymentMethod"
+							name="paymentMethod"
+							value={orderDetail.payment.method}
+							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						>
+							<option value="">Scegli un metodo</option>
+							<option value="bonifico">Bonifico</option>
+							<option value="paypal">Paypal</option>
+							<option value="contanti">Contanti</option>
+						</select>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="status" class="block text-sm font-medium text-gray-700 mb-1"
+							>Stato ordine</label
+						>
+						<select
+							id="status"
+							name="status"
+							bind:value={status}
+							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						>
+							<option value="">Scegli uno status</option>
+							<option value="requested">Richiesta in corso</option>
+							<option value="confirmed">Confermato</option>
+							<option value="cancelled">Cancellato</option>
+							<option value="exported">esportato</option>
+						</select>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="status" class="block text-sm font-medium text-gray-700 mb-1"
+							>Stato pagamento</label
+						>
+						<select
+							id="status"
+							name="status"
+							value={orderDetail.payment.statusPayment}
+							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						>
+							<option value="">Scegli uno status</option>
+							<option value="pending">Pending</option>
+							<option value="done">Confermato</option>
+							<option value="canceled">Cancellato</option>
+						</select>
+					</div>
+				</div>
+
+				<div class="col-span-2 flex flex-wrap justify-center w-full gap-3 my-4">
+					{#each orderDetail?.cart as item}
+						<div
+							class="flex items-center w-full max-w-96 bg-indigo-100 rounded-lg shadow-md overflow-hidden"
+						>
+							<div class="w-1/3 p-3">
+								<!-- <img
+									src={item.layoutView.urlPic || '/images/placeholder.jpg'}
+									alt="Immagine corso"
+									class="w-full h-full object-cover"
+								/> -->
+							</div>
+							<div class="w-2/3 p-4">
+								<p class="text-center text-sm font-semibold">
+									<!-- {item.layoutView.title} -->
+								</p>
+								<p class="text-center text-sm font-semibold">
+									<!-- {item.layoutView.price}€ -->
+								</p>
+								<p class="text-center text-sm font-semibold">
+									<!-- quantita': {item.orderQuantity} -->
+								</p>
+							</div>
+						</div>
+					{/each}
+				</div>
+				<div class="col-span-2 text-center mt-3">
+					<h2 class="text-lg font-bold">Totale Carrello:</h2>
+					<p class="text-xl font-semibold text-black-800">{orderDetail.totalValue} €</p>
+				</div>
+				<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
+					<button
+						class="btn btn-error btn-sm rounded-md hover:bg-red-300"
+						type="button"
+						onclick={onCloseModal}
+					>
+						Annulla
+					</button>
+					<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit">
+						Modifica
+					</button>
+				</div>
+			</form>
+		</Modal>
+	{/if}
 {/if}
 
 {#if currentModal == 'delete'}
-	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
-		<form
-			method="POST"
-			action={postAction}
-			use:enhance
-			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-		>
-			<input type="hidden" name="orderId" value={orderId} />
-			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
-				Conferma rimozione
-			</header>
-			<div class="col-span-4 mt-5 flex justify-center">
-				<div class="bg-gray-50 flex justify-center">
-					<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
-					<button type="submit" class="btn btn-error btn-sm mx-2 text-white">Elimina</button>
+	{#if loading}
+		<Loader />
+	{:else}
+		<Modal isOpen={openModal} header={modalTitle}>
+			<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+				>✕</button
+			>
+			<form
+				method="POST"
+				action={postAction}
+				use:enhance={formSubmit}
+				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+			>
+				<input type="hidden" name="orderId" value={orderId} />
+				<header class="col-span-4 text-center text-2xl font-bold text-green-800">
+					Conferma rimozione
+				</header>
+				<div class="col-span-4 mt-5 flex justify-center">
+					<div class="bg-gray-50 flex justify-center">
+						<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
+						<button type="submit" class="btn btn-error btn-sm mx-2 text-white">Elimina</button>
+					</div>
 				</div>
-			</div>
-		</form>
-	</Modal>
+			</form>
+		</Modal>
+	{/if}
 {/if}
 
 {#if currentModal == 'filter'}
-	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
-		<form method="POST" action={postAction} use:enhance class="p-6 space-y-6">
-			<div class="flex flex-wrap -mx-2">
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="orderId" class="block text-sm font-medium text-gray-700 mb-1">ID ordine</label
-					>
-					<input
-						type="text"
-						id="orderId"
-						name="orderId"
-						bind:value={orderId}
-						placeholder="Inserisci l'ID dell'ordine"
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
+	{#if loading}
+		<Loader />
+	{:else}
+		<Modal isOpen={openModal} header={modalTitle}>
+			<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+				>✕</button
+			>
+			<form method="POST" action={postAction} use:enhance={formSubmit} class="p-6 space-y-6">
+				<div class="flex flex-wrap -mx-2">
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="orderId" class="block text-sm font-medium text-gray-700 mb-1"
+							>ID ordine</label
+						>
+						<input
+							type="text"
+							id="orderId"
+							name="orderId"
+							bind:value={orderId}
+							placeholder="Inserisci l'ID dell'ordine"
+							class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						/>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="userId" class="block text-sm font-medium text-gray-700 mb-1"
+							>Associato</label
+						>
+						<select
+							id="userId"
+							name="userId"
+							bind:value={userId}
+							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						>
+							<option value="">Scegli un associato</option>
+							{#each tableNames as item}
+								<option value={item.userId}>{item.surname} {item.name}</option>
+							{/each}
+						</select>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="name" class="block text-sm font-medium text-gray-700 mb-1">Cognome</label>
+						<input
+							type="text"
+							id="surname"
+							name="surname"
+							bind:value={surname}
+							placeholder="Inserisci cognome"
+							class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						/>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+						<input
+							type="email"
+							id="email"
+							name="email"
+							bind:value={email}
+							placeholder="Inserisci email"
+							class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						/>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-1"
+							>Metodo di pagamento</label
+						>
+						<select
+							id="paymentMethod"
+							name="paymentMethod"
+							bind:value={paymentMethod}
+							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						>
+							<option value="">Scegli un metodo</option>
+							<option value="bonifico">Bonifico</option>
+							<option value="paypal">Paypal</option>
+							<option value="contanti">Contanti</option>
+						</select>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="status" class="block text-sm font-medium text-gray-700 mb-1"
+							>Stato ordine</label
+						>
+						<select
+							id="status"
+							name="status"
+							bind:value={status}
+							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						>
+							<option value="">Scegli uno status</option>
+							<option value="requested">Richiesta in corso</option>
+							<option value="confirmed">Confermato</option>
+							<option value="cancelled">Cancellato</option>
+							<option value="exported">Processato</option>
+						</select>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="status" class="block text-sm font-medium text-gray-700 mb-1"
+							>Stato pagamento</label
+						>
+						<select
+							id="status"
+							name="status"
+							bind:value={statusPayment}
+							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						>
+							<option value="">Scegli uno status</option>
+							<option value="pending">Pending</option>
+							<option value="done">Confermato</option>
+							<option value="canceled">Cancellato</option>
+						</select>
+					</div>
 				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="userId" class="block text-sm font-medium text-gray-700 mb-1">Associato</label>
-					<select
-						id="userId"
-						name="userId"
-						bind:value={userId}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+				<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
+					<button
+						class="btn btn-error btn-sm rounded-md hover:bg-red-300"
+						type="button"
+						onclick={onCloseModal}
 					>
-						<option value="">Scegli un associato</option>
-						{#each tableNames as item}
-							<option value={item.userId}>{item.surname} {item.name}</option>
-						{/each}
-					</select>
+						Annulla
+					</button>
+					<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit">
+						Applica Filtri
+					</button>
 				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="name" class="block text-sm font-medium text-gray-700 mb-1">Cognome</label>
-					<input
-						type="text"
-						id="surname"
-						name="surname"
-						bind:value={surname}
-						placeholder="Inserisci cognome"
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-					<input
-						type="email"
-						id="email"
-						name="email"
-						bind:value={email}
-						placeholder="Inserisci email"
-						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-1"
-						>Metodo di pagamento</label
-					>
-					<select
-						id="paymentMethod"
-						name="paymentMethod"
-						bind:value={paymentMethod}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					>
-						<option value="">Scegli un metodo</option>
-						<option value="bonifico">Bonifico</option>
-						<option value="paypal">Paypal</option>
-						<option value="contanti">Contanti</option>
-					</select>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="status" class="block text-sm font-medium text-gray-700 mb-1"
-						>Stato ordine</label
-					>
-					<select
-						id="status"
-						name="status"
-						bind:value={status}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					>
-						<option value="">Scegli uno status</option>
-						<option value="requested">Richiesta in corso</option>
-						<option value="confirmed">Confermato</option>
-						<option value="cancelled">Cancellato</option>
-						<option value="exported">Processato</option>
-					</select>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="status" class="block text-sm font-medium text-gray-700 mb-1"
-						>Stato pagamento</label
-					>
-					<select
-						id="status"
-						name="status"
-						bind:value={statusPayment}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					>
-						<option value="">Scegli uno status</option>
-						<option value="pending">Pending</option>
-						<option value="done">Confermato</option>
-						<option value="canceled">Cancellato</option>
-					</select>
-				</div>
-			</div>
-			<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
-				<button
-					class="btn btn-error btn-sm rounded-md hover:bg-red-300"
-					type="button"
-					onclick={onCloseModal}
-				>
-					Annulla
-				</button>
-				<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit">
-					Applica Filtri
-				</button>
-			</div>
-		</form>
-	</Modal>
+			</form>
+		</Modal>
+	{/if}
 {/if}
 
 <!-- {#if currentModal == 'detail'}

@@ -2,7 +2,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import Modal from '$lib/components/Modal.svelte';
 	import { enhance } from '$app/forms';
-	import Notification from '$lib/components/Notification.svelte';
+	import { notification } from '$lib/stores/notifications';
 	import Papa from 'papaparse';
 	import { membershipKeysToDelete } from '$lib/stores/arrays';
 	import {
@@ -152,22 +152,7 @@
 		currentModal = '';
 	};
 
-	// notification
-	// clearTimeout(startTimeout); // reset timer
-	let toastClosed: boolean = $state(true);
-	let notificationContent: string = $state('');
-	let notificationError: boolean = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		if (startTimeout) {
-			clearTimeout(startTimeout);
-		}
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-			notificationContent = '';
-			notificationError = false;
-		}, 3000); // 1000 milliseconds = 1 second
-	};
+	
 
 	const formSubmit = () => {
 		return async ({ result }: { result: ActionResult }) => {
@@ -183,21 +168,18 @@
 					resetActive = false;
 					tableList = getTable;
 				}
-				notificationContent = message;
+				notification.info(message);
+				onCloseModal();
 			}
 			if (result.type === 'failure') {
-				notificationContent = result.data.message;
-				notificationError = true;
+				notification.error(result.data.message);
 			}
 			if (result.type === 'error') {
-				notificationContent = result.error;
-				notificationError = true;
+				notification.error(result.data.message);
 			}
 			// 'update()' is called by default by use:enhance
 			// call 'await update()' if you need to ensure it completes before further client logic.
 			resetFields();
-			closeNotification();
-			toastClosed = false;
 			loading = false;
 		};
 	};
@@ -324,7 +306,6 @@
 	{/if}
 </div>
 
-<Notification {toastClosed} {notificationContent} {notificationError} />
 
 {#if currentModal == 'new'}
 	<Modal isOpen={openModal} header={modalTitle}>

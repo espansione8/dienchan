@@ -1,4 +1,4 @@
-// `${BASE_URL}/api/mailer/recover-password`
+// `${BASE_URL}/api/mailer/new-order`
 import type { RequestHandler } from '@sveltejs/kit';
 import { APIKEY, MAILER_HOST, MAILER_PORT, MAILER_USER, MAILER_PASS } from '$env/static/private';
 import { json } from '@sveltejs/kit';

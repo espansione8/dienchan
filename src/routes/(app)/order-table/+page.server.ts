@@ -1,76 +1,81 @@
 import type { PageServerLoad, Actions } from './$types'
 import { BASE_URL, APIKEY } from '$env/static/private';
-import { fail } from '@sveltejs/kit';
+import { fail, error } from '@sveltejs/kit';
 import { pageAuth } from '$lib/pageAuth';
 
-const apiKey = APIKEY;
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
 
 	let getTable = [];
 	let getTableNames = [];
+
+	const orderFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+		method: 'POST',
+		body: JSON.stringify({
+			apiKey: APIKEY,
+			schema: 'order', //product | order | user | layout | discount
+			query: {},
+			projection: { _id: 0, password: 0 },
+			sort: { createdAt: -1 },
+			limit: 1000,
+			skip: 0
+		}),
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	});
+
+	const userFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+		method: 'POST',
+		body: JSON.stringify({
+			apiKey: APIKEY,
+			schema: 'user', //product | order | user | layout | discount
+			query: { status: 'enabled' },
+			projection: { _id: 0, userId: 1, surname: 1, name: 1 },
+			sort: { surname: 1 },
+			limit: 0,
+			skip: 0
+		}),
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	});
+
+
 	try {
-		const query = {}; //IF USE Products.model -> types: course / product / membership / event
-		const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
-		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
-		const limit = 1000;
-		const skip = 0;
-		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey,
-				schema: 'order', //product | order | user | layout | discount
-				query,
-				projection,
-				sort,
-				limit,
-				skip
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		const response = await res.json();
-		getTable = response.map((obj: any) => ({
-			...obj,
-			createdAt: obj.createdAt.substring(0, 10),
-			orderDate: obj.orderDate.substring(0, 10),
-			totalCart: obj.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(2)
-		}));
-		//console.log('getTable', getTable);
+
+		const [userRes, orderRes] = await Promise.all([
+			userFetch,
+			orderFetch
+		])
+
+		if (userRes.status !== 200 || orderRes.status !== 200) {
+			const errorText = `${await userRes.text()} ${await orderRes.text()} `;
+			console.error('Promise.all failed', userRes.status, orderRes.status, errorText);
+			//return fail(400, { action: 'load', success: false, message: errorText });
+			throw error(400, errorText);
+		}
+
+
+		const resGetOrder = await orderRes.json();
+		if (resGetOrder.length > 0) {
+			getTable = resGetOrder.map((obj: any) => ({
+				...obj,
+				createdAt: obj.createdAt.substring(0, 10),
+				orderDate: obj.orderDate.substring(0, 10),
+				totalCart: obj.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(2)
+			}));
+		}
+
+
+		getTableNames = await userRes.json();
 
 	} catch (error) {
-		console.log('orders fetch error:', error);
+		console.log('page fetch error:', error);
+		throw error(500, 'Server error');
 	}
-	try {
-		// LISTA NOMI RIFLESSOLOGI
-		const query = { status: 'enabled' }; //IF USE Products.model -> types: course / product / membership / event
-		const projection = { _id: 0, userId: 1, surname: 1, name: 1 } // 0: exclude | 1: include
-		const sort = { surname: 1 } // 1:Sort ascending | -1:Sort descending
-		const limit = 0; // 0 no limit
-		const skip = 0;
-		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey,
-				schema: 'user', //product | order | user | layout | discount
-				query,
-				projection,
-				sort,
-				limit,
-				skip
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		getTableNames = await res.json();
-		//console.log('getTableNames', getTableNames);
 
-	} catch (error) {
-		console.log('orders fetch error:', error);
-	}
 	return {
 		getTable,
 		getTableNames,
@@ -101,53 +106,51 @@ export const actions: Actions = {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
-		try {
-			const query = { orderId: orderId };
-			const update = {
-				$set: {
-					...(email && { 'shipping.email': email }),
-					...(name && { 'shipping.name': name }),
-					...(surname && { 'shipping.surname': surname }),
-					...(city && { 'shipping.city': city }),
-					...(address && { 'shipping.address': address }),
-					...(postalCode && { 'shipping.postalCode': postalCode }),
-					...(county && { 'shipping.county': county }),
-					...(country && { 'shipping.country': country }),
-					...(phone && { 'shipping.phone': phone }),
-					...(mobile && { 'shipping.mobile': mobile }),
-					...(status && { status }),
-					...(paymentMethod && { 'payment.method': paymentMethod }),
-					...(statusPayment && { 'payment.statusPayment': statusPayment }),
-				}
-			};
-			const options = { upsert: false }
-			const multi = false
-			//console.log('update', update);
-
-			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey,
-					schema: 'order',
-					query,
-					update,
-					options,
-					multi
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			const response = await res.json();
-
-			if (res.status == 200) {
-				return { action: 'modify', success: true, message: response.message };
-			} else {
-				return { action: 'modify', success: false, message: response.message };
+		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'order',
+				query: { orderId: orderId },
+				update: {
+					$set: {
+						...(email && { 'shipping.email': email }),
+						...(name && { 'shipping.name': name }),
+						...(surname && { 'shipping.surname': surname }),
+						...(city && { 'shipping.city': city }),
+						...(address && { 'shipping.address': address }),
+						...(postalCode && { 'shipping.postalCode': postalCode }),
+						...(county && { 'shipping.county': county }),
+						...(country && { 'shipping.country': country }),
+						...(phone && { 'shipping.phone': phone }),
+						...(mobile && { 'shipping.mobile': mobile }),
+						...(status && { status }),
+						...(paymentMethod && { 'payment.method': paymentMethod }),
+						...(statusPayment && { 'payment.statusPayment': statusPayment }),
+					}
+				},
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
+		});
+
+		try {
+			const res = await resFetch;
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('order update failed', res.status, errorText);
+				return fail(400, { action: 'modify', success: false, message: errorText });
+			}
+			const result = await res.json();
+
+			return { action: 'modify', success: true, message: result.message };
+
 		} catch (error) {
-			console.error('Error modify:', error);
-			return { action: 'modify', success: false, message: 'Errore modify' };
+			console.error('Error order modify:', error);
+			return { action: 'modify', success: false, message: 'Error order modify' };
 		}
 	},
 
@@ -155,33 +158,32 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const orderId = formData.get('orderId');
 
-		try {
-			const query = { orderId: orderId };
-			const multi = false
-
-			const res = await fetch(`${BASE_URL}/api/mongo/remove`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey,
-					schema: 'order', //product | order | user | layout | discount
-					query,
-					multi,
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			const response = await res.json();
-			//console.log('response', response);
-
-			if (res.status == 200) {
-				return { action: 'delete', success: true, message: response.message };
-			} else {
-				return { action: 'delete', success: false, message: response.message };
+		const resFetch = fetch(`${BASE_URL}/api/mongo/remove`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'order', //product | order | user | layout | discount
+				query: { orderId: orderId },
+				multi: false,
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
+		});
+		try {
+			const res = await resFetch;
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('order delete failed', res.status, errorText);
+				return fail(400, { action: 'delete', success: false, message: errorText });
+			}
+			const result = await res.json();
+
+			return { action: 'delete', success: true, message: result.message };
+
 		} catch (error) {
-			console.error('Error delete:', error);
-			return { action: 'delete', success: false, message: 'Errore delete' };
+			console.error('Error order delete:', error);
+			return { action: 'delete', success: false, message: 'Error order delete' };
 		}
 	},
 
@@ -199,53 +201,45 @@ export const actions: Actions = {
 			return fail(400, { action: 'filter', success: false, message: 'Dati mancanti' });
 		}
 
-		try {
-			const query = {
-				...(orderId && { orderId }),
-				...(userId && { userId }),
-				...(surname && { 'shipping.surname': { $regex: `.*${surname}.*`, $options: 'i' } }),
-				...(email && { 'shipping.email': { $regex: `.*${email}.*`, $options: 'i' } }),
-				...(paymentMethod && { 'payment.method': paymentMethod }),
-				...(status && { status }),
-				...(statusPayment && { 'payment.statusPayment': statusPayment }),
-			};
-
-			const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
-			const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
-			const limit = 1000;
-			const skip = 0;
-			const res = await fetch(`${BASE_URL}/api/mongo/find`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey,
-					schema: 'order', //product | order | user | layout | discount
-					query,
-					projection,
-					sort,
-					limit,
-					skip
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			//console.log('response', response);
-			const result = await res.json();
-
-			if (res.status == 200) {
-				const filterTableList = result.map((obj: any) => ({
-					...obj,
-					orderDate: obj.createdAt.substring(0, 10),
-					totalCart: obj.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(0)
-				}));
-				return { action: 'filter', success: true, message: 'Filtro attivato', filterTableList };
-
-			} else {
-				return { action: 'filter', success: false, message: 'Errore filtro' };
+		const resFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'order', //product | order | user | layout | discount
+				query: {
+					...(orderId && { orderId }),
+					...(userId && { userId }),
+					...(surname && { 'shipping.surname': { $regex: `.*${surname}.*`, $options: 'i' } }),
+					...(email && { 'shipping.email': { $regex: `.*${email}.*`, $options: 'i' } }),
+					...(paymentMethod && { 'payment.method': paymentMethod }),
+					...(status && { status }),
+					...(statusPayment && { 'payment.statusPayment': statusPayment }),
+				},
+				projection: { _id: 0, password: 0 },
+				sort: { createdAt: -1 },
+				limit: 1000,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
+		});
+
+		try {
+			const res = await resFetch;
+
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('order filter failed', res.status, errorText);
+				return fail(400, { action: 'filter', success: false, message: errorText });
+			}
+			const payload = await res.json();
+
+			return { action: 'filter', success: true, message: 'Filtro attivato', payload };
+
 		} catch (error) {
 			console.error('Error filter:', error);
-			return { action: 'filter', success: false, message: 'Error filtro 500' };
+			return { action: 'filter', success: false, message: 'Error order filter' };
 		}
 	}
 } satisfies Actions;

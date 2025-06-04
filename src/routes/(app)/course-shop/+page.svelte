@@ -1,6 +1,6 @@
 <script lang="ts">
 	//import { goto, invalidateAll } from '$app/navigation';
-	import Notification from '$lib/components/Notification.svelte';
+	import { notification } from '$lib/stores/notifications';
 	import CartFloat from '$lib/components/CartFloat.svelte';
 	import { cartProducts } from '$lib/stores/cart';
 	import {
@@ -200,17 +200,7 @@
 		}
 	};
 
-	// notification
-	let toastClosed = $state(true);
-	let notificationContent = $state('');
-	let notificationError = $state(false);
-	let startTimeout;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-		}, 5000); // 1000 milliseconds = 1 second
-	};
-	//clearTimeout(startTimeout); // reset timer
+	
 </script>
 
 <svelte:head>
@@ -612,7 +602,6 @@
 		<!-- end CARD -->
 	</section>
 </div>
-<Notification {toastClosed} {notificationContent} {notificationError} />
 {#if $cartProducts.length > 0}
 	<CartFloat />
 {/if}

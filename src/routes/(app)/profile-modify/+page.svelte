@@ -2,7 +2,7 @@
 	import type { ActionResult } from '@sveltejs/kit';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
-	import Notification from '$lib/components/Notification.svelte';
+	import { notification } from '$lib/stores/notifications';
 	import DragDrop from '$lib/components/DragDrop.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import Loader from '$lib/components/Loader.svelte';
@@ -59,7 +59,6 @@
 	const openInput = () => (closedInput = false);
 	const closeInput = () => {
 		invalidateAll();
-		closedInput = true;
 		resetFields();
 	};
 
@@ -135,8 +134,7 @@
 		countryPublic = userData.countryPublic;
 		phonePublic = userData.phonePublic;
 		mobilePhonePublic = userData.mobilePhonePublic;
-		// passwordNew = '';
-		// passwordOld = '';
+		closedInput = true;
 	};
 
 	const onClickModal = (type: string, item: any) => {
@@ -158,18 +156,6 @@
 		currentModal = '';
 	};
 
-	// notification
-	let toastClosed = $state(true);
-	let notificationContent = $state('');
-	let notificationError = $state(false);
-	let startTimeout: any;
-	const closeNotification = () => {
-		startTimeout = setTimeout(() => {
-			toastClosed = true;
-		}, 3000); // 1000 milliseconds = 1 second
-	};
-	//clearTimeout(startTimeout); // reset timer
-
 	const formSubmit = () => {
 		return async ({ result }: { result: ActionResult }) => {
 			loading = true;
@@ -177,30 +163,24 @@
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
 				const { message } = result.data; // { action, success, message, payload }
+				notification.info(message);
 				onCloseModal();
 				resetFields();
-				notificationContent = message;
 			}
 			if (result.type === 'failure') {
-				notificationContent = result.data.message;
-				notificationError = true;
+				notification.error(result.data.message);
 			}
 			if (result.type === 'error') {
-				notificationContent = result.error;
-				notificationError = true;
+				notification.error(result.error.message);
 			}
 			// 'update()' is called by default by use:enhance
 			// call 'await update()' if you need to ensure it completes before further client logic.
-			clearTimeout(startTimeout);
-			closeNotification();
-			toastClosed = false;
 			loading = false;
 		};
 	};
 
 	if (!userData.name && !userData.surname) {
-		toastClosed = false;
-		notificationContent = 'Registrazione effettuta, completare il profilo';
+		notification.info('Registrazione effettuta, completare il profilo');
 	}
 </script>
 
@@ -415,10 +395,12 @@
 														{/if}
 
 														<span class="ml-2">
-															{#if closedInput}
-																<ToggleRight />
-															{:else if namePublic}
-																<ToggleLeft color="darkgreen" />
+															{#if closedInput && namePublic}
+																<ToggleRight  />
+															{:else if !closedInput && namePublic}
+																<ToggleRight color="darkgreen" />
+															{:else if closedInput && !namePublic}
+																<ToggleLeft  />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -464,10 +446,12 @@
 														{/if}
 
 														<span class="ml-2">
-															{#if closedInput}
-																<ToggleRight />
-															{:else if surnamePublic}
-																<ToggleLeft color="darkgreen" />
+															{#if closedInput && surnamePublic}
+																<ToggleRight  />
+															{:else if !closedInput && surnamePublic}
+																<ToggleRight color="darkgreen" />
+															{:else if closedInput && !surnamePublic}
+																<ToggleLeft  />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -514,10 +498,12 @@
 														{/if}
 
 														<span class="ml-2">
-															{#if closedInput}
-																<ToggleRight />
-															{:else if emailPublic}
-																<ToggleLeft color="darkgreen" />
+															{#if closedInput && emailPublic}
+																<ToggleRight  />
+															{:else if !closedInput && emailPublic}
+																<ToggleRight color="darkgreen" />
+															{:else if closedInput && !emailPublic}
+																<ToggleLeft  />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -570,10 +556,12 @@
 														{/if}
 
 														<span class="ml-2">
-															{#if closedInput}
-																<ToggleRight />
-															{:else if addressPublic}
-																<ToggleLeft color="darkgreen" />
+															{#if closedInput && addressPublic}
+																<ToggleRight  />
+															{:else if !closedInput && addressPublic}
+																<ToggleRight color="darkgreen" />
+															{:else if closedInput && !addressPublic}
+																<ToggleLeft  />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -623,10 +611,12 @@
 														{/if}
 
 														<span class="ml-2">
-															{#if closedInput}
-																<ToggleRight />
-															{:else if cityPublic}
-																<ToggleLeft color="darkgreen" />
+															{#if closedInput && cityPublic}
+																<ToggleRight  />
+															{:else if !closedInput && cityPublic}
+																<ToggleRight color="darkgreen" />
+															{:else if closedInput && !cityPublic}
+																<ToggleLeft  />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -676,10 +666,12 @@
 														{/if}
 
 														<span class="ml-2">
-															{#if closedInput}
-																<ToggleRight />
-															{:else if postalCodePublic}
-																<ToggleLeft color="darkgreen" />
+															{#if closedInput && postalCodePublic}
+																<ToggleRight  />
+															{:else if !closedInput && postalCodePublic}
+																<ToggleRight color="darkgreen" />
+															{:else if closedInput && !postalCodePublic}
+																<ToggleLeft  />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -726,10 +718,12 @@
 														{/if}
 
 														<span class="ml-2">
-															{#if closedInput}
-																<ToggleRight />
-															{:else if countyPublic}
-																<ToggleLeft color="darkgreen" />
+															{#if closedInput && countyPublic}
+																<ToggleRight  />
+															{:else if !closedInput && countyPublic}
+																<ToggleRight color="darkgreen" />
+															{:else if closedInput && !countyPublic}
+																<ToggleLeft  />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -780,10 +774,12 @@
 														{/if}
 
 														<span class="ml-2">
-															{#if closedInput}
-																<ToggleRight />
-															{:else if countryPublic}
-																<ToggleLeft color="darkgreen" />
+															{#if closedInput && countryPublic}
+																<ToggleRight  />
+															{:else if !closedInput && countryPublic}
+																<ToggleRight color="darkgreen" />
+															{:else if closedInput && !countryPublic}
+																<ToggleLeft  />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -835,10 +831,12 @@
 														{/if}
 
 														<span class="ml-2">
-															{#if closedInput}
-																<ToggleRight />
-															{:else if phonePublic}
-																<ToggleLeft color="darkgreen" />
+															{#if closedInput && phonePublic}
+																<ToggleRight  />
+															{:else if !closedInput && phonePublic}
+																<ToggleRight color="darkgreen" />
+															{:else if closedInput && !phonePublic}
+																<ToggleLeft  />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -890,10 +888,12 @@
 														{/if}
 
 														<span class="ml-2">
-															{#if closedInput}
-																<ToggleRight />
-															{:else if mobilePhonePublic}
-																<ToggleLeft color="darkgreen" />
+															{#if closedInput && mobilePhonePublic}
+																<ToggleRight  />
+															{:else if !closedInput && mobilePhonePublic}
+																<ToggleRight color="darkgreen" />
+															{:else if closedInput && !mobilePhonePublic}
+																<ToggleLeft  />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -1064,8 +1064,6 @@
 		</div>
 	</div>
 </div>
-
-<Notification {toastClosed} {notificationContent} {notificationError} />
 
 {#if currentModal == 'upload-photo'}
 	<Modal isOpen={openModal} header={modalTitle}>
