@@ -1,8 +1,9 @@
 import type { PageServerLoad, Actions } from './$types'
-import { BASE_URL, APIKEY } from '$env/static/private';
+import { BASE_URL, APIKEY, SALT } from '$env/static/private';
 import { fail, error } from '@sveltejs/kit';
 import { pageAuth } from '$lib/pageAuth';
 import { customAlphabet } from 'nanoid'
+import { hash } from '$lib/tools/hash';
 const nanoid = customAlphabet('0123456789', 12)
 
 const apiKey = APIKEY;
@@ -67,7 +68,7 @@ export const actions: Actions = {
 		const country = formData.get('country') || '';
 		const phone = formData.get('phone') || '';
 		const mobilePhone = formData.get('mobilePhone') || '';
-		const password1 = formData.get('password1') || '';
+		const password1: any = formData.get('password1') || '';
 		const level = formData.get('level') || '';
 
 
@@ -93,7 +94,7 @@ export const actions: Actions = {
 					country,
 					phone,
 					mobilePhone,
-					password1,
+					password: hash(password1, SALT),
 					level
 				},
 				returnObj: false

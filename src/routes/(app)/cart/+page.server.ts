@@ -107,6 +107,17 @@ export const actions: Actions = {
 			return fail(400, { action: 'new', success: false, message: 'Totale non valido' });
 		}
 
+		const mailFetch = (email, order) => fetch(`${BASE_URL}/api/mailer/new-order`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				email,
+				order
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 
 		//const file = formData.get('image') || '';
 		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
@@ -285,7 +296,6 @@ export const actions: Actions = {
 				},
 				cart: cartItem
 			};
-
 			const res = await fetch(`${BASE_URL}/api/mongo/create`, {
 				method: 'POST',
 				body: JSON.stringify({
@@ -299,8 +309,16 @@ export const actions: Actions = {
 				}
 			});
 
+
 			if (!res.ok) {
 				return fail(400, { action: 'new', success: false, message: await res.text() });
+			}
+
+			const order = await res.json();
+			const mailRes = await mailFetch(email, order);
+			if (!mailRes.ok) {
+				console.error('Mail sending failed:', await mailRes.text());
+				// Consider whether to fail the entire operation or just log the error
 			}
 
 			if (locals.auth) {

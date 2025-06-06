@@ -68,19 +68,34 @@
 		closedInput = true;
 	}
 
+	// let formData = $state({
+	// 	name: formatoreData?.name || '',
+	// 	surname: formatoreData?.surname || '',
+	// 	email: formatoreData?.email || '',
+	// 	address: formatoreData?.address || '',
+	// 	city: formatoreData?.city || '',
+	// 	county: formatoreData?.county || '',
+	// 	postalCode: formatoreData?.postalCode || '',
+	// 	country: formatoreData?.country || 'Italy',
+	// 	phone: formatoreData?.phone || '',
+	// 	mobilePhone: formatoreData?.mobilePhone || '',
+	// 	payment: 'Bonifico bancario'
+	// });
+
 	let formData = $state({
-		name: formatoreData?.name || '',
-		surname: formatoreData?.surname || '',
-		email: formatoreData?.email || '',
-		address: formatoreData?.address || '',
-		city: formatoreData?.city || '',
-		county: formatoreData?.county || '',
-		postalCode: formatoreData?.postalCode || '',
-		country: formatoreData?.country || 'Italy',
-		phone: formatoreData?.phone || '',
-		mobilePhone: formatoreData?.mobilePhone || '',
+		name: userData?.name || '',
+		surname: userData?.surname || '',
+		email: userData?.email || '',
+		address: userData?.address || '',
+		city: userData?.city || '',
+		county: userData?.county || '',
+		postalCode: userData?.postalCode || '',
+		country: userData?.country || 'Italy',
+		phone: userData?.phone || '',
+		mobilePhone: userData?.mobilePhone || '',
 		payment: 'Bonifico bancario'
 	});
+
 	let password1: string = $state('');
 	let password2: string = $state('');
 
@@ -97,16 +112,26 @@
 	let passwordsMatch = $state(true);
 
 	const resetFields = () => {
-		formData.name = formatoreData?.name || '';
-		formData.surname = formatoreData?.surname || '';
-		formData.email = formatoreData?.email || '';
-		formData.address = formatoreData?.address || '';
-		formData.city = formatoreData?.city || '';
-		formData.county = formatoreData?.county || '';
-		formData.postalCode = formatoreData?.postalCode || '';
-		formData.country = formatoreData?.country || 'Italy';
-		formData.phone = formatoreData?.phone || '';
-		formData.mobilePhone = formatoreData?.mobilePhone || '';
+		formData.name = userData?.name || '';
+		formData.surname = userData?.surname || '';
+		formData.email = userData?.email || '';
+		formData.address = userData?.address || '';
+		formData.city = userData?.city || '';
+		formData.county = userData?.county || '';
+		formData.postalCode = userData?.postalCode || '';
+		formData.country = userData?.country || 'Italy';
+		formData.phone = userData?.phone || '';
+		formData.mobilePhone = userData?.mobilePhone || '';
+		// formData.name = formatoreData?.name || '';
+		// formData.surname = formatoreData?.surname || '';
+		// formData.email = formatoreData?.email || '';
+		// formData.address = formatoreData?.address || '';
+		// formData.city = formatoreData?.city || '';
+		// formData.county = formatoreData?.county || '';
+		// formData.postalCode = formatoreData?.postalCode || '';
+		// formData.country = formatoreData?.country || 'Italy';
+		// formData.phone = formatoreData?.phone || '';
+		// formData.mobilePhone = formatoreData?.mobilePhone || '';
 		formData.payment = 'Bonifico bancario';
 		password1 = '';
 		password2 = '';

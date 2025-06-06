@@ -53,6 +53,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 			createdAt: obj.createdAt.substring(0, 10)
 		}));
 
+		
 		const userRes = await userFetch(getCourse[0].userId);
 		if (userRes.status != 200) {
 			console.error('user fetch failed', userRes.status, await userRes.text());
@@ -64,6 +65,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 		console.log('getCourse fetch error:', error);
 		throw error(500, 'Server error');
 	}
+
 
 	return {
 		getCourse: getCourse[0],
@@ -178,6 +180,19 @@ export const actions: Actions = {
 				'Content-Type': 'application/json'
 			},
 		});
+
+		const mailFetch = (email, order) => fetch(`${BASE_URL}/api/mailer/new-order`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				email,
+				order
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
 
 		//const file = formData.get('image') || '';
 		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
@@ -396,6 +411,12 @@ export const actions: Actions = {
 
 			if (!res.ok) {
 				return fail(400, { action: 'new', success: false, message: await res.text() });
+			}
+
+			const order = await res.json();
+			const mailRes = await mailFetch(email, order);
+			if (!mailRes.ok) {
+				return fail(400, { action: 'new', success: false, message: await mailRes.text() });
 			}
 
 			if (locals.auth) {
