@@ -45,11 +45,11 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	}
 
 	const user = locals.user
-	if (locals.auth) {
-		user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
-		user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
-		user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
-	}
+	// if (locals.auth) {
+	// 	user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
+	// 	user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
+	// 	user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
+	// }
 
 	return {
 		userData: user,

@@ -8,7 +8,7 @@ const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 
 export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 	let getCourse = [];
-	let userData = [];
+	let formatoreData = [];
 
 	const courseFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 		method: 'POST',
@@ -58,7 +58,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 			console.error('user fetch failed', userRes.status, await userRes.text());
 			throw error(400, 'course fetch failed');
 		}
-		userData = await userRes.json();
+		formatoreData = await userRes.json();
 
 	} catch (error) {
 		console.log('getCourse fetch error:', error);
@@ -67,8 +67,9 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 
 	return {
 		getCourse: getCourse[0],
-		userData: userData[0] ?? null,
-		auth: locals.auth
+		formatoreData: formatoreData[0] ?? null,
+		auth: locals.auth,
+		userData: locals.user
 	};
 }
 // calculate discount for a single item used in applyDiscount/removeDiscount 
@@ -144,6 +145,7 @@ export const actions: Actions = {
 		const totalValue = formData.get('totalValue');
 		const cart = formData.get('cart');
 		const cartItem = JSON.parse(String(cart)) || null;
+		const totalDiscount = formData.get('totalDiscount') || 0;
 
 		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
@@ -345,7 +347,7 @@ export const actions: Actions = {
 				//cart: [cartItem]
 			};
 
-			if (!userExist && membership.length > 0) {
+			if ((!userExist || !locals.user?.membership.membershipStatus) && membership.length > 0) {
 				// Membership order
 				const resMembership = await fetch(`${BASE_URL}/api/mongo/create`, {
 					method: 'POST',
@@ -380,7 +382,8 @@ export const actions: Actions = {
 					newDoc: {
 						orderId: nanoid(),
 						orderCode: crypto.randomUUID(),
-						totalValue: Number(totalValue),
+						totalValue: Number(totalValue) - Number(totalDiscount),
+						totalDiscount: Number(totalDiscount),
 						...newDoc,
 						cart: [cartItem]
 					},

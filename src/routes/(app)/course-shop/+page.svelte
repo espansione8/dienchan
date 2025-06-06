@@ -1,6 +1,6 @@
 <script lang="ts">
 	//import { goto, invalidateAll } from '$app/navigation';
-	import { notification } from '$lib/stores/notifications';
+	//import { notification } from '$lib/stores/notifications';
 	import CartFloat from '$lib/components/CartFloat.svelte';
 	import { cartProducts } from '$lib/stores/cart';
 	import {
@@ -25,7 +25,7 @@
 	//import { province } from '$lib/stores/arrays.js';
 
 	const { data } = $props();
-	const { getTable, getTableNames, getLayout, auth } = data;
+	const { getTable, getTableNames, getLayout, auth, userData } = data;
 	let coursesList = $state(getTable);
 
 	let resetActive = $state(false);
@@ -199,8 +199,6 @@
 				return coursesList;
 		}
 	};
-
-	
 </script>
 
 <svelte:head>
@@ -580,6 +578,11 @@
 							<div class="bg-amber-100 text-amber-800 p-2 rounded-md flex items-center gap-2 mb-3">
 								<AlertCircle size={16} class="flex-shrink-0" />
 								<p class="text-xs font-medium">+25€ di tesseramento solo al primo corso</p>
+							</div>
+						{:else if !userData?.membership.membershipStatus}
+							<div class="bg-amber-100 text-amber-800 p-2 rounded-md flex items-center gap-2 mb-3">
+								<AlertCircle size={16} class="flex-shrink-0" />
+								<p class="text-xs font-medium">+25€ di rinnovo tessera</p>
 							</div>
 						{/if}
 					</div>

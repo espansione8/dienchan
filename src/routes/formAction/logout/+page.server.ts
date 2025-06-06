@@ -13,6 +13,8 @@ export const actions: Actions = {
             throw error(400, 'No active session found');
         }
 
+        cookies.delete('session_id', { path: '/' });
+
         const resFetch = fetch(`${baseApiUrl}/api/mongo/update`, {
             method: 'POST',
             body: JSON.stringify({
@@ -29,7 +31,6 @@ export const actions: Actions = {
         });
 
         try {
-            cookies.delete('session_id', { path: '/' });
             const res = await resFetch;
             if (!res.ok) {
                 const errorText = await res.text();

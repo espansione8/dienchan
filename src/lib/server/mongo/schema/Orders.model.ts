@@ -33,6 +33,7 @@ const orderSchema = new Schema(
 		orderConfirmed: { type: Boolean, default: false },
 		totalPoints: { type: Number, default: 0 },
 		totalValue: { type: Number, default: 0 },
+		totalDiscount: { type: Number, default: 0 },
 		totalVAT: { type: Number, default: 0 },
 		browser: { type: String, default: '' },
 		orderIp: { type: String, default: '' },

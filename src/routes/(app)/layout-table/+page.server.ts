@@ -1,12 +1,9 @@
 import type { PageServerLoad, Actions } from './$types'
 import { BASE_URL, APIKEY } from '$env/static/private';
 import { fail, error } from '@sveltejs/kit';
-import stringHash from 'string-hash';
 import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
-
-
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
@@ -59,7 +56,6 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		getTable,
 	};
 }
-
 
 export const actions: Actions = {
 	new: async ({ request, fetch }) => {
@@ -290,6 +286,135 @@ export const actions: Actions = {
 		} catch (error) {
 			console.error('Error changeStatus:', error);
 			return fail(400, { action: 'changeStatus', success: false, message: 'Error layout changeStatus' });
+		}
+	},
+
+	setProdPic: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const layoutId = formData.get('layoutId');
+		const file = formData.get('fileUpload');
+
+		if (!layoutId || !file || !file.name) {
+			return fail(400, { action: 'setProdPic', success: false, message: 'File mancante' });
+		}
+		//console.log(layoutId, file);
+
+
+		const uploadFetch = fetch(`${BASE_URL}/api/uploads/files`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'x-file-name': file.name,
+				'x-folder-name': `layout/${layoutId}`
+			},
+			body: file
+		});
+		// const resImg = await uploadImg.json();
+
+		const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'layout', //product | order | user | layout | discount
+				query: { layoutId }, // 'course', 'product', 'membership', 'event',
+				update: {
+					$set: {
+						urlPic: `/files/layout/${layoutId}/${file.name}`
+					}
+				},
+				options: {
+					upsert: false
+					// NOTES:
+					// arrayFilters: [
+					// 	{ "elem.type": "product-primary" } // Check array where 'type' === 'product-primary'
+					// ]
+				},
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		//const response = await res.json();
+
+		try {
+			const [uploadRes, updateRes] = await Promise.all([
+				uploadFetch,
+				updateFetch
+			])
+
+			if (!uploadRes.ok || !updateRes.ok) {
+				const errorText = `uploadRes: ${await uploadRes.text()}, updateRes: ${await updateRes.text()}`;
+				console.log('Promise.all failed', uploadRes.status, updateRes.status, errorText);
+				return { action: 'setProdPic', success: false, message: 'Errore rimozione' };
+			}
+
+			const update = await updateRes.json();
+			return { action: 'setProdPic', success: true, message: update.message };
+
+		} catch (error) {
+			console.error('Error upload:', error);
+			return { action: 'setProdPic', success: false, message: 'Errore upload' };
+		}
+	},
+
+	delProdPic: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const layoutId = formData.get('layoutId');
+		const fileName = formData.get('fileName');
+		//console.log('prod filename', layoutId, fileName);
+
+		if (!layoutId || !fileName) {
+			return fail(400, { action: 'delProdPic', success: false, message: 'Dati mancanti' });
+		}
+
+		const deleteFetch = fetch(`${BASE_URL}/api/uploads/files`, {
+			method: 'DELETE',
+			body: JSON.stringify({
+				dir: `layout/${layoutId}`,
+				fileName
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'layout', //product | order | user | layout | discount
+				query: { layoutId }, // 'course', 'product', 'membership', 'event'
+				update: {
+					$set: {
+						urlPic: ''
+					}
+				},
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		try {
+			const [deleteRes, updateRes] = await Promise.all([
+				deleteFetch,
+				updateFetch
+			])
+
+			if (!deleteRes.ok || !updateRes.ok) {
+				const errorText = `deleteRes: ${await deleteRes.text()}, updateRes: ${await updateRes.text()}`;
+				console.log('Promise.all failed', deleteRes.status, updateRes.status, errorText);
+				return { action: 'delProdPic', success: false, message: 'Errore rimozione' };
+			}
+
+			const update = await updateRes.json();
+			return { action: 'delProdPic', success: true, message: update.message };
+
+		} catch (error) {
+			console.error('Error delProdPic:', error);
+			return { action: 'delProdPic', success: false, message: 'Errore rimozione' };
 		}
 	},
 } satisfies Actions;

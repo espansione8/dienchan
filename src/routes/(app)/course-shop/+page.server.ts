@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	let getTable = [];
 	let getTableNames = [];
 	let getLayout = [];
-	const user = locals.user
+	//const user = locals.user
 
 	try {
 		// get courses
@@ -49,8 +49,11 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		// user list
 		const queryUsers = {
 			status: 'enabled',
-			level: 'superadmin'
-		};
+			$or: [
+				{ level: 'superadmin' },
+				{ level: 'formatore' }
+			]
+		}
 		const projectionUsers = { _id: 0 };
 		const sortUsers = { surname: 1 };
 		const limitUsers = 1000;
@@ -100,11 +103,12 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	} catch (error) {
 		console.log('layout find error:', error);
 	}
+
 	return {
 		getTable,
 		getTableNames,
 		getLayout,
 		auth: locals.auth,
-		userData: user
+		userData: locals.user
 	};
 }

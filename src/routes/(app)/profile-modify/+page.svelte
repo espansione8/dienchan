@@ -41,6 +41,8 @@
 	const { data } = $props();
 	const { userData, orderData } = $derived(data);
 
+	//console.log('membership', userData.membership);
+
 	// Declare the province variable
 	let provinceFilterate = $province.filter((p) => p.title !== 'Online');
 	let closedInput = $state(true);
@@ -396,11 +398,11 @@
 
 														<span class="ml-2">
 															{#if closedInput && namePublic}
-																<ToggleRight  />
+																<ToggleRight />
 															{:else if !closedInput && namePublic}
 																<ToggleRight color="darkgreen" />
 															{:else if closedInput && !namePublic}
-																<ToggleLeft  />
+																<ToggleLeft />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -447,11 +449,11 @@
 
 														<span class="ml-2">
 															{#if closedInput && surnamePublic}
-																<ToggleRight  />
+																<ToggleRight />
 															{:else if !closedInput && surnamePublic}
 																<ToggleRight color="darkgreen" />
 															{:else if closedInput && !surnamePublic}
-																<ToggleLeft  />
+																<ToggleLeft />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -499,11 +501,11 @@
 
 														<span class="ml-2">
 															{#if closedInput && emailPublic}
-																<ToggleRight  />
+																<ToggleRight />
 															{:else if !closedInput && emailPublic}
 																<ToggleRight color="darkgreen" />
 															{:else if closedInput && !emailPublic}
-																<ToggleLeft  />
+																<ToggleLeft />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -557,11 +559,11 @@
 
 														<span class="ml-2">
 															{#if closedInput && addressPublic}
-																<ToggleRight  />
+																<ToggleRight />
 															{:else if !closedInput && addressPublic}
 																<ToggleRight color="darkgreen" />
 															{:else if closedInput && !addressPublic}
-																<ToggleLeft  />
+																<ToggleLeft />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -612,11 +614,11 @@
 
 														<span class="ml-2">
 															{#if closedInput && cityPublic}
-																<ToggleRight  />
+																<ToggleRight />
 															{:else if !closedInput && cityPublic}
 																<ToggleRight color="darkgreen" />
 															{:else if closedInput && !cityPublic}
-																<ToggleLeft  />
+																<ToggleLeft />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -667,11 +669,11 @@
 
 														<span class="ml-2">
 															{#if closedInput && postalCodePublic}
-																<ToggleRight  />
+																<ToggleRight />
 															{:else if !closedInput && postalCodePublic}
 																<ToggleRight color="darkgreen" />
 															{:else if closedInput && !postalCodePublic}
-																<ToggleLeft  />
+																<ToggleLeft />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -719,11 +721,11 @@
 
 														<span class="ml-2">
 															{#if closedInput && countyPublic}
-																<ToggleRight  />
+																<ToggleRight />
 															{:else if !closedInput && countyPublic}
 																<ToggleRight color="darkgreen" />
 															{:else if closedInput && !countyPublic}
-																<ToggleLeft  />
+																<ToggleLeft />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -775,11 +777,11 @@
 
 														<span class="ml-2">
 															{#if closedInput && countryPublic}
-																<ToggleRight  />
+																<ToggleRight />
 															{:else if !closedInput && countryPublic}
 																<ToggleRight color="darkgreen" />
 															{:else if closedInput && !countryPublic}
-																<ToggleLeft  />
+																<ToggleLeft />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -832,11 +834,11 @@
 
 														<span class="ml-2">
 															{#if closedInput && phonePublic}
-																<ToggleRight  />
+																<ToggleRight />
 															{:else if !closedInput && phonePublic}
 																<ToggleRight color="darkgreen" />
 															{:else if closedInput && !phonePublic}
-																<ToggleLeft  />
+																<ToggleLeft />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span
@@ -889,11 +891,11 @@
 
 														<span class="ml-2">
 															{#if closedInput && mobilePhonePublic}
-																<ToggleRight  />
+																<ToggleRight />
 															{:else if !closedInput && mobilePhonePublic}
 																<ToggleRight color="darkgreen" />
 															{:else if closedInput && !mobilePhonePublic}
-																<ToggleLeft  />
+																<ToggleLeft />
 															{:else}
 																<ToggleLeft color="darkred" />
 															{/if}</span

@@ -102,7 +102,7 @@ export const actions: Actions = {
 		};
 		const totalDiscount = discountItem.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0)
 
-		const recalculatedTotal = cartRecalculated() - totalDiscount();
+		const recalculatedTotal = cartRecalculated() - totalDiscount;
 		if (Number(totalValue) !== recalculatedTotal) {
 			return fail(400, { action: 'new', success: false, message: 'Totale non valido' });
 		}
@@ -232,6 +232,7 @@ export const actions: Actions = {
 				orderConfirmed: false,
 				totalPoints: 0,
 				totalValue: Number(totalValue),
+				totalDiscount: Number(totalDiscount),
 				totalVAT: 0,
 				browser: '',
 				orderIp: '',

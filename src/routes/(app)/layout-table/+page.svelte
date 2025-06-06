@@ -6,6 +6,7 @@
 	import Papa from 'papaparse';
 	import Loader from '$lib/components/Loader.svelte';
 	import { notification } from '$lib/stores/notifications';
+	import DragDrop from '$lib/components/DragDrop.svelte';
 	import {
 		CopyPlus,
 		Settings,
@@ -41,12 +42,13 @@
 	let deleteId = $state('');
 	let loading = $state(false);
 
+	const getFileNameFromPath = (filePath: string): string => filePath.split('/').pop() || '';
 
 	const resetFields = () => {
 		title = '';
 		descr = '';
 		urlPic = '';
-		status ='';
+		status = '';
 		price = 0;
 	};
 
@@ -266,15 +268,57 @@
 							</form>
 						</td>
 						<!-- picture -->
-						{#if row.urlPic}
-							<td>
-								<img class="w-3xs" src={row.urlPic} alt={row.urlPic} />
-							</td>
-						{:else}
-							<td>
-								<img class="w-3xs" src="/images/no_img.jpg" alt="no pic" />
-							</td>
-						{/if}
+						<td>
+							{#if row.urlPic}
+								<!-- <img class="w-3xs" src={row.urlPic} alt={row.urlPic} /> -->
+								<div class="card-body p-4">
+									<div class="flex items-center">
+										<figure class="flex-shrink-0">
+											<img
+												src={row.urlPic}
+												alt={row.urlPic}
+												class="object-cover rounded-md max-w-36 max-h-36 h-auto"
+											/>
+										</figure>
+										<form
+											method="POST"
+											action={`?/delProdPic`}
+											use:enhance={formSubmit}
+											class="ml-4 flex-shrink-0"
+										>
+											<input type="hidden" name="layoutId" value={row.layoutId} />
+											<input
+												type="hidden"
+												name="fileName"
+												value={getFileNameFromPath(row.urlPic)}
+											/>
+											<button
+												class="btn btn-sm btn-error rounded-lg border-2"
+												type="submit"
+												aria-label="Delete image"
+											>
+												<Trash2 size="24" />
+											</button>
+										</form>
+									</div>
+								</div>
+							{:else}
+								<!-- <img class="w-3xs" src="/images/no_img.jpg" alt="no pic" /> -->
+								<form
+									action={`?/setProdPic`}
+									method="POST"
+									enctype="multipart/form-data"
+									use:enhance={formSubmit}
+									class="card-body max-w-48"
+								>
+									<input type="hidden" name="layoutId" value={row.layoutId} />
+									<DragDrop />
+									<button class="btn btn-sm btn-info rounded-lg border-2" type="submit">
+										Aggiungi foto
+									</button>
+								</form>
+							{/if}
+						</td>
 
 						<!-- title -->
 						<td>{row.title}</td>

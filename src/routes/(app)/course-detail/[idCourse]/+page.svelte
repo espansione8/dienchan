@@ -25,7 +25,7 @@
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { getCourse, userData, auth } = data;
+	const { getCourse, formatoreData, auth, userData } = data;
 
 	// discount
 	let discountCode = $state('');
@@ -45,9 +45,10 @@
 		return total;
 	});
 	// testing NEW VERSION using reduce
-	let totalDiscount = $derived(() =>
-		discountList.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0)
+	let totalDiscount = $derived(
+		() => discountList.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0) || 0
 	);
+
 	// let totalDiscount = $derived(() => { // OLD VERSION using totalDiscount()
 	// 	let total = 0;
 	// 	discountList.forEach((element: any) => {
@@ -56,7 +57,9 @@
 	// 	return total;
 	// });
 	let subTotal = $derived(
-		auth ? grandTotal() - totalDiscount() : grandTotal() - totalDiscount() + 25
+		!auth || !userData?.membership.membershipStatus
+			? grandTotal() - totalDiscount() + 25
+			: grandTotal() - totalDiscount()
 	);
 
 	// form
@@ -66,16 +69,16 @@
 	}
 
 	let formData = $state({
-		name: userData?.name || '',
-		surname: userData?.surname || '',
-		email: userData?.email || '',
-		address: userData?.address || '',
-		city: userData?.city || '',
-		county: userData?.county || '',
-		postalCode: userData?.postalCode || '',
-		country: userData?.country || 'Italy',
-		phone: userData?.phone || '',
-		mobilePhone: userData?.mobilePhone || '',
+		name: formatoreData?.name || '',
+		surname: formatoreData?.surname || '',
+		email: formatoreData?.email || '',
+		address: formatoreData?.address || '',
+		city: formatoreData?.city || '',
+		county: formatoreData?.county || '',
+		postalCode: formatoreData?.postalCode || '',
+		country: formatoreData?.country || 'Italy',
+		phone: formatoreData?.phone || '',
+		mobilePhone: formatoreData?.mobilePhone || '',
 		payment: 'Bonifico bancario'
 	});
 	let password1: string = $state('');
@@ -94,16 +97,16 @@
 	let passwordsMatch = $state(true);
 
 	const resetFields = () => {
-		formData.name = userData?.name || '';
-		formData.surname = userData?.surname || '';
-		formData.email = userData?.email || '';
-		formData.address = userData?.address || '';
-		formData.city = userData?.city || '';
-		formData.county = userData?.county || '';
-		formData.postalCode = userData?.postalCode || '';
-		formData.country = userData?.country || 'Italy';
-		formData.phone = userData?.phone || '';
-		formData.mobilePhone = userData?.mobilePhone || '';
+		formData.name = formatoreData?.name || '';
+		formData.surname = formatoreData?.surname || '';
+		formData.email = formatoreData?.email || '';
+		formData.address = formatoreData?.address || '';
+		formData.city = formatoreData?.city || '';
+		formData.county = formatoreData?.county || '';
+		formData.postalCode = formatoreData?.postalCode || '';
+		formData.country = formatoreData?.country || 'Italy';
+		formData.phone = formatoreData?.phone || '';
+		formData.mobilePhone = formatoreData?.mobilePhone || '';
 		formData.payment = 'Bonifico bancario';
 		password1 = '';
 		password2 = '';
@@ -329,13 +332,13 @@
 								<div class="avatar">
 									<div class="w-24 rounded-full ring ring-blue-500 ring-offset-2">
 										<img
-											src={imgCheck.single(userData.uploadfiles, 'profile')}
+											src={imgCheck.single(formatoreData.uploadfiles, 'profile')}
 											alt="avatar"
 											loading="lazy"
 										/>
 										<!-- {#if picFilter.length > 0}
 											<img
-												src={`/files/${userData.userId}/${picFilter[0].filename}`}
+												src={`/files/${formatoreData.userId}/${picFilter[0].filename}`}
 												alt="avatar"
 												loading="lazy"
 											/>
@@ -585,6 +588,16 @@
 										</div>
 										<div>
 											<p class="text-sm text-gray-500">Tesseramento per il primo corso</p>
+											<p class="font-medium text-xl text-blue-900">+25 €</p>
+										</div>
+									</div>
+								{:else if !userData?.membership.membershipStatus}
+									<div class="flex items-center gap-3">
+										<div class="bg-blue-100 p-2 rounded-full">
+											<Coins class="w-5 h-5 text-blue-700" />
+										</div>
+										<div>
+											<p class="text-sm text-gray-500">Rinnovo tessera</p>
 											<p class="font-medium text-xl text-blue-900">+25 €</p>
 										</div>
 									</div>
@@ -1003,6 +1016,11 @@
 									>
 									<span class="font-semibold">25.00 €</span>
 								</div>
+							{:else if !userData?.membership.membershipStatus}
+								<div class="flex justify-between items-center py-2 border-b border-base-300">
+									<span class="text-base-content/80 font-medium">Rinnovo tessera</span>
+									<span class="font-semibold">25.00 €</span>
+								</div>
 							{/if}
 
 							{#if discountList.length > 0}
@@ -1021,6 +1039,7 @@
 						</div>
 					</div>
 					<input type="hidden" name="cart" value={JSON.stringify(getCourse)} />
+					<input type="hidden" name="totalDiscount" value={totalDiscount()} />
 				</div>
 
 				<!-- Navigation -->

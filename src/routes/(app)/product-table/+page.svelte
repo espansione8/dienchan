@@ -21,8 +21,6 @@
 		Trash2,
 		ToggleRight,
 		ToggleLeft,
-		EyeOff,
-		Eye,
 		Calculator,
 		List,
 		Users,
@@ -273,8 +271,9 @@
 		<tbody class="">
 			{#each tableList as row}
 				<tr class="hover:bg-gray-100">
-					<td>{row.prodId} <br/> {row.createdAt.substring(0, 10)}</td>
+					<td>{row.prodId} <br /> {row.createdAt.substring(0, 10)}</td>
 					<td>
+						<!-- img start -->
 						{#if imgCheck.single(row.uploadfiles, 'product-primary') !== '/images/placeholder.jpg'}
 							<div class="card-body p-4">
 								<div class="flex items-center">
