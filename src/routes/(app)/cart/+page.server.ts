@@ -228,7 +228,6 @@ export const actions: Actions = {
 		try {
 			const orderId = nanoid() // OLD stringHash(crypto.randomUUID());
 			const orderCode = crypto.randomUUID()
-			const returnObj = false
 			const newDoc = {
 				orderId,
 				orderCode,
@@ -302,7 +301,7 @@ export const actions: Actions = {
 					apiKey: APIKEY,
 					schema: 'order', //product | order | user | layout | discount
 					newDoc,
-					returnObj
+					returnObj: true
 				}),
 				headers: {
 					'Content-Type': 'application/json'
@@ -315,10 +314,11 @@ export const actions: Actions = {
 			}
 
 			const order = await res.json();
+			// METTERE EMAIL ADMIN DIENCHAN
+			// const mailArray = [amministrazionedienchan@gmail.com, email]
 			const mailRes = await mailFetch(email, order);
 			if (!mailRes.ok) {
 				console.error('Mail sending failed:', await mailRes.text());
-				// Consider whether to fail the entire operation or just log the error
 			}
 
 			if (locals.auth) {

@@ -53,7 +53,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 			createdAt: obj.createdAt.substring(0, 10)
 		}));
 
-		
+
 		const userRes = await userFetch(getCourse[0].userId);
 		if (userRes.status != 200) {
 			console.error('user fetch failed', userRes.status, await userRes.text());
@@ -149,6 +149,12 @@ export const actions: Actions = {
 		const cartItem = JSON.parse(String(cart)) || null;
 		const totalDiscount = formData.get('totalDiscount') || 0;
 
+		//const file = formData.get('image') || '';
+		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
+		let currentUserId: string = locals.user?.userId ?? '';
+		let membership = []
+		let userExist = false;
+
 		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -181,6 +187,25 @@ export const actions: Actions = {
 			},
 		});
 
+		const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'product', //product | order | user | layout | discount
+				query: { type: 'course', prodId: cartItem.prodId }, // 'course', 'product', 'membership', 'event',
+				update: {
+					$push: {
+						listSubscribers: { userId: currentUserId, email, name, surname, city, phone, mobilePhone }
+					}
+				},
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
 		const mailFetch = (email, order) => fetch(`${BASE_URL}/api/mailer/new-order`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -194,13 +219,9 @@ export const actions: Actions = {
 		});
 
 
-		//const file = formData.get('image') || '';
-		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
-		let currentUserId: string = locals.user?.userId ?? '';
-		let membership = []
-		let userExist = false;
 
-		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || !cart) {
+
+		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || !cart || !cartItem) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
 
@@ -362,47 +383,57 @@ export const actions: Actions = {
 				//cart: [cartItem]
 			};
 
+			let cart = []
 			if ((!userExist || !locals.user?.membership.membershipStatus) && membership.length > 0) {
+				cart = [cartItem, membership[0]]
 				// Membership order
-				const resMembership = await fetch(`${BASE_URL}/api/mongo/create`, {
-					method: 'POST',
-					body: JSON.stringify({
-						apiKey: APIKEY,
-						schema: 'order', //product | order | user | layout | discount
-						newDoc: {
-							orderId: nanoid(),
-							orderCode: crypto.randomUUID(),
-							totalValue: Number(membership[0]?.price || 25.00),
-							...newDoc,
-							cart: membership
-						},
-						returnObj: false
-					}),
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				});
-				if (!resMembership.ok) {
-					return fail(400, { action: 'new', success: false, message: await resMembership.text() });
-				}
+				// const resMembership = await fetch(`${BASE_URL}/api/mongo/create`, {
+				// 	method: 'POST',
+				// 	body: JSON.stringify({
+				// 		apiKey: APIKEY,
+				// 		schema: 'order', //product | order | user | layout | discount
+				// 		newDoc: {
+				// 			orderId: nanoid(),
+				// 			orderCode: crypto.randomUUID(),
+				// 			totalValue: Number(membership[0]?.price || 25.00),
+				// 			...newDoc,
+				// 			cart: membership
+				// 		},
+				// 		returnObj: false
+				// 	}),
+				// 	headers: {
+				// 		'Content-Type': 'application/json'
+				// 	}
+				// });
+				// if (!resMembership.ok) {
+				// 	return fail(400, { action: 'new', success: false, message: `res: ${await resMembership.text()}` });
+				// }
+			} else {
+				cart = [cartItem]
 			}
+			console.log('cart', cart);
+
 			// Recalculate to prevent client-side manipulation
 
 			// Cart order
+
+			const orderId = nanoid()
+			const orderCode = crypto.randomUUID()
 			const res = await fetch(`${BASE_URL}/api/mongo/create`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey: APIKEY,
 					schema: 'order', //product | order | user | layout | discount
 					newDoc: {
-						orderId: nanoid(),
-						orderCode: crypto.randomUUID(),
+						orderId,
+						orderCode,
 						totalValue: Number(totalValue) - Number(totalDiscount),
 						totalDiscount: Number(totalDiscount),
 						...newDoc,
-						cart: [cartItem]
+						//cart: [cartItem]
+						cart
 					},
-					returnObj: false
+					returnObj: true
 				}),
 				headers: {
 					'Content-Type': 'application/json'
@@ -410,13 +441,18 @@ export const actions: Actions = {
 			});
 
 			if (!res.ok) {
-				return fail(400, { action: 'new', success: false, message: await res.text() });
+				return fail(400, { action: 'new', success: false, message: `res: ${await res.text()}` });
 			}
-
 			const order = await res.json();
-			const mailRes = await mailFetch(email, order);
+
+			const updateRes = await updateFetch
+			if (!updateRes.ok) {
+				return fail(400, { action: 'new', success: false, message: `updateRes: ${await updateRes.text()}` });
+			}
+			const mailArray = [...cartItem.notificationEmail, email]
+			const mailRes = await mailFetch(mailArray, order);
 			if (!mailRes.ok) {
-				return fail(400, { action: 'new', success: false, message: await mailRes.text() });
+				return fail(400, { action: 'new', success: false, message: `mailRes: ${await mailRes.text()}` });
 			}
 
 			if (locals.auth) {
