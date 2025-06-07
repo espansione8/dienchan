@@ -40,7 +40,7 @@
 <svelte:head>
 	<title
 		>{getUser.namePublic ? getUser.name : ''}
-		{getUser.surnamePublic ? getUser.surname : ''} | Wellness Professional</title
+		{getUser.surnamePublic ? getUser.surname : ''} | Dienchan</title
 	>
 </svelte:head>
 
