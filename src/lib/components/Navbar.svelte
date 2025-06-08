@@ -242,9 +242,10 @@
 			<div class="container mx-auto px-4 py-4">
 				<ul class="menu w-full gap-2">
 					<li>
+						<!-- class={`btn btn-sm ${isActive('/membership-new') ? 'btn-primary' : 'btn-ghost'}`} -->
 						<a
 							href="/membership-new"
-							class={isActive('/membership-new') ? 'active' : ''}
+							class={`btn btn-sm ${isActive('/membership-new') ? 'btn-primary' : 'btn-ghost'}`}
 							onclick={toggleMenu}
 						>
 							<Megaphone size={18} />
@@ -255,7 +256,7 @@
 					<li>
 						<a
 							href="/course-shop"
-							class={isActive('/course-shop') ? 'active' : ''}
+							class={`btn btn-sm ${isActive('/course-shop') ? 'btn-primary' : 'btn-ghost'}`}
 							onclick={toggleMenu}
 						>
 							<BookOpen size={18} />
@@ -266,7 +267,7 @@
 					<li>
 						<a
 							href="/product-shop"
-							class={isActive('/product-shop') ? 'active' : ''}
+							class={`btn btn-sm ${isActive('/product-shop') ? 'btn-primary' : 'btn-ghost'}`}
 							onclick={toggleMenu}
 						>
 							<Package size={18} />
@@ -277,7 +278,7 @@
 					<li>
 						<a
 							href="/user-list"
-							class={isActive('/user-list') ? 'active' : ''}
+							class={`btn btn-sm ${isActive('/user-list') ? 'btn-primary' : 'btn-ghost'}`}
 							onclick={toggleMenu}
 						>
 							<IdCard size={16} />
@@ -286,7 +287,11 @@
 					</li>
 
 					<li>
-						<a href="/cart" class={isActive('/cart') ? 'active' : ''} onclick={toggleMenu}>
+						<a
+							href="/cart"
+							class={`btn btn-sm ${isActive('/cart') ? 'btn-primary' : 'btn-ghost'}`}
+							onclick={toggleMenu}
+						>
 							<div class="flex items-center gap-2">
 								<ShoppingCart size={18} />
 								<span>Carrello</span>
@@ -301,7 +306,7 @@
 						<li>
 							<a
 								href="/profile-modify"
-								class={isActive('/profile-modify') ? 'active' : ''}
+								class={`btn btn-sm ${isActive('/profile-modify') ? 'btn-primary' : 'btn-ghost'}`}
 								onclick={toggleMenu}
 							>
 								<User size={18} />
@@ -317,7 +322,7 @@
 							<li>
 								<a
 									href="/course-table"
-									class={isActive('/course-table') ? 'active' : ''}
+									class={`btn btn-sm ${isActive('/course-table') ? 'btn-primary' : 'btn-ghost'}`}
 									onclick={toggleMenu}
 								>
 									<BookOpen size={18} />
@@ -329,7 +334,7 @@
 								<li>
 									<a
 										href="/product-table"
-										class={isActive('/product-table') ? 'active' : ''}
+										class={`btn btn-sm ${isActive('/product-table') ? 'btn-primary' : 'btn-ghost'}`}
 										onclick={toggleMenu}
 									>
 										<Package size={18} />
@@ -340,7 +345,7 @@
 								<li>
 									<a
 										href="/membership-table"
-										class={isActive('/membership-table') ? 'active' : ''}
+										class={`btn btn-sm ${isActive('/membership-table') ? 'btn-primary' : 'btn-ghost'}`}
 										onclick={toggleMenu}
 									>
 										<CreditCard size={18} />
@@ -351,7 +356,7 @@
 								<li>
 									<a
 										href="/layout-table"
-										class={isActive('/layout-table') ? 'active' : ''}
+										class={`btn btn-sm ${isActive('/layout-table') ? 'btn-primary' : 'btn-ghost'}`}
 										onclick={toggleMenu}
 									>
 										<Layers size={18} />
@@ -362,7 +367,7 @@
 								<li>
 									<a
 										href="/user-table"
-										class={isActive('/user-table') ? 'active' : ''}
+										class={`btn btn-sm ${isActive('/user-table') ? 'btn-primary' : 'btn-ghost'}`}
 										onclick={toggleMenu}
 									>
 										<User size={18} />
@@ -373,7 +378,7 @@
 								<li>
 									<a
 										href="/order-table"
-										class={isActive('/order-table') ? 'active' : ''}
+										class={`btn btn-sm ${isActive('/order-table') ? 'btn-primary' : 'btn-ghost'}`}
 										onclick={toggleMenu}
 									>
 										<ShoppingCart size={18} />
@@ -384,7 +389,7 @@
 								<li>
 									<a
 										href="/discount-table"
-										class={isActive('/discount-table') ? 'active' : ''}
+										class={`btn btn-sm ${isActive('/discount-table') ? 'btn-primary' : 'btn-ghost'}`}
 										onclick={toggleMenu}
 									>
 										<Megaphone size={18} />

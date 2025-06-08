@@ -1,10 +1,13 @@
 <script lang="ts">
+	import type { ActionResult } from '@sveltejs/kit';
 	import { invalidateAll } from '$app/navigation';
 	import Modal from '$lib/components/Modal.svelte';
 	import { enhance } from '$app/forms';
 	import { notification } from '$lib/stores/notifications';
 	import Papa from 'papaparse';
 	import { membershipKeysToDelete } from '$lib/stores/arrays';
+	import DragDrop from '$lib/components/DragDrop.svelte';
+	import { imgCheck } from '$lib/tools/tools.js';
 	import {
 		ListPlus,
 		XCircle,
@@ -20,11 +23,10 @@
 		ToggleRight,
 		ToggleLeft
 	} from 'lucide-svelte';
-	import type { ActionResult } from '@sveltejs/kit';
 
-	let { data } = $props(); // pull data from server
+	const { data } = $props(); // pull data from server
 	const { getTable } = $derived(data); // deconstruct data from server
-	let tableList = $state(getTable);
+	let tableList = $state(getTable || []);
 
 	// filter
 	let prodId = $state(null);
@@ -152,8 +154,6 @@
 		currentModal = '';
 	};
 
-	
-
 	const formSubmit = () => {
 		return async ({ result }: { result: ActionResult }) => {
 			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
@@ -233,6 +233,8 @@
 		<!-- head -->
 		<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">
 			<tr class="">
+				<th>ID</th>
+				<th>Immagine</th>
 				<th>Status</th>
 				<th>Titolo</th>
 				<th>Prezzo</th>
@@ -249,6 +251,58 @@
 			{/if}
 			{#each tableList as row}
 				<tr class="hover:bg-gray-300">
+					<td>{row.prodId} <br /> {row.createdAt.substring(0, 10)}</td>
+					<td>
+						<!-- img start -->
+						{#if imgCheck.single(row.uploadfiles, 'product-primary') !== '/images/placeholder.jpg'}
+							<div class="card-body p-4">
+								<div class="flex items-center">
+									<figure class="flex-shrink-0">
+										<img
+											src={imgCheck.single(row.uploadfiles, 'product-primary')}
+											alt="product-primary"
+											class="object-cover rounded-md max-w-28 max-h-28 h-auto"
+										/>
+									</figure>
+									<form
+										method="POST"
+										action={`?/delProdPic`}
+										use:enhance={formSubmit}
+										class="ml-4 flex-shrink-0"
+									>
+										<input type="hidden" name="prodId" value={row.prodId} />
+										<input
+											type="hidden"
+											name="fileName"
+											value={imgCheck.fileName(row.uploadfiles, 'product-primary')}
+										/>
+										<button
+											class="btn btn-sm btn-error rounded-lg border-2"
+											type="submit"
+											aria-label="Delete image"
+										>
+											<Trash2 size="24" />
+										</button>
+									</form>
+								</div>
+							</div>
+						{:else}
+							<form
+								action={`?/setProdPic`}
+								method="POST"
+								enctype="multipart/form-data"
+								use:enhance={formSubmit}
+								class="card-body"
+							>
+								<input type="hidden" name="prodId" value={row.prodId} />
+								<DragDrop />
+								<button class="btn btn-sm btn-info rounded-lg border-2" type="submit">
+									Aggiungi foto
+								</button>
+							</form>
+						{/if}
+						<!-- img end -->
+					</td>
 					<td class="">
 						<form method="POST" action="?/changeStatus" use:enhance={formSubmit}>
 							<div>
@@ -305,7 +359,6 @@
 		</div>
 	{/if}
 </div>
-
 
 {#if currentModal == 'new'}
 	<Modal isOpen={openModal} header={modalTitle}>

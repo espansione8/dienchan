@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types'
 import { BASE_URL, APIKEY } from '$env/static/private';
-import { fail } from '@sveltejs/kit';
+import { fail, error } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
 const apiKey = APIKEY;
@@ -11,38 +11,36 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
 
 	let getTable = [];
+	const resFetch = await fetch(`${baseURL}/api/mongo/find`, {
+		method: 'POST',
+		body: JSON.stringify({
+			apiKey,
+			schema: 'product', //product | order | user | layout | discount
+			query: { type: 'membership' },//IF USE Products.model -> types: course / product / membership / event
+			projection: { _id: 0, password: 0 }, // 0: exclude | 1: include,
+			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+			limit: 1000,
+			skip: 0
+		}),
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	});
 	try {
-		const query = { type: 'membership' }; //IF USE Products.model -> types: course / product / membership / event
-		const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
-		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
-		const limit = 1000;
-		const skip = 0;
-		const res = await fetch(`${baseURL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey,
-				schema: 'product', //product | order | user | layout | discount
-				query,
-				projection,
-				sort,
-				limit,
-				skip
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		if (res.status != 200) {
-			console.error('product fetch failed', res.status, await res.text());
-			return
+		const res = await resFetch;
+		if (!res.ok) {
+			const errorText = await res.text();
+			console.error('products-table fetch failed', res.status, errorText);
+			throw error(400, { message: `Products fetch failed: ${errorText}` });
 		}
 		const response = await res.json();
 		getTable = response.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10)
 		}));
-	} catch (error) {
-		console.log('membershipfetch error:', error);
+	} catch (err) {
+		console.log('membershipfetch error:', err);
+		throw error(500, { message: `Products server failed: ${err}` });
 	}
 
 	// const user = locals.user
@@ -311,6 +309,142 @@ export const actions: Actions = {
 		} catch (error) {
 			console.error('Error changing status:', error);
 			return fail(400, { action: 'changeStatus', success: false, message: 'Errore changeStatus' });
+		}
+	},
+
+	setProdPic: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const prodId = formData.get('prodId');
+		const file = formData.get('fileUpload');
+		//console.log({ prodId, file });
+
+		if (!prodId || !file || !file.name) {
+			return fail(400, { action: 'setProdPic', success: false, message: 'File mancante' });
+		}
+
+		try {
+			const uploadImg = await fetch(`${BASE_URL}/api/uploads/files`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': file.type || 'application/octet-stream',
+					'x-file-name': file.name,
+					'x-folder-name': `product/${prodId}`
+				},
+				body: file
+			});
+
+			const query = { prodId, type: 'membership' }; // 'course', 'product', 'membership', 'event'
+			const update = {
+				$push: {
+					uploadfiles: [
+						{
+							_id: false,
+							type: 'product-primary', //'product-primary', 'product-gallery', 'membership', 'course'
+							fileType: file.type,
+							fileName: file.name,
+							fileUrl: `/files/product/${prodId}/${file.name}`
+						}
+					],
+				}
+			};
+			const options = {
+				upsert: false
+				// NOTES:
+				// arrayFilters: [
+				// 	{ "elem.type": "product-primary" } // Check array where 'type' === 'product-primary'
+				// ]
+			}
+			const multi = false
+			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'product', //product | order | user | layout | discount
+					query,
+					update,
+					options,
+					multi
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			//const response = await res.json();
+
+			const [resImg, response] = await Promise.all([
+				uploadImg,
+				res
+			])
+			console.log("resImg, response", resImg, response);
+
+			if (!uploadImg.ok) return { action: 'setProdPic', success: false, message: `resImg: ${await resImg.text()}` }
+
+			if (!res.ok) return { action: 'setProdPic', success: false, message: `response: ${await response.text()}` };
+
+			const resImgJson = await response.json();
+			return { action: 'setProdPic', success: true, message: await resImgJson.message };
+
+		} catch (err) {
+			console.error('Error upload:', err);
+			return { action: 'setProdPic', success: false, message: 'Errore upload' };
+		}
+	},
+
+	delProdPic: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const prodId = formData.get('prodId');
+		const fileName = formData.get('fileName');
+		//console.log('prod filename', prodId, fileName);
+
+		if (!prodId || !fileName) {
+			return fail(400, { action: 'delProdPic', success: false, message: 'Dati mancanti' });
+		}
+
+		try {
+			const responseDelete = await fetch(`${BASE_URL}/api/uploads/files`, {
+				method: 'DELETE',
+				body: JSON.stringify({
+					dir: `product/${prodId}`,
+					fileName
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			const resDel = await responseDelete.json();
+			if (responseDelete.status != 200) return { action: 'delProdPic', success: false, message: resDel.message };
+
+			const query = { prodId, type: 'membership' }; // 'course', 'product', 'membership', 'event'
+			const update = {
+				$pull:
+					{ uploadfiles: { type: 'product-primary', fileName: fileName } }
+
+			};
+			const options = { upsert: false }
+			const multi = false
+			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'product', //product | order | user | layout | discount
+					query,
+					update,
+					options,
+					multi
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (!res.ok) return { action: 'delProdPic', success: false, message: `res: ${await res.text()}` };
+			const response = await res.json();
+
+			return { action: 'delProdPic', success: true, message: response.message };
+
+		} catch (error) {
+			console.error('Error delProdPic:', error);
+			return { action: 'delProdPic', success: false, message: 'Errore rimozione' };
 		}
 	},
 } satisfies Actions;

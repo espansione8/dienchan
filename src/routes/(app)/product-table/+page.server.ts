@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types'
 import { BASE_URL, APIKEY } from '$env/static/private';
-import { fail } from '@sveltejs/kit';
+import { fail, error } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
 import type { Product } from '$lib/types';
@@ -11,33 +11,35 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 
 	let getTable: Product[] = [];
 	//let categories: string[] = [];
+	const resFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+		method: 'POST',
+		body: JSON.stringify({
+			apiKey: APIKEY,
+			schema: 'product', //product | order | user | layout | discount
+			query: { type: 'product' },//types: course / product / membership / event
+			projection: { _id: 0, password: 0 }, // 0: exclude | 1: include
+			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+			limit: 1000,
+			skip: 0
+		}),
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	});
+
 	try {
-		// NEW GET PROD
-		const query: any = { type: 'product' }; //types: course / product / membership / event
-		const projection: any = { _id: 0, password: 0 } // 0: exclude | 1: include
-		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
-		const limit = 1000;
-		const skip = 0;
-		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'product', //product | order | user | layout | discount
-				query,
-				projection,
-				sort,
-				limit,
-				skip
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
+		const res = await resFetch;
+		if (!res.ok) {
+			const errorText = await res.text();
+			console.error('products-table fetch failed', res.status, errorText);
+			throw error(400, { message: `Products fetch failed: ${errorText}` });
+		}
 		getTable = await res.json();
 		//categories = [...new Set(getTable.flatMap((item: any) => item.category))] as string[];
 
-	} catch (error) {
-		console.log('products-table fetch error:', error);
+	} catch (err) {
+		console.log('products-table fetch error:', err);
+		throw error(500, { message: `Products server failed: ${err}` });
 	}
 
 	return {
@@ -299,7 +301,8 @@ export const actions: Actions = {
 			const uploadImg = await fetch(`${BASE_URL}/api/uploads/files`, {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json',
+					//'Content-Type': 'application/json',
+					'Content-Type': file.type || 'application/octet-stream',
 					'x-file-name': file.name,
 					'x-folder-name': `product/${prodId}`
 				},
@@ -350,16 +353,15 @@ export const actions: Actions = {
 				await res.json()
 			])
 
-			if (uploadImg.status != 200) return { action: 'setProdPic', success: false, message: resImg.message }
+			if (!uploadImg.ok) return { action: 'setProdPic', success: false, message: resImg.message }
 
-			if (res.status == 200) {
-				return { action: 'setProdPic', success: true, message: response.message };
-			} else {
-				return { action: 'setProdPic', success: false, message: response.message };
-			}
-		} catch (error) {
-			console.error('Error upload:', error);
-			return { action: 'setProdPic', success: false, message: 'Errore upload' };
+			if (!res.ok) return { action: 'setProdPic', success: false, message: response.message };
+
+			return { action: 'setProdPic', success: true, message: response.message };
+
+		} catch (err) {
+			console.error('Error upload:', err);
+			return { action: 'setProdPic', success: false, message: 'Errore server upload' };
 		}
 	},
 
@@ -367,7 +369,7 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');
 		const fileName = formData.get('fileName');
-		console.log('prod filename', prodId, fileName);
+		//console.log('prod filename', prodId, fileName);
 
 		if (!prodId || !fileName) {
 			return fail(400, { action: 'delProdPic', success: false, message: 'Dati mancanti' });
@@ -410,13 +412,11 @@ export const actions: Actions = {
 				}
 			});
 
+			if (!res.ok) return { action: 'delProdPic', success: false, message: `res: ${await res.text()}` };
 			const response = await res.json();
 
-			if (res.status == 200) {
-				return { action: 'delProdPic', success: true, message: response.message };
-			} else {
-				return { action: 'delProdPic', success: false, message: response.message };
-			}
+			return { action: 'delProdPic', success: true, message: response.message };
+
 		} catch (error) {
 			console.error('Error delProdPic:', error);
 			return { action: 'delProdPic', success: false, message: 'Errore rimozione' };

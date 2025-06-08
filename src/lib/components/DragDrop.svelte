@@ -72,7 +72,7 @@
 <div class="form-control w-full cursor-pointer">
 	<div
 		role="region"
-		class="form-control w-full relative h-48 rounded-lg border-2 transition-colors duration-200 {isDragging
+		class="form-control w-full relative h-30 rounded-lg border-2 transition-colors duration-200 {isDragging
 			? 'border-green-500 bg-green-50'
 			: 'border-dashed border-blue-700 bg-gray-100 hover:border-blue-500 hover:bg-gray-50'} flex justify-center items-center"
 		ondragenter={handleDragEnter}
@@ -83,7 +83,7 @@
 		<!-- <label class="form-control w-full h-full" for={inputName}> -->
 		{#if previewUrl}
 			<div class="flex flex-col items-center justify-center">
-				<img src={previewUrl} alt="Upload Preview" class="mt-2 max-h-32" />
+				<img src={previewUrl} alt="Upload Preview" class="mt-2 max-h-12" />
 				<button
 					class="btn btn-error btn-sm mt-4 mb-1 z-10"
 					type="button"
@@ -102,9 +102,7 @@
 				<div class="flex flex-col items-center absolute inset-0 justify-center pointer-events-none">
 					<FolderOpen size={64} class={isDragging ? 'text-green-500' : 'text-blue-700'} />
 					<span class="block text-gray-600 font-normal text-center px-4">
-						{isDragging
-							? 'Rilascia il file qui'
-							: 'Drag & Drop oppure clicca per scegliere un file'}
+						{isDragging ? 'Rilascia il file qui' : 'Drag & Drop oppure Click'}
 					</span>
 				</div>
 			</label>

@@ -27,8 +27,8 @@
 		Pen
 	} from 'lucide-svelte';
 
-	let { data } = $props();
-	let { getTable } = $derived(data);
+	const { data } = $props();
+	const { getTable } = $derived(data);
 	let tableList: Product[] = $state(getTable || []);
 
 	// modal
@@ -38,6 +38,7 @@
 	let postAction = $state('?/');
 	let resetActive = $state(false);
 	let loading = $state(false);
+
 	//filter
 	let title = $state('');
 	let descrShort = $state('');
@@ -190,25 +191,6 @@
 			loading = false;
 		};
 	};
-
-	// $effect(() => {
-	// 	if (form != null) {
-	// 		async () => await invalidateAll(); // MUST be async/await or tableList = getTable will trigger infinite loop
-	// 		const { action, success, message, filterTableList } = form;
-	// 		if (success) {
-	// 			currentModal = '';
-	// 			if (action == 'filter') {
-	// 				resetActive = true;
-	// 				tableList = filterTableList;
-	// 			} else {
-	// 				resetActive = false;
-	// 				tableList = getTable;
-	// 			}
-	// 		} else {
-	// 		}
-	// 		resetFields();
-	// 	}
-	// }); // end effect
 </script>
 
 <svelte:head>
@@ -269,6 +251,9 @@
 		</thead>
 
 		<tbody class="">
+			{#if tableList.length == 0}
+				<tr class="hover:bg-gray-300"><td> no data</td></tr>
+			{/if}
 			{#each tableList as row}
 				<tr class="hover:bg-gray-100">
 					<td>{row.prodId} <br /> {row.createdAt.substring(0, 10)}</td>
@@ -281,7 +266,7 @@
 										<img
 											src={imgCheck.single(row.uploadfiles, 'product-primary')}
 											alt="product-primary"
-											class="object-cover rounded-md max-w-36 max-h-36 h-auto"
+											class="object-cover rounded-md max-w-28 max-h-28 h-auto"
 										/>
 									</figure>
 									<form
