@@ -411,7 +411,7 @@ export const POST: RequestHandler = async ({ request }) => {
 															<h4 style="margin-top: 2em; color: #000;">Riepilogo del tuo ordine:</h4>
 															<ul style="list-style: none; padding: 0; margin: 1em 0;">
 																<li style="margin-bottom: 0.5em;"><strong>Numero d'ordine:</strong> #${orderId}</li>
-																<li style="margin-bottom: 0.5em;"><strong>Data dell'ordine:</strong> ${createdAt}</li>
+																<li style="margin-bottom: 0.5em;"><strong>Data dell'ordine:</strong> ${createdAt.substring(0,10)}</li>
 																<li style="margin-bottom: 0.5em;"><strong>Totale ordine:</strong> ${totalValue.toFixed(2)}€</li><li style="margin-bottom: 0.5em;"><strong>Metodo di pagamento:</strong> ${payment.method}</li>
 															</ul>
 
