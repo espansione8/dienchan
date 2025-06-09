@@ -195,7 +195,7 @@ export const actions: Actions = {
 				query: { type: 'course', prodId: cartItem.prodId }, // 'course', 'product', 'membership', 'event',
 				update: {
 					$push: {
-						listSubscribers: { userId: currentUserId, email, name, surname, city, phone, mobilePhone }
+						listSubscribers: { userId: currentUserId, email, name, surname, phone, mobilePhone }
 					}
 				},
 				options: { upsert: false },
@@ -217,9 +217,6 @@ export const actions: Actions = {
 				'Content-Type': 'application/json'
 			}
 		});
-
-
-
 
 		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || !cart || !cartItem) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
@@ -413,10 +410,9 @@ export const actions: Actions = {
 			}
 			console.log('cart', cart);
 
-			// Recalculate to prevent client-side manipulation
+			// TODO??? Recalculate to prevent client-side manipulation
 
 			// Cart order
-
 			const orderId = nanoid()
 			const orderCode = crypto.randomUUID()
 			const res = await fetch(`${BASE_URL}/api/mongo/create`, {

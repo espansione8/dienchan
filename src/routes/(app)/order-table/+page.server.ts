@@ -3,7 +3,6 @@ import { BASE_URL, APIKEY } from '$env/static/private';
 import { fail, error } from '@sveltejs/kit';
 import { pageAuth } from '$lib/pageAuth';
 
-
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
 
@@ -83,7 +82,6 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	};
 }
 
-
 export const actions: Actions = {
 	modify: async ({ request, fetch }) => {
 		const formData = await request.formData();
@@ -101,6 +99,7 @@ export const actions: Actions = {
 		const paymentMethod = formData.get('paymentMethod');
 		const status = formData.get('status');
 		const statusPayment = formData.get('statusPayment');
+		console.log('status', status);
 
 		if (!orderId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
@@ -139,12 +138,15 @@ export const actions: Actions = {
 
 		try {
 			const res = await resFetch;
+			console.log('res', res);
+
 			if (!res.ok) {
 				const errorText = await res.text();
 				console.error('order update failed', res.status, errorText);
 				return fail(400, { action: 'modify', success: false, message: errorText });
 			}
 			const result = await res.json();
+			console.log('result', result);
 
 			return { action: 'modify', success: true, message: result.message };
 

@@ -153,10 +153,8 @@ const productSchema = new Schema(
                 name: { type: String, default: '' },
                 surname: { type: String, default: '' },
                 email: { type: String, default: '' },
-                city: { type: String, default: '' },
                 phone: { type: String, default: '' },
                 mobilePhone: { type: String, default: '' },
-                confirmDate: { type: Date, default: Date.now }
             }
         ],
         filterPermissionToSee: [],

@@ -56,7 +56,7 @@
 		country: userData?.country || 'Italy',
 		phone: userData?.phone || '',
 		mobilePhone: userData?.mobilePhone || '',
-		paymentType: 'bonifico',
+		paymentType: 'Bonifico bancario bancario',
 		orderNotes: ''
 	});
 
@@ -195,7 +195,7 @@
 			formData.country = 'Italy';
 			formData.phone = '';
 			formData.mobilePhone = '';
-			formData.paymentType = 'bonifico';
+			formData.paymentType = 'Bonifico bancario bancario';
 		}
 		modalTitle = '';
 		postAction = '?/';
@@ -714,18 +714,18 @@
 								<div class="form-control w-full">
 									<label
 										class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
-										class:border-primary={formData.paymentType === 'bonifico'}
-										class:bg-base-200={formData.paymentType === 'bonifico'}
+										class:border-primary={formData.paymentType === 'Bonifico bancario'}
+										class:bg-base-200={formData.paymentType === 'Bonifico bancario'}
 									>
 										<input
 											type="radio"
 											name="payment"
-											value="bonifico"
+											value="Bonifico bancario"
 											class="hidden"
 											bind:group={formData.paymentType}
 										/>
 										<Landmark class="h-8 w-8 text-primary" />
-										<span class="text-center font-medium">Bonifico Bancario</span>
+										<span class="text-center font-medium">Bonifico bancario</span>
 									</label>
 								</div>
 								<div class="form-control w-full">
@@ -978,18 +978,18 @@
 					<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 						<label
 							class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
-							class:border-primary={formData.paymentType === 'bonifico'}
-							class:bg-base-200={formData.paymentType === 'bonifico'}
+							class:border-primary={formData.paymentType === 'Bonifico bancario'}
+							class:bg-base-200={formData.paymentType === 'Bonifico bancario'}
 						>
 							<input
 								type="radio"
 								name="payment"
-								value="bonifico"
+								value="Bonifico bancario"
 								class="hidden"
 								bind:group={formData.paymentType}
 							/>
 							<Landmark class="h-8 w-8 text-primary" />
-							<span class="text-center font-medium">Bonifico Bancario</span>
+							<span class="text-center font-medium">Bonifico bancario Bancario</span>
 						</label>
 
 						<label

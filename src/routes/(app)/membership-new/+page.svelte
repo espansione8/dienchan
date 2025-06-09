@@ -1789,18 +1789,18 @@
 					<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
 						<label
 							class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-blue-50"
-							class:bg-blue-100={payment === 'bonifico'}
+							class:bg-blue-100={payment === 'Bonifico bancario'}
 						>
 							<input
 								type="radio"
 								name="radio-payment"
 								class="radio radio-primary"
 								bind:group={payment}
-								value={'bonifico'}
+								value={'Bonifico bancario'}
 							/>
 							<div>
 								<CreditCard size={18} class="inline-block mr-2" />
-								<span>Bonifico</span>
+								<span>Bonifico bancario</span>
 								<p class="text-xs text-gray-500">IBAN: 1548416800005462</p>
 							</div>
 						</label>

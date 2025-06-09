@@ -6,7 +6,7 @@
 	import { notification } from '$lib/stores/notifications';
 	import { province, months, days, hours, minutes } from '$lib/stores/arrays';
 	import Modal from '$lib/components/Modal.svelte';
-	import { membershipKeysToDelete } from '$lib/stores/arrays';
+	import { courseKeysToDelete } from '$lib/stores/arrays';
 	import Loader from '$lib/components/Loader.svelte';
 	import {
 		Funnel,
@@ -23,7 +23,8 @@
 		Settings,
 		RefreshCcw,
 		FileDown,
-		ShieldAlert
+		ShieldAlert,
+		UserRoundCheck
 	} from 'lucide-svelte';
 
 	const { data } = $props();
@@ -61,6 +62,7 @@
 	let startMinute = $state('00');
 	let mode = $state('ONLINE');
 	let provinceArray = $state([]);
+	let subscribers = $state([]);
 	// filter Data
 	let sortDirection = $state('asc');
 	let sortColumn = $state('createdAt');
@@ -109,11 +111,33 @@
 		let csv = $state('');
 		let newList: any = $state();
 
+		// const flattenObject = (obj: any, prefix = '') => {
+		// 	return Object.keys(obj).reduce((acc, k) => {
+		// 		const pre = prefix.length ? prefix + '_' : '';
+		// 		if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
+		// 			Object.assign(acc, flattenObject(obj[k], pre + k));
+		// 		} else {
+		// 			acc[pre + k] = obj[k];
+		// 		}
+		// 		return acc;
+		// 	}, {});
+		// };
+
 		const flattenObject = (obj: any, prefix = '') => {
 			return Object.keys(obj).reduce((acc, k) => {
 				const pre = prefix.length ? prefix + '_' : '';
 				if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
 					Object.assign(acc, flattenObject(obj[k], pre + k));
+				} else if (Array.isArray(obj[k])) {
+					acc[pre + k] = obj[k]
+						.map((item: any) => {
+							if (typeof item === 'object') {
+								return Object.values(item).join(', ');
+							} else {
+								return item;
+							}
+						})
+						.join(', ');
 				} else {
 					acc[pre + k] = obj[k];
 				}
@@ -132,7 +156,7 @@
 		}));
 
 		newList.forEach((obj: any) => {
-			$membershipKeysToDelete.forEach((key: string) => delete (obj as any)[key]);
+			$courseKeysToDelete.forEach((key: string) => delete (obj as any)[key]);
 		});
 		//console.log('newList check', newList);
 
@@ -301,6 +325,10 @@
 			layoutId = '';
 			userId = '';
 		}
+		if (type == 'subscribers') {
+			modalTitle = 'Lista iscritti';
+			subscribers = item;
+		}
 	};
 
 	const onCloseModal = () => {
@@ -390,12 +418,14 @@
 			<!-- head -->
 			<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">
 				<tr class="">
+					<th>ID</th>
 					<th>Data inserimento</th>
 					<th>Riflessologo</th>
 					<th>Titolo</th>
 					<th>Data</th>
 					<th>Luogo</th>
 					<th>Prezzo</th>
+					<th>Adesioni</th>
 					<th>Azioni</th>
 				</tr>
 			</thead>
@@ -409,26 +439,35 @@
 				{:else}
 					{#each tableList as row}
 						<tr class="hover:bg-gray-300">
-							<!-- Data inserimento -->
+							<td>{row.prodId}</td>
+
 							<td>{row.createdAt}</td>
-							<!-- Nome Cognome Riflessologo -->
+
 							<td>{row.name} {row.surname}</td>
-							<!-- Email Riflessologo -->
-							<!-- <td>{row.notificationEmail[0]}</td> -->
-							<!-- Titolo -->
+
 							<td>{row.layoutView?.title}</td>
-							<!-- Data -->
+
 							<td>{row.eventStartDate?.substring(0, 10)}</td>
-							<!-- <td>{row.eventStartDate}</td> -->
-							<!-- Luogo -->
+
 							<td>
 								<p class="card-text">
 									{row.county}
 								</p>
 							</td>
-							<!-- Prezzo -->
+
 							<td>{row.layoutView.price} €</td>
-							<!-- Azione -->
+
+							<td>
+								<button
+									class="btn"
+									onclick={() => onClickModal('subscribers', row.listSubscribers)}
+									disabled={row.listSubscribers.length == 0}
+								>
+									<UserRoundCheck />
+									{row.listSubscribers.length}
+								</button>
+							</td>
+
 							<td class="flex items-center space-x-4">
 								<button class="btn btn-sm" onclick={() => onClickModal('modify', row)}
 									><Settings />
@@ -1071,6 +1110,42 @@
 					</button>
 				</div>
 			</form>
+		{/if}
+	</Modal>
+{/if}
+
+{#if currentModal == 'subscribers'}
+	<Modal isOpen={openModal} header={modalTitle}>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+			>✕</button
+		>
+		{#if loading}
+			<Loader />
+		{:else}
+			<div
+				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+			>
+				{#each subscribers as item}
+					<div
+						class="col-span-4
+                           p-4
+                           rounded-box
+                           shadow-md
+                           bg-base-200
+                           flex flex-wrap
+                           gap-x-6 gap-y-2
+                           items-center
+                           justify-between
+                           "
+					>
+						<span class="font-bold text-lg text-primary">{item.name} {item.surname}</span>
+						<span class="text-info-content break-words">{item.email}</span>
+						<span class="text-sm text-base-content">{item.phone}</span>
+						<span class="text-sm text-base-content">{item.mobilePhone}</span>
+						<span class="text-sm text-base-content">{item.city}</span>
+					</div>
+				{/each}
+			</div>
 		{/if}
 	</Modal>
 {/if}

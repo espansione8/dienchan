@@ -24,8 +24,6 @@
 	const setSelectedImage = (index) => {
 		selectedImage = index;
 	};
-
-	
 </script>
 
 <svelte:head>
@@ -155,7 +153,9 @@
 					<CircleCheck size="20" />
 					<div>
 						<h3 class="font-bold">Spedizioni gratuite per ordini superiori a € 100</h3>
-						<div class="text-xs">Ordini saranno evasi ogni settimana il Lunedi e Giovedi</div>
+						<div class="text-xs">
+							Ordini saranno evasi ogni settimana nei giorni lavorativi il Lunedi e Giovedi.
+						</div>
 					</div>
 				</div>
 			</div>
@@ -183,7 +183,7 @@
 					class="tab {activeTab === 'usage' ? 'text-primary font-bold tab-active' : ''}"
 					onclick={() => setActiveTab('usage')}
 				>
-					Trasporto
+					Extra
 				</button>
 			</div>
 
@@ -202,20 +202,18 @@
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
 							<div class="card bg-base-200">
 								<div class="card-body">
-									<h3 class="card-title text-primary">title</h3>
+									<h3 class="card-title text-primary">Evasione Ordini</h3>
 									<p>
-										Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque in lacus nisi.
-										Morbi ac finibus ante. Sed in magna et urna aliquet rhoncus. Interdum et
-										malesuada fames ac ante ipsum primis in faucibus.
+										Gli ordini vengono evasi il successivo giorno lavorativo rispetto alla data di
+										ricezione, se effettuati entro la sera
 									</p>
 								</div>
 							</div>
 							<div class="card bg-base-200">
 								<div class="card-body">
-									<h3 class="card-title text-primary">title</h3>
+									<h3 class="card-title text-primary">Vettore</h3>
 									<p>
-										Integer ipsum augue, ullamcorper et tortor sit amet, fermentum dapibus est.
-										Praesent laoreet neque sit amet felis tincidunt malesuada.
+										Il corriere utilizzato per spedire la merce è <b>BRT</b>.
 									</p>
 								</div>
 							</div>

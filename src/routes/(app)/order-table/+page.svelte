@@ -275,11 +275,24 @@
 					<td>€ {row.totalValue.toFixed(2)}</td>
 					<!-- Tipo pagamento -->
 					<td>
-						{row.payment.method} / {row.payment.statusPayment}
+						{row.payment.method} /
+						{#if row.payment.statusPayment === 'pending'}
+							<span class="badge badge-warning">{row.payment.statusPayment}</span>
+						{:else if row.payment.statusPayment === 'done'}
+							<span class="badge badge-success">{row.payment.statusPayment}</span>
+						{:else}
+							<span class="badge badge-error">{row.payment.statusPayment}</span>
+						{/if}
 					</td>
 					<!-- Status -->
 					<td>
-						{row.status}
+						{#if row.status === 'requested'}
+							<span class="badge badge-warning">{row.status}</span>
+						{:else if row.status === 'confirmed'}
+							<span class="badge badge-success">{row.status}</span>
+						{:else}
+							<span class="badge badge-error">{row.status}</span>
+						{/if}
 					</td>
 					<!-- Azione -->
 					<td class="flex items-center space-x-4">
@@ -462,9 +475,9 @@
 							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 						>
 							<option value="">Scegli un metodo</option>
-							<option value="bonifico">Bonifico</option>
-							<option value="paypal">Paypal</option>
-							<option value="contanti">Contanti</option>
+							<option value="Bonifico bancario">Bonifico</option>
+							<option value="Carta di credito">Carta di credito</option>
+							<option value="Contanti">Contanti</option>
 						</select>
 					</div>
 					<div class="w-full md:w-1/2 px-2 mb-4">
@@ -474,23 +487,23 @@
 						<select
 							id="status"
 							name="status"
-							bind:value={status}
+							value={orderDetail.status}
 							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 						>
 							<option value="">Scegli uno status</option>
 							<option value="requested">Richiesta in corso</option>
 							<option value="confirmed">Confermato</option>
 							<option value="cancelled">Cancellato</option>
-							<option value="exported">esportato</option>
+							<!-- <option value="exported">Esportato</option> -->
 						</select>
 					</div>
 					<div class="w-full md:w-1/2 px-2 mb-4">
-						<label for="status" class="block text-sm font-medium text-gray-700 mb-1"
+						<label for="statusPayment" class="block text-sm font-medium text-gray-700 mb-1"
 							>Stato pagamento</label
 						>
 						<select
-							id="status"
-							name="status"
+							id="statusPayment"
+							name="statusPayment"
 							value={orderDetail.payment.statusPayment}
 							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 						>
@@ -673,12 +686,12 @@
 						</select>
 					</div>
 					<div class="w-full md:w-1/2 px-2 mb-4">
-						<label for="status" class="block text-sm font-medium text-gray-700 mb-1"
+						<label for="statusPayment" class="block text-sm font-medium text-gray-700 mb-1"
 							>Stato pagamento</label
 						>
 						<select
-							id="status"
-							name="status"
+							id="statusPayment"
+							name="statusPayment"
 							bind:value={statusPayment}
 							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 						>

@@ -261,7 +261,7 @@ export const POST: RequestHandler = async ({ request }) => {
 							}
 
 							.hero .text {
-								color: rgba(0, 0, 0, 0.3);
+								color: rgba(0, 0, 0, 0.8);
 							}
 							.hero .text h2 {
 								color: #000;
@@ -396,8 +396,8 @@ export const POST: RequestHandler = async ({ request }) => {
 												<tr>
 													<td style="padding: 0 2.5em; text-align: center; padding-bottom: 3em">
 														<div class="text">
-															<h2>Il tuo Ordine ${orderId} è Confermato! 🎉</h2>
-															<h4>Ciao ${name} ${surname},</h4>
+															<h2>Ciao ${name} ${surname},</h2>
+															<h4>Il tuo Ordine ${orderId} è Confermato! 🎉</h4>
 															<p>
 																Grazie mille per il tuo recente acquisto su Riflessologia Dienchan! Siamo
 																felici che tu abbia scelto noi.
@@ -411,7 +411,7 @@ export const POST: RequestHandler = async ({ request }) => {
 															<h4 style="margin-top: 2em; color: #000;">Riepilogo del tuo ordine:</h4>
 															<ul style="list-style: none; padding: 0; margin: 1em 0;">
 																<li style="margin-bottom: 0.5em;"><strong>Numero d'ordine:</strong> #${orderId}</li>
-																<li style="margin-bottom: 0.5em;"><strong>Data dell'ordine:</strong> ${createdAt.substring(0,10)}</li>
+																<li style="margin-bottom: 0.5em;"><strong>Data dell'ordine:</strong> ${createdAt.substring(0, 10)}</li>
 																<li style="margin-bottom: 0.5em;"><strong>Totale ordine:</strong> ${totalValue.toFixed(2)}€</li><li style="margin-bottom: 0.5em;"><strong>Metodo di pagamento:</strong> ${payment.method}</li>
 															</ul>
 
@@ -454,6 +454,14 @@ export const POST: RequestHandler = async ({ request }) => {
 
 															<h4 style="margin-top: 2em; color: #000;">Metodo di pagamento:</h4>
 															<p style="margin-top: 0.5em;">${payment.method}</p>
+															${payment.method === 'Bonifico bancario' ?
+						`<p style="margin-top: 0.5em;">L'evasione dell'ordine verrà effettuata dopo la ricezione del pagamento a queste COORDINATE BANCARIE <br />
+																	IBAN: IT93 R076 0111 5000 0102 3646 647 <br />
+																	BIC/SWIFT: BPPIITRRXXX <br />
+																	INTESTATO A: ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia <br />
+																	VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA <br />
+																</p>`
+						: ''}
 
 															<p style="margin-top: 2em;">
 																Puoi visualizzare i dettagli completi del tuo ordine in qualsiasi momento

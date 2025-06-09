@@ -82,7 +82,7 @@ const orderSchema = new Schema(
 		},
 
 		payment: {
-			method: { type: String, default: '' },
+			method: { type: String, default: '' }, // 'Bonifico bancario' 'Contanti' 'Carta di credito'
 			statusPayment: {
 				type: String,
 				enum: ['pending', 'done', 'canceled'],
