@@ -29,7 +29,7 @@ export const handle: Handle = async ({ event, resolve, }) => {
 			}
 		});
 
-		const updateFetch = (id) => fetch(`${BASE_URL}/api/mongo/update`, {
+		const updateFetch = (id: string) => fetch(`${BASE_URL}/api/mongo/update`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,

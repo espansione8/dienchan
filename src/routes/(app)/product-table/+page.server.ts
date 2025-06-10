@@ -55,6 +55,7 @@ export const actions: Actions = {
 		//const prodId = stringHash(crypto.randomUUID());
 		const title = formData.get('title') || '';
 		const descrShort = formData.get('descrShort') || '';
+		const descrLong = formData.get('descrLong') || '';
 		const stockQty = formData.get('stockQty');
 		const category = formData.get('category') || '';
 		const weight = formData.get('weight');
@@ -64,13 +65,14 @@ export const actions: Actions = {
 			prodId,
 			title,
 			descrShort,
+			descrLong,
 			stockQty,
 			weight,
 			category: [category],
 			price,
 		};
 
-		if (!title || !descrShort || !stockQty || !price || !weight) {
+		if (!title || !stockQty || !price) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
 
@@ -109,6 +111,7 @@ export const actions: Actions = {
 		const prodId = formData.get('prodId');
 		const title = formData.get('title') || '';
 		const descrShort = formData.get('descrShort') || '';
+		const descrLong = formData.get('descrLong') || '';
 		const stockQty = formData.get('stockQty');
 		const price = formData.get('price');
 		const weight = formData.get('weight');
@@ -128,6 +131,7 @@ export const actions: Actions = {
 					$set: {
 						title,
 						descrShort,
+						descrLong,
 						stockQty,
 						price,
 						weight,

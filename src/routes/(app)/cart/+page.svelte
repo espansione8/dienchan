@@ -56,7 +56,7 @@
 		country: userData?.country || 'Italy',
 		phone: userData?.phone || '',
 		mobilePhone: userData?.mobilePhone || '',
-		paymentType: 'Bonifico bancario bancario',
+		paymentType: 'Bonifico bancario',
 		orderNotes: ''
 	});
 
@@ -72,10 +72,6 @@
 	let modalTitle = $state('');
 	let postAction = $state('?/');
 	let loading = $state(false);
-
-	let isModalConfirm = $state(false);
-	let isModalSuccess = $state(false);
-	let isModalSuccessLogin = $state(false);
 
 	// cart
 	let cart = $state($cartProducts);
@@ -111,49 +107,6 @@
 	const testSecondPass = () => {
 		checkSecondPass = password1 === password2;
 	};
-
-	// const onConfirmCart = async () => {
-	// 	error = '';
-	// 	let path = `${BASE_URL}/api/orders/purchase-first`;
-	// 	if (auth) path = `${BASE_URL}/api/orders/purchase`;
-
-	// 	const response = await fetch(path, {
-	// 		method: 'POST',
-	// 		body: JSON.stringify({
-	// 			name: formData.name,
-	// 			surname: formData.surname,
-	// 			email: formData.email,
-	// 			address: formData.address,
-	// 			city: formData.city,
-	// 			county: formData.county,
-	// 			postalCode: formData.postalCode,
-	// 			country: formData.country,
-	// 			phone: formData.phone,
-	// 			mobilePhone: formData.mobilePhone,
-	// 			password1, //  only registration
-	// 			paymentType: formData.paymentType,
-	// 			cart: $cartProducts,
-	// 			userId: userData.userId
-	// 		}),
-	// 		headers: {
-	// 			'Content-Type': 'application/json'
-	// 		}
-	// 	});
-	// 	const res = await response.json();
-
-	// 	if (response.status == 200) {
-	// 		isModalConfirm = false;
-	// 		notification.success(res.message);
-	// 		if (auth) {
-	// 			isModalSuccess = true;
-	// 		} else {
-	// 			isModalSuccessLogin = true;
-	// 		}
-	// 	}
-	// 	if (response.status != 200) {
-	// 		notification.error(res.message);
-	// 	}
-	// };
 
 	const onRemoveFromCart = (item: any) => {
 		removeFromCart($cartProducts, item);

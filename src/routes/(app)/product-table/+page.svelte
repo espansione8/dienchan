@@ -42,6 +42,7 @@
 	//filter
 	let title = $state('');
 	let descrShort = $state('');
+	let descrLong = $state('');
 	let stockQty = $state(0);
 	let category = $state('');
 	let price = $state(0);
@@ -108,6 +109,7 @@
 	const resetFields = () => {
 		title = '';
 		descrShort = '';
+		descrLong = '';
 		stockQty = 0;
 		category = '';
 		price = 0;
@@ -134,6 +136,7 @@
 			prodId = item.prodId;
 			title = item.title;
 			descrShort = item.descrShort;
+			descrLong = item.descrLong;
 			stockQty = item.stockQty;
 			price = item.price;
 			weight = item.weight;
@@ -256,7 +259,7 @@
 			{/if}
 			{#each tableList as row}
 				<tr class="hover:bg-gray-100">
-					<td>{row.prodId} <br /> {row.createdAt.substring(0, 10)}</td>
+					<td>{row.prodId} <br /> {row.createdAt?.substring(0, 10) || ''}</td>
 					<td>
 						<!-- img start -->
 						{#if imgCheck.single(row.uploadfiles, 'product-primary') !== '/images/placeholder.jpg'}
@@ -384,19 +387,37 @@
 					</div>
 				</section>
 				<section class="col-span-4">
-					<label for="descrizione" class="form-label">
-						<p class="font-bold mb-2">Descrizione</p>
+					<label for="descrShort" class="form-label">
+						<p class="font-bold mb-2">Descrizione Breve</p>
 					</label>
 					<div class="join join-horizontal rounded-md w-full">
 						<button class="join-item bg-gray-300 px-3"><Pen /></button>
 						<textarea
 							class="textarea textarea-bordered h-24 join-item w-full"
-							id="descrizione"
+							id="descrShort"
 							name="descrShort"
-							placeholder="Descrizione"
-							aria-label="descrizione"
-							aria-describedby="basic-descrizione"
+							placeholder="Testo Descrizione Breve"
+							aria-label="descrShort"
+							aria-describedby="basic-descrShort"
 							bind:value={descrShort}
+							required
+						></textarea>
+					</div>
+				</section>
+				<section class="col-span-4">
+					<label for="descrLong" class="form-label">
+						<p class="font-bold mb-2">Descrizione Completa</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button class="join-item bg-gray-300 px-3"><Pen /></button>
+						<textarea
+							class="textarea textarea-bordered h-24 join-item w-full"
+							id="descrLong"
+							name="descrLong"
+							placeholder="Testo Descrizione Completa"
+							aria-label="descrizione"
+							aria-describedby="basic-descrLong"
+							bind:value={descrLong}
 							required
 						></textarea>
 					</div>
@@ -480,11 +501,16 @@
 							required
 						>
 							<option disabled value="">Scegli</option>
-							<option value="Strumenti">Strumenti</option>
+							<option value="Alimentazione & Benessere">Alimentazione & Benessere</option>
+							<option value="Altri attrezzi e Accessori">Altri attrezzi e Accessori</option>
+							<option value="Cercapunti">Cercapunti</option>
+							<option value="Creme & Co.">Creme & Co.</option>
+							<option value="Martelli">Martelli</option>
 							<option value="Materiale didattico">Materiale didattico</option>
-							<option value="Infusi & Integratori">Infusi & Integratori</option>
-							<option value="Merchandising">Merchandising</option>
-							<option value="Altro">Altro</option>
+							<option value="Pettini">Pettini</option>
+							<option value="Rulli">Rulli</option>
+							<option value="Vietmassage">Vietmassage</option>
+							<option value="Senza Categoria">Senza Categoria</option>
 						</select>
 					</div>
 				</section>
@@ -539,19 +565,37 @@
 					</div>
 				</section>
 				<section class="col-span-4">
-					<label for="descrizione" class="form-label">
-						<p class="font-bold mb-2">Descrizione</p>
+					<label for="descrShort" class="form-label">
+						<p class="font-bold mb-2">Descrizione Breve</p>
 					</label>
 					<div class="join join-horizontal rounded-md w-full">
 						<button class="join-item bg-gray-300 px-3"><Pen /></button>
 						<textarea
 							class="textarea textarea-bordered h-24 join-item w-full"
-							id="descrizione"
+							id="descrShort"
 							name="descrShort"
-							placeholder="Descrizione"
-							aria-label="descrizione"
-							aria-describedby="basic-descrizione"
+							placeholder="Descrizione Breve"
+							aria-label="descrShort"
+							aria-describedby="basic-descrShort"
 							bind:value={descrShort}
+							required
+						></textarea>
+					</div>
+				</section>
+				<section class="col-span-4">
+					<label for="descrLong" class="form-label">
+						<p class="font-bold mb-2">Descrizione Completa</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button class="join-item bg-gray-300 px-3"><Pen /></button>
+						<textarea
+							class="textarea textarea-bordered h-24 join-item w-full"
+							id="descrLong"
+							name="descrLong"
+							placeholder="Descrizione Completa"
+							aria-label="descrLong"
+							aria-describedby="basic-descrLong"
+							bind:value={descrLong}
 							required
 						></textarea>
 					</div>
@@ -635,11 +679,16 @@
 							required
 						>
 							<option disabled value="">Scegli</option>
-							<option value="Strumenti">Strumenti</option>
+							<option value="Alimentazione & Benessere">Alimentazione & Benessere</option>
+							<option value="Altri attrezzi e Accessori">Altri attrezzi e Accessori</option>
+							<option value="Cercapunti">Cercapunti</option>
+							<option value="Creme & Co.">Creme & Co.</option>
+							<option value="Martelli">Martelli</option>
 							<option value="Materiale didattico">Materiale didattico</option>
-							<option value="Infusi & Integratori">Infusi & Integratori</option>
-							<option value="Merchandising">Merchandising</option>
-							<option value="Altro">Altro</option>
+							<option value="Pettini">Pettini</option>
+							<option value="Rulli">Rulli</option>
+							<option value="Vietmassage">Vietmassage</option>
+							<option value="Senza Categoria">Senza Categoria</option>
 						</select>
 					</div>
 				</section>
@@ -720,24 +769,25 @@
 					<legend class="fieldset-legend">Categoria</legend>
 					<select class="select w-full" id="category" name="category" bind:value={category}>
 						<option disabled value="">Scegli</option>
-						<!-- <option disabled selected>Scegli</option> -->
-						<option value="Strumenti">Strumenti</option>
+						<option value="Alimentazione & Benessere">Alimentazione & Benessere</option>
+						<option value="Altri attrezzi e Accessori">Altri attrezzi e Accessori</option>
+						<option value="Cercapunti">Cercapunti</option>
+						<option value="Creme & Co.">Creme & Co.</option>
+						<option value="Martelli">Martelli</option>
 						<option value="Materiale didattico">Materiale didattico</option>
-						<option value="Infusi & Integratori">Infusi & Integratori</option>
-						<option value="Merchandising">Merchandising</option>
-						<option value="Altro">Altro</option>
+						<option value="Pettini">Pettini</option>
+						<option value="Rulli">Rulli</option>
+						<option value="Vietmassage">Vietmassage</option>
+						<option value="Senza Categoria">Senza Categoria</option>
 					</select>
-					<!-- <span class="label">Optional</span> -->
 
 					<legend class="fieldset-legend">Status</legend>
 					<select class="select w-full" id="status" name="status" bind:value={status}>
-						<!-- <option disabled value="">Scegli</option> -->
-						<!-- <option disabled selected>Scegli</option> -->
 						<option value="enabled">Attivo</option>
 						<option value="disabled">Inattivo</option>
 					</select>
-					<!-- <span class="label">Optional</span> -->
 				</fieldset>
+
 				<section class="lg:col-span-4 mt-2">
 					<div class="col-span-4 mt-10 flex justify-center">
 						<button class="btn btn-error mx-1" type="button" onclick={onCloseModal}>Annulla</button>

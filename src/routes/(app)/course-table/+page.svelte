@@ -1125,7 +1125,7 @@
 			<div
 				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 			>
-				{#each subscribers as item}
+				{#each subscribers || [] as item}
 					<div
 						class="col-span-4
                            p-4

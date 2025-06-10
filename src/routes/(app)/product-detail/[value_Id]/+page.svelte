@@ -192,7 +192,7 @@
 					<div class="space-y-6 max-w-3xl mx-auto">
 						<div class="card bg-base-200">
 							<div class="card-body items-center text-center">
-								<p>{getProduct.descrShort}</p>
+								<p>{getProduct.descrLong}</p>
 							</div>
 						</div>
 					</div>
