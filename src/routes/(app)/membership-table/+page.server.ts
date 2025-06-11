@@ -323,7 +323,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			const uploadImg = await fetch(`${BASE_URL}/api/uploads/files`, {
+			const uploadImg = fetch(`${BASE_URL}/api/uploads/files`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': file.type || 'application/octet-stream',
@@ -355,7 +355,7 @@ export const actions: Actions = {
 				// ]
 			}
 			const multi = false
-			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
+			const res = fetch(`${BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey: APIKEY,
@@ -375,14 +375,14 @@ export const actions: Actions = {
 				uploadImg,
 				res
 			])
-			console.log("resImg, response", resImg, response);
+			//console.log("resImg, response", resImg, response);
 
-			if (!uploadImg.ok) return { action: 'setProdPic', success: false, message: `resImg: ${await resImg.text()}` }
+			if (!resImg.ok) return { action: 'setProdPic', success: false, message: `resImg: ${await resImg.text()}` }
 
-			if (!res.ok) return { action: 'setProdPic', success: false, message: `response: ${await response.text()}` };
+			if (!response.ok) return { action: 'setProdPic', success: false, message: `response: ${await response.text()}` };
 
-			const resImgJson = await response.json();
-			return { action: 'setProdPic', success: true, message: await resImgJson.message };
+			const updateJson = await response.json();
+			return { action: 'setProdPic', success: true, message: await updateJson.message };
 
 		} catch (err) {
 			console.error('Error upload:', err);

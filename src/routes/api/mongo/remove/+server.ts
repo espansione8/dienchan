@@ -27,7 +27,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 // });
 // const res = await resFetch;
 // if (!res.ok) {
-//     return fail(400, { action: 'renew', success: false, message: await res.text() });
+//     return fail(400, { action: 'renew', success: false, message: `res: ${await res.text()}` });
 // }
 // const response = await res.json()
 

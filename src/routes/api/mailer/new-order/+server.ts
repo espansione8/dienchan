@@ -1,6 +1,6 @@
 // `${BASE_URL}/api/mailer/new-order`
 import type { RequestHandler } from '@sveltejs/kit';
-import { APIKEY, MAILER_HOST, MAILER_PORT, MAILER_USER, MAILER_PASS } from '$env/static/private';
+import { APIKEY, MAILER_HOST, MAILER_PORT, MAILER_SECURE, MAILER_USER, MAILER_PASS } from '$env/static/private';
 import { json } from '@sveltejs/kit';
 import nodemailer from 'nodemailer';
 
@@ -29,7 +29,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			const transporter = nodemailer.createTransport({
 				host: MAILER_HOST,
 				port: Number(MAILER_PORT),
-				secure: false, // true for 465, false for other ports
+				secure: MAILER_SECURE === 'true' ? true : false, // true for 465, false for other ports
 				auth: {
 					user: MAILER_USER,
 					pass: MAILER_PASS

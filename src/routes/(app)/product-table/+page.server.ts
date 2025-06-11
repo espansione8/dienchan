@@ -1,9 +1,10 @@
 import type { PageServerLoad, Actions } from './$types'
+import type { Product } from '$lib/types';
 import { BASE_URL, APIKEY } from '$env/static/private';
 import { fail, error } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
-import type { Product } from '$lib/types';
+import Papa from 'papaparse';
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
@@ -426,4 +427,70 @@ export const actions: Actions = {
 			return { action: 'delProdPic', success: false, message: 'Errore rimozione' };
 		}
 	},
+
+	uploadCsv: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const file = formData.get('fileUpload');
+
+		if (!file || typeof file === 'string' || !(file instanceof Blob) || !(file.type === 'text/csv' || file.name?.toLowerCase().endsWith('.csv'))) {
+			return fail(400, { action: 'uploadCsv', success: false, message: 'File CSV mancante o non valido' });
+		}
+
+		try {
+			const fileContent = await file.text();
+			const csvData = await new Promise((resolve, reject) => {
+				Papa.parse(fileContent, {
+					header: true,
+					dynamicTyping: true,
+					complete: (results) => {
+						resolve(results.data);
+					},
+					error: (error) => {
+						reject(error);
+					},
+				});
+			});
+
+			const bulkOperations = csvData.map(row => {
+				if (!row.prodId) { // IMPORTANT: prodId , userId
+					console.warn('CSV row skipped', row);
+					return null; // null skip the row
+				}
+
+				return {
+					updateOne: {
+						filter: { prodId: row.prodId },
+						update: { $set: row },
+						upsert: true
+					}
+				};
+			}).filter(op => op !== null); // remove (null) rows
+
+			if (bulkOperations.length === 0) {
+				return { action: 'uploadCsv', success: false, message: 'Nessun dato valido da processare nel CSV.' };
+			}
+
+			const res = await fetch(`${BASE_URL}/api/mongo/update-bulk`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'product', // 'user' FOR userId
+					update: bulkOperations,
+				}),
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
+
+			if (!res.ok) {
+				return { action: 'uploadCsv', success: false, message: `res: ${await res.text()}` };
+			}
+
+			return { action: 'uploadCsv', success: true, message: 'CSV caricato' };
+		} catch (err) {
+			console.error('Error uploadCsv:', err);
+			return { action: 'uploadCsv', success: false, message: 'Errore server upload' };
+		}
+	},
+
 } satisfies Actions;

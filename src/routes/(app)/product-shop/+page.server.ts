@@ -41,14 +41,14 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			console.error('product find failed', res.status, errorText);
 			return fail(400, { action: 'load', success: false, message: errorText });
 		}
-		const resGetTable = await res.json();
+		getTable = await res.json();
 
-		getTable = resGetTable.map((obj: any) => ({
-			...obj,
-			createdAt: obj.createdAt.substring(0, 10),
-			eventStartDate: obj.eventStartDate.substring(0, 10),
-			timeStartDate: obj.eventStartDate.substring(11, 16),
-		}));
+		// getTable = resGetTable.map((obj: any) => ({
+		// 	...obj,
+		// 	createdAt: obj.createdAt.substring(0, 10),
+		// 	eventStartDate: obj.eventStartDate.substring(0, 10),
+		// 	timeStartDate: obj.eventStartDate.substring(11, 16),
+		// }));
 	} catch (error) {
 		console.log('product find error:', error);
 	}

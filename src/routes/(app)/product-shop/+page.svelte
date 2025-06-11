@@ -119,11 +119,10 @@
 			categoriesInProduct[cat] = (categoriesInProduct[cat] || 0) + 1;
 		});
 	});
-
 </script>
 
 <svelte:head>
-	<title>Lista corsi</title>
+	<title>Lista Prodotti</title>
 </svelte:head>
 
 <div class="bg-base-200 grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-8 lg:p-8">
@@ -163,9 +162,7 @@
 							{/if}
 						</div>
 
-						<div
-							class="grid grid-cols-1 gap-1 mt-2 max-h-[300px] overflow-y-auto pr-1 filter-scrollbar"
-						>
+						<div class="grid grid-cols-1 gap-1 mt-2 pr-1 filter-scrollbar overflow-y-auto">
 							{#each Object.entries(categoriesInProduct) as [chiave, valore]}
 								<button
 									type="button"
@@ -315,7 +312,7 @@
 						<ShieldAlert />
 						<br />
 						<span class="mt-2 text-semibold">
-							Nessun corso trovato. Cambia parametri o resetta il filtro.
+							Nessun prodotto trovato. Cambia parametri o resetta il filtro.
 						</span>
 					</div>
 				</div>

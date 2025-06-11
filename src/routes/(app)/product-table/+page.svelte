@@ -16,6 +16,7 @@
 		XCircle,
 		Funnel,
 		FileDown,
+		FileUp,
 		Settings,
 		FileSearch2,
 		Trash2,
@@ -153,6 +154,10 @@
 			modalTitle = 'Filtra';
 			status = 'enabled';
 		}
+		if (type == 'uploadCsv') {
+			postAction = `?/uploadCsv`;
+			modalTitle = 'Carica CSV';
+		}
 	};
 
 	const onCloseModal = () => {
@@ -233,6 +238,13 @@
 			</button>
 			<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate()}>
 				<FileDown />CSV
+			</button>
+			<button
+				aria-label="uploadCSV image"
+				class="btn btn-info text-white w-full sm:w-auto"
+				onclick={() => onClickModal('uploadCsv', null)}
+			>
+				<FileUp />CSV
 			</button>
 		</div>
 	</div>
@@ -796,6 +808,47 @@
 						</button>
 					</div>
 				</section>
+			</form>
+		{/if}
+	</Modal>
+{/if}
+
+{#if currentModal == 'uploadCsv'}
+	<Modal isOpen={openModal} header={modalTitle}>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+			>✕</button
+		>
+		{#if loading}
+			<Loader />
+		{:else}
+			<form
+				method="POST"
+				action={postAction}
+				enctype="multipart/form-data"
+				use:enhance={formSubmit}
+				class="grid grid-cols-2 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+			>
+				<section class="col-span-2">
+					<label for="price" class="form-label">
+						<p class="font-bold mb-2 label">Solo file CSV</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<input
+							type="file"
+							id="fileUpload"
+							name="fileUpload"
+							accept=".csv, text/csv"
+							class="file-input"
+						/>
+					</div>
+				</section>
+
+				<div class="col-span-4 mt-5 flex justify-center">
+					<div class="bg-gray-50 flex justify-center">
+						<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
+						<button type="submit" class="btn btn-success btn-sm mx-2 text-white">Carica</button>
+					</div>
+				</div>
 			</form>
 		{/if}
 	</Modal>
