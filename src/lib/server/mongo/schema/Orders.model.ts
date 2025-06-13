@@ -23,6 +23,7 @@ const orderSchema = new Schema(
 			enum: ['requested', 'confirmed', 'cancelled', 'exported', 'processed'],
 			default: 'confirmed'
 		},
+		type: { type: String, enum: ['course', 'product'], default: '' }, // 'course' 'product'
 		//tk: { type: String, default: '' },
 		orderDate: { type: Date, default: Date.now },
 		orderConfirmDate: { type: Date, default: Date.now },

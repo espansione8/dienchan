@@ -15,13 +15,15 @@ const LayoutSchema = new Schema(
         bgColor: { type: String, default: '' },
         price: { type: Number, default: 0 },
 
-        bundleProduct: [{
-            _id: false,  // This prevents MongoDB from adding _id to array elements
-            prodId: { type: String, default: '' },
-            title: { type: String, default: '' },
-            price: { type: Number, default: 0 }
-            // add product category
-        }],
+        bundleProducts: [],
+
+        // bundleProducts: [{
+        //     _id: false,  // This prevents MongoDB from adding _id to array elements
+        //     prodId: { type: String, default: '' },
+        //     title: { type: String, default: '' },
+        //     price: { type: Number, default: 0 }
+        //     // add product category
+        // }],
 
         status: {
             type: String,

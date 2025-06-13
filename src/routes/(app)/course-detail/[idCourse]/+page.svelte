@@ -25,7 +25,8 @@
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { getCourse, formatoreData, auth, userData } = data;
+	const { getCourse, formatoreData, auth, userData, bundleProducts } = data;
+	console.log('bundleProducts', bundleProducts);
 
 	// discount
 	let discountCode = $state('');
@@ -1064,6 +1065,7 @@
 						</div>
 					</div>
 					<input type="hidden" name="cart" value={JSON.stringify(getCourse)} />
+					<input type="hidden" name="bundleProducts" value={JSON.stringify(bundleProducts)} />
 					<input type="hidden" name="totalDiscount" value={totalDiscount()} />
 				</div>
 

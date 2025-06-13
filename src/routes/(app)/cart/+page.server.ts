@@ -247,6 +247,7 @@ export const actions: Actions = {
 				browser: '',
 				orderIp: '',
 				orderNotes: '',
+				type: 'product',
 				invoicing: {
 					name,
 					surname,

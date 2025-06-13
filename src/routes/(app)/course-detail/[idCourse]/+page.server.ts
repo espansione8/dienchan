@@ -9,6 +9,7 @@ const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 	let getCourse = [];
 	let formatoreData = [];
+	//let kitProducts = [];
 
 	const courseFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 		method: 'POST',
@@ -41,9 +42,25 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 		},
 	});
 
+	// const kitFetch = (kitProducts: Array<string>) => fetch(`${BASE_URL}/api/mongo/find`, {
+	// 	method: 'POST',
+	// 	body: JSON.stringify({
+	// 		apiKey: APIKEY,
+	// 		schema: 'product', //product | order | user | layout | discount
+	// 		query: { prodId: { $in: kitProducts }, type: 'product' },
+	// 		projection: { _id: 0 },
+	// 		sort: { createdAt: -1 },
+	// 		limit: 1000,
+	// 		skip: 0
+	// 	}),
+	// 	headers: {
+	// 		'Content-Type': 'application/json'
+	// 	}
+	// })
+
 	try {
 		const courseRes = await courseFetch;
-		if (courseRes.status != 200) {
+		if (!courseRes.ok) {
 			console.error('course fetch failed', courseRes.status, await courseRes.text());
 			throw error(400, 'course fetch failed');
 		}
@@ -53,11 +70,18 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 			createdAt: obj.createdAt.substring(0, 10)
 		}));
 
+		// const kitRes = await kitFetch(getCourse[0].bundleProducts);
+		// if (!kitRes.ok) {
+		// 	console.error('kit fetch failed', kitRes.status, await kitRes.text());
+		// 	throw error(400, 'kit fetch failed');
+		// }
+		// kitProducts = await kitRes.json();
+		// console.log('kitProducts', kitProducts);
 
 		const userRes = await userFetch(getCourse[0].userId);
-		if (userRes.status != 200) {
+		if (!userRes.ok) {
 			console.error('user fetch failed', userRes.status, await userRes.text());
-			throw error(400, 'course fetch failed');
+			throw error(400, 'user fetch failed');
 		}
 		formatoreData = await userRes.json();
 
@@ -66,12 +90,12 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 		throw error(500, 'Server error');
 	}
 
-
 	return {
 		getCourse: getCourse[0],
 		formatoreData: formatoreData[0] ?? null,
 		auth: locals.auth,
-		userData: locals.user
+		userData: locals.user,
+		bundleProducts: getCourse[0].layoutView?.bundleProducts ?? []
 	};
 }
 // calculate discount for a single item used in applyDiscount/removeDiscount 
@@ -148,6 +172,20 @@ export const actions: Actions = {
 		const cart = formData.get('cart');
 		const cartItem = JSON.parse(String(cart)) || null;
 		const totalDiscount = formData.get('totalDiscount') || 0;
+		//Corso Base DIEN CHAN®
+		//Corso Avanzato DIEN CHAN®
+		//Accademia DIEN CHAN®
+		// console.log('cartItem', cartItem.layoutView.title);
+		// const kitBase = ['5967', '5942', '5948'] // libro, rullo, tridente
+		// const kitAvanzato = ['5953', '5954', '5958', '5963', '5957', '5964', '5965'] // balsamo, moxa 10, macinapepe, Plettro yin, Doppio Napoleone, Doppio rastrello, Doppio rullo curvo
+		// const kitAccademia = [] // libro, rullo, tridente
+
+		// let kitProducts = [];
+		// if (cartItem.layoutView?.title === 'Corso Base DIEN CHAN®') kitProducts = kitBase
+		// if (cartItem.layoutView?.title === 'Corso Avanzato DIEN CHAN®') kitProducts = kitAvanzato
+		// if (cartItem.layoutView?.title === 'Accademia DIEN CHAN®') kitProducts = kitAccademia
+		const bundle = formData.get('bundleProducts');
+		const bundleProducts = JSON.parse(String(bundle)) || [];
 
 		//const file = formData.get('image') || '';
 		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
@@ -170,6 +208,22 @@ export const actions: Actions = {
 				'Content-Type': 'application/json'
 			}
 		})
+
+		// const toolFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+		// 	method: 'POST',
+		// 	body: JSON.stringify({
+		// 		apiKey: APIKEY,
+		// 		schema: 'product', //product | order | user | layout | discount
+		// 		query: { prodId: { $in: kitProducts }, type: 'product' },
+		// 		projection: { _id: 0 },
+		// 		sort: { createdAt: -1 },
+		// 		limit: 1000,
+		// 		skip: 0
+		// 	}),
+		// 	headers: {
+		// 		'Content-Type': 'application/json'
+		// 	}
+		// })
 
 		const membershipFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
@@ -313,6 +367,12 @@ export const actions: Actions = {
 		}
 
 		try {
+			// const toolRes = await toolFetch
+			// if (!toolRes.ok) {
+			// 	return fail(400, { action: 'new', success: false, message: `toolRes: ${await toolRes.text()}` });
+			// }
+			// const toolKit = await toolRes.json();
+
 			const newDoc = {
 				// orderId: nanoid(),
 				// orderCode: crypto.randomUUID(),
@@ -331,6 +391,7 @@ export const actions: Actions = {
 				browser: '',
 				orderIp: '',
 				orderNotes: '',
+				type: 'course',
 				invoicing: {
 					name,
 					surname,
@@ -382,7 +443,7 @@ export const actions: Actions = {
 
 			let cart = []
 			if ((!userExist || !locals.user?.membership.membershipStatus) && membership.length > 0) {
-				cart = [cartItem, membership[0]]
+				cart = [...bundleProducts, cartItem, membership[0]]
 				// Membership order
 				// const resMembership = await fetch(`${BASE_URL}/api/mongo/create`, {
 				// 	method: 'POST',
@@ -406,9 +467,10 @@ export const actions: Actions = {
 				// 	return fail(400, { action: 'new', success: false, message: `res: ${await resMembership.text()}` });
 				// }
 			} else {
-				cart = [cartItem]
+				cart = [...bundleProducts, cartItem]
 			}
-			console.log('cart', cart);
+			// console.log('cart', cart);
+			// return fail(400, { action: 'new', success: false, message: `bundleProducts` });
 
 			// TODO??? Recalculate to prevent client-side manipulation
 

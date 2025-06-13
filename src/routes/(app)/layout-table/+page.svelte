@@ -16,24 +16,24 @@
 		StretchHorizontal,
 		ToggleLeft,
 		ToggleRight,
-		ImagePlus,
+		FileBox,
 		Calculator,
 		RefreshCcw,
 		XCircle,
 		Funnel
 	} from 'lucide-svelte';
 
-	let { data } = $props();
-	let { getTable } = $derived(data);
+	const { data } = $props();
+	const { getTable, getProducts } = $derived(data);
 	let tableList = $state(getTable);
 
 	let layoutId = $state('');
 	let status = $state('');
 	let title = $state('');
 	let descr = $state('');
-	let urlPic = $state('');
 	let price = $state(0);
-	let bundleProduct = $state([]);
+	let bundleProducts = $state([]);
+	let singleProduct = $state('');
 	let resetActive = $state(false);
 	let currentModal = $state('');
 	let openModal = $state(false);
@@ -44,10 +44,37 @@
 
 	const getFileNameFromPath = (filePath: string): string => filePath.split('/').pop() || '';
 
+	const addItem = (item: any, type: string) => {
+		if (type === 'bundleKit') {
+			console.log('singleProduct.prodId', singleProduct.prodId);
+
+			if (singleProduct != '') {
+				const exists = bundleProducts.some((item) => item.prodId === singleProduct.prodId);
+				console.log('exists', exists);
+
+				// if (!bundleProducts.includes(item)) {
+				if (!exists) {
+					bundleProducts.push(item);
+					singleProduct = '';
+				} else {
+					notification.error('Prodotto già inserito');
+				}
+			} else {
+				notification.error('Prodotto NON valido');
+			}
+		}
+		singleProduct = '';
+	};
+
+	const removeItem = (index: number, type: string) => {
+		if (index !== -1) {
+			if (type == 'bundleKit') bundleProducts.splice(index, 1);
+		}
+	};
+
 	const resetFields = () => {
 		title = '';
 		descr = '';
-		urlPic = '';
 		status = '';
 		price = 0;
 	};
@@ -129,10 +156,10 @@
 			layoutId = item.layoutId;
 			title = item.title;
 			descr = item.descr;
-			urlPic = item.urlPic;
 			layoutId = item.layoutId;
 			price = item.price;
-			bundleProduct = item.bundleProduct;
+			bundleProducts = item.bundleProducts || [];
+			//console.log('bundleProducts', bundleProducts);
 		}
 		if (type == 'delete') {
 			postAction = `?/delete`;
@@ -411,38 +438,6 @@
 						/>
 					</div>
 				</section>
-				<!-- URL image -->
-				<section class="col-span-4 md:col-span-4">
-					<label for="urlPic" class="form-label">
-						<p class="font-bold mb-2">URL immagine</p>
-					</label>
-					<div class="join join-horizontal w-full">
-						<button class="join-item bg-gray-300 px-3"><ImagePlus /></button>
-						<input
-							type="text"
-							class="input input-bordered w-full join-item"
-							name="urlPic"
-							placeholder="Inserisci il percorso dell'immagine"
-							bind:value={urlPic}
-						/>
-					</div>
-				</section>
-				<!-- Color -->
-				<!-- <section class="col-span-2 md:col-span-2">
-			<label for="bgColor" class="form-label">
-				<p class="font-bold mb-2">Colore</p>
-			</label>
-			<div class="join join-horizontal w-full">
-				<button class="join-item bg-gray-300 px-3"><Palette /></button>
-				<input
-					type="text"
-					class="input input-bordered w-full join-item"
-					name="bgColor"
-					placeholder="Inserisci il percorso dell'immagine"
-					bind:value={bgColor}
-				/>
-			</div>
-		</section> -->
 				<!-- Value -->
 				<section class="col-span-2 md:col-span-2">
 					<label for="price" class="form-label">
@@ -459,9 +454,9 @@
 						/>
 					</div>
 				</section>
-				<!-- Bundle product -->
-				<section class="col-span-4">
-					<label for="bundleProduct" class="form-label">
+
+				<!-- <section class="col-span-4">
+					<label for="bundleProducts" class="form-label">
 						<p class="font-bold mb-2">Correlati</p>
 					</label>
 					<div class="join join-horizontal rounded-md w-full">
@@ -469,13 +464,59 @@
 						<textarea
 							class="textarea textarea-bordered h-24 join-item w-full"
 							id="correlati"
-							name="bundleProduct"
+							name="bundleProducts"
 							placeholder="Correlati"
-							bind:value={bundleProduct}
+							bind:value={bundleProducts}
 						/>
 					</div>
+				</section> -->
+
+				<section class="col-span-4 md:col-span-2">
+					<label for="bundle" class="form-label">
+						<p class="font-bold mb-2">Prodotti Kit corso</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full mb-2">
+						<button class="join-item bg-gray-300 px-3"><FileBox /></button>
+						<!-- <input type="hidden" bind:value={bundleProducts} /> -->
+						<input type="hidden" name="bundleProducts" value={JSON.stringify(bundleProducts)} />
+						<select
+							class="select select-bordered w-full rounded-md rounded-l-none"
+							id="bundle"
+							name="bundle"
+							bind:value={singleProduct}
+						>
+							<option disabled value="">Scegli</option>
+							{#each getProducts as prod}
+								<option value={prod}>
+									{prod.title}
+								</option>
+							{/each}
+						</select>
+						<button
+							type="button"
+							class="join-item btn btn-primary"
+							onclick={() => addItem(singleProduct, 'bundleKit')}
+						>
+							Aggiungi
+						</button>
+					</div>
+
+					{#if bundleProducts.length > 0}
+						{#each bundleProducts as prod, i}
+							<div class="btn btn-primary btn-sm m-1 rounded-md">
+								{prod.title}
+								<button
+									type="button"
+									class="badge badge-error ml-2"
+									onclick={() => removeItem(i, 'bundleKit')}
+								>
+									X
+								</button>
+							</div>
+						{/each}
+					{/if}
 				</section>
-				<!-- registra corso button -->
+				<!-- Action -->
 				<div class="col-span-4 mt-5 flex justify-center">
 					<div class="bg-gray-50 flex justify-center">
 						<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}>

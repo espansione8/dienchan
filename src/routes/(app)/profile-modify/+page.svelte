@@ -1035,11 +1035,23 @@
 																	{/if}
 																</div>
 
-																<div class="text-right flex-shrink-0">
-																	<div class="font-bold text-primary">
-																		€ {item.type === 'course' ? item.layoutView.price : item.price}
+																{#if order.type === 'course'}
+																	<div class="text-right flex-shrink-0">
+																		<div class="font-bold text-primary">
+																			<!-- € {item.type === 'course' ? item.layoutView.price : item.price} -->
+																			{item.type === 'course'
+																				? `€ ${item.layoutView.price.toFixed(2)}`
+																				: ''}
+																		</div>
 																	</div>
-																</div>
+																{:else}
+																	<div class="text-right flex-shrink-0">
+																		<div class="font-bold text-primary">
+																			<!-- € {item.type === 'course' ? item.layoutView.price : item.price} -->
+																			€ {item.price.toFixed(2)}
+																		</div>
+																	</div>
+																{/if}
 															</div>
 														{/each}
 
@@ -1048,7 +1060,7 @@
 														>
 															<div class="font-medium">Totale ordine</div>
 															<div class="font-bold text-lg text-primary">
-																€ {order.totalValue}
+																€ {order.totalValue.toFixed(2)}
 																<!-- € {order.cart.reduce(
 																	(total, item) => total + item.layoutView.price * (item.orderQuantity || 1),
 																	0
@@ -1061,7 +1073,7 @@
 															>
 																<div class="font-medium">Totale sconti</div>
 																<div class="font-bold text-lg text-error">
-																	<p>- € {order.totalDiscount}</p>
+																	<p>- € {order.totalDiscount.toFixed(2)}</p>
 																</div>
 															</div>
 														{/if}

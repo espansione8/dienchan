@@ -7,11 +7,9 @@ const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
-	// if (!locals.auth) {
-	// 	throw redirect(302, '/login');
-	// }
 
 	let getTable = [];
+	let getProducts = [];
 
 	const layoutFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 		method: 'POST',
@@ -28,11 +26,26 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			'Content-Type': 'application/json'
 		}
 	});
+	const productFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+		method: 'POST',
+		body: JSON.stringify({
+			apiKey: APIKEY,
+			schema: 'product', //product | order | user | layout | discount
+			query: { type: 'product' }, //types: course / product / membership / event
+			projection: {},
+			sort: { title: 1 }, // 1:Sort ascending | -1:Sort descending
+			limit: 1000,
+			skip: 0
+		}),
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	});
 
 	try {
-
-		const layoutRes = await layoutFetch;
-		if (layoutRes.status !== 200) {
+		const [layoutRes, productRes] = await Promise.all([layoutFetch, productFetch]);
+		//const layoutRes = await layoutFetch;
+		if (!layoutRes.ok) {
 			const errorText = await layoutRes.text();
 			console.error('layoutFetch failed', layoutRes.status, errorText);
 			throw error(400, errorText);
@@ -46,6 +59,15 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			}));
 		}
 
+		//const productRes = await productFetch;
+		if (!productRes.ok) {
+			const errorText = await productRes.text();
+			console.error('productFetch failed', productRes.status, errorText);
+			throw error(400, errorText);
+		}
+
+		getProducts = await productRes.json();
+		//console.log('getProducts', getProducts);
 
 	} catch (error) {
 		console.log('page fetch error:', error);
@@ -54,6 +76,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 
 	return {
 		getTable,
+		getProducts
 	};
 }
 
@@ -62,8 +85,15 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const title = formData.get('title');
 		const descr = formData.get('descr');
-		const urlPic = formData.get('urlPic');
 		const price = formData.get('price') || '';
+		const bundle = formData.get('bundleProducts');
+		let bundleProducts: any[] = [];
+		try {
+			bundleProducts = bundle ? JSON.parse(String(bundle)) : [];
+		} catch {
+			return fail(400, { action: 'new', success: false, message: 'bundleProducts non valido' });
+		}
+		//const bundleProducts = arryProducts.map(item => String(item.prodId));
 
 		if (!title || !descr || !price) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
@@ -78,8 +108,8 @@ export const actions: Actions = {
 					layoutId: nanoid(),
 					title,
 					descr,
-					urlPic,
 					price,
+					bundleProducts
 				},
 				returnObj: false
 			}),
@@ -110,8 +140,12 @@ export const actions: Actions = {
 		const layoutId = formData.get('layoutId');
 		const title = formData.get('title') || '';
 		const descr = formData.get('descr') || '';
-		const urlPic = formData.get('urlPic') || '';
 		const price = formData.get('price') || '';
+		const bundle = formData.get('bundleProducts');
+		const bundleProducts = JSON.parse(String(bundle)) || [];
+		//const bundleProducts = arryProducts.map(item => String(item.prodId));
+		// console.log('bundleProducts', bundleProducts);
+		// return fail(400, { action: 'modify', success: false, message: 'bundleProducts' });
 
 		if (!layoutId || !title) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
@@ -127,8 +161,8 @@ export const actions: Actions = {
 					$set: {
 						title,
 						descr,
-						urlPic,
-						price
+						price: Number(price),
+						bundleProducts
 					}
 				},
 				options: { upsert: false },
