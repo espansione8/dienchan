@@ -12,7 +12,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		order
 	} = body;
 
-	const { orderId, createdAt, totalValue, invoicing, payment, cart } = order;
+	const { orderId, createdAt, totalValue, invoicing, payment, cart, type } = order;
 	const { name, surname, address, city, county, postalCode, country } = invoicing
 
 	if (apiKey !== APIKEY) {
@@ -425,16 +425,29 @@ export const POST: RequestHandler = async ({ request }) => {
 																	</tr>
 																</thead>
 																<tbody>
-																	${cart
-						.map(
-							(item) => `
+																	${type === 'course' ?
+						cart
+							.map(
+								(item) => `
+																															<tr>
+																																<td style="padding: 8px; border: 1px solid #ddd; text-align: left; color: #000;">${item.type == 'course' ? item.layoutView.title : item.title}</td>
+																																<td style="padding: 8px; border: 1px solid #ddd; text-align: right; color: #000;">${item.orderQuantity || 1}</td>
+																																<td style="padding: 8px; border: 1px solid #ddd; text-align: right; color: #000;"></td>
+																															</tr>
+																														`
+							).join('')
+						:
+						cart
+							.map(
+								(item) => `
 																			<tr>
 																				<td style="padding: 8px; border: 1px solid #ddd; text-align: left; color: #000;">${item.type == 'course' ? item.layoutView.title : item.title}</td>
 																				<td style="padding: 8px; border: 1px solid #ddd; text-align: right; color: #000;">${item.orderQuantity || 1}</td>
 																				<td style="padding: 8px; border: 1px solid #ddd; text-align: right; color: #000;">${item.price.toFixed(2)}€</td>
 																			</tr>
 																		`
-						).join('')}
+							).join('')
+					}
 																	</tbody>
 																<tfoot>
 																	<tr>

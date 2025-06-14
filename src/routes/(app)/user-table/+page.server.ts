@@ -4,6 +4,7 @@ import { fail, error } from '@sveltejs/kit';
 import { pageAuth } from '$lib/pageAuth';
 import { customAlphabet } from 'nanoid'
 import { hash } from '$lib/tools/hash';
+import Papa from 'papaparse';
 const nanoid = customAlphabet('0123456789', 12)
 
 const apiKey = APIKEY;
@@ -289,7 +290,6 @@ export const actions: Actions = {
 
 	},
 
-
 	changeStatus: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const userId = formData.get('userId');
@@ -333,5 +333,71 @@ export const actions: Actions = {
 			console.error('Error changeStatus:', error);
 			return fail(400, { action: 'changeStatus', success: false, message: 'Error changeStatus' });
 		}
-	}
+	},
+
+	uploadCsv: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const file = formData.get('fileUpload');
+
+		if (!file || typeof file === 'string' || !(file instanceof Blob) || !(file.type === 'text/csv' || file.name?.toLowerCase().endsWith('.csv'))) {
+			return fail(400, { action: 'uploadCsv', success: false, message: 'File CSV mancante o non valido' });
+		}
+
+		try {
+			const fileContent = await file.text();
+			const csvData = await new Promise((resolve, reject) => {
+				Papa.parse(fileContent, {
+					header: true,
+					dynamicTyping: true,
+					complete: (results) => {
+						resolve(results.data);
+					},
+					error: (error) => {
+						reject(error);
+					},
+				});
+			});
+
+			const bulkOperations = csvData.map(row => {
+				if (!row.userId) { // IMPORTANT: prodId , userId
+					console.warn('CSV row skipped', row);
+					return null; // null skip the row
+				}
+
+				return {
+					updateOne: {
+						filter: { prodId: row.prodId },  // IMPORTANT: prodId , userId
+						update: { $set: row },
+						upsert: true
+					}
+				};
+			}).filter(op => op !== null); // remove (null) rows
+
+			if (bulkOperations.length === 0) {
+				return { action: 'uploadCsv', success: false, message: 'Nessun dato valido da processare nel CSV.' };
+			}
+
+			const res = await fetch(`${BASE_URL}/api/mongo/update-bulk`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user', // 'user' OR 'product'
+					update: bulkOperations,
+				}),
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
+
+			if (!res.ok) {
+				return { action: 'uploadCsv', success: false, message: `res: ${await res.text()}` };
+			}
+
+			return { action: 'uploadCsv', success: true, message: 'CSV caricato' };
+		} catch (err) {
+			console.error('Error uploadCsv:', err);
+			return { action: 'uploadCsv', success: false, message: 'Errore server upload' };
+		}
+	},
+
 } satisfies Actions;

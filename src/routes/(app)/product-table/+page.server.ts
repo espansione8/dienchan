@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			apiKey: APIKEY,
 			schema: 'product', //product | order | user | layout | discount
 			query: { type: 'product' },//types: course / product / membership / event
-			projection: { _id: 0, password: 0 }, // 0: exclude | 1: include
+			projection: { _id: 0 }, // 0: exclude | 1: include
 			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
 			limit: 1000,
 			skip: 0
@@ -37,6 +37,8 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		}
 		getTable = await res.json();
 		//categories = [...new Set(getTable.flatMap((item: any) => item.category))] as string[];
+		//console.log('products-table getTable', getTable);
+
 
 	} catch (err) {
 		console.log('products-table fetch error:', err);

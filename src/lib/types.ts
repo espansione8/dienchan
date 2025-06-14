@@ -272,6 +272,7 @@ export interface Order {
         statusPayment: string;
     };
     status: string;
+    type: 'course' | 'product' | 'membership';
     invoicing: {
         name: string;
         surname: string;

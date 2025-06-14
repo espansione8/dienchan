@@ -20,14 +20,15 @@
 		ShieldAlert,
 		RefreshCcw,
 		FileDown,
-		CopyPlus
+		CopyPlus,
+		FileUp
 	} from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 	import { country_list } from '$lib/stores/arrays.js';
 	import { province } from '$lib/stores/arrays';
 
-	let { data } = $props();
-	let { getTable } = $derived(data);
+	const { data } = $props();
+	const { getTable } = $derived(data);
 	let tableList = $state(getTable);
 
 	let level = $state('');
@@ -69,7 +70,6 @@
 	// remove online in province
 	let provinceFilterate = $province.filter((p) => p.title !== 'Online');
 
-
 	const showLevel = (level: string) => {
 		if (level == 'user') {
 			return 'Utente base';
@@ -83,7 +83,7 @@
 	};
 
 	const onSwitchPublicProfile = async (type: string, value: boolean) => {
-		console.log('switch public profile', type, value);
+		//console.log('switch public profile', type, value);
 		if (type == 'namePublic') namePublic = !value;
 		if (type == 'surnamePublic') surnamePublic = !value;
 		if (type == 'emailPublic') emailPublic = !value;
@@ -157,7 +157,6 @@
 	};
 
 	const testSecondPass = () => (checkSecondPass = password1 === password2);
-
 
 	const refresh = () => {
 		invalidateAll();
@@ -237,6 +236,10 @@
 			postAction = `?/filter`;
 			modalTitle = 'Filtra';
 		}
+		if (type == 'uploadCsv') {
+			postAction = `?/uploadCsv`;
+			modalTitle = 'Carica CSV';
+		}
 	};
 
 	const onCloseModal = () => {
@@ -274,8 +277,6 @@
 			loading = false;
 		};
 	};
-
-
 </script>
 
 <svelte:head>
@@ -321,6 +322,13 @@
 				</button>
 				<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate()}>
 					<FileDown />CSV
+				</button>
+				<button
+					aria-label="uploadCSV image"
+					class="btn btn-info text-white w-full sm:w-auto"
+					onclick={() => onClickModal('uploadCsv', null)}
+				>
+					<FileUp />CSV
 				</button>
 			</div>
 		</div>
@@ -1081,6 +1089,47 @@
 					<button class="btn btn-success btn-sm hover:bg-green-400" type="submit">
 						Applica Filtri
 					</button>
+				</div>
+			</form>
+		{/if}
+	</Modal>
+{/if}
+
+{#if currentModal == 'uploadCsv'}
+	<Modal isOpen={openModal} header={modalTitle}>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+			>✕</button
+		>
+		{#if loading}
+			<Loader />
+		{:else}
+			<form
+				method="POST"
+				action={postAction}
+				enctype="multipart/form-data"
+				use:enhance={formSubmit}
+				class="grid grid-cols-2 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+			>
+				<section class="col-span-2">
+					<label for="price" class="form-label">
+						<p class="font-bold mb-2 label">Solo file CSV</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<input
+							type="file"
+							id="fileUpload"
+							name="fileUpload"
+							accept=".csv, text/csv"
+							class="file-input"
+						/>
+					</div>
+				</section>
+
+				<div class="col-span-4 mt-5 flex justify-center">
+					<div class="bg-gray-50 flex justify-center">
+						<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
+						<button type="submit" class="btn btn-success btn-sm mx-2 text-white">Carica</button>
+					</div>
 				</div>
 			</form>
 		{/if}

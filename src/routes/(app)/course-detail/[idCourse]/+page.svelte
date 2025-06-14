@@ -630,6 +630,22 @@
 								{/if}
 							</div>
 
+							{#if getCourse.layoutView?.bundleProducts?.length > 0}
+								<div class="mt-8">
+									<div class="p-4 bg-blue-50 rounded-lg">
+										<div class=" text-lg font-medium text-blue-800">Materiale incluso</div>
+										<div class="">
+											{#each getCourse.layoutView?.bundleProducts as product}
+												<p class="text-gray-700">
+													<span class="badge badge-sm badge-primary"><b>1</b></span>
+													<span class="text-sm">{product.title}</span>
+												</p>
+											{/each}
+										</div>
+									</div>
+								</div>
+							{/if}
+
 							{#if getCourse.infoExtra.length > 0}
 								<div class="mt-8">
 									<div class="collapse collapse-arrow bg-blue-50 rounded-lg">

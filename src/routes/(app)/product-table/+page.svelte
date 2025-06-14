@@ -4,7 +4,7 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import Papa from 'papaparse';
-	import { orderKeysToDelete } from '$lib/stores/arrays';
+	import { courseKeysToDelete } from '$lib/stores/arrays';
 	import { notification } from '$lib/stores/notifications';
 	import DragDrop from '$lib/components/DragDrop.svelte';
 	import Modal from '$lib/components/Modal.svelte';
@@ -77,7 +77,7 @@
 		}));
 
 		newList.forEach((obj: any) => {
-			$orderKeysToDelete.forEach((key: string) => delete (obj as any)[key]);
+			$courseKeysToDelete.forEach((key: string) => delete (obj as any)[key]);
 		});
 		//console.log('newList check', newList);
 
@@ -260,7 +260,7 @@
 				<th>Categoria</th>
 				<th>Prezzo</th>
 				<th>Quantità</th>
-				<th>Bundle</th>
+				<!-- <th>Bundle</th> -->
 				<th>Azione</th>
 			</tr>
 		</thead>
@@ -344,7 +344,7 @@
 					<td>{row.category[0]}</td>
 					<td>{row.price}</td>
 					<td>{row.stockQty}</td>
-					<td><div class="badge badge-primary badge-md">0</div></td>
+					<!-- <td><div class="badge badge-primary badge-md">0</div></td> -->
 					<td>
 						<!-- Action -->
 						<button onclick={() => onClickModal('modify', row)} class="btn btn-sm"

@@ -260,6 +260,14 @@
 					<!-- Ordine -->
 					<td>
 						<div class="flex flex-col space-y-1">
+							<div
+								class="badge"
+								class:badge-accent={row.type === 'membership'}
+								class:badge-info={row.type === 'product'}
+								class:badge-primary={row.type === 'course'}
+							>
+								{row.type}
+							</div>
 							{#each row.cart as item}
 								{#if item.type == 'course'}
 									<span>{item.layoutView.title}</span>

@@ -245,6 +245,7 @@ export const actions: Actions = {
 				// orderCode: crypto.randomUUID(),
 				userId: currentUserId,
 				status: 'requested',
+				type: 'membership',
 				orderDate: new Date(),
 				orderConfirmDate: null,
 				promotionId: '',
