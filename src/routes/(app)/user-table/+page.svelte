@@ -31,6 +31,8 @@
 	const { getTable } = $derived(data);
 	let tableList = $state(getTable);
 
+	const superadmins = getTable.filter((user) => user.level === 'superadmin');
+
 	let level = $state('');
 	let membershipLevel = $state('');
 	let password1 = $state('');
@@ -69,18 +71,6 @@
 
 	// remove online in province
 	let provinceFilterate = $province.filter((p) => p.title !== 'Online');
-
-	const showLevel = (level: string) => {
-		if (level == 'user') {
-			return 'Utente base';
-		} else if (level == 'formatore') {
-			return 'Formatore';
-		} else if (level == 'admin') {
-			return 'Admin';
-		} else if (level == 'superadmin') {
-			return 'Superadmin';
-		}
-	};
 
 	const onSwitchPublicProfile = async (type: string, value: boolean) => {
 		//console.log('switch public profile', type, value);
@@ -323,6 +313,12 @@
 				<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate()}>
 					<FileDown />CSV
 				</button>
+				<form method="POST" action={`?/downloadCsv`}>
+					<button type="submit" class="btn btn-info text-white w-full sm:w-auto">
+						<FileDown />FULL CSV TEST
+					</button>
+				</form>
+
 				<button
 					aria-label="uploadCSV image"
 					class="btn btn-info text-white w-full sm:w-auto"
@@ -380,7 +376,7 @@
 						<td>{row.name} {row.surname}</td>
 						<!-- Level, MembreshipLevel, Expire Date -->
 						<td>
-							{showLevel(row.level)}
+							{row.level}
 							<br /><br />
 							{row.membership.membershipLevel}
 							<br /><br />

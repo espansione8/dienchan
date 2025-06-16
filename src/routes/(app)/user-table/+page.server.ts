@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			query: {},
 			projection: { _id: 0, password: 0 },
 			sort: { createdAt: -1 },
-			limit: 1000,
+			limit: 500,
 			skip: 0
 		}),
 		headers: {
@@ -358,20 +358,128 @@ export const actions: Actions = {
 				});
 			});
 
+			// const bulkOperations = csvData.map(row => {
+			// 	if (!row.userId) { // IMPORTANT: prodId , userId
+			// 		console.warn('CSV row skipped', row);
+			// 		return null; // null skip the row
+			// 	}
+
+			// 	return {
+			// 		updateOne: {
+			// 			filter: { userId: row.userId },  // IMPORTANT: prodId , userId
+			// 			update: { $set: row },
+			// 			upsert: true
+			// 		}
+			// 	};
+			// })
+			// .filter(op => op !== null); // remove (null) rows
+
+			// Funzione helper per convertire un oggetto piatto con notazione a punto in un oggetto annidato
+			const unflattenObject = (obj) => {
+				const result = {};
+				for (const key in obj) {
+					if (Object.prototype.hasOwnProperty.call(obj, key)) {
+						const parts = key.split('.');
+						let current = result;
+						for (let i = 0; i < parts.length - 1; i++) {
+							if (!current[parts[i]] || typeof current[parts[i]] !== 'object') {
+								current[parts[i]] = {};
+							}
+							current = current[parts[i]];
+						}
+						current[parts[parts.length - 1]] = obj[key];
+					}
+				}
+				return result;
+			}
+
+			// Funzione helper per calcolare la data di scadenza di default (1 anno dopo la data di attivazione o adesso)
+			const getDefaultExpiryDate = (activationDate = new Date()) => {
+				const date = new Date(activationDate);
+				date.setFullYear(date.getFullYear() + 1);
+				return date;
+			}
+
+			// Enum dei livelli di membership validi (copiato dal tuo schema)
+			const VALID_MEMBERSHIP_LEVELS = [
+				'Socio inattivo',
+				'Socio ordinario',
+				'Socio sostenitore',
+				'Socio vitalizio',
+				'Socio contributore',
+				'Master Dien Chan',
+			];
+
 			const bulkOperations = csvData.map(row => {
-				if (!row.userId) { // IMPORTANT: prodId , userId
-					console.warn('CSV row skipped', row);
-					return null; // null skip the row
+				const processedRow = { ...row };
+				// set default?
+				if (processedRow.cod === null || processedRow.cod === undefined) {
+					processedRow.cod = '';
+				}
+
+				const finalUpdateDocument = unflattenObject(processedRow);
+
+				//START MEMBERSHIP
+				if (!finalUpdateDocument.membership || typeof finalUpdateDocument.membership !== 'object') {
+					finalUpdateDocument.membership = {};
+				}
+				const membership = finalUpdateDocument.membership;
+
+				if (
+					membership.membershipLevel === null ||
+					membership.membershipLevel === undefined ||
+					!VALID_MEMBERSHIP_LEVELS.includes(membership.membershipLevel)
+				) {
+					membership.membershipLevel = 'Socio inattivo';
+				}
+
+				if (membership.membershipSignUp) {
+					const parsedDate = new Date(membership.membershipSignUp);
+					membership.membershipSignUp = isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+				} else {
+					membership.membershipSignUp = new Date();
+				}
+
+				// membership.membershipActivation (Date, default Date.now)
+				if (membership.membershipActivation) {
+					const parsedDate = new Date(membership.membershipActivation);
+					membership.membershipActivation = isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+				} else {
+					membership.membershipActivation = new Date();
+				}
+
+				// membership.membershipExpiry (Date, default 1 year from activation/now)
+				if (membership.membershipExpiry) {
+					const parsedDate = new Date(membership.membershipExpiry);
+					membership.membershipExpiry = isNaN(parsedDate.getTime()) ? getDefaultExpiryDate(membership.membershipActivation) : parsedDate;
+				} else {
+					membership.membershipExpiry = getDefaultExpiryDate(membership.membershipActivation);
+				}
+
+				// membership.membershipStatus (Boolean, default true)
+				if (membership.membershipStatus === null || membership.membershipStatus === undefined) {
+					membership.membershipStatus = false;
+				} else if (typeof membership.membershipStatus === 'string') {
+					// Convert string "true"/"false" in boolean
+					membership.membershipStatus = (membership.membershipStatus.toLowerCase() === 'true');
+				}
+				//MEMBERSHIP
+
+
+				// IMPORTANT: 
+				if (!finalUpdateDocument.userId) { // Adattare se il campo filtro non è 'userId'
+					console.warn('skipped ROW for upsert:', row);
+					return null;
 				}
 
 				return {
 					updateOne: {
-						filter: { prodId: row.prodId },  // IMPORTANT: prodId , userId
-						update: { $set: row },
+						filter: { userId: finalUpdateDocument.userId },
+						update: { $set: finalUpdateDocument }, // Invia l'oggetto completamente pre-processato e de-appiattito
 						upsert: true
 					}
 				};
-			}).filter(op => op !== null); // remove (null) rows
+			}).filter(op => op !== null); // Filtra le righe che sono state saltate
 
 			if (bulkOperations.length === 0) {
 				return { action: 'uploadCsv', success: false, message: 'Nessun dato valido da processare nel CSV.' };
@@ -397,6 +505,44 @@ export const actions: Actions = {
 		} catch (err) {
 			console.error('Error uploadCsv:', err);
 			return { action: 'uploadCsv', success: false, message: 'Errore server upload' };
+		}
+	},
+
+	downloadCsv: async ({ request }) => {
+		try {
+			const dataToExport = [
+				{ id: 1, name: 'Mario Rossi', email: 'mario.rossi@example.com', registrationDate: new Date('2023-01-15') },
+				{ id: 2, name: 'Luca Verdi', email: 'luca.verdi@example.com', registrationDate: new Date('2023-03-20') },
+				{ id: 3, name: 'Anna Neri', email: 'anna.neri@example.com', registrationDate: new Date('2024-02-10') },
+			];
+
+			const csvString = Papa.unparse(dataToExport, {
+				quotes: false,
+				quoteChar: '"',
+				escapeChar: '"',
+				delimiter: ',',
+				header: true,
+				skipEmptyLines: false
+			});
+
+			const filename = `users_dienchan_${new Date().toISOString()}.csv`;
+			const contentType = 'text/csv';
+
+			// Convert string CSV in Buffer (for response HTTP in Node.js)
+			const csvBuffer = Buffer.from(csvString, 'utf-8');
+
+			// Restituisci la Response con il contenuto del file
+			return new Response(csvBuffer, {
+				headers: {
+					'Content-Type': contentType,
+					'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
+					'Content-Length': csvBuffer.length.toString(),
+				},
+			});
+
+		} catch (error) {
+			console.error('Errore durante la generazione e il download del CSV:', error);
+			return fail(500, { success: false, message: 'Si è verificato un errore durante la generazione del report.' });
 		}
 	},
 

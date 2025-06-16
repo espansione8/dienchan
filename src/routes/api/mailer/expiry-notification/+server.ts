@@ -29,8 +29,8 @@ export const POST: RequestHandler = async ({ request }) => {
 				//IF USE Products.model -> types: course / product / membership / event
 				query: {
 					'membership.membershipExpiry': {
-						$gte: startOfDayTwoWeeksFromNow, // '>' OR '='of target day
-						$lt: startOfNextDayTwoWeeksFromNow // '<' of the next day
+						$gte: startOfDayTwoWeeksFromNow, // bigger OR equal target day
+						$lt: startOfNextDayTwoWeeksFromNow // smaller than next day
 					}
 				},
 

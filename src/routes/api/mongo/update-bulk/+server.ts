@@ -40,7 +40,7 @@ export const POST: RequestHandler = async ({ request }) => {
     try {
         await dbConnect();
         const result = await model.bulkWrite(update, options);
-        console.log('result Bulk update', result);
+        //console.log('result Bulk update', result);
 
         return json({ message: 'Bulk update ok', result }, { status: 200 });
 

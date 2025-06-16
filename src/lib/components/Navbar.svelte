@@ -402,7 +402,7 @@
 						{/if}
 
 						<li>
-							<form method="POST" action="/formAction/logout/" use:enhance={handleLogout}>
+							<form method="POST" action="/api/logout/" use:enhance={handleLogout}>
 								<button type="submit" class="btn btn-outline btn-error justify-start">
 									<LogOut size={18} />
 									Logout
