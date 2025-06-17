@@ -31,8 +31,6 @@
 	const { getTable } = $derived(data);
 	let tableList = $state(getTable);
 
-	const superadmins = getTable.filter((user) => user.level === 'superadmin');
-
 	let level = $state('');
 	let membershipLevel = $state('');
 	let password1 = $state('');

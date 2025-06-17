@@ -93,7 +93,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				//console.log(`Expiry email sent: ${user.email}`);
 
 			} catch (emailError) {
-				console.error(`Error sedning Expiry email to ${user.email}:`, emailError);
+				console.error(`Error sending Expiry email to ${user.email}:`, emailError);
 			}
 		}
 

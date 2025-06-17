@@ -15,23 +15,21 @@ export const actions: Actions = {
 
         cookies.delete('session_id', { path: '/' });
 
-        const resFetch = fetch(`${baseApiUrl}/api/mongo/update`, {
-            method: 'POST',
-            body: JSON.stringify({
-                apiKey,
-                schema: 'user', //product | order | user | layout | discount
-                query: { cookieId: session_id }, // 'course', 'product', 'membership', 'event'
-                update: { $set: { cookieId: '' } },
-                options: { upsert: false },
-                multi: false
-            }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
         try {
-            const res = await resFetch;
+            const res = await fetch(`${baseApiUrl}/api/mongo/update`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    apiKey,
+                    schema: 'user', //product | order | user | layout | discount
+                    query: { cookieId: session_id }, // 'course', 'product', 'membership', 'event'
+                    update: { $set: { cookieId: '' } },
+                    options: { upsert: false },
+                    multi: false
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
             if (!res.ok) {
                 const errorText = await res.text();
                 console.error('sign-out failed', res.status, errorText);

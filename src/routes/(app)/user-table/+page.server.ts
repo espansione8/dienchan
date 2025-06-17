@@ -456,7 +456,7 @@ export const actions: Actions = {
 					membership.membershipExpiry = getDefaultExpiryDate(membership.membershipActivation);
 				}
 
-				// membership.membershipStatus (Boolean, default true)
+				// membership.membershipStatus (Boolean, default false)
 				if (membership.membershipStatus === null || membership.membershipStatus === undefined) {
 					membership.membershipStatus = false;
 				} else if (typeof membership.membershipStatus === 'string') {

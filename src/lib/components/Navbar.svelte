@@ -174,7 +174,7 @@
 								</ul>
 							</div>
 						{/if}
-						<form method="POST" action="/formAction/logout/" use:enhance={handleLogout}>
+						<form method="POST" action="/api/logout/" use:enhance={handleLogout}>
 							<button type="submit" class="btn btn-sm btn-outline btn-error">
 								<LogOut size={16} />
 								<span>Logout</span>
