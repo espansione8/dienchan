@@ -5,7 +5,8 @@
 	// <NotificationContainer /> // at the bottom of the page
 
 	// USAGE INSTRUCTIONS in src/routes/+page.svelte
-	// $lib/stores/notification.ts
+	// NEED FILE $lib/stores/notification.ts
+
 	// import { notification } from '$lib/stores/notifications';
 
 	// notification.success('Hello, world!');

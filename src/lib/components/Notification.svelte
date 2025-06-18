@@ -45,6 +45,8 @@
 		notificationError = false;
 		startTimeout = undefined;
 	};
+
+	//// !!! DEPRECATED -> use NotificationContainer.svelte!!!
 	//////// INSTRUCTIONS
 
 	// import Notification from '$lib/components/Notification.svelte';
