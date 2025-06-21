@@ -12,30 +12,30 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 
 	let getTable: Product[] = [];
 	//let categories: string[] = [];
-	const resFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-		method: 'POST',
-		body: JSON.stringify({
-			apiKey: APIKEY,
-			schema: 'product', //product | order | user | layout | discount
-			query: { type: 'product' },//types: course / product / membership / event
-			projection: { _id: 0 }, // 0: exclude | 1: include
-			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
-			limit: 1000,
-			skip: 0
-		}),
-		headers: {
-			'Content-Type': 'application/json'
-		}
-	});
+
 
 	try {
-		const res = await resFetch;
-		if (!res.ok) {
-			const errorText = await res.text();
-			console.error('products-table fetch failed', res.status, errorText);
+		const resFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'product', //product | order | user | layout | discount
+				query: { type: 'product' },//types: course / product / membership / event
+				projection: { _id: 0 }, // 0: exclude | 1: include
+				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				limit: 10000,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		if (!resFetch.ok) {
+			const errorText = await resFetch.text();
+			console.error('products-table fetch failed', resFetch.status, errorText);
 			throw error(400, { message: `Products fetch failed: ${errorText}` });
 		}
-		getTable = await res.json();
+		getTable = await resFetch.json();
 		//categories = [...new Set(getTable.flatMap((item: any) => item.category))] as string[];
 		//console.log('products-table getTable', getTable);
 
@@ -47,6 +47,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 
 	return {
 		getTable,
+		itemCount: getTable.length
 		//categories
 	};
 }

@@ -2,6 +2,7 @@
 	import type { ActionResult } from '@sveltejs/kit';
 	import type { Product } from '$lib/types.ts';
 	import { enhance } from '$app/forms';
+	import { tick } from 'svelte';
 	import { invalidateAll } from '$app/navigation';
 	import Papa from 'papaparse';
 	import { courseKeysToDelete } from '$lib/stores/arrays';
@@ -29,8 +30,9 @@
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { getTable } = $derived(data);
+	const { getTable, itemCount } = $derived(data);
 	let tableList: Product[] = $state(getTable || []);
+	let count = $state(itemCount);
 
 	// modal
 	let currentModal = $state('');
@@ -50,6 +52,27 @@
 	let prodId = $state('');
 	let weight = $state(0);
 	let status = $state('');
+
+	// Pagination
+	let currentPage = $state(1);
+	const itemsPerPage = 20;
+	const pageNumbers = $derived(() => {
+		const pageCount = Math.ceil(count / itemsPerPage);
+		const numbers = [];
+		for (let i = 1; i <= pageCount; i++) {
+			numbers.push(i);
+		}
+		return numbers;
+	});
+
+	const goToPage = (newPage?: number) => {
+		currentPage = newPage;
+
+		// Pagination
+		const skipItems = (currentPage - 1) * itemsPerPage;
+		tableList = getTable.slice(skipItems, skipItems + itemsPerPage);
+	};
+	goToPage(currentPage);
 
 	const csvCreate = () => {
 		let csv = $state('');
@@ -199,6 +222,17 @@
 			loading = false;
 		};
 	};
+
+	$effect(() => {
+		if (tableList) {
+			tick().then(() => {
+				const element = document.getElementById('top');
+				if (element) {
+					element.scrollIntoView({ behavior: 'instant' }); // smooth / instant
+				}
+			});
+		}
+	});
 </script>
 
 <svelte:head>
@@ -214,7 +248,7 @@
 	</style>
 </noscript>
 
-<div class="overflow-x-auto mt-5 px-4 mb-5">
+<div id="top" class="overflow-x-auto mt-5 px-4 mb-5">
 	<div class="flex flex-col gap-4 mb-4">
 		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Lista prodotti</h1>
 		<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
@@ -361,6 +395,18 @@
 			{/each}
 		</tbody>
 	</table>
+	<div class="join flex justify-center">
+		{#each pageNumbers() as page (page)}
+			<button
+				type="submit"
+				class="join-item btn"
+				class:btn-active={page === currentPage}
+				onclick={() => goToPage(page)}
+			>
+				{page}
+			</button>
+		{/each}
+	</div>
 </div>
 
 {#if currentModal == 'new'}

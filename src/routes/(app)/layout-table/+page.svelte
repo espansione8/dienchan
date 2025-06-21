@@ -77,6 +77,7 @@
 		descr = '';
 		status = '';
 		price = 0;
+		bundleProducts = [];
 	};
 
 	const refresh = () => {

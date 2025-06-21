@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { Readable } from 'node:stream';
-
+//import { Readable } from 'node:stream';
 // import { pipeline, PassThrough } from 'node:stream';
 // import { promisify } from 'node:util';
 
@@ -29,19 +28,18 @@ export async function GET({ params, request }) {
     const headers = {
         ETag: etag,
         'Content-Type': mimes.lookup(file_path),
-        'Content-Length': stats.size.toString(),
-        'Cache-Control': 'max-age=604800, public',//'max-age=60', // default
+        'Content-Length': stats.size,
+        'Cache-Control': 'max-age=60', // default
         //'Cache-Control': 'no-cache', // response can be stored in caches, but the response must be validated with the origin server before each reuse
         //'Cache-Control': 'no-store', // any caches of any kind (private or shared) should not store this response.
         'Last-Modified': stats.mtime.toUTCString()
     };
 
     try {
-        const nodejs_rstream = fs.createReadStream(file_path);
-        const web_rstream = Readable.toWeb(nodejs_rstream);
-        return new Response(web_rstream, { headers });
-        // const fileBuffer = fs.readFileSync(file_path);
-        // return new Response(fileBuffer, { headers });
+        // const nodejs_rstream = fs.createReadStream(file_path);
+        // return new Response(nodejs_rstream, { headers });
+        const fileBuffer = fs.readFileSync(file_path);
+        return new Response(fileBuffer, { headers });
     } catch (error) {
         console.error('Error handling request1:', error);
         return new Response('Internal Server Error1', { status: 500 });
