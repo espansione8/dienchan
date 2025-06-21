@@ -184,10 +184,10 @@
 		switch (option) {
 			case 'expensive':
 				currentSort = 'dal più costoso';
-				return coursesList.sort((a, b) => b.price - a.price);
+				return coursesList.sort((a, b) => (b.layoutView?.price ?? 0) - (a.layoutView?.price ?? 0));
 			case 'cheap':
 				currentSort = 'dal più economico';
-				return coursesList.sort((a, b) => a.price - b.price);
+				return coursesList.sort((a, b) => (a.layoutView?.price ?? 0) - (b.layoutView?.price ?? 0));
 			case 'recent':
 				currentSort = 'dal più recente';
 				return coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
@@ -533,7 +533,9 @@
 									>
 										<span class="text-xs font-semibold">PREZZO</span>
 										<div class="flex items-baseline">
-											<span class="text-2xl font-bold">€ {courseData.layoutView.price}</span>
+											<span class="text-2xl font-bold"
+												>€ {courseData.layoutView?.price || 'N/A'}
+											</span>
 										</div>
 									</div>
 									<div
@@ -543,7 +545,7 @@
 							</div>
 							<div class="h-48 w-full flex items-center justify-center">
 								<img
-									src={courseData.layoutView.urlPic || '/images/placeholder.jpg'}
+									src={courseData.layoutView?.urlPic || '/images/placeholder.jpg'}
 									alt={courseData.layoutView.title}
 									class="h-full max-h-48 w-auto object-contain rounded-lg hover:scale-110 transition-transform duration-500"
 									loading="lazy"

@@ -207,6 +207,25 @@ export const actions: Actions = {
 			}
 		});
 
+		const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'product', //product | order | user | layout | discount
+				query: { layoutId: layoutId, type: 'course' },
+				update: {
+					$set: {
+						status: 'disabled'
+					}
+				},
+				options: { upsert: false },
+				multi: true
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
 		try {
 			const res = await resFetch;
 			if (!res.ok) {
@@ -215,6 +234,13 @@ export const actions: Actions = {
 				return fail(400, { action: 'delete', success: false, message: errorText });
 			}
 			const result = await res.json();
+
+			const update = await updateFetch
+			if (!update.ok) {
+				const errorText = await update.text();
+				console.error('course deactivating failed', update.status, errorText);
+				return fail(400, { action: 'delete', success: false, message: errorText });
+			}
 
 			return { action: 'delete', success: true, message: result.message };
 

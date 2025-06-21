@@ -85,13 +85,14 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 
 		const resGetTable = await courseRes.json();
 		if (resGetTable.length > 0) {
-			getTable = resGetTable.map((obj: any) => ({
-				...obj,
-				createdAt: obj.createdAt.substring(0, 10),
-				eventStartDate: obj.eventStartDate,
-				timeStartDate: obj.eventStartDate.substring(11, 16),
-				//timeEndDate: obj.eventEndDate.substring(11, 16),
-			}));
+			getTable = resGetTable
+				.filter((obj: any) => obj.layoutView)
+				.map((obj: any) => ({
+					...obj,
+					createdAt: obj.createdAt ? obj.createdAt.substring(0, 10) : undefined,
+					eventStartDate: obj.eventStartDate ? obj.eventStartDate.substring(0, 10) : undefined,
+					timeStartDate: obj.eventStartDate ? obj.eventStartDate.substring(11, 16) : undefined,
+				}));
 
 			if (user.level == 'formatore') {
 				getTable = getTable.filter((obj: any) => obj.userId == user.userId);
