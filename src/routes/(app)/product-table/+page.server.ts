@@ -306,7 +306,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			const uploadImg = await fetch(`${BASE_URL}/api/uploads/files`, {
+			const uploadImg = fetch(`${BASE_URL}/api/uploads/files`, {
 				method: 'POST',
 				headers: {
 					//'Content-Type': 'application/json',
@@ -327,7 +327,7 @@ export const actions: Actions = {
 							type: 'product-primary', //'product-primary', 'product-gallery', 'membership', 'course'
 							fileType: file.type,
 							fileName: file.name,
-							fileUrl: `/files/product/${prodId}/${file.name}`
+							fileUrl: `/uploads/product/${prodId}/${file.name}`
 						}
 					],
 				}
@@ -340,7 +340,7 @@ export const actions: Actions = {
 				// ]
 			}
 			const multi = false
-			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
+			const res = fetch(`${BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey: APIKEY,
@@ -357,15 +357,16 @@ export const actions: Actions = {
 			//const response = await res.json();
 
 			const [resImg, response] = await Promise.all([
-				await uploadImg.json(),
-				await res.json()
+				uploadImg,
+				res
 			])
 
-			if (!uploadImg.ok) return { action: 'setProdPic', success: false, message: resImg.message }
+			if (!resImg.ok) return { action: 'setProdPic', success: false, message: `resImg: ${await resImg.text()}` }
+			if (!response.ok) return { action: 'setProdPic', success: false, message: `response: ${await response.text()}` };
 
-			if (!res.ok) return { action: 'setProdPic', success: false, message: response.message };
+			const updateJson = await response.json();
 
-			return { action: 'setProdPic', success: true, message: response.message };
+			return { action: 'setProdPic', success: true, message: updateJson.message };
 
 		} catch (err) {
 			console.error('Error upload:', err);
@@ -394,26 +395,23 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				}
 			});
+			//console.log('responseDelete', responseDelete);
+
 			const resDel = await responseDelete.json();
 			if (responseDelete.status != 200) return { action: 'delProdPic', success: false, message: resDel.message };
 
-			const query = { prodId, type: 'product' }; // 'course', 'product', 'membership', 'event'
-			const update = {
-				$pull:
-					{ uploadfiles: { type: 'product-primary', fileName: fileName } }
-
-			};
-			const options = { upsert: false }
-			const multi = false
 			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey: APIKEY,
 					schema: 'product', //product | order | user | layout | discount
-					query,
-					update,
-					options,
-					multi
+					query: { prodId, type: 'product' },
+					update: {
+						$pull:
+							{ uploadfiles: { type: 'product-primary', fileName: fileName } }
+					},
+					options: { upsert: false },
+					multi: false
 				}),
 				headers: {
 					'Content-Type': 'application/json'

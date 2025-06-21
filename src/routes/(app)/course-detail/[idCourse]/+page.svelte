@@ -365,7 +365,7 @@
 										/>
 										<!-- {#if picFilter.length > 0}
 											<img
-												src={`/files/${formatoreData.userId}/${picFilter[0].filename}`}
+												src={`/uploads/${formatoreData.userId}/${picFilter[0].filename}`}
 												alt="avatar"
 												loading="lazy"
 											/>

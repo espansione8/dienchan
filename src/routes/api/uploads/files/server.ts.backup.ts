@@ -1,100 +1,100 @@
 // ${BASE_URL}/api/uploads/files
-import { json } from '@sveltejs/kit';
-import fs from 'node:fs';
-import path from 'node:path';
-import { Readable } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
+// import { json } from '@sveltejs/kit';
+// import fs from 'node:fs';
 
-const FILES_DIR = 'uploads'
-if (!fs.existsSync(FILES_DIR)) {
-    fs.mkdirSync(FILES_DIR, { recursive: true });
-}
+// // import { promises as fsPromises } from 'node:fs';
+// // import * as fs from 'node:fs';
 
-/** @type {import('./$types').RequestHandler} */
-export const POST = async (event) => {
-    if (!event.request.body) {
-        return new Response(null, { status: 400 });
-    }
+// import path from 'node:path';
+// import { Readable } from 'node:stream';
+// import { pipeline } from 'node:stream/promises';
 
-    const file_name = event.request.headers.get('x-file-name');
-    const folder_name = event.request.headers.get('x-folder-name');
+// const FILES_DIR = 'uploads'
+// if (!fs.existsSync(FILES_DIR)) {
+//     fs.mkdirSync(FILES_DIR, { recursive: true });
+// }
 
-    if (!file_name || !folder_name) {
-        event.request.body.cancel();
-        // Note: This does not do anything if the body is cancelled
-        // but we return it anyway
-        return new Response(null, { status: 400 });
-    }
+// export const POST = async (event) => {
+//     if (!event.request.body) {
+//         return json({ message: 'No request body' }, { status: 400 });
+//     }
 
-    const file_path = path.normalize(path.join(FILES_DIR, folder_name, file_name));
-    const dir_path = path.normalize(path.join(FILES_DIR, folder_name));
+//     const fileName = event.request.headers.get('x-file-name');
+//     const folderName = event.request.headers.get('x-folder-name');
 
-    try {
-        await fs.mkdirSync(dir_path, { recursive: true });
-    } catch (err: any) {
-        if (err.code == 'EEXIST') return; // Ignore the error if the folder already exists
-        throw err; // Something else went wrong
-    }
+//     if (!fileName || !folderName) {
+//         await event.request.body.cancel();
+//         return json({ message: 'Missing fileName or folderName header' }, { status: 400 });
+//     }
 
-    // if (fs.existsSync(file_path)) {
-    //     fs.mkdirSync(file_path, { recursive: true });
-    //     event.request.body.cancel();
-    //     // Note: This does not do anything if the body is cancelled
-    //     // but we return it anyway
-    //     return new Response(null, { status: 400 });
-    // }
+//     const filePath = path.normalize(path.join(FILES_DIR, folderName, fileName));
+//     const dirPath = path.normalize(path.join(FILES_DIR, folderName));
 
-    const nodejs_wstream = fs.createWriteStream(file_path);
-    // Convert Web `ReadableStream` to a Node.js `Readable` stream
-    const web_rstream = event.request.body;
-    const nodejs_rstream = Readable.fromWeb(web_rstream);
-    // Write file to disk and wait for it to finish
-    try {
-        await pipeline(nodejs_rstream, nodejs_wstream);
-    } catch (e) {
-        fs.unlinkSync(file_path);
-        return new Response(null, { status: 500 });
-    }
+//     try {
+//         //await fs.mkdir(dirPath, { recursive: true });
+//         await fs.mkdirSync(dirPath, { recursive: true });  // Create directory if it doesn't exist
 
-    return new Response();
-}
+//         // Setup streams
+//         const webReadStream = event.request.body;
+//         const nodeReadStream = Readable.fromWeb(webReadStream);
+//         const writeStream = fs.createWriteStream(filePath);
 
-export const DELETE = async ({ request }) => {
-    const body = await request.json();
-    const dir = body.userId
-    const fileName = body.fileName
-    const path = `uploads/${dir}/${fileName}`
+//         // Write file
+//         await pipeline(nodeReadStream, writeStream);
+//         return json({ message: 'Upload OK' }, { status: 200 });
 
-    fs.unlink(path, (err) => {
-        if (err) {
-            console.error(err)
-            // return {
-            //     status: 500,
-            //     body: {
-            //         message: 'User pic update error'
-            //     }
-            // }
-            return json({ message: 'User file delete error' }, { status: 500 });
-        }
-        //file removed
+//     } catch (error) {
+//         fs.unlinkSync(filePath); // delete file
+//         console.error('Upload error:', error);
+//         return json({ message: 'Upload error' }, { status: 500 });
+//     }
+// };
 
-        //// remove dir
-        // fs.readdir(`static/${dir}`, (err, files) => {
-        //     if (err)
-        //         console.log('readdir', err);
-        //     else {
-        //         console.log('directory files:', files, files.length);
-        //         if (files.length === 0) {
-        //             fs.rmdir(`static/${dir}`, (err) => {
-        //                 if (err) {
-        //                     return console.log("error occurred in deleting directory", err);
-        //                 }
-        //                 //console.log("Directory deleted successfully");
-        //             });
-        //         }
-        //     }
-        // })
+// export const DELETE = async ({ request }) => {
+//     try {
+//         const body = await request.json();
+//         const { dir, fileName } = body;
 
-    })
-    return json({ message: 'User file removed' }, { status: 200 });
-}
+//         if (!dir || !fileName) return json({ message: 'Missing dir or fileName' }, { status: 400 });
+
+//         const filePath = path.join(FILES_DIR, dir, fileName);
+//         const dirPath = path.join(FILES_DIR, dir);
+
+//         fs.unlink(filePath, (err) => {
+//             if (err) {
+//                 console.error(err)
+//                 return json({ message: 'User file delete error' }, { status: 500 });
+//             }
+//             //file removed
+
+//             //// remove dir
+//             fs.readdir(dirPath, (err, files) => {
+//                 if (err)
+//                     console.log('readdir', err);
+//                 else {
+//                     //console.log('directory files:', files, files.length);
+//                     if (files.length === 0) {
+//                         fs.rmdir(dirPath, (err) => {
+//                             if (err) {
+//                                 return console.log("error occurred in deleting directory", err);
+//                             }
+//                             //console.log("Directory deleted successfully");
+//                         });
+//                     }
+//                 }
+//             })
+
+//         })
+//         return json({ message: 'file removed' }, { status: 200 });
+//         // const dirPath = path.join(FILES_DIR, dir);
+//         // const files = await fs.readdir(dirPath);
+
+//         // if (files.length == 0) {
+//         //     await fs.rmdir(dirPath);
+//         // }
+//     } catch (error) {
+//         console.error('Delete error:', error);
+//         return json({ message: 'Error deleting file' }, { status: 500 });
+//     }
+// };
+////////////////

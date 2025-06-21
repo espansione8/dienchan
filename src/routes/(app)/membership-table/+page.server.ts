@@ -342,7 +342,7 @@ export const actions: Actions = {
 							type: 'product-primary', //'product-primary', 'product-gallery', 'membership', 'course'
 							fileType: file.type,
 							fileName: file.name,
-							fileUrl: `/files/product/${prodId}/${file.name}`
+							fileUrl: `/uploads/product/${prodId}/${file.name}`
 						}
 					],
 				}

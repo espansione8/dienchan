@@ -379,7 +379,7 @@ export const actions: Actions = {
 				query: { layoutId }, // 'course', 'product', 'membership', 'event',
 				update: {
 					$set: {
-						urlPic: `/files/layout/${layoutId}/${file.name}`
+						urlPic: `/uploads/layout/${layoutId}/${file.name}`
 					}
 				},
 				options: {

@@ -199,7 +199,7 @@
 			loading = true;
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
-				const { action, message, payload } = result.data; // { action, success, message, payload }
+				const { action, success, message, payload } = result.data; // { action, success, message, payload }
 				if (action == 'filter') {
 					resetActive = true;
 					tableList = payload;
@@ -207,7 +207,12 @@
 					resetActive = false;
 					tableList = getTable;
 				}
-				notification.info(message);
+
+				if (success) {
+					notification.info(message);
+				} else {
+					notification.error(message);
+				}
 				onCloseModal();
 			}
 			if (result.type === 'failure') {
@@ -219,6 +224,7 @@
 			// 'update()' is called by default by use:enhance
 			// call 'await update()' if you need to ensure it completes before further client logic.
 			resetFields();
+			goToPage(currentPage);
 			loading = false;
 		};
 	};

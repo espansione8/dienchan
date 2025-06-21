@@ -216,7 +216,7 @@
 										>
 											<img
 												src={picFilter.length > 0
-													? `/files/user/${userData.userId}/${picFilter[0].fileName}`
+													? `/uploads/user/${userData.userId}/${picFilter[0].fileName}`
 													: '/images/placeholder.jpg'}
 												alt="Profile"
 												class="object-cover w-full h-full"

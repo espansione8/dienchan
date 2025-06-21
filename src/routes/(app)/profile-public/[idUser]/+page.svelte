@@ -113,13 +113,13 @@
 								>
 									{#if findAvatar.length > 0}
 										<!-- <img
-										src={`/files/${getUser.userId}/${picFilter[0].fileName}`}
+										src={`/uploads/${getUser.userId}/${picFilter[0].fileName}`}
 										alt="Profile"
 										class="w-full h-full object-contain"
 									/> -->
 										<img
 											src={picFilter.length > 0
-												? `/files/user/${getUser.userId}/${picFilter[0].fileName}`
+												? `/uploads/user/${getUser.userId}/${picFilter[0].fileName}`
 												: '/images/placeholder.jpg'}
 											alt="Profile"
 											class="object-cover w-full h-full"

@@ -203,7 +203,7 @@ export const actions: Actions = {
 				body: file
 			});
 
-			if (!uploadImg.ok) return fail(400, { action: 'setProfilePic', success: false, message: await uploadImg.text() })
+			if (!uploadImg.ok) return fail(400, { action: 'setProfilePic', success: false, message: `uploadImg: ${await uploadImg.text()}` })
 
 			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
 				method: 'POST',
@@ -216,7 +216,7 @@ export const actions: Actions = {
 							uploadfiles: {
 								type: 'profile',
 								fileName: file.name,
-								fileUrl: `/files/user/${userId}/${file.name}`
+								fileUrl: `/uploads/user/${userId}/${file.name}`
 							}
 						}
 					},
@@ -271,7 +271,7 @@ export const actions: Actions = {
 							uploadfiles: {
 								type: 'profile',
 								fileName,
-								//fileUrl: `/files/user/${userId}/${fileName}`
+								//fileUrl: `/uploads/user/${userId}/${fileName}`
 							}
 						}
 					},
