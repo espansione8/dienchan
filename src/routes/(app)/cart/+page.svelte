@@ -75,7 +75,7 @@
 
 	// cart
 	let cart = $state($cartProducts);
-	let grandTotal: any = $derived(() => {
+	let subTotal: any = $derived(() => {
 		let total = 0;
 		$cartProducts.forEach((element: any) => {
 			if (element.type == 'course') {
@@ -97,7 +97,7 @@
 	// 	});
 	// 	return total;
 	// });
-	let subTotal = $derived(grandTotal() - totalDiscount());
+	let grandTotal = $derived(subTotal() - totalDiscount() + 9);
 
 	const testPass = () => {
 		checkPass = password1.length >= 8;
@@ -728,10 +728,13 @@
 
 				<div class="p-6 space-y-4">
 					<div class="flex justify-between">
-						<span>Subtotale</span>
-						<span>€ {grandTotal().toFixed(2)}</span>
+						<span>Carrello</span>
+						<span>€ {subTotal().toFixed(2)}</span>
 					</div>
-
+					<div class="flex justify-between text-success">
+						<span>Spedizione</span>
+						<span>€ 9</span>
+					</div>
 					{#if discountList.length > 0}
 						<div class="flex justify-between text-success">
 							<span>Sconto</span>
@@ -743,7 +746,7 @@
 
 					<div class="flex justify-between font-bold text-lg">
 						<span>Totale</span>
-						<span class="text-primary">€ {subTotal.toFixed(2)}</span>
+						<span class="text-primary">€ {grandTotal.toFixed(2)}</span>
 					</div>
 
 					<!-- Discount Code -->
@@ -764,7 +767,7 @@
 										disabled={loading || $cartProducts.length < 1}
 									/>
 									<input type="hidden" name="cart" value={JSON.stringify($cartProducts)} />
-									<input type="hidden" name="grandTotal" value={grandTotal()} />
+									<input type="hidden" name="subTotal" value={subTotal()} />
 									<input type="hidden" name="discountList" value={JSON.stringify(discountList)} />
 									<button type="submit" class="btn btn-primary" disabled={!discountCode || loading}>
 										{#if loading}
@@ -785,7 +788,7 @@
 											<Tag size={14} />
 											{badgeCode.code}
 											<input type="hidden" name="cart" value={JSON.stringify($cartProducts)} />
-											<input type="hidden" name="grandTotal" value={grandTotal()} />
+											<input type="hidden" name="subTotal" value={subTotal()} />
 											<input
 												type="hidden"
 												name="discountList"
@@ -906,6 +909,10 @@
 										<td class="text-right">€ {item.price.toFixed(2)}</td>
 									</tr>
 								{/each}
+								<tr class="text-info">
+									<td colspan="2">Spedizione</td>
+									<td class="text-right"> € 9</td>
+								</tr>
 								{#if discountList.length > 0}
 									<tr class="text-success">
 										<td colspan="2">Sconto</td>
@@ -917,7 +924,7 @@
 								<tr>
 									<th colspan="2">Totale</th>
 									<th class="text-right">
-										€ {subTotal.toFixed(2)}
+										€ {grandTotal.toFixed(2)}
 									</th>
 								</tr>
 							</tfoot>
@@ -995,7 +1002,7 @@
 					<input type="hidden" name="mobilePhone" value={formData.mobilePhone} />
 					<input type="hidden" name="payment" value={formData.paymentType} />
 					<input type="hidden" name="cart" value={JSON.stringify(cart)} />
-					<input type="hidden" name="totalValue" value={subTotal} />
+					<input type="hidden" name="totalValue" value={grandTotal} />
 					<input type="hidden" name="discountList" value={JSON.stringify(discountList)} />
 					<div class="modal-action">
 						<button class="btn btn-outline btn-error" onclick={onCloseModal}> Annulla </button>

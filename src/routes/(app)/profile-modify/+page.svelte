@@ -1055,6 +1055,17 @@
 															</div>
 														{/each}
 
+														{#if order.type === 'product'}
+															<div
+																class="flex justify-between items-center pt-3 border-t border-base-200"
+															>
+																<div class="font-medium">Spedizione</div>
+																<div class="font-bold text-lg text-info">
+																	<p>€ 9</p>
+																</div>
+															</div>
+														{/if}
+
 														<div
 															class="flex justify-between items-center pt-3 border-t border-base-200"
 														>

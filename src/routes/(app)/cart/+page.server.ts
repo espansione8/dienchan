@@ -91,6 +91,7 @@ export const actions: Actions = {
 		// Calculate total cart on server anche for security
 		const cartRecalculated = () => {
 			let total = 0;
+			total += 9 //delivery fee
 			cartItem.forEach((element: any) => {
 				if (element.type == 'course') {
 					total += element.layoutView.price * (element.orderQuantity || 1);
@@ -355,9 +356,9 @@ export const actions: Actions = {
 			const formData = await request.formData();
 			const discountCode = formData.get('discountCode') as string;
 			const cart = formData.get('cart') as string;
-			const grandTotal = formData.get('grandTotal') as string;
+			const subTotal = formData.get('subTotal') as string;
 			const discountList = formData.get('discountList') as string;
-			const originalTotal = Number(grandTotal) || 0;
+			const originalTotal = Number(subTotal) || 0;
 			const discountArray: string[] = JSON.parse(discountList || '[]').map(item => item.code);
 			const cartArray: CartItem[] = JSON.parse(cart || '[]');
 			// let cartArray: CartItem[] = [];
@@ -487,10 +488,10 @@ export const actions: Actions = {
 		try {
 			const formData = await request.formData();
 			const removeCode = formData.get('removeCode') as string;
-			const grandTotal = formData.get('grandTotal') as string;
+			const subTotal = formData.get('subTotal') as string;
 			const cart = formData.get('cart') as string;
 			const discountList = formData.get('discountList') as string;
-			const originalTotal = Number(grandTotal) || 0;
+			const originalTotal = Number(subTotal) || 0;
 			const cartArray: CartItem[] = JSON.parse(cart || '[]');
 			let discountArray: string[] = JSON.parse(discountList || '[]').map(item => item.code);
 

@@ -346,6 +346,7 @@
 									src={imgCheck.single(productData.uploadfiles, 'product-primary')}
 									alt="product-primary"
 									class="h-full max-h-48 w-auto object-contain rounded-lg hover:scale-110 transition-transform duration-500"
+									loading="lazy"
 								/>
 							</div>
 						</a>

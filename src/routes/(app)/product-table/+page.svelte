@@ -282,6 +282,7 @@
 											src={imgCheck.single(row.uploadfiles, 'product-primary')}
 											alt="product-primary"
 											class="object-cover rounded-md max-w-28 max-h-28 h-auto"
+											loading="lazy"
 										/>
 									</figure>
 									<form

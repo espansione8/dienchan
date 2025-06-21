@@ -305,6 +305,7 @@
 												src={row.urlPic}
 												alt={row.urlPic}
 												class="object-cover rounded-md max-w-36 max-h-36 h-auto"
+												loading="lazy"
 											/>
 										</figure>
 										<form

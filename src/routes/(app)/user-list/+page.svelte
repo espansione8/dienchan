@@ -125,8 +125,6 @@
 	// 			item.name.toLowerCase().includes(query) || item.surname.toLowerCase().includes(query)
 	// 	);
 	// });
-
-	
 </script>
 
 <svelte:head>
@@ -334,6 +332,7 @@
 										'/images/avatar.png'}
 									alt={`${reflexologist.name} ${reflexologist.surname}`}
 									class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+									loading="lazy"
 								/>
 								<div
 									class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-emerald-800/80 to-transparent p-4"

@@ -86,13 +86,13 @@
 		// console.log('onSwitchPublicProfile', type, value, typeof namePublic, namePublic);
 	};
 
-	const csvCreate = () => {
+	const csvCreate = (content) => {
 		let csv = $state('');
 		let newList: any = $state();
 
 		const flattenObject = (obj: any, prefix = '') => {
 			return Object.keys(obj).reduce((acc, k) => {
-				const pre = prefix.length ? prefix + '_' : '';
+				const pre = prefix.length ? prefix + '.' : '';
 				if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
 					Object.assign(acc, flattenObject(obj[k], pre + k));
 				} else {
@@ -102,7 +102,7 @@
 			}, {});
 		};
 
-		const flattenedArray = tableList.map((obj: any) => {
+		const flattenedArray = content.map((obj: any) => {
 			return flattenObject(obj);
 		});
 
@@ -130,7 +130,7 @@
 		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
 		const link = document.createElement('a');
 		link.href = URL.createObjectURL(blob);
-		link.download = `TableExport_Utenti.csv`;
+		link.download = `export_Utenti_${new Date().toISOString()}.csv`;
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
@@ -246,9 +246,12 @@
 				if (action == 'filter') {
 					resetActive = true;
 					tableList = payload;
-				} else {
-					resetActive = false;
-					tableList = getTable;
+				}
+				if (action == 'downloadCsv') {
+					console.log('action', action);
+					console.log('payload', payload.length);
+
+					csvCreate(payload);
 				}
 				notification.info(message);
 				onCloseModal();
@@ -308,12 +311,18 @@
 				>
 					<CopyPlus /> Nuovo
 				</button>
-				<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate()}>
+				<button
+					class="btn btn-info text-white w-full sm:w-auto"
+					onclick={() => csvCreate(tableList)}
+				>
 					<FileDown />CSV
 				</button>
-				<form method="POST" action={`?/downloadCsv`}>
+				<form method="POST" action={`?/downloadCsv`} use:enhance={formSubmit}>
 					<button type="submit" class="btn btn-info text-white w-full sm:w-auto">
-						<FileDown />FULL CSV TEST
+						<FileDown />Total CSV
+						{#if loading}
+							<Loader />
+						{/if}
 					</button>
 				</form>
 

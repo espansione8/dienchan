@@ -546,6 +546,7 @@
 									src={courseData.layoutView.urlPic || '/images/placeholder.jpg'}
 									alt={courseData.layoutView.title}
 									class="h-full max-h-48 w-auto object-contain rounded-lg hover:scale-110 transition-transform duration-500"
+									loading="lazy"
 								/>
 							</div>
 						</a>

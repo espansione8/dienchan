@@ -508,41 +508,34 @@ export const actions: Actions = {
 		}
 	},
 
-	downloadCsv: async ({ request }) => {
+	downloadCsv: async ({ request, fetch }) => {
 		try {
-			const dataToExport = [
-				{ id: 1, name: 'Mario Rossi', email: 'mario.rossi@example.com', registrationDate: new Date('2023-01-15') },
-				{ id: 2, name: 'Luca Verdi', email: 'luca.verdi@example.com', registrationDate: new Date('2023-03-20') },
-				{ id: 3, name: 'Anna Neri', email: 'anna.neri@example.com', registrationDate: new Date('2024-02-10') },
-			];
-
-			const csvString = Papa.unparse(dataToExport, {
-				quotes: false,
-				quoteChar: '"',
-				escapeChar: '"',
-				delimiter: ',',
-				header: true,
-				skipEmptyLines: false
-			});
-
-			const filename = `users_dienchan_${new Date().toISOString()}.csv`;
-			const contentType = 'text/csv';
-
-			// Convert string CSV in Buffer (for response HTTP in Node.js)
-			const csvBuffer = Buffer.from(csvString, 'utf-8');
-
-			// Restituisci la Response con il contenuto del file
-			return new Response(csvBuffer, {
+			const resFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user', //product | order | user | layout | discount
+					query: {},
+					projection: { _id: 0, password: 0 }, // 0: exclude | 1: include
+					sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+					limit: 100000,
+					skip: 0
+				}),
 				headers: {
-					'Content-Type': contentType,
-					'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
-					'Content-Length': csvBuffer.length.toString(),
-				},
+					'Content-Type': 'application/json'
+				}
 			});
+			if (!resFetch.ok) {
+				return fail(400, { action: 'downloadCsv', success: false, message: `resFetch: ${await resFetch.text()}` });
+			}
+			const content = await resFetch.json();
+			console.log('content', content.length);
+
+			return { action: 'downloadCsv', success: true, message: 'Download report', payload: content };
 
 		} catch (error) {
 			console.error('Errore durante la generazione e il download del CSV:', error);
-			return fail(500, { success: false, message: 'Si è verificato un errore durante la generazione del report.' });
+			return fail(500, { action: 'downloadCsv', success: false, message: 'Si è verificato un errore durante la generazione del report.' });
 		}
 	},
 
