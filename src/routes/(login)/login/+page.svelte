@@ -4,6 +4,7 @@
 	import { enhance } from '$app/forms';
 	import { fly, fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
+	import { Image } from '@unpic/svelte';
 	import { notification } from '$lib/stores/notifications';
 	import Modal from '$lib/components/Modal.svelte';
 	import Loader from '$lib/components/Loader.svelte';
@@ -147,7 +148,9 @@
 					in:fly|local={{ y: 30, duration: 800, easing: quintOut }}
 				>
 					<div class="relative">
-						<img
+						<Image
+							layout="constrained"
+							aspectRatio={1}
 							src="images/storia.jpg"
 							alt="Storia Dien Chan"
 							class="w-full max-w-lg mx-auto lg:mx-0 rounded-2xl shadow-2xl"

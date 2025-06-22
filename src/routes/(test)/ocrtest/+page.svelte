@@ -10,6 +10,7 @@
 	// 		parsedText = text;
 	// 	});
 	// };
+	import { Image } from '@unpic/svelte';
 	import { enhance } from '$app/forms';
 
 	//import type { ActionData, PageData } from './$types';
@@ -141,7 +142,9 @@
 					Use the free Mining Pass, which is automatically unlocked or upgrade it for the current
 					season to be able to lock more VPND.
 				</p>
-				<img
+				<Image
+					layout="constrained"
+					aspectRatio={1}
 					src="https://via.placeholder.com/100"
 					alt="Mining Pass Icon"
 					class="w-16 mx-auto mt-2"

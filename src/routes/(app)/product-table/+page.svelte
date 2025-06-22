@@ -4,6 +4,7 @@
 	import { enhance } from '$app/forms';
 	import { tick } from 'svelte';
 	import { invalidateAll } from '$app/navigation';
+	import { Image } from '@unpic/svelte';
 	import Papa from 'papaparse';
 	import { courseKeysToDelete } from '$lib/stores/arrays';
 	import { notification } from '$lib/stores/notifications';
@@ -230,7 +231,7 @@
 	};
 
 	$effect(() => {
-		if (tableList) {
+		if (currentPage) {
 			tick().then(() => {
 				const element = document.getElementById('top');
 				if (element) {
@@ -318,11 +319,12 @@
 							<div class="card-body p-4">
 								<div class="flex items-center">
 									<figure class="flex-shrink-0">
-										<img
+										<Image
+											layout="constrained"
+											aspectRatio={1}
 											src={imgCheck.single(row.uploadfiles, 'product-primary')}
 											alt="product-primary"
 											class="object-cover rounded-md max-w-28 max-h-28 h-auto"
-											loading="lazy"
 										/>
 									</figure>
 									<form

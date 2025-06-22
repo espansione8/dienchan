@@ -12,7 +12,9 @@
 	<p>{$page.error.message}</p>
 </div>
 
-<!-- <img
+<!-- <Image
+	layout="constrained"
+	aspectRatio={1}
 	src="https://assets.materialup.com/uploads/9070caa6-cc00-44be-8e7a-f136c2fc58bd/preview.gif"
 	alt="404"
 /> -->

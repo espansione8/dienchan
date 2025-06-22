@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ActionResult } from '@sveltejs/kit';
-	import type { CartItem } from './$types';
+	import { Image } from '@unpic/svelte';
+	import type { CartItem } from '$lib/types';
 	import { enhance } from '$app/forms';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { notification } from '$lib/stores/notifications';
@@ -289,7 +290,9 @@
 				</div>
 			</div>
 			<div class="md:w-1/2">
-				<img
+				<Image
+					layout="constrained"
+					aspectRatio={1}
 					src="/images/riflessologo_dienchan.jpg"
 					alt="Riflessologo Diện Chẩn"
 					class="rounded-lg shadow-xl max-w-full h-auto"
@@ -408,7 +411,9 @@
 						</div>
 
 						<div class="flex justify-center mb-6">
-							<img
+							<Image
+								layout="constrained"
+								aspectRatio={1}
 								src="/images/card-1.jpg"
 								alt="Socio Ordinario"
 								class="h-40 w-40 rounded-full object-cover border-4 border-blue-100"
@@ -472,7 +477,9 @@
 					</div>
 
 					<div class="flex justify-center mb-6">
-						<img
+						<Image
+							layout="constrained"
+							aspectRatio={1}
 							src="/images/card-2.jpg"
 							alt="Socio Vitalizio"
 							class="h-40 w-40 rounded-full object-cover border-4 border-yellow-100"
@@ -531,7 +538,9 @@
 			{#each testimonials as testimonial}
 				<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
 					<div class="flex items-center mb-4">
-						<img
+						<Image
+							layout="constrained"
+							aspectRatio={1}
 							src={testimonial.image || '/placeholder.svg'}
 							alt={testimonial.name}
 							class="w-12 h-12 rounded-full object-cover mr-4"

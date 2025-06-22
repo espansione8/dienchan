@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types'
 import { BASE_URL, APIKEY } from '$env/static/private';
-import { fail } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import { pageAuth } from '$lib/pageAuth';
 
 const apiKey = APIKEY;
@@ -10,30 +10,24 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 
 	let getTable = [];
 	try {
-		const query = {};
-		const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
-		const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
-		const limit = 1000;
-		const skip = 0;
 		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey,
 				schema: 'user', //product | order | user | layout | discount
-				query,
-				projection,
-				sort,
-				limit,
-				skip
+				query: { 'membership.membershipStatus': true },
+				projection: { _id: 0, password: 0 }, // 0: exclude | 1: include
+				sort: {}, // 1:Sort ascending | -1:Sort descending
+				limit: 100000,
+				skip: 0
 			}),
 			headers: {
 				'Content-Type': 'application/json'
 			}
 		});
 		if (!res.ok) {
-			const errorText = await res.text();
-			console.error('user fetch failed', res.status, errorText);
-			return
+			console.error('user fetch failed', res.status, `res: ${await res.text()}`);
+			throw error(400, 'user fetch failed');
 		}
 		const response = await res.json();
 		getTable = response.map((obj: any) => ({
@@ -46,6 +40,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 
 	return {
 		getTable,
+		itemCount: getTable.length
 	};
 }
 

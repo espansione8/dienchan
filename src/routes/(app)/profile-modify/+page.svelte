@@ -3,6 +3,7 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { notification } from '$lib/stores/notifications';
+	import { Image } from '@unpic/svelte';
 	import DragDrop from '$lib/components/DragDrop.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import Loader from '$lib/components/Loader.svelte';
@@ -214,7 +215,9 @@
 										<div
 											class="w-48 h-48 rounded-full ring ring-emerald-600 ring-offset-base-100 ring-offset-2 overflow-hidden"
 										>
-											<img
+											<Image
+												layout="constrained"
+												aspectRatio={1}
 												src={picFilter.length > 0
 													? `/uploads/user/${userData.userId}/${picFilter[0].fileName}`
 													: '/images/placeholder.jpg'}
@@ -239,7 +242,9 @@
 										<div
 											class="w-48 h-48 rounded-full bg-primary-focus text-primary-content ring ring-primary ring-offset-base-100 ring-offset-2"
 										>
-											<img
+											<Image
+												layout="constrained"
+												aspectRatio={1}
 												src="/images/placeholder.jpg"
 												alt="Profile"
 												class="object-cover w-full h-full"
@@ -991,13 +996,17 @@
 																	class="w-20 h-20 bg-base-200 rounded-lg overflow-hidden flex-shrink-0"
 																>
 																	{#if item.type === 'course'}
-																		<img
+																		<Image
+																			layout="constrained"
+																			aspectRatio={1}
 																			src={item.layoutView?.urlPic || '/images/placeholder.jpg'}
 																			alt={item.title}
 																			class="w-full h-full object-cover"
 																		/>
 																	{:else}
-																		<img
+																		<Image
+																			layout="constrained"
+																			aspectRatio={1}
 																			src={imgCheck.single(item.uploadfiles, 'product-primary')}
 																			alt={item.title}
 																			class="w-full h-full object-cover"

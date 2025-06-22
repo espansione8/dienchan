@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ActionResult } from '@sveltejs/kit';
 	import { invalidateAll } from '$app/navigation';
+	import { Image } from '@unpic/svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import { enhance } from '$app/forms';
 	import { notification } from '$lib/stores/notifications';
@@ -258,7 +259,9 @@
 							<div class="card-body p-4">
 								<div class="flex items-center">
 									<figure class="flex-shrink-0">
-										<img
+										<Image
+											layout="constrained"
+											aspectRatio={1}
 											src={imgCheck.single(row.uploadfiles, 'product-primary')}
 											alt="product-primary"
 											class="object-cover rounded-md max-w-28 max-h-28 h-auto"

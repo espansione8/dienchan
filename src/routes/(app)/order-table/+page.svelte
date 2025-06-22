@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ActionResult } from '@sveltejs/kit';
 	import { invalidateAll } from '$app/navigation';
+	import { Image } from '@unpic/svelte';
 	import Papa from 'papaparse';
 	import { orderKeysToDelete, province } from '$lib/stores/arrays';
 	import { notification } from '$lib/stores/notifications';
@@ -529,7 +530,9 @@
 							class="flex items-center w-full max-w-96 bg-indigo-100 rounded-lg shadow-md overflow-hidden"
 						>
 							<div class="w-1/3 p-3">
-								<!-- <img
+								<!-- <Image
+	layout="constrained"
+	aspectRatio={1}
 									src={item.layoutView.urlPic || '/images/placeholder.jpg'}
 									alt="Immagine corso"
 									class="w-full h-full object-cover"
@@ -834,7 +837,9 @@
 					class="flex items-center w-full max-w-96 bg-indigo-100 rounded-lg shadow-md overflow-hidden"
 				>
 					<div class="w-1/3 p-3">
-						<img
+						<Image
+	layout="constrained"
+	aspectRatio={1}
 							src={imgSrc(item.category[0])}
 							alt="Immagine corso"
 							class="w-full h-full object-cover"

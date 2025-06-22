@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { notification } from '$lib/stores/notifications';
 	import CartFloat from '$lib/components/CartFloat.svelte';
+	import { Image } from '@unpic/svelte';
 	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
 	import { Boxes, Tags, CircleCheck, CircleX, ShoppingCart } from 'lucide-svelte';
 	let { data } = $props();
@@ -37,7 +38,9 @@
 			<!-- Product Images -->
 			<div class="space-y-4">
 				<div class="bg-base-100 rounded-lg overflow-hidden shadow-sm">
-					<img
+					<Image
+						layout="constrained"
+						aspectRatio={1}
 						src={imgCheck.single(getProduct.uploadfiles, 'product-primary')}
 						alt="product-primary"
 						class="w-full h-auto object-contain aspect-square"
@@ -52,7 +55,9 @@
 							: 'border-transparent opacity-70'}"
 						onclick={() => setSelectedImage(i)}
 					>
-						<img
+						<Image
+	layout="constrained"
+	aspectRatio={1}
 							src={image || '/placeholder.svg'}
 							alt="Product thumbnail"
 							class="w-full h-full object-cover"
@@ -272,7 +277,9 @@
 			<!-- Product Images -->
 			<div class="space-y-4">
 				<div class="bg-base-100 rounded-lg overflow-hidden shadow-sm">
-					<img
+					<Image
+						layout="constrained"
+						aspectRatio={1}
 						src="/images/placeholder.jpg"
 						alt="placeholder"
 						class="w-full h-auto object-cover aspect-square"

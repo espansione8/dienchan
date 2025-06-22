@@ -1,7 +1,10 @@
 <script lang="ts">
 	//import { goto, invalidateAll } from '$app/navigation';
-	import { notification } from '$lib/stores/notifications';
+	//import { notification } from '$lib/stores/notifications';
+	import { Image } from '@unpic/svelte';
+	import { tick } from 'svelte';
 	import CartFloat from '$lib/components/CartFloat.svelte';
+	import Loader from '$lib/components/Loader.svelte';
 	import { cartProducts } from '$lib/stores/cart';
 	import { imgCheck } from '$lib/tools/tools.js';
 	import {
@@ -21,30 +24,48 @@
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { getTable } = $derived(data);
-	let reflexologistsList = $state(getTable || []);
+	const { getTable, itemCount } = $derived(data);
+	let tableList = $state(getTable || []);
+	let count = $state(itemCount);
+	let loading = $state(false);
 
 	// Filter state
 	let resetActive = $state(false);
 	let currentSort = $state('alfabetico');
 	let searchQuery = $state('');
 
-	let filtriAttivi = $state({
+	let activeFilter = $state({
 		provincia: '',
-		citta: '',
+		// citta: '',
 		riflessologo: ''
 	});
 
+	// Pagination
+	let currentPage = $state(1);
+	const itemsPerPage = 40;
+	const pageNumbers = $derived(() => {
+		const pageCount = Math.ceil(count / itemsPerPage);
+		const numbers = [];
+		for (let i = 1; i <= pageCount; i++) {
+			numbers.push(i);
+		}
+		return numbers;
+	});
+
 	// Count reflexologists by province
-	let numReflexologistsInProvince = {};
-	reflexologistsList.forEach((item) => {
+	let numReflexologistsInProvince = $state({});
+	tableList.forEach((item) => {
 		const provincia = item.county;
 		numReflexologistsInProvince[provincia] = (numReflexologistsInProvince[provincia] || 0) + 1;
 	});
 
-	// Sort provinces alphabetically
+	//Sort provinces alphabetically
 	const sortedNumReflexologistsInProvince = Object.keys(numReflexologistsInProvince)
-		.sort((a, b) => a.localeCompare(b))
+		.sort((a, b) => {
+			const countyA = a || '';
+			const countyB = b || '';
+			return countyA.localeCompare(countyB);
+		})
 		.reduce((acc, key) => {
 			acc[key] = numReflexologistsInProvince[key];
 			return acc;
@@ -55,14 +76,13 @@
 	// Reset filters
 	const onFilterReset = () => {
 		resetActive = false;
-		reflexologistsList = getTable || [];
+		tableList = getTable || [];
 
 		// Sort alphabetically by default
-		reflexologistsList.sort((a, b) => a.surname.localeCompare(b.surname));
+		tableList.sort((a, b) => a.surname.localeCompare(b.surname));
 
-		filtriAttivi = {
+		activeFilter = {
 			provincia: '',
-			citta: '',
 			riflessologo: ''
 		};
 
@@ -73,23 +93,20 @@
 		accordionList.forEach((item) => (document.getElementById(item).checked = false));
 	};
 
-	// Update filters
-	const updateFilter = () => {
-		reflexologistsList = getTable;
-
-		// County filter
-		if (filtriAttivi.provincia) {
-			reflexologistsList = reflexologistsList.filter(
-				(item) => item.county === filtriAttivi.provincia
-			);
-		}
-	};
-
 	// Filter by province
 	const onClickFilterProvincia = (provinciaSelected) => {
+		//tableList = getTable;
+		currentPage = 1;
 		resetActive = true;
-		filtriAttivi.provincia = provinciaSelected;
-		updateFilter();
+		activeFilter.provincia = provinciaSelected;
+		//console.log('activeFilter.provincia', activeFilter.provincia);
+
+		if (activeFilter.provincia) {
+			//	tableList = tableList.filter((item) => item.county === activeFilter.provincia);
+			tableList = getTable.filter((item) => item.county === activeFilter.provincia);
+			count = tableList.length;
+		}
+		goToPage(currentPage);
 	};
 
 	// Sort reflexologists
@@ -97,15 +114,20 @@
 		switch (option) {
 			case 'alfabetico':
 				currentSort = 'alfabetico';
-				return reflexologistsList.sort((a, b) => a.surname.localeCompare(b.surname));
-			// case 'recenti':
-			// 	currentSort = 'più recenti';
-			// 	return reflexologistsList.sort((a, b) => new Date(b.joinDate) - new Date(a.joinDate));
-			// case 'esperienza':
-			// 	currentSort = 'più esperienza';
-			// 	return reflexologistsList.sort((a, b) => b.yearsOfExperience - a.yearsOfExperience);
+				// Test refactor
+				// tableList.sort((a, b) => {
+				// 	const surnameA = a.surname || '';
+				// 	const surnameB = b.surname || '';
+				// 	return surnameA.localeCompare(surnameB);
+				// });
+				//break;
+				return tableList.sort((a, b) => {
+					const surnameA = a.surname || '';
+					const surnameB = b.surname || '';
+					return surnameA.localeCompare(surnameB);
+				});
 			default:
-				return reflexologistsList;
+				return tableList;
 		}
 	};
 
@@ -113,18 +135,65 @@
 	// $effect(() => {
 	// 	if (searchQuery.trim() === '') {
 	// 		if (!resetActive) {
-	// 			reflexologistsList = reflexologists;
+	// 			tableList = reflexologists;
 	// 			sortItems(currentSort);
 	// 		}
 	// 		return;
 	// 	}
 
 	// 	const query = searchQuery.toLowerCase();
-	// 	reflexologistsList = reflexologists.filter(
+	// 	tableList = reflexologists.filter(
 	// 		(item) =>
 	// 			item.name.toLowerCase().includes(query) || item.surname.toLowerCase().includes(query)
 	// 	);
 	// });
+
+	// Pagination
+	const applyFiltersAndSort = () => {
+		let filtered = [...getTable];
+
+		if (activeFilter.provincia) {
+			filtered = getTable.filter((item) => item.county === activeFilter.provincia);
+		}
+
+		count = filtered.length;
+		sortItems(currentSort);
+		return filtered;
+	};
+
+	const goToPage = (newPage: number) => {
+		loading = true;
+		currentPage = newPage;
+		const filtered = applyFiltersAndSort();
+		const maxPageAfterFilter = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+		if (currentPage > maxPageAfterFilter) {
+			currentPage = maxPageAfterFilter;
+		}
+
+		// Pagination
+		const skipItems = (currentPage - 1) * itemsPerPage;
+		tableList = filtered.slice(skipItems, skipItems + itemsPerPage);
+		loading = false;
+	};
+	goToPage(currentPage);
+
+	//let hasInitialized = $state(false);
+	$effect(() => {
+		// if (tableList && tableList.length > 0 && !hasInitialized) {
+		// 	alert('trigered');
+		// 	goToPage(currentPage);
+		// 	hasInitialized = true; // Stop Effect
+		// }
+
+		if (currentPage) {
+			tick().then(() => {
+				const element = document.getElementById('top');
+				if (element) {
+					element.scrollIntoView({ behavior: 'smooth' });
+				}
+			});
+		}
+	});
 </script>
 
 <svelte:head>
@@ -132,7 +201,10 @@
 	<meta name="description" content="Trova un riflessologo Diện Chẩn nella tua zona" />
 </svelte:head>
 
-<div class="bg-base-200 grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-8 lg:p-8">
+<div
+	id="top"
+	class="bg-base-200 grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-8 lg:p-8"
+>
 	<!-- Filter column -->
 	<section
 		class="col-span-12 xl:col-span-2 bg-base-100 rounded-lg shadow-md border border-base-200 overflow-hidden"
@@ -159,7 +231,7 @@
 					>
 						<span class="inline-flex items-center">
 							<b><MapPinned class="-mt-1 mr-2" /> Provincia</b>
-							{#if filtriAttivi.provincia.length > 0}
+							{#if activeFilter.provincia.length > 0}
 								<Check class="ml-1" color="green" />
 							{/if}
 						</span>
@@ -171,7 +243,7 @@
 							{#each Object.entries(numReflexologistsInProvince) as [provincia, count]}
 								<li
 									class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
-                  {filtriAttivi.provincia === provincia
+                  {activeFilter.provincia === provincia
 										? 'bg-orange-200 text-red-900 font-bold'
 										: 'hover:bg-blue-200 hover:text-blue-900'}"
 									onclick={() => onClickFilterProvincia(provincia)}
@@ -179,7 +251,7 @@
 									<span>{provincia}</span>
 									<div class="flex items-center gap-2">
 										<span class="badge badge-sm badge-ghost">{count}</span>
-										{#if filtriAttivi.provincia === provincia}
+										{#if activeFilter.provincia === provincia}
 											<Check size={18} class="flex-shrink-0 text-green-600" />
 										{/if}
 									</div>
@@ -199,7 +271,7 @@
 					>
 						<span class="inline-flex items-center">
 							<b><UserSearch class="-mt-1 mr-2" /> Riflessologo</b>
-							{#if filtriAttivi.riflessologo.length > 0}
+							{#if activeFilter.riflessologo.length > 0}
 								<Check class="ml-1" color="green" />
 							{/if}
 						</span>
@@ -208,16 +280,16 @@
 						class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto"
 					>
 						<ul class="list-none -mx-4 divide-y divide-base-200/70">
-							{#each reflexologistsList as item}
+							{#each tableList as item}
 								<li
 									class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
-                {filtriAttivi.riflessologo == `${item.name} ${item.surname}`
+                {activeFilter.riflessologo == `${item.name} ${item.surname}`
 										? 'bg-orange-200 text-red-900 font-bold'
 										: 'hover:bg-blue-200 hover:text-blue-900'}"
 									onclick={() => onClickFilterRiflessologo(item.userId, item.name, item.surname)}
 								>
 									<span>{item.name} {item.surname}</span>
-									{#if filtriAttivi.riflessologo == `${item.name} ${item.surname}`}
+									{#if activeFilter.riflessologo == `${item.name} ${item.surname}`}
 										<Check size={18} class="flex-shrink-0 text-green-600" />
 									{/if}
 								</li>
@@ -242,166 +314,186 @@
 		</div>
 	</section>
 	<!-- Reflexologists column -->
-	<section class="col-span-12 xl:col-span-10 bg-base-100 rounded-lg">
-		<div class="flex items-center p-4">
-			<div
-				class="btn btn-sm rounded-md cursor-default {reflexologistsList.length > 0
-					? 'bg-green-300 hover:bg-green-300'
-					: 'bg-red-300 hover:bg-red-300'}"
-			>
-				Riflessologi trovati:
-				<div class="badge rounded-md flex justify-center">
-					<strong class="">{reflexologistsList.length}</strong>
-				</div>
-			</div>
-
-			<!-- Reset button -->
-			{#if resetActive || searchQuery.trim() !== ''}
-				<button
-					class="btn btn-sm px-3 py-2 ml-4 rounded-md bg-red-200 border-red-500 text-red-500 hover:border-red-100 hover:bg-red-400 hover:text-red-200"
-					onclick={onFilterReset}
-				>
-					<CircleX size={16} />
-					Reset filtri
-				</button>
-			{/if}
-
-			<!-- Sort button -->
-			<div class="dropdown dropdown-end ml-auto">
-				<button
-					id="dropdownSortButton"
-					class="btn btn-sm btn-primary btn-outline gap-2 rounded-md"
-					tabindex="0"
-				>
-					<span class="flex items-center justify-center gap-2">
-						Ordina: <span class="font-bold">{currentSort}</span>
-						<ChevronDown />
-					</span>
-				</button>
-				<ul class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-lg w-52 mt-1">
-					<li>
-						<button
-							class="flex items-center {currentSort === 'alfabetico'
-								? 'bg-primary/10 text-primary font-medium'
-								: ''}"
-							onclick={() => sortItems('alfabetico')}
-						>
-							alfabetico
-						</button>
-					</li>
-				</ul>
-			</div>
-		</div>
-
-		<!-- Active filters display -->
-		{#if resetActive || searchQuery.trim() !== ''}
-			<div class="flex items-center space-x-4 pb-3 px-4">
-				<div class="text-gray-700">
-					<span><Tags /></span>
-					{#if filtriAttivi.provincia.length > 0}
-						<div class="badge badge-accent rounded-md">
-							Provincia: <strong class="pl-1">{filtriAttivi.provincia}</strong>
-						</div>
-					{/if}
-				</div>
-			</div>
-		{/if}
-
-		<!-- Reflexologist Cards -->
-		<div class="flex flex-wrap justify-center gap-6 p-4">
-			{#if reflexologistsList.length === 0}
+	{#if loading}
+		<Loader />
+	{:else}
+		<section class="col-span-12 xl:col-span-10 bg-base-100 rounded-lg">
+			<div class="flex items-center p-4">
 				<div
-					class="alert alert-warning shadow-lg text-center rounded-md mt-6 mx-auto w-full max-w-md"
+					class="btn btn-sm rounded-md cursor-default {count > 0
+						? 'bg-green-300 hover:bg-green-300'
+						: 'bg-red-300 hover:bg-red-300'}"
 				>
-					<div>
-						<UserSearch size={24} />
-						<span class="mt-2 text-semibold">
-							Nessun riflessologo trovato. Cambia parametri o resetta il filtro.
-						</span>
+					Riflessologi trovati:
+					<div class="badge rounded-md flex justify-center">
+						<strong class="">{count}</strong>
 					</div>
 				</div>
-			{:else}
-				{#each reflexologistsList as reflexologist}
-					<div
-						class="card w-full sm:w-80 bg-base-100 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-base-200 rounded-xl"
+
+				<!-- Reset button -->
+				{#if resetActive || searchQuery.trim() !== ''}
+					<button
+						class="btn btn-sm px-3 py-2 ml-4 rounded-md bg-red-200 border-red-500 text-red-500 hover:border-red-100 hover:bg-red-400 hover:text-red-200"
+						onclick={onFilterReset}
 					>
-						<a href={`/profile-public/${reflexologist.userId}`}>
-							<figure class="relative h-64 overflow-hidden flex items-center justify-center">
-								<img
-									src={imgCheck.single(reflexologist.uploadfiles, 'profile') ||
-										'/images/avatar.png'}
-									alt={`${reflexologist.name} ${reflexologist.surname}`}
-									class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-									loading="lazy"
-								/>
-								<div
-									class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-emerald-800/80 to-transparent p-4"
-								>
-									<h2 class="text-white text-xl font-bold">
-										{reflexologist.namePublic ? reflexologist.name : ''}
-										{reflexologist.surnamePublic ? reflexologist.surname : ''}
-									</h2>
-								</div>
-							</figure>
-						</a>
+						<CircleX size={16} />
+						Reset filtri
+					</button>
+				{/if}
 
-						<div class="card-body p-4 relative min-h-[220px] flex flex-col">
-							<div class="space-y-2">
-								<div class="flex items-center gap-2">
-									<MapPin size={18} class="text-primary flex-shrink-0" />
-									<span>
-										<span class="font-medium">{reflexologist.city}</span>, {reflexologist.county}
-									</span>
-								</div>
+				<!-- Sort button -->
+				<div class="dropdown dropdown-end ml-auto">
+					<button
+						id="dropdownSortButton"
+						class="btn btn-sm btn-primary btn-outline gap-2 rounded-md"
+						tabindex="0"
+					>
+						<span class="flex items-center justify-center gap-2">
+							Ordina: <span class="font-bold">{currentSort}</span>
+							<ChevronDown />
+						</span>
+					</button>
+					<ul class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-lg w-52 mt-1">
+						<li>
+							<button
+								class="flex items-center {currentSort === 'alfabetico'
+									? 'bg-primary/10 text-primary font-medium'
+									: ''}"
+								onclick={() => sortItems('alfabetico')}
+							>
+								alfabetico
+							</button>
+						</li>
+					</ul>
+				</div>
+			</div>
 
-								{#if reflexologist.phonePublic}
-									<div class="flex items-center gap-2">
-										<Phone size={18} class="text-primary flex-shrink-0" />
-										<span>{reflexologist.phone || 'Non disponibile'}</span>
+			<!-- Active filters display -->
+			{#if resetActive || searchQuery.trim() !== ''}
+				<div class="flex items-center space-x-4 pb-3 px-4">
+					<div class="text-gray-700">
+						<span><Tags /></span>
+						{#if activeFilter.provincia.length > 0}
+							<div class="badge badge-accent rounded-md">
+								Provincia: <strong class="pl-1">{activeFilter.provincia}</strong>
+							</div>
+						{/if}
+					</div>
+				</div>
+			{/if}
+
+			<!-- Reflexologist Cards -->
+			<div class="flex flex-wrap justify-center gap-6 p-4">
+				{#if tableList.length === 0}
+					<div
+						class="alert alert-warning shadow-lg text-center rounded-md mt-6 mx-auto w-full max-w-md"
+					>
+						<div>
+							<UserSearch size={24} />
+							<span class="mt-2 text-semibold">
+								Nessun riflessologo trovato. Cambia parametri o resetta il filtro.
+							</span>
+						</div>
+					</div>
+				{:else}
+					{#each tableList as reflexologist}
+						<div
+							class="card w-full sm:w-80 bg-base-100 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-base-200 rounded-xl"
+						>
+							<a href={`/profile-public/${reflexologist.userId}`}>
+								<figure class="relative h-64 overflow-hidden flex items-center justify-center">
+									<Image
+										layout="constrained"
+										aspectRatio={1}
+										src={imgCheck.single(reflexologist.uploadfiles, 'profile') ||
+											'/images/avatar.png'}
+										alt={`${reflexologist.name} ${reflexologist.surname}`}
+										class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+									/>
+									<div
+										class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-emerald-800/80 to-transparent p-4"
+									>
+										<h2 class="text-white text-xl font-bold">
+											{reflexologist.namePublic ? reflexologist.name : ''}
+											{reflexologist.surnamePublic ? reflexologist.surname : ''}
+										</h2>
 									</div>
-								{/if}
+								</figure>
+							</a>
 
-								{#if reflexologist.emailPublic}
+							<div class="card-body p-4 relative min-h-[220px] flex flex-col">
+								<div class="space-y-2">
 									<div class="flex items-center gap-2">
-										<Mail size={18} class="text-primary flex-shrink-0" />
-										<span class="truncate">{reflexologist.email || 'Non disponibile'}</span>
+										<MapPin size={18} class="text-primary flex-shrink-0" />
+										<span>
+											<span class="font-medium">{reflexologist.city}</span>, {reflexologist.county}
+										</span>
 									</div>
-								{/if}
 
-								{#if reflexologist.mobilePhonePublic}
-									<div class="flex items-center gap-2">
-										<Phone size={18} class="text-primary flex-shrink-0" />
-										<span>{reflexologist.mobilePhone || 'Non disponibile'}</span>
-									</div>
-								{/if}
+									{#if reflexologist.phonePublic}
+										<div class="flex items-center gap-2">
+											<Phone size={18} class="text-primary flex-shrink-0" />
+											<span>{reflexologist.phone || 'Non disponibile'}</span>
+										</div>
+									{/if}
 
-								<!-- <div class="flex items-center gap-2">
+									{#if reflexologist.emailPublic}
+										<div class="flex items-center gap-2">
+											<Mail size={18} class="text-primary flex-shrink-0" />
+											<span class="truncate">{reflexologist.email || 'Non disponibile'}</span>
+										</div>
+									{/if}
+
+									{#if reflexologist.mobilePhonePublic}
+										<div class="flex items-center gap-2">
+											<Phone size={18} class="text-primary flex-shrink-0" />
+											<span>{reflexologist.mobilePhone || 'Non disponibile'}</span>
+										</div>
+									{/if}
+
+									<!-- <div class="flex items-center gap-2">
 									<Calendar size={18} class="text-primary flex-shrink-0" />
 									<span>Esperienza: <b>{reflexologist.yearsOfExperience} anni</b></span>
 								</div> -->
-							</div>
+								</div>
 
-							<div class="mt-4 flex flex-wrap gap-2">
-								{#each reflexologist.specialties || [] as specialty}
-									<span class="badge badge-primary badge-outline">{specialty}</span>
-								{/each}
-							</div>
+								<div class="mt-4 flex flex-wrap gap-2">
+									{#each reflexologist.specialties || [] as specialty}
+										<span class="badge badge-primary badge-outline">{specialty}</span>
+									{/each}
+								</div>
 
-							<!-- <div class="absolute bottom-4 right-4"> -->
-							<div class="card-actions mt-auto justify-end">
-								<a
-									href={`/profile-public/${reflexologist.userId}`}
-									class="btn btn-primary rounded-md"
-								>
-									Visualizza Profilo
-								</a>
+								<!-- <div class="absolute bottom-4 right-4"> -->
+								<div class="card-actions mt-auto justify-end">
+									<a
+										href={`/profile-public/${reflexologist.userId}`}
+										class="btn btn-primary rounded-md"
+									>
+										Visualizza Profilo
+									</a>
+								</div>
 							</div>
 						</div>
-					</div>
-				{/each}
-			{/if}
-		</div>
-	</section>
+					{/each}
+				{/if}
+			</div>
+			<div class="join flex justify-center">
+				<button
+					class="join-item btn"
+					onclick={() => goToPage(--currentPage)}
+					disabled={currentPage <= 1}
+				>
+					«
+				</button>
+				<button class="join-item btn">Pagina {currentPage}</button>
+				<button
+					class="join-item btn"
+					onclick={() => goToPage(++currentPage)}
+					disabled={currentPage >= Math.ceil(count / itemsPerPage)}>»</button
+				>
+			</div>
+		</section>
+	{/if}
 </div>
 
 {#if $cartProducts.length > 0}

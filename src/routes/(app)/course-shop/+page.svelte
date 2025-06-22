@@ -2,6 +2,7 @@
 	//import { goto, invalidateAll } from '$app/navigation';
 	//import { notification } from '$lib/stores/notifications';
 	import CartFloat from '$lib/components/CartFloat.svelte';
+	import { Image } from '@unpic/svelte';
 	import { cartProducts } from '$lib/stores/cart';
 	import {
 		ChevronDown,
@@ -544,11 +545,12 @@
 								</div>
 							</div>
 							<div class="h-48 w-full flex items-center justify-center">
-								<img
+								<Image
+									layout="constrained"
+									aspectRatio={1}
 									src={courseData.layoutView?.urlPic || '/images/placeholder.jpg'}
 									alt={courseData.layoutView.title}
 									class="h-full max-h-48 w-auto object-contain rounded-lg hover:scale-110 transition-transform duration-500"
-									loading="lazy"
 								/>
 							</div>
 						</a>

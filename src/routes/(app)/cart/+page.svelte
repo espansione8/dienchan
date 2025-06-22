@@ -2,6 +2,7 @@
 	import type { ActionResult } from '@sveltejs/kit';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { enhance } from '$app/forms';
+	import { Image } from '@unpic/svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import { notification } from '$lib/stores/notifications';
 	import { cartProducts, addToCart, removeFromCart, emptyCart } from '$lib/stores/cart';
@@ -253,7 +254,9 @@
 												<div
 													class="aspect-square bg-base-200/30 rounded-lg overflow-hidden flex items-center justify-center"
 												>
-													<img
+													<Image
+														layout="constrained"
+														aspectRatio={1}
 														src={imgCheck.single(item.uploadfiles, 'product-primary')}
 														alt="product"
 														class="h-full w-full object-contain p-2"

@@ -2,6 +2,7 @@
 	import type { ActionResult } from '@sveltejs/kit';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { enhance } from '$app/forms';
+	import { Image } from '@unpic/svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import { notification } from '$lib/stores/notifications';
 	import Loader from '$lib/components/Loader.svelte';
@@ -304,7 +305,9 @@
 							<div
 								class="relative rounded-xl overflow-hidden shadow-2xl transform transition-transform hover:scale-105"
 							>
-								<img
+								<Image
+									layout="constrained"
+									aspectRatio={1}
 									src={getCourse.layoutView?.urlPic || '/images/placeholder.jpg'}
 									alt="course type"
 									class="h-80 w-full object-contain"
@@ -358,19 +361,24 @@
 								<!-- Instructor Avatar -->
 								<div class="avatar">
 									<div class="w-24 rounded-full ring ring-blue-500 ring-offset-2">
-										<img
+										<Image
+											layout="constrained"
+											aspectRatio={1}
 											src={imgCheck.single(formatoreData.uploadfiles, 'profile')}
 											alt="avatar"
-											loading="lazy"
 										/>
 										<!-- {#if picFilter.length > 0}
-											<img
+											<Image
+	layout="constrained"
+	aspectRatio={1}
 												src={`/uploads/${formatoreData.userId}/${picFilter[0].filename}`}
 												alt="avatar"
 												loading="lazy"
 											/>
 										{:else}
-											<img src="/images/avatar.png" alt="avatar" loading="lazy" />
+											<Image
+	layout="constrained"
+	aspectRatio={1} src="/images/avatar.png" alt="avatar" loading="lazy" />
 										{/if} -->
 									</div>
 								</div>

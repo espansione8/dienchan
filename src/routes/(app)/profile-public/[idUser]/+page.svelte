@@ -1,6 +1,5 @@
 <script lang="ts">
-	let { data } = $props();
-	let { getUser } = $derived(data);
+	import { Image } from '@unpic/svelte';
 	import {
 		Mail,
 		MapPin,
@@ -14,6 +13,9 @@
 		Leaf,
 		Heart
 	} from 'lucide-svelte';
+
+	const { data } = $props();
+	const { getUser } = $derived(data);
 
 	let picFilter = $derived(
 		getUser.uploadfiles.filter((item: any) => {
@@ -80,7 +82,9 @@
 							<div
 								class="w-24 h-24 rounded-full ring ring-white ring-offset-teal-500 ring-offset-2 bg-teal-100 flex items-center justify-center overflow-hidden"
 							>
-								<img
+								<Image
+									layout="constrained"
+									aspectRatio={1}
 									src={`/images/dienchan_logo.jpg`}
 									alt="Profile"
 									class="w-full h-full object-contain"
@@ -102,7 +106,7 @@
 									<span class="italic">Nome riservato</span>
 								{/if}
 							</h1>
-							<div class="font-medium text-teal-50">Operatore del Benessere</div>
+							<div class="font-medium text-teal-50">ASSOCIATO</div>
 
 							<div class="flex justify-center mt-3 flex-wrap gap-2">
 								<div class="badge badge-xl bg-teal-700 border-none text-teal-50">Diện Chẩn</div>
@@ -112,12 +116,16 @@
 									class="w-24 h-24 rounded-full ring ring-white ring-offset-teal-500 ring-offset-2 bg-teal-100 flex items-center justify-center overflow-hidden"
 								>
 									{#if findAvatar.length > 0}
-										<!-- <img
+										<!-- <Image
+	layout="constrained"
+	aspectRatio={1}
 										src={`/uploads/${getUser.userId}/${picFilter[0].fileName}`}
 										alt="Profile"
 										class="w-full h-full object-contain"
 									/> -->
-										<img
+										<Image
+											layout="constrained"
+											aspectRatio={1}
 											src={picFilter.length > 0
 												? `/uploads/user/${getUser.userId}/${picFilter[0].fileName}`
 												: '/images/placeholder.jpg'}
@@ -126,7 +134,9 @@
 										/>
 									{:else}
 										<!-- <span class="text-3xl font-bold text-teal-600">{getInitials()}</span> -->
-										<img
+										<Image
+											layout="constrained"
+											aspectRatio={1}
 											src={`/images/dienchan.jpg`}
 											alt="Profile"
 											class="w-full h-full object-contain"

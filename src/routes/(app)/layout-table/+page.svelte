@@ -2,6 +2,7 @@
 	import type { ActionResult } from '@sveltejs/kit';
 	import { invalidateAll } from '$app/navigation';
 	import { enhance } from '$app/forms';
+	import { Image } from '@unpic/svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import Papa from 'papaparse';
 	import Loader from '$lib/components/Loader.svelte';
@@ -298,15 +299,18 @@
 						<!-- picture -->
 						<td>
 							{#if row.urlPic}
-								<!-- <img class="w-3xs" src={row.urlPic} alt={row.urlPic} /> -->
+								<!-- <Image
+	layout="constrained"
+	aspectRatio={1} class="w-3xs" src={row.urlPic} alt={row.urlPic} /> -->
 								<div class="card-body p-4">
 									<div class="flex items-center">
 										<figure class="flex-shrink-0">
-											<img
+											<Image
+												layout="constrained"
+												aspectRatio={1}
 												src={row.urlPic}
 												alt={row.urlPic}
 												class="object-cover rounded-md max-w-36 max-h-36 h-auto"
-												loading="lazy"
 											/>
 										</figure>
 										<form
@@ -332,7 +336,9 @@
 									</div>
 								</div>
 							{:else}
-								<!-- <img class="w-3xs" src="/images/no_img.jpg" alt="no pic" /> -->
+								<!-- <Image
+	layout="constrained"
+	aspectRatio={1} class="w-3xs" src="/images/no_img.jpg" alt="no pic" /> -->
 								<form
 									action={`?/setProdPic`}
 									method="POST"

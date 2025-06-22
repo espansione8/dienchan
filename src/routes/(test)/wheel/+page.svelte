@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { createEventDispatcher } from 'svelte';
+	import { Image } from '@unpic/svelte';
 
 	const dispatch = createEventDispatcher();
 	let winAmount = 50;
@@ -80,12 +81,16 @@
 
 <main transition>
 	<div id="app">
-		<img
+		<Image
+			layout="constrained"
+			aspectRatio={1}
 			id="marker"
 			alt=""
 			src="https://raw.githubusercontent.com/weibenfalk/wheel-of-fortune-part2/main/vanilla-js-wheel-of-fortune-part2-FINISHED/marker.png"
 		/>
-		<img
+		<Image
+			layout="constrained"
+			aspectRatio={1}
 			id="wheel"
 			alt=""
 			src="https://raw.githubusercontent.com/weibenfalk/wheel-of-fortune-part2/main/vanilla-js-wheel-of-fortune-part2-FINISHED/wheel.png"

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ActionResult } from '@sveltejs/kit';
 	import { invalidateAll } from '$app/navigation';
+	import { Image } from '@unpic/svelte';
 	import { enhance } from '$app/forms';
 	import { tick } from 'svelte';
 	import { notification } from '$lib/stores/notifications';
@@ -103,7 +104,7 @@
 		resetActive = true;
 		activeFilter.category = categorySelected;
 		//prodList = getTable;
-		console.log('cat', categorySelected);
+		//console.log('cat', categorySelected);
 
 		// category
 		if (activeFilter.category) {
@@ -112,15 +113,15 @@
 			prodList = getTable.filter((item) =>
 				item.category.some((category) => category === activeFilter.category)
 			);
-			console.log('prodList cat', prodList.length);
+			//console.log('prodList cat', prodList.length);
 			count = prodList.length;
 		}
-		sortItems('recent');
+		//sortItems('recent');
 		goToPage(currentPage);
 	};
 
 	const sortItems = (option) => {
-		console.log('prodList sort', prodList.length);
+		//console.log('prodList sort', prodList.length);
 
 		switch (option) {
 			case 'expensive':
@@ -499,11 +500,12 @@
 									</div>
 								</div>
 								<div class="h-48 w-full flex items-center justify-center">
-									<img
+									<Image
+										layout="constrained"
+										aspectRatio={1}
 										src={imgCheck.single(productData.uploadfiles, 'product-primary')}
 										alt="product-primary"
 										class="h-full max-h-48 w-auto object-contain rounded-lg hover:scale-110 transition-transform duration-500"
-										loading="lazy"
 									/>
 								</div>
 							</a>
