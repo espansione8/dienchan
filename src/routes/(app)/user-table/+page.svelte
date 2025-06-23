@@ -2,6 +2,7 @@
 	import type { ActionResult } from '@sveltejs/kit';
 	import { invalidateAll } from '$app/navigation';
 	import { notification } from '$lib/stores/notifications';
+	import { tick } from 'svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import Papa from 'papaparse';
 	import Loader from '$lib/components/Loader.svelte';
@@ -21,15 +22,18 @@
 		RefreshCcw,
 		FileDown,
 		CopyPlus,
-		FileUp
+		FileUp,
+		Info,
+		House
 	} from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 	import { country_list } from '$lib/stores/arrays.js';
 	import { province } from '$lib/stores/arrays';
 
 	const { data } = $props();
-	const { getTable } = $derived(data);
+	const { getTable, itemCount } = $derived(data);
 	let tableList = $state(getTable);
+	let loading = $state(false);
 
 	let level = $state('');
 	let membershipLevel = $state('');
@@ -58,17 +62,38 @@
 	let phonePublic = $state(false);
 	let mobilePhonePublic = $state(false);
 	let userId = $state('');
+	let points = $state({});
 	let resetActive = $state(false);
+
+	// Pagination
+	let currentPage = $state(1);
+	const itemsPerPage = 50;
 
 	// modal
 	let currentModal = $state('');
 	let openModal = $state(false);
 	let modalTitle = $state('');
 	let postAction = $state('?/');
-	let loading = $state(false);
 
 	// remove online in province
 	let provinceFilterate = $province.filter((p) => p.title !== 'Online');
+
+	// // Pagination
+	// const goToPage = (newPage: number) => {
+	// 	loading = true;
+	// 	currentPage = newPage;
+	// 	const maxPageAfterFilter = Math.max(1, Math.ceil(getTable.length / itemsPerPage));
+	// 	if (currentPage > maxPageAfterFilter) {
+	// 		currentPage = maxPageAfterFilter;
+	// 	}
+
+	// 	// Pagination
+	// 	const skipItems = (currentPage - 1) * itemsPerPage;
+	// 	tableList = getTable.slice(skipItems, skipItems + itemsPerPage);
+
+	// 	loading = false;
+	// };
+	// goToPage(currentPage);
 
 	const onSwitchPublicProfile = async (type: string, value: boolean) => {
 		//console.log('switch public profile', type, value);
@@ -228,6 +253,59 @@
 			postAction = `?/uploadCsv`;
 			modalTitle = 'Carica CSV';
 		}
+		if (type == 'points') {
+			postAction = `?/modifyPoints`;
+			modalTitle = 'Punti Utente';
+			points = {
+				pointsBalance: 200,
+				pointsHistory: [
+					{
+						points: 200,
+						note: 'sconto utente etc sconto utente etcsconto utente etcsconto utente etcsconto utente etc'
+					},
+					{
+						points: 200,
+						note: 'sconto utente etc'
+					},
+					{
+						points: 200,
+						note: 'sconto utente etc'
+					},
+					{
+						points: 200,
+						note: 'sconto utente etc'
+					},
+					{
+						points: 200,
+						note: 'sconto utente etc'
+					},
+					{
+						points: 200,
+						note: 'sconto utente etc'
+					},
+					{
+						points: 200,
+						note: 'sconto utente etc'
+					},
+					{
+						points: 200,
+						note: 'sconto utente etc'
+					},
+					{
+						points: 200,
+						note: 'sconto utente etc'
+					},
+					{
+						points: 200,
+						note: 'sconto utente etc'
+					},
+					{
+						points: 200,
+						note: 'sconto utente etc'
+					}
+				]
+			};
+		}
 	};
 
 	const onCloseModal = () => {
@@ -246,14 +324,19 @@
 				if (action == 'filter') {
 					resetActive = true;
 					tableList = payload;
-				}
-				if (action == 'downloadCsv') {
-					console.log('action', action);
-					console.log('payload', payload.length);
-
+					notification.info(message);
+				} else if (action == 'downloadCsv') {
 					csvCreate(payload);
+					notification.success(message);
+				} else if (action == 'changePage') {
+					tableList = payload.result;
+					currentPage = payload.currentPage;
+				} else {
+					tableList = getTable;
+					resetActive = false;
+					notification.info(message);
 				}
-				notification.info(message);
+
 				onCloseModal();
 			}
 			if (result.type === 'failure') {
@@ -268,6 +351,17 @@
 			loading = false;
 		};
 	};
+
+	$effect(() => {
+		if (currentPage) {
+			tick().then(() => {
+				const element = document.getElementById('top');
+				if (element) {
+					element.scrollIntoView({ behavior: 'instant' }); // smooth , instant
+				}
+			});
+		}
+	});
 </script>
 
 <svelte:head>
@@ -286,7 +380,7 @@
 {#if !getTable}
 	<Loader />
 {:else}
-	<div class="overflow-x-auto mt-5 px-4 mb-5">
+	<div id="top" class="overflow-x-auto mt-5 px-4 mb-5">
 		<div class="flex flex-col gap-4 mb-4">
 			<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Lista utenti</h1>
 			<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
@@ -342,10 +436,11 @@
 				<tr class="">
 					<th>Data registrazione</th>
 					<th>Email</th>
-					<th>Status</th>
 					<th>Nome Cognome</th>
 					<th>Livello</th>
 					<th>Dati utente</th>
+					<th>Punti</th>
+					<th>Status</th>
 					<th>Azione</th>
 				</tr>
 			</thead>
@@ -361,24 +456,6 @@
 						<td>{row.createdAt}</td>
 						<!-- Email -->
 						<td>{row.email}</td>
-						<!-- Status -->
-						<td>
-							<form method="POST" action={`?/changeStatus`} use:enhance={formSubmit}>
-								<input type="hidden" name="userId" value={row.userId} />
-								<input type="hidden" name="status" value={row.status} />
-								<span class="flex items-center">
-									{#if row.status == 'enabled'}
-										<button type="submit" class="btn btn-ghost btn-sm font-semibold"
-											><ToggleRight color="darkgreen" />
-										</button>
-									{:else}
-										<button type="submit" class="btn btn-ghost btn-sm font-semibold"
-											><ToggleLeft color="darkred" /></button
-										>
-									{/if}
-								</span>
-							</form>
-						</td>
 						<!-- Name and Surname -->
 						<td>{row.name} {row.surname}</td>
 						<!-- Level, MembreshipLevel, Expire Date -->
@@ -423,6 +500,34 @@
 								</li>
 							</ul>
 						</td>
+						<!-- Points -->
+						<td>
+							<button onclick={() => onClickModal('points', row)} class="btn btn-sm btn-info"
+								>{row.pointsBalance}
+							</button>
+							<button
+								class="btn btn-sm btn-info"
+								onclick={() => onClickModal('pointsHistory', row.pointsHistory)}><Info /></button
+							>
+						</td>
+						<!-- Status -->
+						<td>
+							<form method="POST" action={`?/changeStatus`} use:enhance={formSubmit}>
+								<input type="hidden" name="userId" value={row.userId} />
+								<input type="hidden" name="status" value={row.status} />
+								<span class="flex items-center">
+									{#if row.status == 'enabled'}
+										<button type="submit" class="btn btn-ghost btn-sm font-semibold"
+											><ToggleRight color="darkgreen" />
+										</button>
+									{:else}
+										<button type="submit" class="btn btn-ghost btn-sm font-semibold"
+											><ToggleLeft color="darkred" /></button
+										>
+									{/if}
+								</span>
+							</form>
+						</td>
 						<!-- Action -->
 						<td class="flex items-center justify-center space-x-4">
 							<button
@@ -461,10 +566,41 @@
 				</div>
 			</div>
 		{/if}
+		<div class="join flex justify-center mt-5">
+			<form method="POST" action="?/changePage" use:enhance={formSubmit}>
+				{#if currentPage > 1}
+					<button type="submit" id="reset" class="join-item btn" name="navigation" value="reset">
+						<House />
+					</button>
+				{/if}
+
+				<button
+					type="submit"
+					id="prev"
+					class="join-item btn"
+					name="navigation"
+					value="prev"
+					disabled={currentPage <= 1}
+				>
+					«
+				</button>
+				<button type="button" class="join-item btn">Pagina {currentPage}</button>
+				<button
+					type="submit"
+					id="next"
+					class="join-item btn"
+					name="navigation"
+					value="next"
+					disabled={currentPage >= Math.max(1, Math.ceil(itemCount / itemsPerPage))}>»</button
+				>
+				<input type="hidden" name="itemsPerPage" value={itemsPerPage} />
+				<input type="hidden" name="currentPage" value={currentPage} />
+			</form>
+		</div>
 	</div>
 {/if}
-<!--Modal New and Modify  -->
 
+<!--Modal New and Modify  -->
 {#if currentModal == 'new' || currentModal == 'modify'}
 	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-4xl">
 		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
@@ -873,7 +1009,6 @@
 						type="text"
 						class="input input-bordered w-full rounded-md mt-2"
 						placeholder="Telefono"
-						required
 						bind:value={phone}
 					/>
 				</label>
@@ -914,7 +1049,6 @@
 						type="text"
 						class="input input-bordered w-full rounded-md mt-2"
 						placeholder="Telefono"
-						required
 						bind:value={mobilePhone}
 					/>
 				</label>
@@ -960,7 +1094,6 @@
 							placeholder="Repeat password"
 							bind:value={password2}
 							oninput={testSecondPass}
-							bind:this={inputRef}
 							required
 						/>
 					</div>
@@ -1128,5 +1261,63 @@
 				</div>
 			</div>
 		</form>
+	</Modal>
+{/if}
+
+{#if currentModal == 'points'}
+	<Modal isOpen={openModal} header={modalTitle}>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
+			>✕</button
+		>
+		{#if loading}
+			<Loader />
+		{/if}
+		<form
+			method="POST"
+			action={postAction}
+			use:enhance={formSubmit}
+			class="grid grid-cols-2 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+		>
+			<section class="col-span-2">
+				<label for="points" class="form-label">
+					<p class="font-bold mb-2 label">Punti utente</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<input
+						type="number"
+						id="points"
+						name="points"
+						class="input"
+						value={points?.pointsBalance || 0}
+					/>
+				</div>
+			</section>
+
+			<div class="col-span-4 mt-5 flex justify-center">
+				<div class="bg-gray-50 flex justify-center">
+					<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
+					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">Carica</button>
+				</div>
+			</div>
+		</form>
+		<div class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8">
+			{#each points?.pointsHistory || [] as item}
+				<div
+					class="col-span-4
+                           p-4
+                           rounded-box
+                           shadow-md
+                           bg-base-200
+                           flex flex-wrap
+                           gap-x-6 gap-y-2
+                           items-center
+                           justify-between
+                           "
+				>
+					<span class="font-bold text-lg text-primary"> punti: {item.points}</span>
+					<span class="text-sm text-base-content">{item.note}</span>
+				</div>
+			{/each}
+		</div>
 	</Modal>
 {/if}

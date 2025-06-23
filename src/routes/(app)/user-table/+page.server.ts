@@ -7,35 +7,57 @@ import { hash } from '$lib/tools/hash';
 import Papa from 'papaparse';
 const nanoid = customAlphabet('0123456789', 12)
 
-const apiKey = APIKEY;
-
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
 
 	let getTable = [];
-
-	const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-		method: 'POST',
-		body: JSON.stringify({
-			apiKey,
-			schema: 'user', //product | order | user | layout | discount
-			query: {},
-			projection: { _id: 0, password: 0 },
-			sort: { createdAt: -1 },
-			limit: 500,
-			skip: 0
-		}),
-		headers: {
-			'Content-Type': 'application/json'
-		}
-	});
-
+	let itemCount = 0;
 
 	try {
+		// Count
+		const countFetch = await fetch(`${BASE_URL}/api/mongo/count`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: {},
+				option: { hint: { email: 1 } },// optional: define index to use
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 
-		const userRes = await userFetch;
+		// get user
+		const userFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: {},
+				projection: { _id: 0, password: 0 },
+				//sort: { createdAt: -1 },
+				limit: 50,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 
-		if (userRes.status !== 200) {
+		const [countRes, userRes] = await Promise.all([
+			countFetch,
+			userFetch
+		]);
+
+		if (!countRes.ok) {
+			// return fail(400, { action: 'renew', success: false, message: `res: ${await res.text()}` });
+			throw error(400, 'count fetch failed');
+		}
+
+		itemCount = await countRes.json()
+
+		if (!userRes.ok) {
 			console.error('user fetch failed', userRes.status, await userRes.text());
 			throw error(400, 'user fetch failed');
 		}
@@ -52,7 +74,8 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	}
 
 	return {
-		getTable
+		getTable,
+		itemCount
 	};
 }
 
@@ -358,23 +381,6 @@ export const actions: Actions = {
 				});
 			});
 
-			// const bulkOperations = csvData.map(row => {
-			// 	if (!row.userId) { // IMPORTANT: prodId , userId
-			// 		console.warn('CSV row skipped', row);
-			// 		return null; // null skip the row
-			// 	}
-
-			// 	return {
-			// 		updateOne: {
-			// 			filter: { userId: row.userId },  // IMPORTANT: prodId , userId
-			// 			update: { $set: row },
-			// 			upsert: true
-			// 		}
-			// 	};
-			// })
-			// .filter(op => op !== null); // remove (null) rows
-
-			// Funzione helper per convertire un oggetto piatto con notazione a punto in un oggetto annidato
 			const unflattenObject = (obj) => {
 				const result = {};
 				for (const key in obj) {
@@ -393,14 +399,14 @@ export const actions: Actions = {
 				return result;
 			}
 
-			// Funzione helper per calcolare la data di scadenza di default (1 anno dopo la data di attivazione o adesso)
+			// default expiry date + 1 year
 			const getDefaultExpiryDate = (activationDate = new Date()) => {
 				const date = new Date(activationDate);
 				date.setFullYear(date.getFullYear() + 1);
 				return date;
 			}
 
-			// Enum dei livelli di membership validi (copiato dal tuo schema)
+			// Enum  membership
 			const VALID_MEMBERSHIP_LEVELS = [
 				'Socio inattivo',
 				'Socio ordinario',
@@ -463,11 +469,10 @@ export const actions: Actions = {
 					// Convert string "true"/"false" in boolean
 					membership.membershipStatus = (membership.membershipStatus.toLowerCase() === 'true');
 				}
-				//MEMBERSHIP
+				//END MEMBERSHIP
 
-
-				// IMPORTANT: 
-				if (!finalUpdateDocument.userId) { // Adattare se il campo filtro non è 'userId'
+				// !!!IMPORTANT!!!: 
+				if (!finalUpdateDocument.userId) { // NOTE!! change IF NOT 'userId'
 					console.warn('skipped ROW for upsert:', row);
 					return null;
 				}
@@ -475,11 +480,11 @@ export const actions: Actions = {
 				return {
 					updateOne: {
 						filter: { userId: finalUpdateDocument.userId },
-						update: { $set: finalUpdateDocument }, // Invia l'oggetto completamente pre-processato e de-appiattito
+						update: { $set: finalUpdateDocument },
 						upsert: true
 					}
 				};
-			}).filter(op => op !== null); // Filtra le righe che sono state saltate
+			}).filter(op => op !== null); // Filter empty rows
 
 			if (bulkOperations.length === 0) {
 				return { action: 'uploadCsv', success: false, message: 'Nessun dato valido da processare nel CSV.' };
@@ -536,6 +541,53 @@ export const actions: Actions = {
 		} catch (error) {
 			console.error('Errore durante la generazione e il download del CSV:', error);
 			return fail(500, { action: 'downloadCsv', success: false, message: 'Si è verificato un errore durante la generazione del report.' });
+		}
+	},
+
+	changePage: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const navigation = formData.get('navigation');
+		const itemsPerPage = Number(formData.get('itemsPerPage'));
+		let currentPage = Number(formData.get('currentPage'));
+		//console.log('changePage', navigation, itemsPerPage, currentPage);
+
+		if (navigation === 'prev') {
+			currentPage = Math.max(1, currentPage - 1);
+		} else if (navigation === 'next') {
+			currentPage += 1;
+		} else if (navigation === 'reset') {
+			currentPage = 1;
+		}
+		const skipItems = (currentPage - 1) * itemsPerPage;
+
+		try {
+			const res = await fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user', //product | order | user | layout | discount
+					query: {},
+					projection: { _id: 0 },
+					//sort: { createdAt: -1 },
+					limit: itemsPerPage,
+					skip: skipItems
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('discount changePage failed', res.status, errorText);
+				return fail(400, { action: 'changePage', success: false, message: `changePage Error: ${errorText}` });
+			}
+			const result = await res.json();
+
+			return { action: 'changePage', success: true, message: result.message, payload: { result, currentPage } };
+
+		} catch (error) {
+			console.error('Error changePage:', error);
+			return { action: 'changePage', success: false, message: 'Error changePage' };
 		}
 	},
 

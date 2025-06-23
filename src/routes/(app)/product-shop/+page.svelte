@@ -261,7 +261,7 @@
 			tick().then(() => {
 				const element = document.getElementById('top');
 				if (element) {
-					element.scrollIntoView({ behavior: 'smooth' });
+					element.scrollIntoView({ behavior: 'smooth' }); // smooth , instant
 				}
 			});
 		}

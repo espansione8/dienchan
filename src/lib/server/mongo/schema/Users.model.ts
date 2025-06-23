@@ -6,15 +6,12 @@ const UserSchema = new mongoose.Schema(
 			type: String,
 			default: '',
 			index: true,
-			unique: true,
-			dropDups: true
+			unique: true
 		},
 		userCode: {
 			type: String,
 			default: '',
-			index: true,
-			unique: false,
-			dropDups: true
+			unique: false
 		},
 		status: {
 			type: String,
@@ -104,7 +101,7 @@ const UserSchema = new mongoose.Schema(
 		mobilePhonePublic: { type: Boolean, default: false },
 		phone: { type: String, default: '' },
 		phonePublic: { type: Boolean, default: false },
-		email: { type: String, default: '' },
+		email: { type: String, default: '', index: true, },
 		emailPublic: { type: Boolean, default: false },
 		documentUpload: { type: String, default: '' },
 		photoUpload: { type: String, default: '' },
@@ -125,6 +122,12 @@ const UserSchema = new mongoose.Schema(
 		pointsBalance: { type: Number, default: 0 },
 		pointsTotal: { type: Number, default: 0 },
 		pointsBalanceDate: { type: Date, default: '' },
+		pointsHistory: [
+			{
+				points: { type: Number, default: '' },
+				note: { type: String, default: '' }
+			}
+		],
 		userAvatar: { type: String, default: '' },
 		privacyDate: { type: Date, default: '' },
 		privacyAccept: { type: String, default: '' },

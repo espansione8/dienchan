@@ -13,71 +13,72 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	let getProduct
 	let getUser
 
-	const discountFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-		method: 'POST',
-		body: JSON.stringify({
-			apiKey: APIKEY,
-			schema: 'discount', //product | order | user | layout | discount
-			query: {}, //IF USE Products.model -> types: course / product / membership / event
-			projection: { _id: 0 },// 0: exclude | 1: include
-			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
-			limit: 1000,
-			skip: 0
-		}),
-		headers: {
-			'Content-Type': 'application/json'
-		},
-	});
-
-	const layoutFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-		method: 'POST',
-		body: JSON.stringify({
-			apiKey: APIKEY,
-			schema: 'layout', //product | order | user | layout | discount
-			query: {}, //IF USE Products.model -> types: course / product / membership / event
-			projection: { _id: 0, layoutId: 1, title: 1 },// 0: exclude | 1: include
-			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
-			limit: 1000,
-			skip: 0
-		}),
-		headers: {
-			'Content-Type': 'application/json'
-		},
-	});
-
-	const productFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-		method: 'POST',
-		body: JSON.stringify({
-			apiKey: APIKEY,
-			schema: 'product', //product | order | user | layout | discount
-			query: { type: 'product' }, //IF USE Products.model -> type: course / product / membership / event
-			projection: { _id: 0, prodId: 1, title: 1 },// 0: exclude | 1: include
-			sort: { title: 1 }, // 1:Sort ascending | -1:Sort descending
-			limit: 1000,
-			skip: 0
-		}),
-		headers: {
-			'Content-Type': 'application/json'
-		},
-	});
-
-	const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-		method: 'POST',
-		body: JSON.stringify({
-			apiKey: APIKEY,
-			schema: 'user', //product | order | user | layout | discount
-			query: {}, //IF USE Products.model -> types: course / product / membership / event
-			projection: { userId: 1, email: 1 },// 0: exclude | 1: include
-			sort: { email: 1 }, // 1:Sort ascending | -1:Sort descending
-			limit: 1000,
-			skip: 0
-		}),
-		headers: {
-			'Content-Type': 'application/json'
-		},
-	});
 
 	try {
+		const discountFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'discount', //product | order | user | layout | discount
+				query: {}, //IF USE Products.model -> types: course / product / membership / event
+				projection: { _id: 0 },// 0: exclude | 1: include
+				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				limit: 1000,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			},
+		});
+
+		const layoutFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'layout', //product | order | user | layout | discount
+				query: {}, //IF USE Products.model -> types: course / product / membership / event
+				projection: { _id: 0, layoutId: 1, title: 1 },// 0: exclude | 1: include
+				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				limit: 1000,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			},
+		});
+
+		const productFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'product', //product | order | user | layout | discount
+				query: { type: 'product' }, //IF USE Products.model -> type: course / product / membership / event
+				projection: { _id: 0, prodId: 1, title: 1 },// 0: exclude | 1: include
+				sort: { title: 1 }, // 1:Sort ascending | -1:Sort descending
+				limit: 1000,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			},
+		});
+
+		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: {}, //IF USE Products.model -> types: course / product / membership / event
+				projection: { userId: 1, email: 1 },// 0: exclude | 1: include
+				sort: { email: 1 }, // 1:Sort ascending | -1:Sort descending
+				limit: 1000,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			},
+		});
+
 		const [discountRes, layoutRes, productRes, userRes] = await Promise.all([
 			discountFetch,
 			layoutFetch,

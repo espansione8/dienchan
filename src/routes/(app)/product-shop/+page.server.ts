@@ -2,9 +2,6 @@ import type { PageServerLoad, Actions } from './$types'
 import { BASE_URL, APIKEY } from '$env/static/private';
 import { fail, error } from '@sveltejs/kit';
 
-const apiKey = APIKEY;
-const baseURL = BASE_URL;
-
 export const load: PageServerLoad = async ({ fetch, locals }) => {
 	let getTable = [];
 	const getCategories = {};
@@ -32,10 +29,10 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		// itemCount = await resCount.json()
 
 		// get product
-		const res = await fetch(`${baseURL}/api/mongo/find`, {
+		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
-				apiKey,
+				apiKey: APIKEY,
 				schema: 'product',
 				query: {
 					status: 'enabled',
@@ -90,10 +87,10 @@ export const actions: Actions = {
 		const skipItems = (Number(currentPage) - 1) * Number(itemsPerPage);
 
 		try {
-			const res = await fetch(`${baseURL}/api/mongo/find`, {
+			const res = await fetch(`${BASE_URL}/api/mongo/find`, {
 				method: 'POST',
 				body: JSON.stringify({
-					apiKey,
+					apiKey: APIKEY,
 					schema: 'product',
 					query: {
 						status: 'enabled',
