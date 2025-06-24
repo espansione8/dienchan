@@ -7,6 +7,7 @@
 	import Loader from '$lib/components/Loader.svelte';
 	import { cartProducts } from '$lib/stores/cart';
 	import { imgCheck } from '$lib/tools/tools.js';
+	import { province } from '$lib/stores/arrays.js';
 	import {
 		ChevronDown,
 		Check,
@@ -28,6 +29,7 @@
 	let tableList = $state(getTable || []);
 	let count = $state(itemCount);
 	let loading = $state(false);
+	const countyList = new Set($province.map((p) => p.code));
 
 	// Filter state
 	let resetActive = $state(false);
@@ -43,14 +45,14 @@
 	// Pagination
 	let currentPage = $state(1);
 	const itemsPerPage = 40;
-	const pageNumbers = $derived(() => {
-		const pageCount = Math.ceil(count / itemsPerPage);
-		const numbers = [];
-		for (let i = 1; i <= pageCount; i++) {
-			numbers.push(i);
-		}
-		return numbers;
-	});
+	// const pageNumbers = $derived(() => {
+	// 	const pageCount = Math.ceil(count / itemsPerPage);
+	// 	const numbers = [];
+	// 	for (let i = 1; i <= pageCount; i++) {
+	// 		numbers.push(i);
+	// 	}
+	// 	return numbers;
+	// });
 
 	// Count reflexologists by province
 	let numReflexologistsInProvince = $state({});
@@ -107,6 +109,7 @@
 			count = tableList.length;
 		}
 		goToPage(currentPage);
+		document.getElementById('top').scrollIntoView({ behavior: 'smooth' });
 	};
 
 	// Sort reflexologists

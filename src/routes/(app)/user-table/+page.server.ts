@@ -175,7 +175,6 @@ export const actions: Actions = {
 			return fail(400, { action: 'newUser', success: false, message: 'Dati mancanti' });
 		}
 
-
 		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -588,6 +587,70 @@ export const actions: Actions = {
 		} catch (error) {
 			console.error('Error changePage:', error);
 			return { action: 'changePage', success: false, message: 'Error changePage' };
+		}
+	},
+
+	modifyPoints: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const userId = formData.get('userId');
+		const pointsType = formData.get('pointsType');
+		const points = Number(formData.get('points'));
+		const note = formData.get('note');
+
+		if (!userId || !pointsType || !points) {
+			return fail(400, { action: 'modifyPoints', success: false, message: 'Dati mancanti' });
+		}
+
+		let pointsIncrementValue;
+		let pointsForHistory;
+
+		if (pointsType === 'add') {
+			pointsIncrementValue = points;
+			pointsForHistory = points;
+		} else if (pointsType === 'remove') {
+			pointsIncrementValue = -points;
+			pointsForHistory = -points;
+		}
+
+		const updatePayload = {
+			$inc: {
+				pointsBalance: pointsIncrementValue
+			},
+			$push: {
+				pointsHistory: {
+					points: pointsForHistory,
+					note: note
+				}
+			}
+		};
+
+		try {
+			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user', //product | order | user | layout | discount
+					query: { userId },
+					update: updatePayload,
+					options: { upsert: false },
+					multi: false
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('user update failed', res.status, errorText);
+				return fail(400, { action: 'modifyPoints', success: false, message: errorText });
+			}
+			const result = await res.json();
+
+			return { action: 'modifyPoints', success: true, message: result.message };
+
+		} catch (error) {
+			console.error('Error user modifyPoints:', error);
+			return { action: 'modifyPoints', success: false, message: 'Error user modifyPoints' };
 		}
 	},
 

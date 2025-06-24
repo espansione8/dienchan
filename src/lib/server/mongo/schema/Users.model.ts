@@ -125,7 +125,8 @@ const UserSchema = new mongoose.Schema(
 		pointsHistory: [
 			{
 				points: { type: Number, default: '' },
-				note: { type: String, default: '' }
+				note: { type: String, default: '' },
+				date: { type: Date, default: Date.now }
 			}
 		],
 		userAvatar: { type: String, default: '' },

@@ -427,7 +427,8 @@
 						name="title"
 						placeholder="Titolo"
 						bind:value={title}
-					/>
+					>
+					</textarea>
 				</div>
 			</section>
 
@@ -443,7 +444,8 @@
 						name="descr"
 						placeholder="Descrizione"
 						bind:value={descr}
-					/>
+					>
+					</textarea>
 				</div>
 			</section>
 			<!-- Value -->

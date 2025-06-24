@@ -104,7 +104,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	} catch (error) {
 		console.log('layout find error:', error);
 	}
-	console.log('getTable', getTable.length);
+	//console.log('getTable', getTable.length);
 
 	return {
 		getTable,

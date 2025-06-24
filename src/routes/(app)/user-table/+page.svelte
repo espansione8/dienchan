@@ -24,7 +24,8 @@
 		CopyPlus,
 		FileUp,
 		Info,
-		House
+		House,
+		Coins
 	} from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 	import { country_list } from '$lib/stores/arrays.js';
@@ -62,7 +63,9 @@
 	let phonePublic = $state(false);
 	let mobilePhonePublic = $state(false);
 	let userId = $state('');
-	let points = $state({});
+	let note = $state('');
+	let pointsHistory = $state([]);
+	let pointsType = $state('add');
 	let resetActive = $state(false);
 
 	// Pagination
@@ -203,6 +206,10 @@
 		countryPublic = false;
 		phonePublic = false;
 		mobilePhonePublic = false;
+		userId = '';
+		note = '';
+		pointsHistory = [];
+		pointsType = 'add';
 	};
 
 	const onClickModal = (type: string, item: any) => {
@@ -255,56 +262,9 @@
 		}
 		if (type == 'points') {
 			postAction = `?/modifyPoints`;
-			modalTitle = 'Punti Utente';
-			points = {
-				pointsBalance: 200,
-				pointsHistory: [
-					{
-						points: 200,
-						note: 'sconto utente etc sconto utente etcsconto utente etcsconto utente etcsconto utente etc'
-					},
-					{
-						points: 200,
-						note: 'sconto utente etc'
-					},
-					{
-						points: 200,
-						note: 'sconto utente etc'
-					},
-					{
-						points: 200,
-						note: 'sconto utente etc'
-					},
-					{
-						points: 200,
-						note: 'sconto utente etc'
-					},
-					{
-						points: 200,
-						note: 'sconto utente etc'
-					},
-					{
-						points: 200,
-						note: 'sconto utente etc'
-					},
-					{
-						points: 200,
-						note: 'sconto utente etc'
-					},
-					{
-						points: 200,
-						note: 'sconto utente etc'
-					},
-					{
-						points: 200,
-						note: 'sconto utente etc'
-					},
-					{
-						points: 200,
-						note: 'sconto utente etc'
-					}
-				]
-			};
+			modalTitle = `Punti Utente: ${item.pointsBalance}`;
+			userId = item.userId;
+			pointsHistory = item.pointsHistory;
 		}
 	};
 
@@ -502,13 +462,9 @@
 						</td>
 						<!-- Points -->
 						<td>
-							<button onclick={() => onClickModal('points', row)} class="btn btn-sm btn-info"
-								>{row.pointsBalance}
+							<button onclick={() => onClickModal('points', row)} class="btn btn-info font-bold"
+								>{row.pointsBalance} <Coins />
 							</button>
-							<button
-								class="btn btn-sm btn-info"
-								onclick={() => onClickModal('pointsHistory', row.pointsHistory)}><Info /></button
-							>
 						</td>
 						<!-- Status -->
 						<td>
@@ -1276,32 +1232,97 @@
 			method="POST"
 			action={postAction}
 			use:enhance={formSubmit}
-			class="grid grid-cols-2 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+			class="grid grid-cols-4 gap-4 px-4 py-4"
 		>
-			<section class="col-span-2">
-				<label for="points" class="form-label">
-					<p class="font-bold mb-2 label">Punti utente</p>
-				</label>
-				<div class="join join-horizontal rounded-md w-full">
-					<input
-						type="number"
-						id="points"
-						name="points"
-						class="input"
-						value={points?.pointsBalance || 0}
-					/>
+			<section class="col-span-4 flex justify-center gap-4">
+				<div class="form-control">
+					<label for="pointsType" class="form-label">
+						<p class="font-bold mb-2 label">Aggiungi Punti</p>
+						<input
+							type="radio"
+							name="pointsType"
+							class="radio"
+							value="add"
+							bind:group={pointsType}
+						/>
+					</label>
+				</div>
+				<div class="form-control">
+					<label for="pointsType" class="form-label">
+						<p class="font-bold mb-2 label">Rimuovi Punti</p>
+						<input
+							type="radio"
+							name="pointsType"
+							class="radio"
+							value="remove"
+							bind:group={pointsType}
+						/>
+					</label>
 				</div>
 			</section>
 
-			<div class="col-span-4 mt-5 flex justify-center">
+			<section class="col-span-4 flex flex-col items-center">
+				<label for="points" class="form-control max-w-md mx-auto">
+					<!-- <div class="label">
+						<span class="label-text font-bold">Punti utente</span>
+					</div> -->
+					<div class="join join-horizontal rounded-md w-full">
+						<input
+							type="number"
+							id="points"
+							name="points"
+							class="input input-bordered w-full"
+							value="0"
+							placeholder="0"
+							aria-label="points"
+							min="0"
+							max="9999"
+						/>
+					</div>
+				</label>
+			</section>
+			<section class="col-span-4 flex flex-col items-center">
+				<label for="note" class="form-control max-w-xl mx-auto">
+					<div class="label">
+						<span class="label-text font-bold">Note</span>
+					</div>
+					<div class="join join-horizontal rounded-md w-full">
+						<textarea
+							class="textarea w-full"
+							id="note"
+							name="note"
+							placeholder="Note"
+							aria-label="note"
+							bind:value={note}
+						>
+						</textarea>
+					</div>
+				</label>
+			</section>
+
+			<input type="hidden" name="userId" value={userId} aria-label="userId" />
+
+			<section class="col-span-4 flex justify-center">
 				<div class="bg-gray-50 flex justify-center">
 					<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
-					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">Carica</button>
+					<button
+						type="submit"
+						class="btn btn-sm mx-2"
+						class:btn-success={pointsType === 'add'}
+						class:btn-error={pointsType === 'remove'}
+					>
+						{#if pointsType === 'add'}
+							Aggiungi
+						{:else}
+							Rimuovi
+						{/if}
+					</button>
 				</div>
-			</div>
+			</section>
 		</form>
-		<div class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8">
-			{#each points?.pointsHistory || [] as item}
+
+		<div class="grid grid-cols-4 bg-base-100 grid-col gap-y-6 p-4 lg:gap-x-8 lg:p-8">
+			{#each pointsHistory || [] as item}
 				<div
 					class="col-span-4
                            p-4
@@ -1316,6 +1337,7 @@
 				>
 					<span class="font-bold text-lg text-primary"> punti: {item.points}</span>
 					<span class="text-sm text-base-content">{item.note}</span>
+					<span class="text-sm text-base-content">{new Date(item.date).toLocaleString()}</span>
 				</div>
 			{/each}
 		</div>
