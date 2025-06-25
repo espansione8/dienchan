@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types'
 import { BASE_URL, APIKEY } from '$env/static/private';
-import { error } from '@sveltejs/kit';
+import { error, fail } from '@sveltejs/kit';
 import { pageAuth } from '$lib/pageAuth';
 
 const apiKey = APIKEY;
@@ -9,14 +9,49 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
 
 	let getTable = [];
+	let itemCount = 0;
+	let countyObj = {};
+
 	try {
-		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
+		// Count
+		const countFetch = fetch(`${BASE_URL}/api/mongo/count`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { 'membership.membershipStatus': true },
+				option: { hint: { email: 1 } },// optional: define index to use
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		// get user
+		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey,
 				schema: 'user', //product | order | user | layout | discount
 				query: { 'membership.membershipStatus': true },
 				projection: { _id: 0, password: 0 }, // 0: exclude | 1: include
+				sort: {}, // 1:Sort ascending | -1:Sort descending
+				limit: 40,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		// get county
+		const countyFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey,
+				schema: 'user', //product | order | user | layout | discount
+				query: { 'membership.membershipStatus': true },
+				projection: { _id: 0, county: 1 }, // 0: exclude | 1: include
 				sort: {}, // 1:Sort ascending | -1:Sort descending
 				limit: 100000,
 				skip: 0
@@ -25,65 +60,129 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 				'Content-Type': 'application/json'
 			}
 		});
-		if (!res.ok) {
-			console.error('user fetch failed', res.status, `res: ${await res.text()}`);
+
+		// aggregate
+		const aggregateCountByCountyPromise = fetch(`${BASE_URL}/api/mongo/aggregate`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user',
+				pipeline: [
+					{ "$match": { "membership.membershipStatus": true, "county": { "$exists": true, "$ne": null } } },
+					{ "$group": { "_id": "$county", "count": { "$sum": 1 } } }, // regroup by county and count
+					{ "$sort": { "_id": 1 } }
+				]
+			}),
+			headers: { 'Content-Type': 'application/json' }
+		});
+		const [countRes, userRes, countyRes] = await Promise.all([
+			countFetch,
+			userFetch,
+			countyFetch
+		]);
+
+		if (!countRes.ok) {
+			// return fail(400, { action: 'renew', success: false, message: `res: ${await res.text()}` });
+			throw error(400, 'count fetch failed');
+		}
+
+		itemCount = await countRes.json()
+
+		if (!userRes.ok) {
+			console.error('user fetch failed', userRes.status, `userRes: ${await userRes.text()}`);
 			throw error(400, 'user fetch failed');
 		}
-		const response = await res.json();
+		const response = await userRes.json();
 		getTable = response.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10)
 		}));
+
+		if (!countyRes.ok) {
+			// return fail(400, { action: 'renew', success: false, message: `res: ${await res.text()}` });
+			throw error(400, 'countyRes fetch failed');
+		}
+
+		const countyArray = await countyRes.json();
+
+		const numReflexologistsInProvince: { [key: string]: number } = {};
+		countyArray.forEach((item) => {
+			const county = item.county;
+			if (county) { // Assicurati che il campo provincia esista
+				numReflexologistsInProvince[county] = (numReflexologistsInProvince[county] || 0) + 1;
+			}
+		});
+
+		// Ordina le province alfabeticamente
+		const sortedNumReflexologistsInProvince = Object.keys(numReflexologistsInProvince)
+			.sort((a, b) => {
+				const countyA = a || '';
+				const countyB = b || '';
+				return countyA.localeCompare(countyB);
+			})
+			.reduce((acc: { [key: string]: number }, key) => {
+				acc[key] = numReflexologistsInProvince[key];
+				return acc;
+			}, {});
+
+		countyObj = sortedNumReflexologistsInProvince;
+
 	} catch (error) {
 		console.log('userfetch error:', error);
 	}
 
 	return {
 		getTable,
-		itemCount: getTable.length
+		itemCount,
+		countyObj
 	};
 }
 
-// export const actions: Actions = {
-// 	filterUser: async ({ request, fetch }) => {
-// 		const formData = await request.formData();
-// 		const level = formData.get('level');
-// 		const membershipLevel = formData.get('membershipLevel');
-// 		const email = formData.get('email');
+export const actions: Actions = {
+	changePage: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const navigation = formData.get('navigation');
+		const itemsPerPage = Number(formData.get('itemsPerPage'));
+		let currentPage = Number(formData.get('currentPage'));
+		//console.log('changePage', navigation, itemsPerPage, currentPage);
 
-// 		console.log('level', level);
+		if (navigation === 'prev') {
+			currentPage = Math.max(1, currentPage - 1);
+		} else if (navigation === 'next') {
+			currentPage += 1;
+		} else if (navigation === 'reset') {
+			currentPage = 1;
+		}
+		const skipItems = (currentPage - 1) * itemsPerPage;
 
-// 		const arrayField = ['level', 'membership.membershipLevel', 'email'];
-// 		const arrayValue = [level, membershipLevel, email];
+		try {
+			const res = await fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user', //product | order | user | layout | discount
+					query: { 'membership.membershipStatus': true },
+					projection: { _id: 0, password: 0 },
+					//sort: { createdAt: -1 },
+					limit: itemsPerPage,
+					skip: skipItems
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('discount changePage failed', res.status, errorText);
+				return fail(400, { action: 'changePage', success: false, message: `changePage Error: ${errorText}` });
+			}
+			const result = await res.json();
 
-// 		try {
-// 			const response = await fetch(`${BASE_URL}/api/finds/0/0`, {
-// 				method: 'POST',
-// 				body: JSON.stringify({
-// 					schema: 'user',
-// 					arrayField,
-// 					arrayValue
-// 				}),
-// 				headers: {
-// 					'Content-Type': 'application/json'
-// 				}
-// 			});
-// 			//console.log('response', response);
-// 			const result = await response.json();
+			return { action: 'changePage', success: true, message: result.message, payload: { result, currentPage } };
 
-// 			if (response.status == 200) {
-// 				const filterTableList = result.map((obj: any) => ({
-// 					...obj,
-// 					createdAt: obj.createdAt.substring(0, 10)
-// 				}));
-// 				return { action: 'filterUser', success: true, message: 'Filtro applicato', filterTableList };
-
-// 			} else {
-// 				return { action: 'filterUser', success: false, message: 'Utente non trovato' };
-// 			}
-// 		} catch (error) {
-// 			console.error('Error filterUser:', error);
-// 			return { action: 'filterUser', success: false, message: 'Errore filterUser' };
-// 		}
-// 	}
-// } satisfies Actions;
+		} catch (error) {
+			console.error('Error changePage:', error);
+			return { action: 'changePage', success: false, message: 'Error changePage' };
+		}
+	},
+} satisfies Actions;

@@ -7,6 +7,9 @@
 	import Papa from 'papaparse';
 	import Loader from '$lib/components/Loader.svelte';
 	import { orderKeysToDelete } from '$lib/stores/arrays';
+	import { enhance } from '$app/forms';
+	import { country_list } from '$lib/stores/arrays.js';
+	import { province } from '$lib/stores/arrays';
 	import {
 		Funnel,
 		Trash2,
@@ -27,9 +30,6 @@
 		House,
 		Coins
 	} from 'lucide-svelte';
-	import { enhance } from '$app/forms';
-	import { country_list } from '$lib/stores/arrays.js';
-	import { province } from '$lib/stores/arrays';
 
 	const { data } = $props();
 	const { getTable, itemCount } = $derived(data);

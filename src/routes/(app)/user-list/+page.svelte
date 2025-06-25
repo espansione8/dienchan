@@ -1,13 +1,15 @@
 <script lang="ts">
-	//import { goto, invalidateAll } from '$app/navigation';
-	//import { notification } from '$lib/stores/notifications';
+	import type { ActionResult } from '@sveltejs/kit';
+	import { invalidateAll } from '$app/navigation';
+	import { notification } from '$lib/stores/notifications';
 	import { Image } from '@unpic/svelte';
 	import { tick } from 'svelte';
+	import { enhance } from '$app/forms';
 	import CartFloat from '$lib/components/CartFloat.svelte';
 	import Loader from '$lib/components/Loader.svelte';
 	import { cartProducts } from '$lib/stores/cart';
 	import { imgCheck } from '$lib/tools/tools.js';
-	import { province } from '$lib/stores/arrays.js';
+	//import { province } from '$lib/stores/arrays.js';
 	import {
 		ChevronDown,
 		Check,
@@ -19,17 +21,16 @@
 		SlidersHorizontal,
 		Phone,
 		Mail,
-		Search,
+		House,
 		Calendar,
 		Star
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { getTable, itemCount } = $derived(data);
+	const { getTable, itemCount, countyObj } = $derived(data);
 	let tableList = $state(getTable || []);
 	let count = $state(itemCount);
 	let loading = $state(false);
-	const countyList = new Set($province.map((p) => p.code));
 
 	// Filter state
 	let resetActive = $state(false);
@@ -108,7 +109,6 @@
 			tableList = getTable.filter((item) => item.county === activeFilter.provincia);
 			count = tableList.length;
 		}
-		goToPage(currentPage);
 		document.getElementById('top').scrollIntoView({ behavior: 'smooth' });
 	};
 
@@ -152,33 +152,62 @@
 	// });
 
 	// Pagination
-	const applyFiltersAndSort = () => {
-		let filtered = [...getTable];
+	// const applyFiltersAndSort = () => {
+	// 	let filtered = [...getTable];
 
-		if (activeFilter.provincia) {
-			filtered = getTable.filter((item) => item.county === activeFilter.provincia);
-		}
+	// 	if (activeFilter.provincia) {
+	// 		filtered = getTable.filter((item) => item.county === activeFilter.provincia);
+	// 	}
 
-		count = filtered.length;
-		sortItems(currentSort);
-		return filtered;
-	};
+	// 	count = filtered.length;
+	// 	sortItems(currentSort);
+	// 	return filtered;
+	// };
 
-	const goToPage = (newPage: number) => {
+	// const goToPage = (newPage: number) => {
+	// 	loading = true;
+	// 	currentPage = newPage;
+	// 	const filtered = applyFiltersAndSort();
+	// 	const maxPageAfterFilter = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+	// 	if (currentPage > maxPageAfterFilter) {
+	// 		currentPage = maxPageAfterFilter;
+	// 	}
+
+	// 	// Pagination
+	// 	const skipItems = (currentPage - 1) * itemsPerPage;
+	// 	tableList = filtered.slice(skipItems, skipItems + itemsPerPage);
+	// 	loading = false;
+	// };
+	// goToPage(currentPage);
+
+	const formSubmit = () => {
 		loading = true;
-		currentPage = newPage;
-		const filtered = applyFiltersAndSort();
-		const maxPageAfterFilter = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
-		if (currentPage > maxPageAfterFilter) {
-			currentPage = maxPageAfterFilter;
-		}
-
-		// Pagination
-		const skipItems = (currentPage - 1) * itemsPerPage;
-		tableList = filtered.slice(skipItems, skipItems + itemsPerPage);
-		loading = false;
+		return async ({ result }: { result: ActionResult }) => {
+			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
+			await invalidateAll();
+			if (result.type === 'success' && result.data) {
+				const { action, message, payload } = result.data; // { action, success, message, payload }
+				if (action == 'changePage' || action == 'filter') {
+					tableList = payload.result;
+					currentPage = payload.currentPage;
+				} else {
+					tableList = getTable;
+					resetActive = false;
+					notification.info(message);
+				}
+			}
+			if (result.type === 'failure') {
+				notification.error(result.data.message);
+			}
+			if (result.type === 'error') {
+				notification.error(result.error.message);
+			}
+			// 'update()' is called by default by use:enhance
+			// call 'await update()' if you need to ensure it completes before further client logic.
+			//resetFields();
+			loading = false;
+		};
 	};
-	goToPage(currentPage);
 
 	//let hasInitialized = $state(false);
 	$effect(() => {
@@ -243,7 +272,7 @@
 						class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto"
 					>
 						<ul class="list-none -mx-4 divide-y divide-base-200/70">
-							{#each Object.entries(numReflexologistsInProvince) as [provincia, count]}
+							{#each Object.entries(countyObj) as [provincia, count]}
 								<li
 									class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
                   {activeFilter.provincia === provincia
@@ -480,20 +509,36 @@
 					{/each}
 				{/if}
 			</div>
-			<div class="join flex justify-center">
-				<button
-					class="join-item btn"
-					onclick={() => goToPage(--currentPage)}
-					disabled={currentPage <= 1}
-				>
-					«
-				</button>
-				<button class="join-item btn">Pagina {currentPage}</button>
-				<button
-					class="join-item btn"
-					onclick={() => goToPage(++currentPage)}
-					disabled={currentPage >= Math.ceil(count / itemsPerPage)}>»</button
-				>
+			<div class="join flex justify-center mt-5">
+				<form method="POST" action="?/changePage" use:enhance={formSubmit}>
+					{#if currentPage > 1}
+						<button type="submit" id="reset" class="join-item btn" name="navigation" value="reset">
+							<House />
+						</button>
+					{/if}
+
+					<button
+						type="submit"
+						id="prev"
+						class="join-item btn"
+						name="navigation"
+						value="prev"
+						disabled={currentPage <= 1}
+					>
+						«
+					</button>
+					<button type="button" class="join-item btn">Pagina {currentPage}</button>
+					<button
+						type="submit"
+						id="next"
+						class="join-item btn"
+						name="navigation"
+						value="next"
+						disabled={currentPage >= Math.max(1, Math.ceil(itemCount / itemsPerPage))}>»</button
+					>
+					<input type="hidden" name="itemsPerPage" value={itemsPerPage} />
+					<input type="hidden" name="currentPage" value={currentPage} />
+				</form>
 			</div>
 		</section>
 	{/if}

@@ -52,10 +52,13 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	let model: any;
 	if (schema == 'product') model = Product;
-	if (schema == 'order') model = Order;
-	if (schema == 'user') model = User;
-	if (schema == 'layout') model = Layout;
-	if (schema == 'discount') model = Discount;
+	else if (schema == 'order') model = Order;
+	else if (schema == 'user') model = User;
+	else if (schema == 'layout') model = Layout;
+	else if (schema == 'discount') model = Discount;
+	else {
+		return json({ message: 'Schema not found' }, { status: 400 });
+	}
 
 	try {
 		await dbConnect();
