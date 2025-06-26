@@ -62,24 +62,26 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		});
 
 		// aggregate
-		const aggregateCountByCountyPromise = fetch(`${BASE_URL}/api/mongo/aggregate`, {
+		const aggregateFetch = fetch(`${BASE_URL}/api/mongo/aggregate`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
 				schema: 'user',
 				pipeline: [
-					{ "$match": { "membership.membershipStatus": true, "county": { "$exists": true, "$ne": null } } },
-					{ "$group": { "_id": "$county", "count": { "$sum": 1 } } }, // regroup by county and count
-					{ "$sort": { "_id": 1 } }
+					{ "$match": { "membership.membershipStatus": true, "county": { "$exists": true, "$ne": null } } }, // filter active members with a county
+					{ "$group": { "_id": "$county", "count": { "$sum": 1 } } }, // group by county and count
+					{ "$sort": { "_id": 1 } } // sort by county name alphabetically
 				]
 			}),
 			headers: { 'Content-Type': 'application/json' }
 		});
-		const [countRes, userRes, countyRes] = await Promise.all([
+		const [countRes, userRes, countyRes, aggregateRes] = await Promise.all([
 			countFetch,
 			userFetch,
-			countyFetch
+			countyFetch,
+			aggregateFetch
 		]);
+
 
 		if (!countRes.ok) {
 			// return fail(400, { action: 'renew', success: false, message: `res: ${await res.text()}` });
@@ -98,37 +100,48 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			createdAt: obj.createdAt.substring(0, 10)
 		}));
 
-		if (!countyRes.ok) {
-			// return fail(400, { action: 'renew', success: false, message: `res: ${await res.text()}` });
-			throw error(400, 'countyRes fetch failed');
+		if (!aggregateRes.ok) {
+			throw error(400, 'aggregate fetch failed');
 		}
 
-		const countyArray = await countyRes.json();
+		const aggregateData = await aggregateRes.json();
+		countyObj = aggregateData.reduce((acc: { [key: string]: number }, item: { _id: string, count: number }) => {
+			acc[item._id] = item.count;
+			return acc;
+		}, {});
 
-		const numReflexologistsInProvince: { [key: string]: number } = {};
-		countyArray.forEach((item) => {
-			const county = item.county;
-			if (county) { // Assicurati che il campo provincia esista
-				numReflexologistsInProvince[county] = (numReflexologistsInProvince[county] || 0) + 1;
-			}
-		});
 
-		// Ordina le province alfabeticamente
-		const sortedNumReflexologistsInProvince = Object.keys(numReflexologistsInProvince)
-			.sort((a, b) => {
-				const countyA = a || '';
-				const countyB = b || '';
-				return countyA.localeCompare(countyB);
-			})
-			.reduce((acc: { [key: string]: number }, key) => {
-				acc[key] = numReflexologistsInProvince[key];
-				return acc;
-			}, {});
+		// if (!countyRes.ok) {
+		// 	throw error(400, 'countyRes fetch failed');
+		// }
 
-		countyObj = sortedNumReflexologistsInProvince;
+		// const countyArray = await countyRes.json();
+
+		// const userCounty: { [key: string]: number } = {};
+		// countyArray.forEach((item) => {
+		// 	const county = item.county;
+		// 	if (county) {
+		// 		userCounty[county] = (userCounty[county] || 0) + 1;
+		// 	}
+		// });
+
+		// // sort County alphabetical
+		// const sortedUserCounty = Object.keys(userCounty)
+		// 	.sort((a, b) => {
+		// 		const countyA = a || '';
+		// 		const countyB = b || '';
+		// 		return countyA.localeCompare(countyB);
+		// 	})
+		// 	.reduce((acc: { [key: string]: number }, key) => {
+		// 		acc[key] = userCounty[key];
+		// 		return acc;
+		// 	}, {});
+
+		// countyObj = sortedUserCounty;
 
 	} catch (error) {
 		console.log('userfetch error:', error);
+		throw error(500, 'Server error');
 	}
 
 	return {
@@ -139,12 +152,58 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 }
 
 export const actions: Actions = {
+	filter: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const county = formData.get('county');
+
+		try {
+			// Count filtered items
+			const countFetch = fetch(`${BASE_URL}/api/mongo/count`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user',
+					query: { 'membership.membershipStatus': true, county: county },
+					option: {},
+				}),
+				headers: { 'Content-Type': 'application/json' }
+			});
+
+			// Get filtered users (first page)
+			const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user',
+					query: { 'membership.membershipStatus': true, county: county },
+					projection: { _id: 0, password: 0 },
+					limit: 40,
+					skip: 0
+				}),
+				headers: { 'Content-Type': 'application/json' }
+			});
+
+			const [countRes, userRes] = await Promise.all([countFetch, userFetch]);
+
+			if (!countRes.ok) throw error(400, 'Filtered count fetch failed');
+			const itemCount = await countRes.json();
+
+			if (!userRes.ok) throw error(400, 'Filtered user fetch failed');
+			const getTable = (await userRes.json()).map((obj: any) => ({ ...obj, createdAt: obj.createdAt.substring(0, 10) }));
+
+			return { action: 'filter', success: true, message: 'Filtro applicato', payload: { getTable, itemCount, currentPage: 1, county } };
+		} catch (error) {
+			console.error('Error user filter:', error);
+			return fail(500, { action: 'filter', success: false, message: 'Error user filter' });
+		}
+	},
 	changePage: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const navigation = formData.get('navigation');
 		const itemsPerPage = Number(formData.get('itemsPerPage'));
+		const county = formData.get('county');
 		let currentPage = Number(formData.get('currentPage'));
-		//console.log('changePage', navigation, itemsPerPage, currentPage);
+		//console.log('changePage', navigation, itemsPerPage, currentPage, county);
 
 		if (navigation === 'prev') {
 			currentPage = Math.max(1, currentPage - 1);
@@ -161,7 +220,7 @@ export const actions: Actions = {
 				body: JSON.stringify({
 					apiKey: APIKEY,
 					schema: 'user', //product | order | user | layout | discount
-					query: { 'membership.membershipStatus': true },
+					query: { 'membership.membershipStatus': true, ...(county && { county }) },
 					projection: { _id: 0, password: 0 },
 					//sort: { createdAt: -1 },
 					limit: itemsPerPage,
@@ -176,9 +235,9 @@ export const actions: Actions = {
 				console.error('discount changePage failed', res.status, errorText);
 				return fail(400, { action: 'changePage', success: false, message: `changePage Error: ${errorText}` });
 			}
-			const result = await res.json();
+			const getTable = await res.json();
 
-			return { action: 'changePage', success: true, message: result.message, payload: { result, currentPage } };
+			return { action: 'changePage', success: true, message: getTable.message, payload: { getTable, currentPage, county } };
 
 		} catch (error) {
 			console.error('Error changePage:', error);

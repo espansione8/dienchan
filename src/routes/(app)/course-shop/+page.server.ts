@@ -46,28 +46,22 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			}));
 
 		// user list
-		const queryUsers = {
-			status: 'enabled',
-			$or: [
-				{ level: 'superadmin' },
-				{ level: 'formatore' }
-			]
-		}
-		const projectionUsers = { _id: 0 };
-		const sortUsers = { surname: 1 };
-		const limitUsers = 1000;
-		const skipUsers = 0;
-
 		const resName = await fetch(`${baseURL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey,
 				schema: 'user',
-				query: queryUsers,
-				projection: projectionUsers,
-				sort: sortUsers,
-				limit: limitUsers,
-				skip: skipUsers
+				query: {
+					status: 'enabled',
+					$or: [
+						{ level: 'superadmin' },
+						{ level: 'formatore' }
+					]
+				},
+				projection: { _id: 0, name: 1, surname: 1, userId: 1 },
+				sort: { surname: 1 },
+				limit: 1000,
+				skip: 0
 			}),
 			headers: {
 				'Content-Type': 'application/json'

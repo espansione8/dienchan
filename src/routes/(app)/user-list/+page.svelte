@@ -36,9 +36,10 @@
 	let resetActive = $state(false);
 	let currentSort = $state('alfabetico');
 	let searchQuery = $state('');
+	let filterAccordion = $state('');
 
 	let activeFilter = $state({
-		provincia: '',
+		county: '',
 		// citta: '',
 		riflessologo: ''
 	});
@@ -58,8 +59,8 @@
 	// Count reflexologists by province
 	let numReflexologistsInProvince = $state({});
 	tableList.forEach((item) => {
-		const provincia = item.county;
-		numReflexologistsInProvince[provincia] = (numReflexologistsInProvince[provincia] || 0) + 1;
+		const county = item.county;
+		numReflexologistsInProvince[county] = (numReflexologistsInProvince[county] || 0) + 1;
 	});
 
 	//Sort provinces alphabetically
@@ -85,28 +86,28 @@
 		tableList.sort((a, b) => a.surname.localeCompare(b.surname));
 
 		activeFilter = {
-			provincia: '',
+			county: '',
 			riflessologo: ''
 		};
 
 		searchQuery = '';
-
+		filterAccordion = '';
+		currentPage = 1;
+		count = itemCount;
 		// Close accordions
-		const accordionList = ['accordion1', 'accordion2', 'accordion3'];
-		accordionList.forEach((item) => (document.getElementById(item).checked = false));
+		// const accordionList = ['accordion1', 'accordion2', 'accordion3'];
+		// accordionList.forEach((item) => (document.getElementById(item).checked = false));
 	};
 
 	// Filter by province
 	const onClickFilterProvincia = (provinciaSelected) => {
-		//tableList = getTable;
 		currentPage = 1;
 		resetActive = true;
-		activeFilter.provincia = provinciaSelected;
-		//console.log('activeFilter.provincia', activeFilter.provincia);
+		activeFilter.county = provinciaSelected;
+		filterAccordion = 'accordion1';
 
-		if (activeFilter.provincia) {
-			//	tableList = tableList.filter((item) => item.county === activeFilter.provincia);
-			tableList = getTable.filter((item) => item.county === activeFilter.provincia);
+		if (activeFilter.county) {
+			tableList = getTable.filter((item) => item.county === activeFilter.county);
 			count = tableList.length;
 		}
 		document.getElementById('top').scrollIntoView({ behavior: 'smooth' });
@@ -155,8 +156,8 @@
 	// const applyFiltersAndSort = () => {
 	// 	let filtered = [...getTable];
 
-	// 	if (activeFilter.provincia) {
-	// 		filtered = getTable.filter((item) => item.county === activeFilter.provincia);
+	// 	if (activeFilter.county) {
+	// 		filtered = getTable.filter((item) => item.county === activeFilter.county);
 	// 	}
 
 	// 	count = filtered.length;
@@ -187,9 +188,16 @@
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
 				const { action, message, payload } = result.data; // { action, success, message, payload }
-				if (action == 'changePage' || action == 'filter') {
-					tableList = payload.result;
+				if (action == 'changePage') {
+					tableList = payload.getTable;
 					currentPage = payload.currentPage;
+					activeFilter.county = payload.county || '';
+				} else if (action == 'filter') {
+					tableList = payload.getTable;
+					count = payload.itemCount;
+					currentPage = payload.currentPage;
+					activeFilter.county = payload.county;
+					notification.info(message);
 				} else {
 					tableList = getTable;
 					resetActive = false;
@@ -253,48 +261,53 @@
 
 			<!-- Filter Body -->
 			<div class="p-4 space-y-4">
-				<!-- Province Filter -->
-				<div
-					class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200"
-				>
-					<input id="accordion1" type="checkbox" class="peer" />
+				<form id="filterForm" method="POST" action="?/filter" use:enhance={formSubmit}>
+					<!-- Province Filter -->
 					<div
-						class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
+						class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200"
 					>
-						<span class="inline-flex items-center">
-							<b><MapPinned class="-mt-1 mr-2" /> Provincia</b>
-							{#if activeFilter.provincia.length > 0}
-								<Check class="ml-1" color="green" />
-							{/if}
-						</span>
+						<input id="accordion1" type="checkbox" class="peer" />
+						<div
+							class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
+						>
+							<span class="inline-flex items-center">
+								<b><MapPinned class="-mt-1 mr-2" /> Provincia</b>
+								{#if activeFilter.county.length > 0}
+									<Check class="ml-1" color="green" />
+								{/if}
+							</span>
+						</div>
+						<div
+							class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto"
+						>
+							<ul class="list-none -mx-4 divide-y divide-base-200/70">
+								{#each Object.entries(countyObj) as [county, count]}
+									<li>
+										<button
+											type="submit"
+											name="county"
+											value={county}
+											class="p-3 w-full transition-all duration-300 flex items-center justify-between
+                  {activeFilter.county === county
+												? 'bg-orange-200 text-red-900 font-bold'
+												: 'hover:bg-blue-200 hover:text-blue-900'}"
+										>
+											<span>{county}</span>
+											<div class="flex items-center gap-2">
+												<span class="badge badge-sm badge-ghost">{count}</span>
+												{#if activeFilter.county === county}
+													<Check size={18} class="flex-shrink-0 text-green-600" />
+												{/if}
+											</div>
+										</button>
+									</li>
+								{/each}
+							</ul>
+						</div>
 					</div>
-					<div
-						class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto"
-					>
-						<ul class="list-none -mx-4 divide-y divide-base-200/70">
-							{#each Object.entries(countyObj) as [provincia, count]}
-								<li
-									class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
-                  {activeFilter.provincia === provincia
-										? 'bg-orange-200 text-red-900 font-bold'
-										: 'hover:bg-blue-200 hover:text-blue-900'}"
-									onclick={() => onClickFilterProvincia(provincia)}
-								>
-									<span>{provincia}</span>
-									<div class="flex items-center gap-2">
-										<span class="badge badge-sm badge-ghost">{count}</span>
-										{#if activeFilter.provincia === provincia}
-											<Check size={18} class="flex-shrink-0 text-green-600" />
-										{/if}
-									</div>
-								</li>
-							{/each}
-						</ul>
-					</div>
-				</div>
 
-				<!-- Riflessologo Filter -->
-				<!-- <div
+					<!-- Riflessologo Filter -->
+					<!-- <div
 					class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200"
 				>
 					<input id="accordion4" type="checkbox" class="peer" />
@@ -329,11 +342,12 @@
 						</ul>
 					</div>
 				</div> -->
-
+				</form>
 				<!-- Reset Button -->
 				{#if resetActive || searchQuery.trim() !== ''}
 					<div class="pt-3 mt-2 border-t border-base-200">
 						<button
+							type="button"
 							class="btn btn-sm w-full bg-red-200 border border-red-500 text-red-500 px-3 py-2 rounded-md hover:border-red-100 hover:bg-red-400 hover:text-red-200 flex items-center justify-center gap-2"
 							onclick={onFilterReset}
 						>
@@ -356,7 +370,7 @@
 						? 'bg-green-300 hover:bg-green-300'
 						: 'bg-red-300 hover:bg-red-300'}"
 				>
-					Riflessologi trovati:
+					Utenti trovati:
 					<div class="badge rounded-md flex justify-center">
 						<strong class="">{count}</strong>
 					</div>
@@ -405,9 +419,9 @@
 				<div class="flex items-center space-x-4 pb-3 px-4">
 					<div class="text-gray-700">
 						<span><Tags /></span>
-						{#if activeFilter.provincia.length > 0}
+						{#if activeFilter.county.length > 0}
 							<div class="badge badge-accent rounded-md">
-								Provincia: <strong class="pl-1">{activeFilter.provincia}</strong>
+								Provincia: <strong class="pl-1">{activeFilter.county}</strong>
 							</div>
 						{/if}
 					</div>
@@ -534,10 +548,11 @@
 						class="join-item btn"
 						name="navigation"
 						value="next"
-						disabled={currentPage >= Math.max(1, Math.ceil(itemCount / itemsPerPage))}>»</button
+						disabled={currentPage >= Math.max(1, Math.ceil(count / itemsPerPage))}>»</button
 					>
 					<input type="hidden" name="itemsPerPage" value={itemsPerPage} />
 					<input type="hidden" name="currentPage" value={currentPage} />
+					<input type="hidden" name="county" value={activeFilter.county} />
 				</form>
 			</div>
 		</section>
