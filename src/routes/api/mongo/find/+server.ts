@@ -6,6 +6,7 @@ import { Order } from '$lib/server/mongo/schema/Orders.model';
 import { User } from '$lib/server/mongo/schema/Users.model';
 import { Layout } from '$lib/server/mongo/schema/ProductLayouts.model';
 import { Discount } from '$lib/server/mongo/schema/Discounts.model';
+import { timingSafeEqual } from 'crypto';
 import dbConnect from '$lib/server/mongo/database';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -46,7 +47,10 @@ export const POST: RequestHandler = async ({ request }) => {
 		skip
 	} = body;
 
-	if (apiKey !== APIKEY) {
+	//if (apiKey !== APIKEY) {
+	const apiKeyBuffer = Buffer.from(apiKey || '');
+	const expectedBuffer = Buffer.from(APIKEY);
+	if (apiKeyBuffer.length !== expectedBuffer.length || !timingSafeEqual(apiKeyBuffer, expectedBuffer)) {
 		return json({ message: 'api error' }, { status: 401 });
 	}
 

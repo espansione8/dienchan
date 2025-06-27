@@ -7,6 +7,7 @@ import { Order } from '$lib/server/mongo/schema/Orders.model';
 import { User } from '$lib/server/mongo/schema/Users.model';
 import { Layout } from '$lib/server/mongo/schema/ProductLayouts.model';
 import { Discount } from '$lib/server/mongo/schema/Discounts.model';
+import { timingSafeEqual } from 'crypto';
 import type { RequestHandler } from '@sveltejs/kit';
 
 // const email = emailToCheck.replace(/\s+/g, '').toLowerCase();
@@ -47,16 +48,22 @@ export const POST: RequestHandler = async ({ request }) => {
 		returnObj
 	} = body;
 
-	if (apiKey !== APIKEY) {
+	//if (apiKey !== APIKEY) {
+	const apiKeyBuffer = Buffer.from(apiKey || '');
+	const expectedBuffer = Buffer.from(APIKEY);
+	if (apiKeyBuffer.length !== expectedBuffer.length || !timingSafeEqual(apiKeyBuffer, expectedBuffer)) {
 		return json({ message: 'api error' }, { status: 401 });
 	}
 
 	let model: any;
 	if (schema == 'product') model = Product;
-	if (schema == 'order') model = Order;
-	if (schema == 'user') model = User;
-	if (schema == 'layout') model = Layout;
-	if (schema == 'discount') model = Discount;
+	else if (schema == 'order') model = Order;
+	else if (schema == 'user') model = User;
+	else if (schema == 'layout') model = Layout;
+	else if (schema == 'discount') model = Discount;
+	else {
+		return json({ message: 'Schema not found' }, { status: 400 });
+	}
 
 	try {
 		await dbConnect();
