@@ -20,7 +20,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 				apiKey: APIKEY,
 				schema: 'user', //product | order | user | layout | discount
 				query: { 'membership.membershipStatus': true },
-				option: { hint: { email: 1 } },// optional: define index to use
+				option: { hint: { userId: 1 } },// optional: define index to use
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -34,26 +34,9 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 				apiKey,
 				schema: 'user', //product | order | user | layout | discount
 				query: { 'membership.membershipStatus': true },
+				sort: { surname: 1 }, // 1:Sort ascending | -1:Sort descending
 				projection: { _id: 0, password: 0 }, // 0: exclude | 1: include
-				sort: {}, // 1:Sort ascending | -1:Sort descending
 				limit: 40,
-				skip: 0
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
-		// get county
-		const countyFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey,
-				schema: 'user', //product | order | user | layout | discount
-				query: { 'membership.membershipStatus': true },
-				projection: { _id: 0, county: 1 }, // 0: exclude | 1: include
-				sort: {}, // 1:Sort ascending | -1:Sort descending
-				limit: 100000,
 				skip: 0
 			}),
 			headers: {
@@ -75,10 +58,9 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			}),
 			headers: { 'Content-Type': 'application/json' }
 		});
-		const [countRes, userRes, countyRes, aggregateRes] = await Promise.all([
+		const [countRes, userRes, aggregateRes] = await Promise.all([
 			countFetch,
 			userFetch,
-			countyFetch,
 			aggregateFetch
 		]);
 
@@ -95,6 +77,14 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			throw error(400, 'user fetch failed');
 		}
 		const response = await userRes.json();
+
+		// Alphabetical sort
+		// response.sort((a, b) => {
+		// 	const surnameA = a.surname || '';
+		// 	const surnameB = b.surname || '';
+		// 	return surnameA.localeCompare(surnameB);
+		// });
+
 		getTable = response.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10)
@@ -109,35 +99,6 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			acc[item._id] = item.count;
 			return acc;
 		}, {});
-
-
-		// if (!countyRes.ok) {
-		// 	throw error(400, 'countyRes fetch failed');
-		// }
-
-		// const countyArray = await countyRes.json();
-
-		// const userCounty: { [key: string]: number } = {};
-		// countyArray.forEach((item) => {
-		// 	const county = item.county;
-		// 	if (county) {
-		// 		userCounty[county] = (userCounty[county] || 0) + 1;
-		// 	}
-		// });
-
-		// // sort County alphabetical
-		// const sortedUserCounty = Object.keys(userCounty)
-		// 	.sort((a, b) => {
-		// 		const countyA = a || '';
-		// 		const countyB = b || '';
-		// 		return countyA.localeCompare(countyB);
-		// 	})
-		// 	.reduce((acc: { [key: string]: number }, key) => {
-		// 		acc[key] = userCounty[key];
-		// 		return acc;
-		// 	}, {});
-
-		// countyObj = sortedUserCounty;
 
 	} catch (error) {
 		console.log('userfetch error:', error);
@@ -164,7 +125,7 @@ export const actions: Actions = {
 					apiKey: APIKEY,
 					schema: 'user',
 					query: { 'membership.membershipStatus': true, county: county },
-					option: {},
+					option: { hint: { userId: 1 } },
 				}),
 				headers: { 'Content-Type': 'application/json' }
 			});
@@ -176,6 +137,7 @@ export const actions: Actions = {
 					apiKey: APIKEY,
 					schema: 'user',
 					query: { 'membership.membershipStatus': true, county: county },
+					sort: { surname: 1 },
 					projection: { _id: 0, password: 0 },
 					limit: 40,
 					skip: 0
@@ -189,9 +151,16 @@ export const actions: Actions = {
 			const itemCount = await countRes.json();
 
 			if (!userRes.ok) throw error(400, 'Filtered user fetch failed');
+
 			const getTable = (await userRes.json()).map((obj: any) => ({ ...obj, createdAt: obj.createdAt.substring(0, 10) }));
 
-			return { action: 'filter', success: true, message: 'Filtro applicato', payload: { getTable, itemCount, currentPage: 1, county } };
+			getTable.sort((a, b) => {
+				const surnameA = a.surname || '';
+				const surnameB = b.surname || '';
+				return surnameA.localeCompare(surnameB);
+			});
+
+			return { action: 'filter', success: true, payload: { getTable, itemCount, currentPage: 1, county } };
 		} catch (error) {
 			console.error('Error user filter:', error);
 			return fail(500, { action: 'filter', success: false, message: 'Error user filter' });
@@ -221,8 +190,8 @@ export const actions: Actions = {
 					apiKey: APIKEY,
 					schema: 'user', //product | order | user | layout | discount
 					query: { 'membership.membershipStatus': true, ...(county && { county }) },
+					sort: { surname: 1 },
 					projection: { _id: 0, password: 0 },
-					//sort: { createdAt: -1 },
 					limit: itemsPerPage,
 					skip: skipItems
 				}),
@@ -232,12 +201,12 @@ export const actions: Actions = {
 			});
 			if (!res.ok) {
 				const errorText = await res.text();
-				console.error('discount changePage failed', res.status, errorText);
+				console.error('changePage failed', res.status, errorText);
 				return fail(400, { action: 'changePage', success: false, message: `changePage Error: ${errorText}` });
 			}
 			const getTable = await res.json();
 
-			return { action: 'changePage', success: true, message: getTable.message, payload: { getTable, currentPage, county } };
+			return { action: 'changePage', success: true, payload: { getTable, currentPage, county } };
 
 		} catch (error) {
 			console.error('Error changePage:', error);

@@ -360,53 +360,58 @@ export const actions: Actions = {
 		//console.log(layoutId, file);
 
 
-		const uploadFetch = fetch(`${BASE_URL}/api/uploads/files`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'x-file-name': file.name,
-				'x-folder-name': `layout/${layoutId}`
-			},
-			body: file
-		});
-		// const resImg = await uploadImg.json();
-
-		const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'layout', //product | order | user | layout | discount
-				query: { layoutId }, // 'course', 'product', 'membership', 'event',
-				update: {
-					$set: {
-						urlPic: `/uploads/layout/${layoutId}/${file.name}`
-					}
-				},
-				options: {
-					upsert: false
-					// NOTES:
-					// arrayFilters: [
-					// 	{ "elem.type": "product-primary" } // Check array where 'type' === 'product-primary'
-					// ]
-				},
-				multi: false
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		//const response = await res.json();
 
 		try {
-			const [uploadRes, updateRes] = await Promise.all([
-				uploadFetch,
-				updateFetch
-			])
+			const uploadRes = await fetch(`${BASE_URL}/api/uploads/files`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'x-file-name': file.name,
+					'x-folder-name': `layout/${layoutId}`
+				},
+				body: file
+			});
+			// const resImg = await uploadImg.json();
 
-			if (!uploadRes.ok || !updateRes.ok) {
-				const errorText = `uploadRes: ${await uploadRes.text()}, updateRes: ${await updateRes.text()}`;
-				console.log('Promise.all failed', uploadRes.status, updateRes.status, errorText);
-				return { action: 'setProdPic', success: false, message: 'Errore rimozione' };
+			const updateRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'layout', //product | order | user | layout | discount
+					query: { layoutId }, // 'course', 'product', 'membership', 'event',
+					update: {
+						$set: {
+							urlPic: `/uploads/layout/${layoutId}/${file.name}`
+						}
+					},
+					options: {
+						upsert: false
+						// NOTES:
+						// arrayFilters: [
+						// 	{ "elem.type": "product-primary" } // Check array where 'type' === 'product-primary'
+						// ]
+					},
+					multi: false
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			//const response = await res.json();
+			// const [uploadRes, updateRes] = await Promise.all([
+			// 	uploadFetch,
+			// 	updateFetch
+			// ])
+
+			if (!uploadRes.ok) {
+				const errorMessage = await uploadRes.text();
+				console.log('setProdPic failed 1', uploadRes.status, `uploadRes: ${errorMessage}`);
+				return { action: 'setProdPic', success: false, message: `uploadRes: ${errorMessage}` };
+			}
+			if (!updateRes.ok) {
+				const errorMessage = await updateRes.text()
+				console.log('setProdPic failed 2', updateRes.status, `updateRes: ${errorMessage}`);
+				return { action: 'setProdPic', success: false, message: `updateRes: ${errorMessage}` };
 			}
 
 			const update = await updateRes.json();

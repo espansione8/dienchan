@@ -1,4 +1,4 @@
-// ${BASE_URL}/api/uploads/files
+// // ${BASE_URL}/api/uploads/files
 // import { json } from '@sveltejs/kit';
 // import fs from 'node:fs';
 
@@ -97,4 +97,4 @@
 //         return json({ message: 'Error deleting file' }, { status: 500 });
 //     }
 // };
-////////////////
+// //////////////

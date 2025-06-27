@@ -10,7 +10,7 @@
 	import { cartProducts, addToCart, removeFromCart } from '$lib/stores/cart';
 	import { imgCheck } from '$lib/tools/tools.js';
 	import {
-		ChevronDown,
+		House,
 		ShieldAlert,
 		MapPinned,
 		ShoppingCart,
@@ -33,10 +33,10 @@
 	const { getTable, getCategories, itemCount, auth } = $derived(data);
 	let prodList = $state(getTable);
 	let count = $state(itemCount);
-
 	let loading = $state(false);
+
 	let resetActive = $state(false);
-	let currentSort = $state('recent');
+	//let currentSort = $state('recent');
 	//let quantity = $state(1);
 
 	let activeFilter = $state({
@@ -117,105 +117,47 @@
 			count = prodList.length;
 		}
 		//sortItems('recent');
-		goToPage(currentPage);
+		//goToPage(currentPage);
 	};
 
-	const sortItems = (option) => {
-		//console.log('prodList sort', prodList.length);
+	// const sortItems = (option) => {
+	// 	//console.log('prodList sort', prodList.length);
 
-		switch (option) {
-			case 'expensive':
-				currentSort = 'expensive';
-				prodList = prodList.slice().sort((a, b) => b.price - a.price);
-				break;
-			//return prodList.sort((a, b) => b.price - a.price);
-			case 'cheap':
-				currentSort = 'cheap';
-				prodList = prodList.slice().sort((a, b) => a.price - b.price);
-				break;
-			//return prodList.sort((a, b) => a.price - b.price);
-			case 'recent':
-				currentSort = 'recent';
-				prodList = prodList
-					.slice()
-					.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-				break;
-			//return prodList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-			case 'oldest':
-				currentSort = 'oldest';
-				prodList = prodList
-					.slice()
-					.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-				break;
-			//return prodList.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+	// 	switch (option) {
+	// 		case 'expensive':
+	// 			currentSort = 'expensive';
+	// 			prodList = prodList.slice().sort((a, b) => b.price - a.price);
+	// 			break;
+	// 		//return prodList.sort((a, b) => b.price - a.price);
+	// 		case 'cheap':
+	// 			currentSort = 'cheap';
+	// 			prodList = prodList.slice().sort((a, b) => a.price - b.price);
+	// 			break;
+	// 		//return prodList.sort((a, b) => a.price - b.price);
+	// 		case 'recent':
+	// 			currentSort = 'recent';
+	// 			prodList = prodList
+	// 				.slice()
+	// 				.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+	// 			break;
+	// 		//return prodList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+	// 		case 'oldest':
+	// 			currentSort = 'oldest';
+	// 			prodList = prodList
+	// 				.slice()
+	// 				.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+	// 			break;
+	// 		//return prodList.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
-			default:
-				return prodList;
-		}
-	};
-
-	const applyFiltersAndSort = () => {
-		let filtered = [...getTable];
-
-		if (activeFilter.category) {
-			filtered = filtered.filter(
-				(item) =>
-					item.category &&
-					Array.isArray(item.category) &&
-					item.category.some((cat) => cat === activeFilter.category)
-			);
-		}
-
-		count = filtered.length;
-		sortItems(currentSort);
-		return filtered;
-	};
-
-	const goToPage = (newPage: number) => {
-		currentPage = newPage;
-		const filtered = applyFiltersAndSort();
-		const maxPageAfterFilter = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
-		if (currentPage > maxPageAfterFilter) {
-			currentPage = maxPageAfterFilter;
-		}
-
-		// Pagination
-		const skipItems = (currentPage - 1) * itemsPerPage;
-		prodList = filtered.slice(skipItems, skipItems + itemsPerPage);
-	};
-
-	////////////
-	// const goToPage = (newPage?: number) => {
-	// 	currentPage = newPage;
-	// 	//let tempProducts = [...getTable];
-	// 	//prodList = getTable;
-
-	// 	if (activeFilter.category) {
-	// 		//tempProducts = tempProducts.filter(
-	// 		prodList = getTable.filter(
-	// 			(item) =>
-	// 				item.category &&
-	// 				Array.isArray(item.category) &&
-	// 				item.category.some((cat) => cat === activeFilter.category)
-	// 		);
+	// 		default:
+	// 			return prodList;
 	// 	}
-	// 	sortItems(currentSort);
-
-	// 	//count = tempProducts.length;
-	// 	count = prodList.length;
-
-	// 	// ???? Assicurati che currentPage non superi il numero massimo di pagine dopo il filtro
-	// 	const maxPageAfterFilter = Math.max(1, Math.ceil(count / itemsPerPage));
-	// 	if (currentPage > maxPageAfterFilter) {
-	// 		currentPage = maxPageAfterFilter;
-	// 	}
+	// };
 
 	// 	// Pagination
 	// 	const skipItems = (currentPage - 1) * itemsPerPage;
-	// 	// nota CHECK DEBUG!!! prodList.slice -> usare temp prod filtrato
-	// 	prodList = prodList.slice(skipItems, skipItems + itemsPerPage);
+	// 	prodList = filtered.slice(skipItems, skipItems + itemsPerPage);
 	// };
-	goToPage(currentPage);
 
 	// deprecated, categories from server
 	// const categoriesInProduct: any = {};
@@ -225,38 +167,42 @@
 	// 	});
 	// });
 
-	// const formSubmit = () => {
-	// 	loading = true;
-	// 	return async ({ result }: { result: ActionResult }) => {
-	// 		//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
-	// 		await invalidateAll();
-	// 		if (result.type === 'success' && result.data) {
-	// 			const { action, message, payload } = result.data; // { action, success, message, payload }
-	// 			if (action == 'changePage') {
-	// 				resetActive = true;
-	// 				prodList = payload;
-	// 			}
-	// 		}
-	// 		if (result.type === 'failure') {
-	// 			notification.error(result.data.message);
-	// 		}
-	// 		if (result.type === 'error') {
-	// 			notification.error(result.error.message);
-	// 		}
-	// 		// 'update()' is called by default by use:enhance
-	// 		// call 'await update()' if you need to ensure it completes before further client logic.
-	// 		//resetFields();
-	// 		loading = false;
-	// 	};
-	// };
+	const formSubmit = () => {
+		loading = true;
+		return async ({ result }: { result: ActionResult }) => {
+			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
+			await invalidateAll();
+			if (result.type === 'success' && result.data) {
+				const { action, message, payload } = result.data;
+				if (action == 'changePage') {
+					prodList = payload.getTable;
+					currentPage = payload.currentPage;
+					activeFilter.category = payload.category || '';
+				} else if (action == 'filter') {
+					prodList = payload.getTable;
+					count = payload.itemCount;
+					currentPage = payload.currentPage;
+					activeFilter.category = payload.category;
+				} else {
+					prodList = getTable;
+					resetActive = false;
+				}
 
-	let hasInitialized = false;
+				if (message) {
+					notification.info(message);
+				}
+			}
+			if (result.type === 'failure') {
+				notification.error(result.data.message);
+			}
+			if (result.type === 'error') {
+				notification.error(result.error.message);
+			}
+			loading = false;
+		};
+	};
+
 	$effect(() => {
-		// if (prodList && prodList.length > 0 && !hasInitialized) {
-		// 	goToPage(currentPage);
-		// 	hasInitialized = true; // Stop Effect
-		// }
-
 		if (prodList) {
 			tick().then(() => {
 				const element = document.getElementById('top');
@@ -300,47 +246,49 @@
 
 				<!-- Filter Body -->
 				<div class="p-4">
-					<!-- Category Filter -->
-					<div class="mb-6">
-						<div class="flex items-center justify-between mb-3">
-							<h3 class="font-medium flex items-center gap-2">
-								<MapPinned size={18} class="text-primary" />
-								Categoria
-							</h3>
-							{#if activeFilter.category}
-								<span class="badge badge-primary badge-sm">{activeFilter.category}</span>
-							{/if}
-						</div>
+					<form id="filterForm" method="POST" action="?/filter" use:enhance={formSubmit}>
+						<!-- Category Filter -->
+						<div class="mb-6">
+							<div class="flex items-center justify-between mb-3">
+								<h3 class="font-medium flex items-center gap-2">
+									<MapPinned size={18} class="text-primary" />
+									Categoria
+								</h3>
+								<!-- {#if activeFilter.category}
+									<span class="badge badge-primary badge-sm">{activeFilter.category}</span>
+								{/if} -->
+							</div>
 
-						<div class="grid grid-cols-1 gap-1 mt-2 pr-1 filter-scrollbar overflow-y-auto">
-							{#each Object.entries(getCategories) as [key, value]}
-								<button
-									type="button"
-									class="group relative flex items-center justify-between py-2.5 px-3 rounded-lg transition-all duration-300 overflow-hidden
+							<div class="grid grid-cols-1 gap-1 mt-2 pr-1 filter-scrollbar overflow-y-auto">
+								{#each Object.entries(getCategories) as [key, value]}
+									<button
+										type="submit"
+										name="category"
+										value={key}
+										class="group relative flex items-center justify-between py-2.5 px-3 rounded-lg transition-all duration-300 overflow-hidden
                 {activeFilter.category === key
-										? 'bg-primary text-primary-content font-medium'
-										: 'hover:bg-base-200'}"
-									onclick={() => onClickFilterCategory(key)}
-								>
-									<!-- Background animation on hover -->
-									<div
-										class="absolute inset-0 bg-primary/10 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out {activeFilter.category ===
-										key
-											? 'scale-x-100'
-											: ''}"
-									></div>
-
-									<span class="relative z-10">{key}</span>
-									<span
-										class="badge {activeFilter.category === key
-											? 'bg-primary-content/20 text-primary-content'
-											: 'bg-base-200'} relative z-10">{value}</span
+											? 'bg-primary text-primary-content font-medium'
+											: 'hover:bg-base-200'}"
 									>
-								</button>
-							{/each}
-						</div>
-					</div>
+										<!-- Background animation on hover -->
+										<div
+											class="absolute inset-0 bg-primary/10 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out {activeFilter.category ===
+											key
+												? 'scale-x-100'
+												: ''}"
+										></div>
 
+										<span class="relative z-10">{key}</span>
+										<span
+											class="badge {activeFilter.category === key
+												? 'bg-primary-content/20 text-primary-content'
+												: 'bg-base-200'} relative z-10">{value}</span
+										>
+									</button>
+								{/each}
+							</div>
+						</div>
+					</form>
 					<!-- Reset Button -->
 					{#if resetActive}
 						<div class="pt-3 border-t border-base-200">
@@ -392,7 +340,7 @@
 					</button>
 				{/if}
 				<!-- Sort button -->
-				<div class="dropdown dropdown-end ml-auto">
+				<!-- <div class="dropdown dropdown-end ml-auto">
 					<button
 						id="dropdownSortButton"
 						class="btn btn-sm btn-primary btn-outline gap-2 rounded-md"
@@ -445,7 +393,7 @@
 							</button>
 						</li>
 					</ul>
-				</div>
+				</div> -->
 			</div>
 			<!-- Visualizzazione filtri attivi e RESET -->
 			{#if resetActive}
@@ -478,9 +426,7 @@
 				{#each prodList as productData, i}
 					<div
 						class="card overflow-hidden bg-base-100 rounded-xl shadow-lg border
-	border-base-200 hover:shadow-xl transition-shadow duration-300 flex flex-col w-full sm:w-80"
-						class:h-128={auth}
-						class:h-115={!auth}
+	border-base-200 hover:shadow-xl transition-shadow duration-300 flex flex-col w-full sm:w-80 h-128"
 					>
 						<div class="relative px-6 pt-6 pb-2 bg-base-200/30 space-y-0">
 							<a href="/product-detail/{productData.prodId}">
@@ -605,16 +551,36 @@
 			</div>
 			<!-- end CARD -->
 			<div class="join flex justify-center">
-				{#each pageNumbers() as page (page)}
+				<form method="POST" action="?/changePage" use:enhance={formSubmit}>
+					{#if currentPage > 1}
+						<button type="submit" id="reset" class="join-item btn" name="navigation" value="reset">
+							<House />
+						</button>
+					{/if}
+
 					<button
 						type="submit"
+						id="prev"
 						class="join-item btn"
-						class:btn-active={page === currentPage}
-						onclick={() => goToPage(page)}
+						name="navigation"
+						value="prev"
+						disabled={currentPage <= 1}
 					>
-						{page}
+						«
 					</button>
-				{/each}
+					<button type="button" class="join-item btn">Pagina {currentPage}</button>
+					<button
+						type="submit"
+						id="next"
+						class="join-item btn"
+						name="navigation"
+						value="next"
+						disabled={currentPage >= Math.max(1, Math.ceil(count / itemsPerPage))}>»</button
+					>
+					<input type="hidden" name="itemsPerPage" value={itemsPerPage} />
+					<input type="hidden" name="currentPage" value={currentPage} />
+					<input type="hidden" name="category" value={activeFilter.category} />
+				</form>
 			</div>
 		</section>
 	{/if}

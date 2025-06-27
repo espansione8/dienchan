@@ -5,8 +5,7 @@ const productSchema = new Schema(
         prodId: {
             type: String,
             index: true,
-            unique: true,
-            dropDups: true
+            unique: true
         },
         attribute1: { type: String, default: '' },
         attribute10: { type: String, default: '' },

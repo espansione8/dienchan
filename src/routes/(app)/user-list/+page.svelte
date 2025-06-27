@@ -57,25 +57,25 @@
 	// });
 
 	// Count reflexologists by province
-	let numReflexologistsInProvince = $state({});
-	tableList.forEach((item) => {
-		const county = item.county;
-		numReflexologistsInProvince[county] = (numReflexologistsInProvince[county] || 0) + 1;
-	});
+	// let numReflexologistsInProvince = $state({});
+	// tableList.forEach((item) => {
+	// 	const county = item.county;
+	// 	numReflexologistsInProvince[county] = (numReflexologistsInProvince[county] || 0) + 1;
+	// });
 
-	//Sort provinces alphabetically
-	const sortedNumReflexologistsInProvince = Object.keys(numReflexologistsInProvince)
-		.sort((a, b) => {
-			const countyA = a || '';
-			const countyB = b || '';
-			return countyA.localeCompare(countyB);
-		})
-		.reduce((acc, key) => {
-			acc[key] = numReflexologistsInProvince[key];
-			return acc;
-		}, {});
+	// //Sort provinces alphabetically
+	// const sortedNumReflexologistsInProvince = Object.keys(numReflexologistsInProvince)
+	// 	.sort((a, b) => {
+	// 		const countyA = a || '';
+	// 		const countyB = b || '';
+	// 		return countyA.localeCompare(countyB);
+	// 	})
+	// 	.reduce((acc, key) => {
+	// 		acc[key] = numReflexologistsInProvince[key];
+	// 		return acc;
+	// 	}, {});
 
-	numReflexologistsInProvince = sortedNumReflexologistsInProvince;
+	// numReflexologistsInProvince = sortedNumReflexologistsInProvince;
 
 	// Reset filters
 	const onFilterReset = () => {
@@ -100,18 +100,18 @@
 	};
 
 	// Filter by province
-	const onClickFilterProvincia = (provinciaSelected) => {
-		currentPage = 1;
-		resetActive = true;
-		activeFilter.county = provinciaSelected;
-		filterAccordion = 'accordion1';
+	// const onClickFilterProvincia = (provinciaSelected) => {
+	// 	currentPage = 1;
+	// 	resetActive = true;
+	// 	activeFilter.county = provinciaSelected;
+	// 	filterAccordion = 'accordion1';
 
-		if (activeFilter.county) {
-			tableList = getTable.filter((item) => item.county === activeFilter.county);
-			count = tableList.length;
-		}
-		document.getElementById('top').scrollIntoView({ behavior: 'smooth' });
-	};
+	// 	if (activeFilter.county) {
+	// 		tableList = getTable.filter((item) => item.county === activeFilter.county);
+	// 		count = tableList.length;
+	// 	}
+	// 	document.getElementById('top').scrollIntoView({ behavior: 'smooth' });
+	// };
 
 	// Sort reflexologists
 	const sortItems = (option) => {
@@ -197,10 +197,11 @@
 					count = payload.itemCount;
 					currentPage = payload.currentPage;
 					activeFilter.county = payload.county;
-					notification.info(message);
 				} else {
 					tableList = getTable;
 					resetActive = false;
+				}
+				if (message) {
 					notification.info(message);
 				}
 			}
@@ -225,11 +226,11 @@
 		// 	hasInitialized = true; // Stop Effect
 		// }
 
-		if (currentPage) {
+		if (currentPage || tableList) {
 			tick().then(() => {
 				const element = document.getElementById('top');
 				if (element) {
-					element.scrollIntoView({ behavior: 'smooth' });
+					element.scrollIntoView({ behavior: 'smooth' }); // smooth , instant
 				}
 			});
 		}
@@ -281,21 +282,21 @@
 							class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto"
 						>
 							<ul class="list-none -mx-4 divide-y divide-base-200/70">
-								{#each Object.entries(countyObj) as [county, count]}
+								{#each Object.entries(countyObj) as [key, count]}
 									<li>
 										<button
 											type="submit"
 											name="county"
-											value={county}
+											value={key}
 											class="p-3 w-full transition-all duration-300 flex items-center justify-between
-                  {activeFilter.county === county
+                  {activeFilter.county === key
 												? 'bg-orange-200 text-red-900 font-bold'
 												: 'hover:bg-blue-200 hover:text-blue-900'}"
 										>
-											<span>{county}</span>
+											<span>{key}</span>
 											<div class="flex items-center gap-2">
 												<span class="badge badge-sm badge-ghost">{count}</span>
-												{#if activeFilter.county === county}
+												{#if activeFilter.county === key}
 													<Check size={18} class="flex-shrink-0 text-green-600" />
 												{/if}
 											</div>
@@ -388,7 +389,7 @@
 				{/if}
 
 				<!-- Sort button -->
-				<div class="dropdown dropdown-end ml-auto">
+				<!-- <div class="dropdown dropdown-end ml-auto">
 					<button
 						id="dropdownSortButton"
 						class="btn btn-sm btn-primary btn-outline gap-2 rounded-md"
@@ -411,7 +412,7 @@
 							</button>
 						</li>
 					</ul>
-				</div>
+				</div> -->
 			</div>
 
 			<!-- Active filters display -->

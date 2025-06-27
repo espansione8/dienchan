@@ -22,8 +22,8 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 					status: 'enabled',
 					type: 'course'
 				},
+				sort: { eventStartDate: 1 },
 				projection: { _id: 0 },
-				sort: { createdAt: -1 },
 				limit: 1000,
 				skip: 0
 			}),
@@ -98,7 +98,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 	} catch (error) {
 		console.log('layout find error:', error);
 	}
-	//console.log('getTable', getTable.length);
+	//console.log('getTable', typeof getTable[0].eventStartDate, getTable[0].eventStartDate);
 
 	return {
 		getTable,

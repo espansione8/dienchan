@@ -181,25 +181,25 @@
 	};
 
 	// sort
-	const sortItems = (option) => {
-		switch (option) {
-			case 'expensive':
-				currentSort = 'dal più costoso';
-				return coursesList.sort((a, b) => (b.layoutView?.price ?? 0) - (a.layoutView?.price ?? 0));
-			case 'cheap':
-				currentSort = 'dal più economico';
-				return coursesList.sort((a, b) => (a.layoutView?.price ?? 0) - (b.layoutView?.price ?? 0));
-			case 'recent':
-				currentSort = 'dal più recente';
-				return coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
-			case 'oldest':
-				currentSort = 'dal meno recente';
-				return coursesList.sort((a, b) => new Date(a.eventStartDate) - new Date(b.eventStartDate));
+	// const sortItems = (option) => {
+	// 	switch (option) {
+	// 		case 'expensive':
+	// 			currentSort = 'dal più costoso';
+	// 			return coursesList.sort((a, b) => (b.layoutView?.price ?? 0) - (a.layoutView?.price ?? 0));
+	// 		case 'cheap':
+	// 			currentSort = 'dal più economico';
+	// 			return coursesList.sort((a, b) => (a.layoutView?.price ?? 0) - (b.layoutView?.price ?? 0));
+	// 		case 'recent':
+	// 			currentSort = 'dal più recente';
+	// 			return coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
+	// 		case 'oldest':
+	// 			currentSort = 'dal meno recente';
+	// 			return coursesList.sort((a, b) => new Date(a.eventStartDate) - new Date(b.eventStartDate));
 
-			default:
-				return coursesList;
-		}
-	};
+	// 		default:
+	// 			return coursesList;
+	// 	}
+	// };
 </script>
 
 <svelte:head>
@@ -243,18 +243,21 @@
 					>
 						<ul class="list-none -mx-4 divide-y divide-base-200/70">
 							{#each getLayout as option}
-								<li
-									class="p-3 cursor-pointer transition-all duration-300 flex items-center
+								<li>
+									<button
+										type="button"
+										class="p-3 cursor-pointer transition-all duration-300 flex items-center
                 {filtriAttivi.evento == option.title
-										? 'bg-orange-200 text-red-900 font-bold'
-										: 'hover:bg-blue-200 hover:text-blue-900'}
+											? 'bg-orange-200 text-red-900 font-bold'
+											: 'hover:bg-blue-200 hover:text-blue-900'}
 "
-									onclick={() => onClickFilterEvent(option.title)}
-								>
-									<span class="flex-1">{option.title} </span>
-									{#if filtriAttivi.evento == option.title}
-										<Check size={18} class="flex-shrink-0 text-green-600" />
-									{/if}
+										onclick={() => onClickFilterEvent(option.title)}
+									>
+										<span class="flex-1">{option.title} </span>
+										{#if filtriAttivi.evento == option.title}
+											<Check size={18} class="flex-shrink-0 text-green-600" />
+										{/if}
+									</button>
 								</li>
 							{/each}
 						</ul>
@@ -281,21 +284,24 @@
 					>
 						<ul class="list-none -mx-4 divide-y divide-base-200/70">
 							{#each informazioniMesi as { mese, conteggio }}
-								<li
-									class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
+								<li>
+									<button
+										type="button"
+										class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
                 {filtriAttivi.mese == mese
-										? 'bg-orange-200 text-red-900 font-bold'
-										: 'hover:bg-blue-200 hover:text-blue-900'}
+											? 'bg-orange-200 text-red-900 font-bold'
+											: 'hover:bg-blue-200 hover:text-blue-900'}
                   {conteggio == 0 ? 'text-gray-400 pointer-events-none opacity-50' : ''}"
-									onclick={() => onClickFilterMonth(mese)}
-								>
-									<span>{mese}</span>
-									<div class="flex items-center gap-2">
-										<span class="badge badge-sm badge-ghost">{conteggio}</span>
-										{#if filtriAttivi.mese == mese}
-											<Check size={18} class="flex-shrink-0 text-green-600" />
-										{/if}
-									</div>
+										onclick={() => onClickFilterMonth(mese)}
+									>
+										<span>{mese}</span>
+										<div class="flex items-center gap-2">
+											<span class="badge badge-sm badge-ghost">{conteggio}</span>
+											{#if filtriAttivi.mese == mese}
+												<Check size={18} class="flex-shrink-0 text-green-600" />
+											{/if}
+										</div>
+									</button>
 								</li>
 							{/each}
 						</ul>
@@ -322,20 +328,23 @@
 					>
 						<ul class="list-none -mx-4 divide-y divide-base-200/70">
 							{#each Object.entries(numCoursesInProvince) as [chiave, valore]}
-								<li
-									class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
+								<li>
+									<button
+										type="button"
+										class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
                 {filtriAttivi.provincia == chiave
-										? 'bg-orange-200 text-red-900 font-bold'
-										: 'hover:bg-blue-200 hover:text-blue-900'}"
-									onclick={() => onClickFilterProvincia(chiave)}
-								>
-									<span>{chiave}</span>
-									<div class="flex items-center gap-2">
-										<span class="badge badge-sm badge-ghost">{valore}</span>
-										{#if filtriAttivi.provincia == chiave}
-											<Check size={18} class="flex-shrink-0 text-green-600" />
-										{/if}
-									</div>
+											? 'bg-orange-200 text-red-900 font-bold'
+											: 'hover:bg-blue-200 hover:text-blue-900'}"
+										onclick={() => onClickFilterProvincia(chiave)}
+									>
+										<span>{chiave}</span>
+										<div class="flex items-center gap-2">
+											<span class="badge badge-sm badge-ghost">{valore}</span>
+											{#if filtriAttivi.provincia == chiave}
+												<Check size={18} class="flex-shrink-0 text-green-600" />
+											{/if}
+										</div>
+									</button>
 								</li>
 							{/each}
 						</ul>
@@ -362,17 +371,20 @@
 					>
 						<ul class="list-none -mx-4 divide-y divide-base-200/70">
 							{#each getTableNames as item}
-								<li
-									class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
+								<li>
+									<button
+										type="button"
+										class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
                 {filtriAttivi.riflessologo == `${item.name} ${item.surname}`
-										? 'bg-orange-200 text-red-900 font-bold'
-										: 'hover:bg-blue-200 hover:text-blue-900'}"
-									onclick={() => onClickFilterRiflessologo(item.userId, item.name, item.surname)}
-								>
-									<span>{item.name} {item.surname}</span>
-									{#if filtriAttivi.riflessologo == `${item.name} ${item.surname}`}
-										<Check size={18} class="flex-shrink-0 text-green-600" />
-									{/if}
+											? 'bg-orange-200 text-red-900 font-bold'
+											: 'hover:bg-blue-200 hover:text-blue-900'}"
+										onclick={() => onClickFilterRiflessologo(item.userId, item.name, item.surname)}
+									>
+										<span>{item.name} {item.surname}</span>
+										{#if filtriAttivi.riflessologo == `${item.name} ${item.surname}`}
+											<Check size={18} class="flex-shrink-0 text-green-600" />
+										{/if}
+									</button>
 								</li>
 							{/each}
 						</ul>
@@ -418,7 +430,7 @@
 				</button>
 			{/if}
 			<!-- Sort button -->
-			<div class="dropdown dropdown-end ml-auto">
+			<!-- <div class="dropdown dropdown-end ml-auto">
 				<button
 					id="dropdownSortButton"
 					class="btn btn-sm btn-primary btn-outline gap-2 rounded-md"
@@ -471,7 +483,7 @@
 						</button>
 					</li>
 				</ul>
-			</div>
+			</div> -->
 		</div>
 		<!-- Visualizzazione filtri attivi e RESET -->
 		{#if resetActive}
@@ -504,7 +516,7 @@
 		{/if}
 		<!-- end ORDINA BUTTON -->
 		<!-- CARD -->
-		<div class="flex flex-wrap justify-center gap-6 pl-3 pb-4">
+		<div class="flex flex-wrap justify-center gap-4 pl-3 pb-4">
 			{#if coursesList.length == 0}
 				<div
 					class="alert alert-warning shadow-lg text-center rounded-md mt-6 mx-auto w-full max-w-md"

@@ -262,6 +262,7 @@
 			<!-- head -->
 			<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">
 				<tr>
+					<th>ID</th>
 					<th>Status</th>
 					<th>Foto</th>
 					<th>Titolo</th>
@@ -276,6 +277,8 @@
 				<!-- row 1 -->
 				{#each tableList as row}
 					<tr class="hover:bg-gray-100">
+						<!-- id -->
+						<td>{row.layoutId}</td>
 						<!-- status -->
 						<td class="">
 							<form method="POST" action="?/changeStatus" use:enhance={formSubmit}>
