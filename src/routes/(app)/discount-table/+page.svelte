@@ -18,7 +18,8 @@
 		ToggleLeft,
 		ToggleRight,
 		RefreshCcw,
-		XCircle
+		XCircle,
+		Tags
 	} from 'lucide-svelte';
 
 	const { data } = $props();
@@ -35,8 +36,8 @@
 	let membershipLevel = $state('');
 	let notes = $state('');
 	let discountId = $state('');
-	let selectedApplicability = $state('user');
-	let status = $state('');
+	let selectedApplicability = $state('email');
+	let discountType = $state('normal');
 	let selectedId = $state('');
 	let resetActive = $state(false);
 
@@ -111,7 +112,7 @@
 		layoutId = '';
 		membershipLevel = '';
 		notes = '';
-		selectedApplicability = 'user';
+		selectedApplicability = 'email';
 	};
 
 	const refresh = () => {
@@ -276,7 +277,7 @@
 						<td>{row.discountId}</td>
 						<td>{row.code}</td>
 						<td>{row.type}</td>
-						<td>{row.value}</td>
+						<td>{row.type == 'refPoints' ? `${row.refDiscount}/${row.refPoints}` : row.value}</td>
 						<td> {row.selectedApplicability}</td>
 						<!-- <td> {row[selectedApplicability]}</td> -->
 						<td> {row[row.selectedApplicability]}</td>
@@ -307,7 +308,7 @@
 		<div class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative">
 			{#if loading}
 				<Loader />
-			{:else}
+			{:else if discountType === 'normal'}
 				<form
 					method="POST"
 					action={postAction}
@@ -317,6 +318,36 @@
 					<!-- 
 				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 			 -->
+					<section class="col-span-4">
+						<label for="discountType" class="form-label">
+							<p class="font-bold mb-2 label">Tipo di Sconto {discountType}</p>
+						</label>
+						<div class="flex flex-wrap gap-4">
+							<label class="flex items-center cursor-pointer">
+								<input
+									id="discountType"
+									type="radio"
+									name="discountType"
+									value="normal"
+									class="radio radio-primary mr-2"
+									bind:group={discountType}
+									checked
+								/>
+								<span>Sconto Normale</span>
+							</label>
+							<label class="flex items-center cursor-pointer">
+								<input
+									id="discountType"
+									type="radio"
+									name="discountType"
+									value="refPoints"
+									class="radio radio-primary mr-2"
+									bind:group={discountType}
+								/>
+								<span>Sconto + Punti</span>
+							</label>
+						</div>
+					</section>
 					<section class="col-span-4">
 						<label for="titolo" class="form-label">
 							<p class="font-bold mb-2 label">Codice sconto</p>
@@ -383,7 +414,7 @@
 						</div>
 					</section>
 
-					<section class="col-span-4">
+					<!-- <section class="col-span-4">
 						<div class="flex flex-col sm:flex-row sm:flex-wrap gap-4">
 							<label for="categoria" class="form-label">
 								<p class="font-bold mb-2 label">Categoria:</p>
@@ -397,6 +428,16 @@
 									bind:group={selectedApplicability}
 								/>
 								<span>Email utente</span>
+							</label>
+							<label class="flex items-center">
+								<input
+									type="radio"
+									name="applicability"
+									value="refDiscount"
+									class="radio radio-primary mr-2"
+									bind:group={selectedApplicability}
+								/>
+								<span>Ref sconto</span>
 							</label>
 							<label class="flex items-center">
 								<input
@@ -464,6 +505,86 @@
 								</select>
 							{/if}
 						</div>
+					</section> -->
+
+					<section class="col-span-4">
+						<label for="categoria" class="form-label">
+							<p class="font-bold mb-2 label">Categoria</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button type="button" class="join-item bg-primary/20 px-3">
+								<Tags class="text-emerald-500" />
+							</button>
+							<select
+								name="applicability"
+								bind:value={selectedApplicability}
+								class="select select-bordered w-full max-w-xs"
+							>
+								<option value="" disabled selected>Seleziona una categoria</option>
+								<option value="email">Email utente</option>
+								<option value="refDiscount">Ref sconto</option>
+								<option value="membershipLevel">Membership</option>
+								<option value="prodId">Prodotto</option>
+								<option value="layoutId">Tipo Corso</option>
+							</select>
+						</div>
+						<div class="mt-2">
+							{#if selectedApplicability === 'email'}
+								<input
+									type="text"
+									name="selectId"
+									class="input w-full input-bordered"
+									placeholder="Inserisci EMAIL utente"
+									bind:value={selectedId}
+								/>
+							{:else if selectedApplicability === 'refDiscount'}
+								<input
+									type="text"
+									name="selectId"
+									class="input w-full input-bordered"
+									placeholder="Inserisci EMAIL utente"
+									bind:value={selectedId}
+								/>
+							{:else if selectedApplicability === 'membershipLevel'}
+								<select
+									name="selectId"
+									bind:value={selectedId}
+									class="select w-full select-bordered"
+								>
+									<option value="">Seleziona il livello associato</option>
+									<option value="Socio inattivo">Socio inattivo</option>
+									<option value="Socio ordinario">Socio ordinario</option>
+									<option value="Socio sostenitore">Socio sostenitore</option>
+									<option value="Socio vitalizio">Socio vitalizio</option>
+									<option value="Socio contributore">Socio contributore</option>
+									<option value="Master Dien Chan">Master Dien Chan</option>
+								</select>
+							{:else if selectedApplicability === 'prodId'}
+								<select
+									id="selectId"
+									name="selectId"
+									bind:value={selectedId}
+									class="select w-full select-bordered"
+								>
+									<option value="">Scegli prodotto</option>
+									{#each getProduct as option}
+										<option value={option.prodId}>{option.title}</option>
+									{/each}
+								</select>
+							{:else if selectedApplicability === 'layoutId'}
+								<select
+									id="selectId"
+									name="selectId"
+									bind:value={selectedId}
+									class="select w-full select-bordered"
+								>
+									<option value="">Scegli un tipo</option>
+									{#each getLayout as option}
+										<option value={option.layoutId}>{option.title}</option>
+									{/each}
+								</select>
+							{/if}
+						</div>
 					</section>
 
 					<section class="col-span-4">
@@ -485,6 +606,158 @@
 							></textarea>
 						</div>
 					</section>
+
+					<div class="col-span-4 mt-5 flex justify-center">
+						<div class="bg-gray-50 flex justify-center">
+							<button class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
+
+							<button type="submit" class="btn btn-success btn-sm mx-2 text-white">
+								Registra
+							</button>
+						</div>
+					</div>
+				</form>
+			{:else if discountType === 'refPoints'}
+				<form
+					method="POST"
+					action={postAction}
+					use:enhance={formSubmit}
+					class="grid grid-cols-2 bg-base-100 grid-rows-[min-content] gap-x-4 gap-y-4"
+				>
+					<!-- 
+				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+			 -->
+					<section class="col-span-4">
+						<label for="discountType" class="form-label">
+							<p class="font-bold mb-2 label">Tipo di Sconto {discountType}</p>
+						</label>
+						<div class="flex flex-wrap gap-4">
+							<label class="flex items-center cursor-pointer">
+								<input
+									id="discountType"
+									type="radio"
+									name="discountType"
+									value="normal"
+									class="radio radio-primary mr-2"
+									bind:group={discountType}
+									checked
+								/>
+								<span>Sconto Normale</span>
+							</label>
+							<label class="flex items-center cursor-pointer">
+								<input
+									id="discountType"
+									type="radio"
+									name="discountType"
+									value="refPoints"
+									class="radio radio-primary mr-2"
+									bind:group={discountType}
+								/>
+								<span>Sconto + Punti</span>
+							</label>
+						</div>
+					</section>
+					<section class="col-span-4">
+						<label for="titolo" class="form-label">
+							<p class="font-bold mb-2 label">Codice sconto</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button type="button" class="join-item bg-primary/20 px-3">
+								<Pen class="text-emerald-500" />
+							</button>
+							<input
+								class="input input-bordered w-full"
+								id="titolo"
+								name="code"
+								type="text"
+								placeholder="Codice"
+								aria-label="Titolo"
+								aria-describedby="basic-titolo"
+								bind:value={code}
+								required
+							/>
+						</div>
+					</section>
+
+					<section class="col-span-4 md:col-span-2">
+						<label for="categoria" class="form-label">
+							<p class="font-bold mb-2 label">Percentuale % sconto</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button type="button" class="join-item bg-primary/20 px-3"
+								><Calculator class="text-emerald-500" /></button
+							>
+							<input
+								class="input join-item w-full"
+								id="discountValue"
+								type="number"
+								name="discountValue"
+								aria-label="discountValue"
+								aria-describedby="discountValue"
+								required
+							/>
+						</div>
+					</section>
+
+					<section class="col-span-4 md:col-span-2">
+						<label for="categoria" class="form-label">
+							<p class="font-bold mb-2 label">Percentuale % punti</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button type="button" class="join-item bg-primary/20 px-3"
+								><Calculator class="text-emerald-500" /></button
+							>
+							<input
+								class="input join-item w-full"
+								id="pointsValue"
+								type="number"
+								name="pointsValue"
+								aria-label="pointsValue"
+								aria-describedby="pointsValue"
+								required
+							/>
+						</div>
+					</section>
+
+					<section class="col-span-4">
+						<label for="categoria" class="form-label">
+							<p class="font-bold mb-2 label">Email utente</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button type="button" class="join-item bg-primary/20 px-3">
+								<Tags class="text-emerald-500" />
+							</button>
+							<input
+								type="text"
+								name="selectId"
+								class="input w-full input-bordered"
+								placeholder="Inserisci EMAIL utente"
+								bind:value={selectedId}
+								required
+							/>
+						</div>
+					</section>
+
+					<section class="col-span-4">
+						<label for="categoria" class="form-label">
+							<p class="font-bold mb-2 label">Note</p>
+						</label>
+						<div class="join w-full">
+							<div class="join-item btn pointer-events-none h-24">
+								<Pen class="text-emerald-500" />
+							</div>
+							<textarea
+								class="textarea join-item w-full"
+								id="descrizione"
+								name="notes"
+								placeholder="Descrizione"
+								aria-label="descrizione"
+								aria-describedby="basic-descrizione"
+								bind:value={notes}
+							></textarea>
+						</div>
+					</section>
+					<input type="hidden" name="applicability" value="email" />
 
 					<div class="col-span-4 mt-5 flex justify-center">
 						<div class="bg-gray-50 flex justify-center">
@@ -603,7 +876,7 @@
 							<input
 								type="radio"
 								name="applicability"
-								value="user"
+								value="email"
 								class="radio radio-primary mr-2"
 								bind:group={selectedApplicability}
 							/>
@@ -772,7 +1045,7 @@
 						<div class="join-item btn pointer-events-none"><StretchHorizontal /></div>
 						<select name="selectedApplicability" value="" class="select join-item flex-1">
 							<option value="" disabled>Seleziona il tipo di sconto</option>
-							<option value="user">Utente</option>
+							<option value="email">Utente</option>
 							<option value="prodId">Prodotto</option>
 							<option value="layoutId">Corso</option>
 							<option value="membershipLevel">Associato</option>

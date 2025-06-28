@@ -139,7 +139,7 @@ export const actions: Actions = {
 		const newPass = nanoid();
 		const hashed = hash(newPass, SALT);
 
-		//console.log('newPass', newPass);
+		//console.log('newPass', resetEmail, newPass, hashed);
 
 
 		if (!resetEmail) {

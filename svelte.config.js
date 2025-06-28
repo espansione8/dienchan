@@ -13,7 +13,7 @@ const config = {
 		// See https://kit.svelte.dev/docs/adapters for more information about adapters.
 		adapter: adapter({
 			out: 'build',
-			bodySizeLimit: '20MB'
+			bodySizeLimit: '20M'
 		}),
 		csrf: {
 			checkOrigin: false,

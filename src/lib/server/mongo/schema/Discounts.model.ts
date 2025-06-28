@@ -18,19 +18,27 @@ const discountSchema = new Schema(
 		},
 		type: {
 			type: String,
-			enum: ['percent', 'amount'],
+			enum: ['percent', 'amount', 'refPoints'],
 			default: 'percent'
 		},
 		value: {
 			type: Number,
 			default: 0
 		},
+		refDiscount: {
+			type: Number,
+			default: 0
+		},
+		refPoints: {
+			type: Number,
+			default: 0
+		},
 		selectedApplicability: {
 			type: String,
-			enum: ['userId', 'membershipLevel', 'prodId', 'layoutId'],
-			default: 'userId'
+			enum: ['email', 'membershipLevel', 'prodId', 'layoutId'],
+			default: 'email'
 		},
-		userId: { type: String, default: '' },
+		email: { type: String, default: '' },
 		prodId: { type: String, default: '' },
 		layoutId: { type: String, default: '' },
 		membershipLevel: { type: String, default: '' },

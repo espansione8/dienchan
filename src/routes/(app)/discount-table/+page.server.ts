@@ -121,15 +121,48 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 export const actions: Actions = {
 	new: async ({ request, fetch }) => {
 		const formData = await request.formData();
-		const code = formData.get('code');
-		const type = formData.get('type');
-		const value = formData.get('value');
-		const selectedApplicability: any = formData.get('applicability');
+		const discountType = formData.get('discountType');
+		let type, value, refDiscount, refPoints;
+		if (discountType === 'normal') {
+			type = formData.get('type');
+			value = formData.get('value');
+		} else if (discountType === 'refPoints') {
+			type = 'refPoints';
+			refDiscount = formData.get('discountValue');
+			refPoints = formData.get('pointsValue');
+		}
+		const selectedApplicability = formData.get('applicability') as string;
 		const selectId = formData.get('selectId')
+		const code = formData.get('code');
 		const notes = formData.get('notes') || '';
 
-		if (!code || !type || !value || !selectedApplicability || !selectId) {
+		if (!code || !type || !selectedApplicability || !selectId) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
+		}
+
+		let newDoc = {}
+
+		if (discountType === 'normal') {
+			newDoc = {
+				discountId: nanoid(),
+				code,
+				type,
+				value,
+				selectedApplicability,
+				[selectedApplicability]: selectId,
+				notes
+			}
+		} else if (discountType === 'refPoints') {
+			newDoc = {
+				discountId: nanoid(),
+				code,
+				type,
+				refDiscount,
+				refPoints,
+				selectedApplicability: 'email',
+				[selectedApplicability]: selectId,
+				notes
+			}
 		}
 
 		const resFetch = fetch(`${BASE_URL}/api/mongo/create`, {
@@ -137,15 +170,7 @@ export const actions: Actions = {
 			body: JSON.stringify({
 				apiKey: APIKEY,
 				schema: 'discount', //product | order | user | layout | discount
-				newDoc: {
-					discountId: nanoid(),
-					code,
-					type,
-					value,
-					selectedApplicability,
-					[selectedApplicability]: selectId,
-					notes
-				},
+				newDoc: newDoc,
 				returnObj: false
 			}),
 			headers: {
@@ -176,7 +201,7 @@ export const actions: Actions = {
 		const code = formData.get('code');
 		const type = formData.get('type');
 		const value = formData.get('value');
-		const selectedApplicability: any = formData.get('applicability');
+		const selectedApplicability = formData.get('applicability') as string;
 		const selectId = formData.get('selectId');
 		const notes = formData.get('notes') || '';
 
