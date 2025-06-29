@@ -121,20 +121,19 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 export const actions: Actions = {
 	new: async ({ request, fetch }) => {
 		const formData = await request.formData();
-		const discountType = formData.get('discountType');
-		let type, value, refDiscount, refPoints;
-		if (discountType === 'normal') {
-			type = formData.get('type');
-			value = formData.get('value');
-		} else if (discountType === 'refPoints') {
-			type = 'refPoints';
-			refDiscount = formData.get('discountValue');
-			refPoints = formData.get('pointsValue');
-		}
+		const type = formData.get('type');
 		const selectedApplicability = formData.get('applicability') as string;
 		const selectId = formData.get('selectId')
 		const code = formData.get('code');
 		const notes = formData.get('notes') || '';
+		let value, refDiscount, refPoints;
+
+		if (type == 'percent' || type == 'amount') {
+			value = formData.get('value');
+		} else if (type === 'refPoints') {
+			refDiscount = formData.get('refDiscount');
+			refPoints = formData.get('refPoints');
+		}
 
 		if (!code || !type || !selectedApplicability || !selectId) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
@@ -142,7 +141,7 @@ export const actions: Actions = {
 
 		let newDoc = {}
 
-		if (discountType === 'normal') {
+		if (type == 'percent' || type == 'amount') {
 			newDoc = {
 				discountId: nanoid(),
 				code,
@@ -152,15 +151,15 @@ export const actions: Actions = {
 				[selectedApplicability]: selectId,
 				notes
 			}
-		} else if (discountType === 'refPoints') {
+		} else if (type == 'refPoints') {
 			newDoc = {
 				discountId: nanoid(),
 				code,
 				type,
 				refDiscount,
 				refPoints,
-				selectedApplicability: 'email',
-				[selectedApplicability]: selectId,
+				selectedApplicability,
+				email: selectId,
 				notes
 			}
 		}
@@ -182,8 +181,8 @@ export const actions: Actions = {
 			const res = await resFetch;
 			if (!res.ok) {
 				const errorText = await res.text();
-				console.error('user find failed', res.status, errorText);
-				return fail(400, { action: 'new', success: false, message: errorText });
+				console.error('discount new failed', res.status, errorText);
+				return fail(400, { action: 'new', success: false, message: `discount create${errorText}` });
 			}
 			const result = await res.json();
 
@@ -191,7 +190,7 @@ export const actions: Actions = {
 
 		} catch (error) {
 			console.error('Error new :', error);
-			return { action: 'new', success: false, message: 'Error new' };
+			return { action: 'discount', success: false, message: 'Error new' };
 		}
 	},
 
@@ -200,13 +199,47 @@ export const actions: Actions = {
 		const discountId = formData.get('discountId');
 		const code = formData.get('code');
 		const type = formData.get('type');
-		const value = formData.get('value');
 		const selectedApplicability = formData.get('applicability') as string;
 		const selectId = formData.get('selectId');
 		const notes = formData.get('notes') || '';
+		let value, refDiscount, refPoints;
 
-		if (!discountId || !code || !type || !value || !selectedApplicability || !selectId) {
+		if (type == 'percent' || type == 'amount') {
+			value = formData.get('value');
+		} else if (type === 'refPoints') {
+			refDiscount = formData.get('refDiscount');
+			refPoints = formData.get('refPoints');
+		}
+
+		if (!discountId || !code || !type || !selectedApplicability || !selectId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
+		}
+
+		let update = {}
+
+		if (type == 'percent' || type == 'amount') {
+			update = {
+				$set: {
+					code: code,
+					type: type,
+					value: value,
+					selectedApplicability: selectedApplicability,
+					[selectedApplicability]: selectId, // 'email', 'membershipLevel', 'prodId', 'layoutId', 'refPoints'
+					notes: notes,
+				}
+			}
+		} else if (type == 'refPoints') {
+			update = {
+				$set: {
+					code: code,
+					type: type,
+					refDiscount,
+					refPoints,
+					selectedApplicability: selectedApplicability,
+					[selectedApplicability]: selectId, // 'email', 'membershipLevel', 'prodId', 'layoutId', 'refPoints'
+					notes: notes,
+				}
+			}
 		}
 
 		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
@@ -215,16 +248,7 @@ export const actions: Actions = {
 				apiKey: APIKEY,
 				schema: 'discount', //product | order | user | layout | discount
 				query: { discountId }, // 'course', 'product', 'membership', 'event',
-				update: {
-					$set: {
-						code: code,
-						type: type,
-						value: value,
-						selectedApplicability: selectedApplicability,
-						[selectedApplicability]: selectId, // 'userId', 'membershipLevel', 'prodId', 'layoutId'
-						notes: notes,
-					}
-				},
+				update: update,
 				options: { upsert: false },
 				multi: false
 			}),
@@ -289,8 +313,6 @@ export const actions: Actions = {
 		const code = formData.get('code');
 		const selectedApplicability = formData.get('selectedApplicability');
 		const status = formData.get('status');
-
-
 
 		const resFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',

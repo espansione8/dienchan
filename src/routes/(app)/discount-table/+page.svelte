@@ -28,16 +28,18 @@
 
 	// filter
 	let code = $state('');
-	let typeDiscount = $state('');
+	let typeDiscount = $state('percent');
 	let value = $state(0);
 	let user = $state('');
-	let prodId = $state('');
-	let layoutId = $state('');
-	let membershipLevel = $state('');
+	// let prodId = $state('');
+	// let layoutId = $state('');
+	// let membershipLevel = $state('');
 	let notes = $state('');
 	let discountId = $state('');
 	let selectedApplicability = $state('email');
-	let discountType = $state('normal');
+	//let discountType = $state('normal');
+	let refDiscount = $state(0);
+	let refPoints = $state(0);
 	let selectedId = $state('');
 	let resetActive = $state(false);
 
@@ -105,12 +107,14 @@
 
 	const resetFields = () => {
 		code = '';
-		typeDiscount = '';
+		typeDiscount = 'percent';
 		value = 0;
+		refDiscount = 0;
+		refPoints = 0;
 		user = '';
-		prodId = '';
-		layoutId = '';
-		membershipLevel = '';
+		// prodId = '';
+		// layoutId = '';
+		// membershipLevel = '';
 		notes = '';
 		selectedApplicability = 'email';
 	};
@@ -137,7 +141,10 @@
 			discountId = item.discountId;
 			code = item.code;
 			typeDiscount = item.type;
-			value = item.value;
+			value = item.value || 0;
+			refDiscount = item.refDiscount || 0;
+			refPoints = item.refPoints || 0;
+			user = item.user;
 			selectedApplicability = item.selectedApplicability;
 			selectedId = item[selectedApplicability];
 			notes = item.notes;
@@ -308,7 +315,8 @@
 		<div class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative">
 			{#if loading}
 				<Loader />
-			{:else if discountType === 'normal'}
+			{/if}
+			{#if typeDiscount === 'percent' || typeDiscount === 'amount'}
 				<form
 					method="POST"
 					action={postAction}
@@ -319,30 +327,28 @@
 				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 			 -->
 					<section class="col-span-4">
-						<label for="discountType" class="form-label">
-							<p class="font-bold mb-2 label">Tipo di Sconto {discountType}</p>
+						<label for="type" class="form-label">
+							<p class="font-bold mb-2 label">Tipo di Sconto "{typeDiscount}"</p>
 						</label>
 						<div class="flex flex-wrap gap-4">
 							<label class="flex items-center cursor-pointer">
 								<input
-									id="discountType"
 									type="radio"
-									name="discountType"
-									value="normal"
+									name="type"
+									value="percent"
 									class="radio radio-primary mr-2"
-									bind:group={discountType}
+									bind:group={typeDiscount}
 									checked
 								/>
 								<span>Sconto Normale</span>
 							</label>
 							<label class="flex items-center cursor-pointer">
 								<input
-									id="discountType"
 									type="radio"
-									name="discountType"
+									name="type"
 									value="refPoints"
 									class="radio radio-primary mr-2"
-									bind:group={discountType}
+									bind:group={typeDiscount}
 								/>
 								<span>Sconto + Punti</span>
 							</label>
@@ -617,7 +623,7 @@
 						</div>
 					</div>
 				</form>
-			{:else if discountType === 'refPoints'}
+			{:else if typeDiscount === 'refPoints'}
 				<form
 					method="POST"
 					action={postAction}
@@ -628,30 +634,28 @@
 				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 			 -->
 					<section class="col-span-4">
-						<label for="discountType" class="form-label">
-							<p class="font-bold mb-2 label">Tipo di Sconto {discountType}</p>
+						<label for="type" class="form-label">
+							<p class="font-bold mb-2 label">Tipo di Sconto "{typeDiscount}"</p>
 						</label>
 						<div class="flex flex-wrap gap-4">
 							<label class="flex items-center cursor-pointer">
 								<input
-									id="discountType"
 									type="radio"
-									name="discountType"
-									value="normal"
+									name="type"
+									value="percent"
 									class="radio radio-primary mr-2"
-									bind:group={discountType}
+									bind:group={typeDiscount}
 									checked
 								/>
 								<span>Sconto Normale</span>
 							</label>
 							<label class="flex items-center cursor-pointer">
 								<input
-									id="discountType"
 									type="radio"
-									name="discountType"
+									name="type"
 									value="refPoints"
 									class="radio radio-primary mr-2"
-									bind:group={discountType}
+									bind:group={typeDiscount}
 								/>
 								<span>Sconto + Punti</span>
 							</label>
@@ -680,7 +684,7 @@
 					</section>
 
 					<section class="col-span-4 md:col-span-2">
-						<label for="categoria" class="form-label">
+						<label for="refDiscount" class="form-label">
 							<p class="font-bold mb-2 label">Percentuale % sconto</p>
 						</label>
 						<div class="join join-horizontal rounded-md w-full">
@@ -689,18 +693,18 @@
 							>
 							<input
 								class="input join-item w-full"
-								id="discountValue"
+								id="refDiscount"
 								type="number"
-								name="discountValue"
-								aria-label="discountValue"
-								aria-describedby="discountValue"
+								name="refDiscount"
+								aria-label="refDiscount"
+								aria-describedby="refDiscount"
 								required
 							/>
 						</div>
 					</section>
 
 					<section class="col-span-4 md:col-span-2">
-						<label for="categoria" class="form-label">
+						<label for="refPoints" class="form-label">
 							<p class="font-bold mb-2 label">Percentuale % punti</p>
 						</label>
 						<div class="join join-horizontal rounded-md w-full">
@@ -709,11 +713,11 @@
 							>
 							<input
 								class="input join-item w-full"
-								id="pointsValue"
+								id="refPoints"
 								type="number"
-								name="pointsValue"
-								aria-label="pointsValue"
-								aria-describedby="pointsValue"
+								name="refPoints"
+								aria-label="refPoints"
+								aria-describedby="refPoints"
 								required
 							/>
 						</div>
@@ -757,7 +761,7 @@
 							></textarea>
 						</div>
 					</section>
-					<input type="hidden" name="applicability" value="email" />
+					<input type="hidden" name="applicability" value="refPoints" />
 
 					<div class="col-span-4 mt-5 flex justify-center">
 						<div class="bg-gray-50 flex justify-center">
@@ -781,12 +785,13 @@
 		>
 		{#if loading}
 			<Loader />
-		{:else}
+		{/if}
+		{#if typeDiscount === 'percent' || typeDiscount === 'amount'}
 			<form
 				method="POST"
 				action={postAction}
 				use:enhance={formSubmit}
-				class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+				class=" grid grid-cols-4 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 			>
 				<section class="col-span-4">
 					<label for="discountId" class="form-label">
@@ -984,6 +989,153 @@
 					</div>
 				</div>
 			</form>
+		{:else if typeDiscount === 'refPoints'}
+			<form
+				method="POST"
+				action={postAction}
+				use:enhance={formSubmit}
+				class="grid grid-cols-4 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+			>
+				<!-- 
+				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+			 -->
+				<section class="col-span-4">
+					<label for="discountId" class="form-label">
+						<p class="font-bold mb-2">ID codice</p>
+					</label>
+					<div class="join join-horizontal w-full">
+						<button class="join-item bg-gray-300 px-3"><Pen /></button>
+						<input
+							class="input input-bordered join-item w-full"
+							id="discountId"
+							name="discountId"
+							type="text"
+							placeholder="discountId"
+							aria-label="discountId"
+							aria-describedby="basic-discountId"
+							bind:value={discountId}
+							readonly
+						/>
+					</div>
+				</section>
+				<section class="col-span-4">
+					<label for="type" class="form-label">
+						<p class="font-bold mb-2">Tipo di Sconto: {typeDiscount}</p>
+					</label>
+				</section>
+				<section class="col-span-4">
+					<label for="titolo" class="form-label">
+						<p class="font-bold mb-2 label">Codice sconto</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button type="button" class="join-item bg-primary/20 px-3">
+							<Pen class="text-emerald-500" />
+						</button>
+						<input
+							class="input input-bordered w-full"
+							id="titolo"
+							name="code"
+							type="text"
+							placeholder="Codice"
+							aria-label="Titolo"
+							aria-describedby="basic-titolo"
+							bind:value={code}
+							required
+						/>
+					</div>
+				</section>
+
+				<section class="col-span-4 md:col-span-2">
+					<label for="categoria" class="form-label">
+						<p class="font-bold mb-2 label">Percentuale % sconto</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button type="button" class="join-item bg-primary/20 px-3"
+							><Calculator class="text-emerald-500" /></button
+						>
+						<input
+							class="input join-item w-full"
+							id="refDiscount"
+							type="number"
+							name="refDiscount"
+							aria-label="refDiscount"
+							aria-describedby="refDiscount"
+							bind:value={refDiscount}
+							required
+						/>
+					</div>
+				</section>
+
+				<section class="col-span-4 md:col-span-2">
+					<label for="categoria" class="form-label">
+						<p class="font-bold mb-2 label">Percentuale % punti</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button type="button" class="join-item bg-primary/20 px-3"
+							><Calculator class="text-emerald-500" /></button
+						>
+						<input
+							class="input join-item w-full"
+							id="refPoints"
+							type="number"
+							name="refPoints"
+							aria-label="refPoints"
+							aria-describedby="refPoints"
+							bind:value={refPoints}
+							required
+						/>
+					</div>
+				</section>
+
+				<section class="col-span-4">
+					<label for="categoria" class="form-label">
+						<p class="font-bold mb-2 label">Email utente</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button type="button" class="join-item bg-primary/20 px-3">
+							<Tags class="text-emerald-500" />
+						</button>
+						<input
+							type="text"
+							name="selectId"
+							class="input w-full input-bordered"
+							placeholder="Inserisci EMAIL utente"
+							bind:value={selectedId}
+							required
+						/>
+					</div>
+				</section>
+
+				<section class="col-span-4">
+					<label for="categoria" class="form-label">
+						<p class="font-bold mb-2 label">Note</p>
+					</label>
+					<div class="join w-full">
+						<div class="join-item btn pointer-events-none h-24">
+							<Pen class="text-emerald-500" />
+						</div>
+						<textarea
+							class="textarea join-item w-full"
+							id="descrizione"
+							name="notes"
+							placeholder="Descrizione"
+							aria-label="descrizione"
+							aria-describedby="basic-descrizione"
+							bind:value={notes}
+						></textarea>
+					</div>
+				</section>
+				<input type="hidden" name="applicability" value={selectedApplicability} />
+				<input type="hidden" name="type" value={typeDiscount} />
+
+				<div class="col-span-4 mt-5 flex justify-center">
+					<div class="bg-gray-50 flex justify-center">
+						<button class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
+
+						<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
+					</div>
+				</div>
+			</form>
 		{/if}
 	</Modal>
 {/if}
@@ -995,16 +1147,14 @@
 		>
 		{#if loading}
 			<Loader />
-		{:else}
-			<form method="POST" action={postAction} use:enhance={formSubmit}>
-				<input type="hidden" name="discountId" value={discountId} />
-				<div class="flex justify-center space-x-10 my-4">
-					<button class="btn btn-error btn-md" type="button" onclick={onCloseModal}>Annulla</button>
-					<button class="btn btn-success btn-md text-white" type="submit"><Trash2 />Conferma</button
-					>
-				</div>
-			</form>
 		{/if}
+		<form method="POST" action={postAction} use:enhance={formSubmit}>
+			<input type="hidden" name="discountId" value={discountId} />
+			<div class="flex justify-center space-x-10 my-4">
+				<button class="btn btn-error btn-md" type="button" onclick={onCloseModal}>Annulla</button>
+				<button class="btn btn-success btn-md text-white" type="submit"><Trash2 />Conferma</button>
+			</div>
+		</form>
 	</Modal>
 {/if}
 
@@ -1015,64 +1165,61 @@
 		>
 		{#if loading}
 			<Loader />
-		{:else}
-			<form
-				method="POST"
-				action={postAction}
-				use:enhance={formSubmit}
-				class="grid grid-cols-1 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-			>
-				<fieldset class="fieldset col-span-1">
-					<legend class="fieldset-legend">Codice sconto</legend>
-					<!-- <span class="label">Optional</span> -->
-					<div class="join w-full">
-						<div class="join-item btn pointer-events-none"><Pen /></div>
-						<input
-							class="input join-item flex-1"
-							name="code"
-							type="text"
-							placeholder="Codice"
-							aria-label="Titolo"
-							aria-describedby="basic-titolo"
-						/>
-					</div>
-				</fieldset>
-
-				<fieldset class="fieldset col-span-1">
-					<legend class="fieldset-legend">Tipo Sconto</legend>
-					<!-- <span class="label">Optional</span> -->
-					<div class="join w-full">
-						<div class="join-item btn pointer-events-none"><StretchHorizontal /></div>
-						<select name="selectedApplicability" value="" class="select join-item flex-1">
-							<option value="" disabled>Seleziona il tipo di sconto</option>
-							<option value="email">Utente</option>
-							<option value="prodId">Prodotto</option>
-							<option value="layoutId">Corso</option>
-							<option value="membershipLevel">Associato</option>
-						</select>
-					</div>
-				</fieldset>
-
-				<fieldset class="fieldset col-span-1">
-					<legend class="fieldset-legend">Status</legend>
-					<!-- <span class="label">Optional</span> -->
-					<div class="join w-full">
-						<div class="join-item btn pointer-events-none"><ToggleLeft /></div>
-						<select name="status" value="" class="select join-item flex-1">
-							<option value="" disabled>Seleziona lo status</option>
-							<option value="enabled">Attivo</option>
-							<option value="disabled">Inattivo</option>
-						</select>
-					</div>
-				</fieldset>
-
-				<div class="px-6 py-4 rounded-b-lg flex justify-end space-x-2">
-					<button class="btn btn-error btn-sm" onclick={onCloseModal} type="button">
-						Annulla
-					</button>
-					<button class="btn btn-success btn-sm" type="submit"> Applica Filtri </button>
-				</div>
-			</form>
 		{/if}
+		<form
+			method="POST"
+			action={postAction}
+			use:enhance={formSubmit}
+			class="grid grid-cols-1 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+		>
+			<fieldset class="fieldset col-span-1">
+				<legend class="fieldset-legend">Codice sconto</legend>
+				<!-- <span class="label">Optional</span> -->
+				<div class="join w-full">
+					<div class="join-item btn pointer-events-none"><Pen /></div>
+					<input
+						class="input join-item flex-1"
+						name="code"
+						type="text"
+						placeholder="Codice"
+						aria-label="Titolo"
+						aria-describedby="basic-titolo"
+					/>
+				</div>
+			</fieldset>
+
+			<fieldset class="fieldset col-span-1">
+				<legend class="fieldset-legend">Tipo Sconto</legend>
+				<!-- <span class="label">Optional</span> -->
+				<div class="join w-full">
+					<div class="join-item btn pointer-events-none"><StretchHorizontal /></div>
+					<select name="selectedApplicability" value="" class="select join-item flex-1">
+						<option value="" disabled>Seleziona il tipo di sconto</option>
+						<option value="email">Utente</option>
+						<option value="prodId">Prodotto</option>
+						<option value="layoutId">Corso</option>
+						<option value="membershipLevel">Associato</option>
+					</select>
+				</div>
+			</fieldset>
+
+			<fieldset class="fieldset col-span-1">
+				<legend class="fieldset-legend">Status</legend>
+				<!-- <span class="label">Optional</span> -->
+				<div class="join w-full">
+					<div class="join-item btn pointer-events-none"><ToggleLeft /></div>
+					<select name="status" value="" class="select join-item flex-1">
+						<option value="" disabled>Seleziona lo status</option>
+						<option value="enabled">Attivo</option>
+						<option value="disabled">Inattivo</option>
+					</select>
+				</div>
+			</fieldset>
+
+			<div class="px-6 py-4 rounded-b-lg flex justify-end space-x-2">
+				<button class="btn btn-error btn-sm" onclick={onCloseModal} type="button"> Annulla </button>
+				<button class="btn btn-success btn-sm" type="submit"> Applica Filtri </button>
+			</div>
+		</form>
 	</Modal>
 {/if}

@@ -50,7 +50,7 @@ export const handle: Handle = async ({ event, resolve, }) => {
 
 		const checkExpiryStatus = (user) => {
 			const now = new Date().getTime();
-			const expiry = user?.membership?.membershipExpiry;
+			const expiry = user?.membership?.membershipExpiry || '';
 			if (!expiry) return false;
 			return now > expiry
 		}

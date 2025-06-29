@@ -1070,7 +1070,7 @@
 															>
 																<div class="font-medium">Spedizione</div>
 																<div class="font-bold text-lg text-info">
-																	<p>€ 9</p>
+																	<p>{order.totalValue < 100 ? '€ 9' : 'gratuita'}</p>
 																</div>
 															</div>
 														{/if}

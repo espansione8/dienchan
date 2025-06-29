@@ -8,13 +8,11 @@ const discountSchema = new Schema(
 			default: '',
 			index: true,
 			unique: true,
-			dropDups: true
 		},
 		code: {
 			type: String,
 			default: '',
 			unique: true,
-			dropDups: true
 		},
 		type: {
 			type: String,
@@ -35,7 +33,7 @@ const discountSchema = new Schema(
 		},
 		selectedApplicability: {
 			type: String,
-			enum: ['email', 'membershipLevel', 'prodId', 'layoutId'],
+			enum: ['email', 'membershipLevel', 'prodId', 'layoutId', 'refPoints'],
 			default: 'email'
 		},
 		email: { type: String, default: '' },

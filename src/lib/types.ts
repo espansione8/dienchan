@@ -228,7 +228,7 @@ export type DiscountItem = {
     code: string;
     type: 'amount' | 'percent';
     value: number;
-    selectedApplicability: 'userId' | 'membershipLevel' | 'prodId' | 'layoutId';
+    selectedApplicability: 'userId' | 'membershipLevel' | 'prodId' | 'layoutId' | 'refPoints';
     status: 'active' | 'disabled';
     userId?: string;
     membershipLevel?: string;

@@ -1079,7 +1079,9 @@
 			<!-- button -->
 			<div class="col-span-12 mt-5 flex justify-center gap-4">
 				<div class="bg-gray-50 flex justify-center">
-					<button class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
+					<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}>
+						Annulla
+					</button>
 					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">
 						{#if currentModal == 'new'}
 							Registra

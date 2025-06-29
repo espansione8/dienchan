@@ -37,9 +37,6 @@
 	const { data } = $props();
 	const { userData, auth } = $derived(data);
 
-	const BASE_URL = '';
-
-	let error = $state('');
 	let password1 = $state('');
 	let password2 = $state('');
 	let checkPass = $state(false);
@@ -98,7 +95,7 @@
 	// 	});
 	// 	return total;
 	// });
-	let grandTotal = $derived(subTotal() - totalDiscount() + 9);
+	let grandTotal = $derived(subTotal() - totalDiscount());
 
 	const testPass = () => {
 		checkPass = password1.length >= 8;
@@ -189,9 +186,9 @@
 	};
 
 	const formSubmit = () => {
+		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
 			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
-			loading = true;
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
 				const { action, message, payload } = result.data; // { action, success, message, payload }
@@ -734,10 +731,12 @@
 						<span>Carrello</span>
 						<span>€ {subTotal().toFixed(2)}</span>
 					</div>
+
 					<div class="flex justify-between text-success">
 						<span>Spedizione</span>
-						<span>€ 9</span>
+						<span>{grandTotal < 100 ? '€ 9' : 'gratuita'}</span>
 					</div>
+
 					{#if discountList.length > 0}
 						<div class="flex justify-between text-success">
 							<span>Sconto</span>
@@ -774,7 +773,7 @@
 									<input type="hidden" name="discountList" value={JSON.stringify(discountList)} />
 									<button type="submit" class="btn btn-primary" disabled={!discountCode || loading}>
 										{#if loading}
-											<span class="loading loading-spinner loading-sm"></span>
+											<span class="loading loading-spinner loading-sm text-primary"></span>
 										{:else}
 											Applica
 										{/if}
@@ -834,108 +833,112 @@
 		>
 		{#if loading}
 			<Loader />
-		{:else}
-			<div class="">
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 mt-4">
-					<div class="space-y-4">
-						<h4 class="font-medium text-primary">Informazioni Personali</h4>
+		{/if}
+		<div class="">
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 mt-4">
+				<div class="space-y-4">
+					<h4 class="font-medium text-primary">Informazioni Personali</h4>
 
-						<div class="grid grid-cols-2 gap-2">
-							<div>
-								<p class="text-sm text-base-content/70">Nome</p>
-								<p class="font-medium">{formData.name}</p>
-							</div>
-							<div>
-								<p class="text-sm text-base-content/70">Cognome</p>
-								<p class="font-medium">{formData.surname}</p>
-							</div>
-							<div class="col-span-2">
-								<p class="text-sm text-base-content/70">Email</p>
-								<p class="font-medium">{formData.email}</p>
-							</div>
-							<div>
-								<p class="text-sm text-base-content/70">Telefono</p>
-								<p class="font-medium">{formData.phone || 'Non specificato'}</p>
-							</div>
-							<div>
-								<p class="text-sm text-base-content/70">Cellulare</p>
-								<p class="font-medium">{formData.mobilePhone}</p>
-							</div>
+					<div class="grid grid-cols-2 gap-2">
+						<div>
+							<p class="text-sm text-base-content/70">Nome</p>
+							<p class="font-medium">{formData.name}</p>
 						</div>
-					</div>
-
-					<div class="space-y-4">
-						<h4 class="font-medium text-primary">Indirizzo di Spedizione</h4>
-
-						<div class="grid grid-cols-2 gap-2">
-							<div class="col-span-2">
-								<p class="text-sm text-base-content/70">Indirizzo</p>
-								<p class="font-medium">{formData.address}</p>
-							</div>
-							<div>
-								<p class="text-sm text-base-content/70">Città</p>
-								<p class="font-medium">{formData.city}</p>
-							</div>
-							<div>
-								<p class="text-sm text-base-content/70">CAP</p>
-								<p class="font-medium">{formData.postalCode}</p>
-							</div>
-							<div>
-								<p class="text-sm text-base-content/70">Provincia</p>
-								<p class="font-medium">{formData.county}</p>
-							</div>
-							<div>
-								<p class="text-sm text-base-content/70">Nazione</p>
-								<p class="font-medium">{formData.country}</p>
-							</div>
+						<div>
+							<p class="text-sm text-base-content/70">Cognome</p>
+							<p class="font-medium">{formData.surname}</p>
+						</div>
+						<div class="col-span-2">
+							<p class="text-sm text-base-content/70">Email</p>
+							<p class="font-medium">{formData.email}</p>
+						</div>
+						<div>
+							<p class="text-sm text-base-content/70">Telefono</p>
+							<p class="font-medium">{formData.phone || 'Non specificato'}</p>
+						</div>
+						<div>
+							<p class="text-sm text-base-content/70">Cellulare</p>
+							<p class="font-medium">{formData.mobilePhone}</p>
 						</div>
 					</div>
 				</div>
 
-				<div class="space-y-4 mb-6">
-					<h4 class="font-medium text-primary">Prodotti</h4>
+				<div class="space-y-4">
+					<h4 class="font-medium text-primary">Indirizzo di Spedizione</h4>
 
-					<div class="overflow-x-auto">
-						<table class="table table-zebra w-full">
-							<thead>
-								<tr>
-									<th>Prodotto</th>
-									<th class="text-right">Quantità</th>
-									<th class="text-right">Prezzo</th>
-								</tr>
-							</thead>
-							<tbody>
-								{#each $cartProducts as item}
-									<tr>
-										<td>{item.title}</td>
-										<td class="text-right">{item.orderQuantity || 1}</td>
-										<td class="text-right">€ {item.price.toFixed(2)}</td>
-									</tr>
-								{/each}
-								<tr class="text-info">
-									<td colspan="2">Spedizione</td>
-									<td class="text-right"> € 9</td>
-								</tr>
-								{#if discountList.length > 0}
-									<tr class="text-success">
-										<td colspan="2">Sconto</td>
-										<td class="text-right">- € {totalDiscount().toFixed(2)}</td>
-									</tr>
-								{/if}
-							</tbody>
-							<tfoot>
-								<tr>
-									<th colspan="2">Totale</th>
-									<th class="text-right">
-										€ {grandTotal.toFixed(2)}
-									</th>
-								</tr>
-							</tfoot>
-						</table>
+					<div class="grid grid-cols-2 gap-2">
+						<div class="col-span-2">
+							<p class="text-sm text-base-content/70">Indirizzo</p>
+							<p class="font-medium">{formData.address}</p>
+						</div>
+						<div>
+							<p class="text-sm text-base-content/70">Città</p>
+							<p class="font-medium">{formData.city}</p>
+						</div>
+						<div>
+							<p class="text-sm text-base-content/70">CAP</p>
+							<p class="font-medium">{formData.postalCode}</p>
+						</div>
+						<div>
+							<p class="text-sm text-base-content/70">Provincia</p>
+							<p class="font-medium">{formData.county}</p>
+						</div>
+						<div>
+							<p class="text-sm text-base-content/70">Nazione</p>
+							<p class="font-medium">{formData.country}</p>
+						</div>
 					</div>
 				</div>
+			</div>
 
-				<!-- <div class="space-y-4">
+			<div class="space-y-4 mb-6">
+				<h4 class="font-medium text-primary">Prodotti</h4>
+
+				<div class="overflow-x-auto">
+					<table class="table table-zebra w-full">
+						<thead>
+							<tr>
+								<th>Prodotto</th>
+								<th class="text-right">Quantità</th>
+								<th class="text-right">Prezzo</th>
+							</tr>
+						</thead>
+						<tbody>
+							{#each $cartProducts as item}
+								<tr>
+									<td>{item.title}</td>
+									<td class="text-right">{item.orderQuantity || 1}</td>
+									<td class="text-right">€ {item.price.toFixed(2)}</td>
+								</tr>
+							{/each}
+
+							<tr class="text-info">
+								<td colspan="2">Spedizione</td>
+								<td class="text-right">
+									<span> {grandTotal < 100 ? '€ 9' : 'gratuita'} </span>
+								</td>
+							</tr>
+
+							{#if discountList.length > 0}
+								<tr class="text-success">
+									<td colspan="2">Sconto</td>
+									<td class="text-right">- € {totalDiscount().toFixed(2)}</td>
+								</tr>
+							{/if}
+						</tbody>
+						<tfoot>
+							<tr>
+								<th colspan="2">Totale</th>
+								<th class="text-right">
+									€ {grandTotal.toFixed(2)}
+								</th>
+							</tr>
+						</tfoot>
+					</table>
+				</div>
+			</div>
+
+			<!-- <div class="space-y-4">
 					<h4 class="font-medium text-primary">Metodo di Pagamento</h4>
 
 					<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -988,32 +991,31 @@
 						</label>
 					</div>
 				</div> -->
-				<form method="POST" action={postAction} use:enhance={formSubmit} class="">
-					<input type="hidden" name="name" value={formData.name} />
-					<input type="hidden" name="surname" value={formData.surname} />
-					<input type="hidden" name="email" value={formData.email} />
-					{#if !auth}
-						<input type="hidden" name="password1" value={password1} />
-						<input type="hidden" name="password2" value={password2} />
-					{/if}
-					<input type="hidden" name="address" value={formData.address} />
-					<input type="hidden" name="city" value={formData.city} />
-					<input type="hidden" name="county" value={formData.county} />
-					<input type="hidden" name="postalCode" value={formData.postalCode} />
-					<input type="hidden" name="country" value={formData.country} />
-					<input type="hidden" name="phone" value={formData.phone} />
-					<input type="hidden" name="mobilePhone" value={formData.mobilePhone} />
-					<input type="hidden" name="payment" value={formData.paymentType} />
-					<input type="hidden" name="cart" value={JSON.stringify(cart)} />
-					<input type="hidden" name="totalValue" value={grandTotal} />
-					<input type="hidden" name="discountList" value={JSON.stringify(discountList)} />
-					<div class="modal-action">
-						<button class="btn btn-outline btn-error" onclick={onCloseModal}> Annulla </button>
-						<button type="submit" class="btn btn-primary"> Conferma Acquisto </button>
-					</div>
-				</form>
-			</div>
-		{/if}
+			<form method="POST" action={postAction} use:enhance={formSubmit} class="">
+				<input type="hidden" name="name" value={formData.name} />
+				<input type="hidden" name="surname" value={formData.surname} />
+				<input type="hidden" name="email" value={formData.email} />
+				{#if !auth}
+					<input type="hidden" name="password1" value={password1} />
+					<input type="hidden" name="password2" value={password2} />
+				{/if}
+				<input type="hidden" name="address" value={formData.address} />
+				<input type="hidden" name="city" value={formData.city} />
+				<input type="hidden" name="county" value={formData.county} />
+				<input type="hidden" name="postalCode" value={formData.postalCode} />
+				<input type="hidden" name="country" value={formData.country} />
+				<input type="hidden" name="phone" value={formData.phone} />
+				<input type="hidden" name="mobilePhone" value={formData.mobilePhone} />
+				<input type="hidden" name="payment" value={formData.paymentType} />
+				<input type="hidden" name="cart" value={JSON.stringify(cart)} />
+				<input type="hidden" name="totalValue" value={grandTotal} />
+				<input type="hidden" name="discountList" value={JSON.stringify(discountList)} />
+				<div class="modal-action">
+					<button class="btn btn-outline btn-error" onclick={onCloseModal}> Annulla </button>
+					<button type="submit" class="btn btn-primary"> Conferma Acquisto </button>
+				</div>
+			</form>
+		</div>
 	</Modal>
 {/if}
 

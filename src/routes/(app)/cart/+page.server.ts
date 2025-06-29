@@ -19,6 +19,7 @@ const calculateItemDiscount = (
 	cartArray: CartItem[],
 	originalTotal: number
 ): number => {
+	///// IF selectedApplicability === 'refPoints' use refDiscount
 	const { type, value, selectedApplicability } = discount;
 	let totalDiscount = 0;
 
@@ -55,16 +56,21 @@ const calculateItemDiscount = (
 			totalDiscount = (originalTotal * value) / 100;
 		}
 	}
+	else if (selectedApplicability === 'refPoints') {
+		// Ref-level discounts
+		totalDiscount = (originalTotal * discount.refDiscount) / 100;
+
+	}
+	return totalDiscount;
 	// else if (selectedApplicability === 'cart') {
 	// 	// Cart-level discounts
-	// 	if (type === 'amount') {
-	// 		totalDiscount = value;
-	// 	} else if (type === 'percent') {
+	// 		if (type === 'amount') {
+	// 			totalDiscount = value;
+	// 		} else if (type === 'percent') {
 	// 		totalDiscount = (originalTotal * value) / 100;
+	// 		}
 	// 	}
-
-	return totalDiscount;
-};
+}
 
 export const actions: Actions = {
 	new: async ({ request, fetch, locals, cookies }) => {
@@ -82,16 +88,20 @@ export const actions: Actions = {
 		const payment = formData.get('payment');
 		const password1: any = formData.get('password1') || '';
 		const password2 = formData.get('password2') || '';
-		const totalValue = formData.get('totalValue');
+		const totalValue = Number(formData.get('totalValue'));
 		const cart = formData.get('cart');
-		const discountList = formData.get('discountList');
+		//const discountList = formData.get('discountList')
+		const discountList = formData.get('discountList') as string;;
 		const cartItem = JSON.parse(String(cart)) || null;
 		const discountItem = JSON.parse(String(discountList)) || null;
+		const discountArray: string[] = JSON.parse(discountList || '[]').map(item => item.code);
+		// console.log('discountItem', discountItem);
+		// return { action: 'new', success: false, message: discountItem };
 
 		// Calculate total cart on server anche for security
 		const cartRecalculated = () => {
 			let total = 0;
-			total += 9 //delivery fee
+			//total += 9 //delivery fee
 			cartItem.forEach((element: any) => {
 				if (element.type == 'course') {
 					total += element.layoutView.price * (element.orderQuantity || 1);
@@ -229,6 +239,7 @@ export const actions: Actions = {
 		try {
 			const orderId = nanoid() // OLD stringHash(crypto.randomUUID());
 			const orderCode = crypto.randomUUID()
+
 			const newDoc = {
 				orderId,
 				orderCode,
@@ -242,7 +253,7 @@ export const actions: Actions = {
 				agencyId: '',
 				orderConfirmed: false,
 				totalPoints: 0,
-				totalValue: Number(totalValue),
+				totalValue: totalValue < 100 ? totalValue + 9 : totalValue,
 				totalDiscount: Number(totalDiscount),
 				totalVAT: 0,
 				browser: '',
@@ -310,7 +321,6 @@ export const actions: Actions = {
 				}
 			});
 
-
 			if (!res.ok) {
 				return fail(400, { action: 'new', success: false, message: await res.text() });
 			}
@@ -321,6 +331,66 @@ export const actions: Actions = {
 			const mailRes = await mailFetch(email, order);
 			if (!mailRes.ok) {
 				console.error('Mail sending failed:', await mailRes.text());
+			}
+
+			if (discountArray.length > 0) {
+				// Calc discount points for user
+				const discountRes = await fetch(`${BASE_URL}/api/mongo/find`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'discount',
+						query: { code: { $in: discountArray }, type: 'refPoints' },
+						projection: { _id: 0 },
+						sort: { createdAt: -1 },
+						limit: 1,
+						skip: 0
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+
+				if (!discountRes.ok) {
+					return fail(400, { action: 'new', success: false, message: await discountRes.text() });
+				}
+				const discount = await discountRes.json();
+				console.log('discount', discount);
+
+				if (!discount[0].email) {
+					console.error('no refPoint email found');
+				}
+				const calcPoint = Math.round(totalValue * discount[0].refPoints / 100);
+
+				const updateRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'user', //product | order | user | layout | discount
+						query: { email: discount[0].email },
+						update: {
+							$inc: {
+								pointsBalance: calcPoint
+							},
+							$push: {
+								pointsHistory: {
+									points: calcPoint,
+									note: `punti per ordine: ${orderId}`
+								}
+							}
+						},
+						options: { upsert: false },
+						multi: false
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+				if (!updateRes.ok) {
+					const errorText = await updateRes.text();
+					console.error('user update failed', updateRes.status, errorText);
+					return fail(400, { action: 'modifyPoints', success: false, message: errorText });
+				}
 			}
 
 			if (locals.auth) {
@@ -336,31 +406,32 @@ export const actions: Actions = {
 	},
 
 	applyDiscount: async ({ request, fetch, locals }) => {
-		const discountFetch = (discountCodes: string[]) => fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'discount',
-				query: { code: { $in: discountCodes } },
-				projection: { _id: 0, password: 0 },
-				sort: { createdAt: -1 },
-				limit: 1000,
-				skip: 0
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
+		const formData = await request.formData();
+		const discountCode = formData.get('discountCode') as string;
+		const cart = formData.get('cart') as string;
+		const subTotal = formData.get('subTotal') as string;
+		const discountList = formData.get('discountList') as string;
+		const originalTotal = Number(subTotal) || 0;
+		const discountArray: string[] = JSON.parse(discountList || '[]').map(item => item.code);
+		const cartArray: CartItem[] = JSON.parse(cart || '[]');
 
 		try {
-			const formData = await request.formData();
-			const discountCode = formData.get('discountCode') as string;
-			const cart = formData.get('cart') as string;
-			const subTotal = formData.get('subTotal') as string;
-			const discountList = formData.get('discountList') as string;
-			const originalTotal = Number(subTotal) || 0;
-			const discountArray: string[] = JSON.parse(discountList || '[]').map(item => item.code);
-			const cartArray: CartItem[] = JSON.parse(cart || '[]');
+			const discountFetch = (discountCodes: string[]) => fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'discount',
+					query: { code: { $in: discountCodes } },
+					projection: { _id: 0, password: 0 },
+					sort: { createdAt: -1 },
+					limit: 1000,
+					skip: 0
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
 			// let cartArray: CartItem[] = [];
 			// try {
 			// 	cartArray = JSON.parse(cart || '[]');
@@ -388,8 +459,8 @@ export const actions: Actions = {
 			const newDiscountArray = [...discountArray, discountCode];
 			const discountRes = await discountFetch(newDiscountArray);
 			const discountGroup: DiscountItem[] = await discountRes.json();
-			console.log('newDiscountArray', newDiscountArray);
-			console.log('discountGroup', discountGroup);
+			// console.log('newDiscountArray', newDiscountArray);
+			// console.log('discountGroup', discountGroup);
 
 			// Find the specific discount being applied
 			const discountItem = discountGroup.find((item: DiscountItem) => item.code === discountCode);
@@ -430,6 +501,9 @@ export const actions: Actions = {
 					case 'layoutId':
 						return cartArray.some(item => item.layoutView?.layoutId === discount.layoutId);
 
+					case 'refPoints':
+						return true;
+
 					default:
 						return false;
 				}
@@ -446,6 +520,7 @@ export const actions: Actions = {
 			const discountApplied = () => {
 				return discountGroup.map(discount => ({
 					code: discount.code,
+					//type: discount.type,
 					totalDiscount: calculateItemDiscount(discount, cartArray, originalTotal)
 				}));
 			};
@@ -456,6 +531,7 @@ export const actions: Actions = {
 				message: 'Sconto applicato con successo',
 				payload: {
 					discountApplied: discountApplied(),
+					discountId: discountItem.discountId
 				}
 			};
 
@@ -549,4 +625,4 @@ export const actions: Actions = {
 		}
 	}
 
-} satisfies Actions;		
+} satisfies Actions;
