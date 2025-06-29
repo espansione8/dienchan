@@ -12,7 +12,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		order
 	} = body;
 
-	const { orderId, createdAt, totalValue, invoicing, payment, cart, type } = order;
+	const { orderId, createdAt, totalValue, invoicing, payment, cart, type, totalDiscount } = order;
 	const { name, surname, address, city, county, postalCode, country } = invoicing
 
 	if (apiKey !== APIKEY) {
@@ -44,467 +44,167 @@ export const POST: RequestHandler = async ({ request }) => {
 				text: `Gentile utente ${email}, abbiamo ricevuto il suo ordine ID: ${orderId} controlli i dettagli nel suo profilo.`, // plain text body
 				html: `
 				<!DOCTYPE html>
-				<html
-					lang="en"
-					xmlns="http://www.w3.org/1999/xhtml"
-					xmlns:v="urn:schemas-microsoft-com:vml"
-					xmlns:o="urn:schemas-microsoft-com:office:office"
-				>
-					<head>
-						<meta charset="utf-8" />
-						<meta name="viewport" content="width=device-width" />
-						<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-						<meta name="x-apple-disable-message-reformatting" />
-						<title>Conferma Ordine #[ID_ORDINE]</title>
-						<link
-							href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,500,600,700"
-							rel="stylesheet"
-						/>
+<html lang="it">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Notifica automatica</title>
+    <link href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,500,600,700" rel="stylesheet">
+    <style>
+        /* CSS Reset & Basic Styles */
+        body { margin: 0 auto !important; padding: 0 !important; height: 100% !important; width: 100% !important; background: #f1f1f1; font-family: 'Poppins', sans-serif; font-weight: 400; font-size: 15px; line-height: 1.8; color: rgba(0,0,0,.7); }
+        * { -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
+        div[style*="margin: 16px 0"] { margin: 0 !important; }
+        table, td { mso-table-lspace: 0pt !important; mso-table-rspace: 0pt !important; }
+        table { border-spacing: 0 !important; border-collapse: collapse !important; table-layout: fixed !important; margin: 0 auto !important; }
+        img { -ms-interpolation-mode: bicubic; max-width: 100%; height: auto; display: block; }
+        a { text-decoration: none; color: #0b5ed7; }
 
-						<style>
-							/* What it does: Remove spaces around the email design added by some email clients. */
-							/* Beware: It can remove the padding / margin and add a background color to the compose a reply window. */
-							html,
-							body {
-								margin: 0 auto !important;
-								padding: 0 !important;
-								height: 100% !important;
-								width: 100% !important;
-								background: #f1f1f1;
-							}
+        /* Layout & Component Classes */
+        .email-container { max-width: 600px; margin: 0 auto; }
+        .bg_white { background: #ffffff; }
+        .text-center { text-align: center; }
+        .padding-top-sm { padding-top: 1em; }
+        .padding-bottom-md { padding-bottom: 2.5em; } /* Adjusted from 4em to ensure enough space */
+        .padding-x-lg { padding-left: 2.5em; padding-right: 2.5em; }
 
-							/* What it does: Stops email clients resizing small text. */
-							* {
-								-ms-text-size-adjust: 100%;
-								-webkit-text-size-adjust: 100%;
-							}
+        /* Header/Logo Specific */
+        .logo h1 { margin: 0; }
+        .logo h1 a { color: #0b5ed7; font-size: 24px; font-weight: 700; font-family: 'Poppins', sans-serif; }
+        .logo-img { width: 300px; margin: auto; } /* Specific for the logo image */
 
-							/* What it does: Centers email on Android 4.4 */
-							div[style*='margin: 16px 0'] {
-								margin: 0 !important;
-							}
+        /* Hero Section Specific */
+        .hero .main-title { color: #000; font-size: 18px; margin-bottom: 0; font-weight: 200; line-height: 1.4; }
+        .hero .subtitle { color: rgba(0,0,0,.7); font-size: 16px; font-weight: 300; }
+        .hero .highlight { color: #000; font-weight: 700; } /* For the password highlight */
+        .hero .paragraph { color: rgba(0,0,0,.7); }
 
-							/* What it does: Stops Outlook from adding extra spacing to tables. */
-							table,
-							td {
-								mso-table-lspace: 0pt !important;
-								mso-table-rspace: 0pt !important;
-							}
+        /* New Utility Classes for improved email layout */
+        .margin-top-lg { margin-top: 2em; }
+        .text-black { color: #000; } /* This class exists, but table-cell-style is more specific for cells */
+        .list-address { list-style: none; padding: 0; margin: 1em 0; }
+        .margin-bottom-sm { margin-bottom: 1em; } /* For product table */
 
-							/* What it does: Fixes webkit padding issue. */
-							table {
-								border-spacing: 0 !important;
-								border-collapse: collapse !important;
-								table-layout: fixed !important;
-								margin: 0 auto !important;
-							}
+        /* Table Cell Specific Styles */
+        .table-cell-style {
+            padding: 8px;
+            border: 1px solid #ddd;
+            color: #000;
+        }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: bold; }
 
-							/* What it does: Uses a better rendering method when resizing images in IE. */
-							img {
-								-ms-interpolation-mode: bicubic;
-							}
-
-							/* What it does: Prevents Windows 10 Mail from underlining links despite inline CSS.
-							Styles for underlined links should be inline. */
-							a {
-								text-decoration: none;
-							}
-
-							/* What it does: A work-around for email clients meddling in triggered links. */
-							*[x-apple-data-detectors], /* iOS */
-							.unstyle-auto-detected-links *,
-							.aBn {
-								border-bottom: 0 !important;
-								cursor: default !important;
-								color: inherit !important;
-								text-decoration: none !important;
-								font-size: inherit !important;
-								font-family: inherit !important;
-								font-weight: inherit !important;
-								line-height: inherit !important;
-							}
-
-							/* What it does: Prevents Gmail from displaying a download button on large, non-linked images. */
-							.a6S {
-								display: none !important;
-								opacity: 0.01 !important;
-							}
-
-							/* What it does: Prevents Gmail from changing the text color in conversation threads. */
-							.im {
-								color: inherit !important;
-							}
-
-							/* If the above doesn't work, add a .g-img class to any image in question. */
-							img.g-img + div {
-								display: none !important;
-							}
-
-							/* What it does: Removes right gutter in Gmail iOS app: https://github.com/TedGoas/Cerberus/issues/89  */
-							/* Create one of these media queries for each additional viewport size you'd like to fix */
-
-							/* iPhone 4, 4S, 5, 5S, 5C, and 5SE */
-							@media only screen and (min-device-width: 320px) and (max-device-width: 374px) {
-								u ~ div .email-container {
-									min-width: 320px !important;
-								}
-							}
-							/* iPhone 6, 6S, 7, 8, and X */
-							@media only screen and (min-device-width: 375px) and (max-device-width: 413px) {
-								u ~ div .email-container {
-									min-width: 375px !important;
-								}
-							}
-							/* iPhone 6+, 7+, and 8+ */
-							@media only screen and (min-device-width: 414px) {
-								u ~ div .email-container {
-									min-width: 414px !important;
-								}
-							}
-						</style>
-
-						<style>
-							.primary {
-								background: #0b5ed7;
-							}
-							.bg_white {
-								background: #ffffff;
-							}
-							.bg_light {
-								background: #f7fafa;
-							}
-							.bg_black {
-								background: #000000;
-							}
-							.bg_dark {
-								background: rgba(0, 0, 0, 0.8);
-							}
-							.email-section {
-								padding: 2.5em;
-							}
-
-							/*BUTTON*/
-							.btn {
-								padding: 10px 15px;
-								display: inline-block;
-							}
-							.btn.btn-primary {
-								border-radius: 5px;
-								background: #0b5ed7;
-								color: #ffffff;
-							}
-							.btn.btn-white {
-								border-radius: 5px;
-								background: #ffffff;
-								color: #000000;
-							}
-							.btn.btn-white-outline {
-								border-radius: 5px;
-								background: transparent;
-								border: 1px solid #fff;
-								color: #fff;
-							}
-							.btn.btn-black-outline {
-								border-radius: 0px;
-								background: transparent;
-								border: 2px solid #000;
-								color: #000;
-								font-weight: 700;
-							}
-							.btn-custom {
-								color: rgba(0, 0, 0, 0.3);
-								text-decoration: underline;
-							}
-
-							h1,
-							h2,
-							h3,
-							h4,
-							h5,
-							h6 {
-								font-family: 'Poppins', sans-serif;
-								color: #000000;
-								margin-top: 0;
-								font-weight: 400;
-							}
-
-							body {
-								font-family: 'Poppins', sans-serif;
-								font-weight: 400;
-								font-size: 15px;
-								line-height: 1.8;
-								color: rgba(0, 0, 0, 0.4);
-							}
-
-							a {
-								color: #0b5ed7;
-							}
-
-							table {
-							}
-							/*LOGO*/
-
-							.logo h1 {
-								margin: 0;
-							}
-							.logo h1 a {
-								color: #0b5ed7;
-								font-size: 24px;
-								font-weight: 700;
-								font-family: 'Poppins', sans-serif;
-							}
-
-							/*HERO*/
-							.hero {
-								position: relative;
-								z-index: 0;
-							}
-
-							.hero .text {
-								color: rgba(0, 0, 0, 0.8);
-							}
-							.hero .text h2 {
-								color: #000;
-								font-size: 34px;
-								margin-bottom: 0;
-								font-weight: 200;
-								line-height: 1.4;
-							}
-							.hero .text h3 {
-								font-size: 24px;
-								font-weight: 300;
-							}
-							.hero .text h2 span {
-								font-weight: 600;
-								color: #000;
-							}
-							.text-author {
-								border: 1px solid rgba(0, 0, 0, 0.05);
-								max-width: 50%;
-								margin: 0 auto;
-								padding: 2em;
-							}
-							.text-author img {
-								border-radius: 0%;
-								padding-bottom: 20px;
-							}
-							.text-author h3 {
-								margin-bottom: 0;
-							}
-							ul.social {
-								padding: 0;
-							}
-							ul.social li {
-								display: inline-block;
-								margin-right: 10px;
-							}
-							/*FOOTER*/
-							.footer {
-								border-top: 1px solid rgba(0, 0, 0, 0.05);
-								color: rgba(0, 0, 0, 0.5);
-							}
-							.footer .heading {
-								color: #000;
-								font-size: 20px;
-							}
-							.footer ul {
-								margin: 0;
-								padding: 0;
-							}
-							.footer ul li {
-								list-style: none;
-								margin-bottom: 10px;
-							}
-							.footer ul li a {
-								color: rgba(0, 0, 0, 1);
-							}
-							@media screen and (max-width: 500px) {
-							}
-						</style>
-					</head>
-					<body
-						width="100%"
-						style="
-							margin: 0;
-							padding: 0 !important;
-							mso-line-height-rule: exactly;
-							background-color: #f1f1f1;
-						"
-					>
-						<center style="width: 100%; background-color: #f1f1f1">
-							<div
-								style="
-									display: none;
-									font-size: 1px;
-									max-height: 0px;
-									max-width: 0px;
-									opacity: 0;
-									overflow: hidden;
-									mso-hide: all;
-									font-family: sans-serif;
-								"
-							>
-								&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
-							</div>
-							<div style="max-width: 600px; margin: 0 auto" class="email-container">
-								<table
-									align="center"
-									role="presentation"
-									cellspacing="0"
-									cellpadding="0"
-									border="0"
-									width="100%"
-									style="margin: auto"
-								>
-									<tr>
-										<td valign="top" class="bg_white" style="padding: 1em 2.5em 0 2.5em">
-											<table
-												role="presentation"
-												border="0"
-												cellpadding="0"
-												cellspacing="0"
-												width="100%"
-											>
-												<tr>
-													<td class="logo" style="text-align: center">
-														<img
-															src="https://riflessologiadienchan.it/wp-content/uploads/2025/06/Associazione_Dien_Chan_BQC_LOGO.png"
-															alt="logo"
-															style="
-																width: 300px;
-																max-width: 600px;
-																height: auto;
-																margin: auto;
-																display: block;
-															"
-														/>
-														<h1><a href="https://riflessologiadienchan.it/">Riflessologia Dienchan</a></h1>
-													</td>
-												</tr>
-											</table>
-										</td>
-									</tr>
-									<tr>
-										<td valign="middle" class="hero bg_white" style="padding: 2em 0 4em 0">
-											<table
-												role="presentation"
-												border="0"
-												cellpadding="0"
-												cellspacing="0"
-												width="100%"
-											>
-												<tr>
-													<td style="padding: 0 2.5em; text-align: center; padding-bottom: 3em">
-														<div class="text">
-															<h2>Ciao ${name} ${surname},</h2>
-															<h4>Il tuo Ordine ${orderId} è Confermato! 🎉</h4>
-															<p>
-																Grazie mille per il tuo recente acquisto su Riflessologia Dienchan! Siamo
-																felici che tu abbia scelto noi.
-															</p>
-															<p>
-																Il tuo ordine ${orderId} è stato confermato con successo e lo
-																stiamo preparando. Riceverai un'altra email di notifica non appena il tuo
-																pacco sarà spedito, con i dettagli per tracciare la consegna.
-															</p>
-
-															<h4 style="margin-top: 2em; color: #000;">Riepilogo del tuo ordine:</h4>
-															<ul style="list-style: none; padding: 0; margin: 1em 0;">
-																<li style="margin-bottom: 0.5em;"><strong>Numero d'ordine:</strong> #${orderId}</li>
-																<li style="margin-bottom: 0.5em;"><strong>Data dell'ordine:</strong> ${createdAt.substring(0, 10)}</li>
-																<li style="margin-bottom: 0.5em;"><strong>Totale ordine:</strong> ${totalValue.toFixed(2)}€</li><li style="margin-bottom: 0.5em;"><strong>Metodo di pagamento:</strong> ${payment.method}</li>
-															</ul>
-
-															<h4 style="margin-top: 2em; color: #000;">Prodotti acquistati:</h4>
-															<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 1em; border-collapse: collapse;">
-																<thead style="background-color: #f7fafa;">
-																	<tr>
-																		<th style="padding: 8px; border: 1px solid #ddd; text-align: left; color: #000;">Prodotto</th>
-																		<th style="padding: 8px; border: 1px solid #ddd; text-align: right; color: #000;">Quantità</th>
-																		<th style="padding: 8px; border: 1px solid #ddd; text-align: right; color: #000;">Prezzo</th>
-																	</tr>
-																</thead>
-																<tbody>
-																	${type === 'course' ?
+        /* Responsive Styles */
+        @media screen and (max-width: 500px) {
+            .email-container { width: 100% !important; }
+            .hero .main-title { font-size: 18px !important; }
+            .hero .subtitle { font-size: 16px !important; }
+            .padding-x-lg { padding-left: 1.5em; padding-right: 1.5em; } /* Adjust padding for smaller screens */
+        }
+    </style>
+</head>
+<body style="mso-line-height-rule: exactly;">
+    <center style="width: 100%; background-color: #ffffff; padding: 1em;">
+        <div class="email-container">
+            <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="main-table">
+                <tr>
+                    <td valign="top" class="bg_white text-center padding-top-sm padding-x-lg">
+                        <a href="https://associazione.riflessologiadienchan.it" class="logo-link">
+                            <img src="https://riflessologiadienchan.it/wp-content/uploads/2025/06/Associazione_Dien_Chan_BQC_LOGO.png" alt="logo" class="logo-img">
+                            <h2>Ciao ${name} ${surname},</h2>
+                            <h1 class="logo-title">Il tuo Ordine ${orderId} è Confermato! 🎉</h1>
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="top" class="hero bg_white padding-bottom-md padding-x-lg">
+                        <h2 class="main-title">Il tuo ordine ${orderId} è stato confermato con successo e lo stiamo preparando.</h2>
+                        <h4 class="subtitle">Riepilogo del tuo ordine:</h4>
+                        <ul>
+                            <li><strong>Numero d'ordine:</strong> #${orderId}</li>
+                            <li><strong>Data dell'ordine:</strong> ${createdAt.substring(0, 10)}</li>
+                            <li><strong>Totale ordine:</strong> ${totalValue.toFixed(2)}€</li>
+                            <li style="margin-bottom: 0.5em;"><strong>Metodo di pagamento:</strong> ${payment.method}</li>
+                        </ul>
+                        <h4 class="margin-top-lg text-black">Prodotti acquistati:</h4>
+                        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="margin-bottom-sm">
+                            <tr>
+                                <th class="table-cell-style text-left">Prodotto</th>
+                                <th class="table-cell-style text-right">Quantità</th>
+                                <th class="table-cell-style text-right">Prezzo</th>
+                            </tr>
+                            ${type === 'course' ?
 						cart
 							.map(
 								(item) => `
-																															<tr>
-																																<td style="padding: 8px; border: 1px solid #ddd; text-align: left; color: #000;">${item.type == 'course' ? item.layoutView.title : item.title}</td>
-																																<td style="padding: 8px; border: 1px solid #ddd; text-align: right; color: #000;">${item.orderQuantity || 1}</td>
-																																<td style="padding: 8px; border: 1px solid #ddd; text-align: right; color: #000;"></td>
-																															</tr>
-																														`
+                                            <tr>
+                                                <td class="table-cell-style text-left">${item.type == 'course' ? item.layoutView.title : item.title}</td>
+                                                <td class="table-cell-style text-right">${item.orderQuantity || 1}</td>
+                                                <td class="table-cell-style text-right"></td>
+                                            </tr>
+                                        `
 							).join('')
 						:
 						cart
 							.map(
 								(item) => `
-																			<tr>
-																				<td style="padding: 8px; border: 1px solid #ddd; text-align: left; color: #000;">${item.type == 'course' ? item.layoutView.title : item.title}</td>
-																				<td style="padding: 8px; border: 1px solid #ddd; text-align: right; color: #000;">${item.orderQuantity || 1}</td>
-																				<td style="padding: 8px; border: 1px solid #ddd; text-align: right; color: #000;">${item.price.toFixed(2)}€</td>
-																			</tr>
-																		`
+                                            <tr>
+                                                <td class="table-cell-style text-left">${item.type == 'course' ? item.layoutView.title : item.title}</td>
+                                                <td class="table-cell-style text-right">${item.orderQuantity || 1}</td>
+                                                <td class="table-cell-style text-right">${item.price.toFixed(2)}€</td>
+                                            </tr>
+                                        `
 							).join('')
 					}
-																	</tbody>
-																<tfoot>
-																	<tr>
-																		<td colspan="2" style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold; color: #000;">Totale</td>
-																		<td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold; color: #000;">${totalValue.toFixed(2)}€</td}</td>
-																	</tr>
-																</tfoot>
-															</table>
+                            <tr>
+                                <td colspan="2" class="table-cell-style text-right font-bold">Spedizione</td>
+                                <td class="table-cell-style text-right font-bold">${(totalValue - 9) < 100 ? '9.00 €' : 'Gratuita'}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="table-cell-style text-right font-bold">Sconti</td>
+                                <td class="table-cell-style text-right font-bold">${totalDiscount > 0 ? totalDiscount.toFixed(2) : '0'} €</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="table-cell-style text-right font-bold">Totale</td>
+                                <td class="table-cell-style text-right font-bold">${totalValue.toFixed(2)} €</td>
+                            </tr>
+                        </table>
 
-															<h4 style="margin-top: 2em; color: #000;">Indirizzo di spedizione:</h4>
-															<ul style="list-style: none; padding: 0; margin: 1em 0;">
-																<li style="margin-bottom: 0.5em;">${name} ${surname}</li>
-																<li style="margin-bottom: 0.5em;">${address}</li>
-																<li style="margin-bottom: 0.5em;">${postalCode} ${city} ${county}</li>
-																<li style="margin-bottom: 0.5em;">${country}</li>
-															</ul>
+                        <h4 class="margin-top-lg text-black">Indirizzo di spedizione:</h4>
+                        <ul class="list-address">
+                            <li style="margin-bottom: 0.5em;">${name} ${surname}</li>
+                            <li style="margin-bottom: 0.5em;">${address}</li>
+                            <li style="margin-bottom: 0.5em;">${postalCode} ${city} ${county}</li>
+                            <li style="margin-bottom: 0.5em;">${country}</li>
+                        </ul>
 
-															<h4 style="margin-top: 2em; color: #000;">Metodo di pagamento:</h4>
-															<p style="margin-top: 0.5em;">${payment.method}</p>
-															${payment.method === 'Bonifico bancario' ?
-						`<p style="margin-top: 0.5em;">L'evasione dell'ordine verrà effettuata dopo la ricezione del pagamento a queste COORDINATE BANCARIE <br />
-																	IBAN: IT93 R076 0111 5000 0102 3646 647 <br />
-																	BIC/SWIFT: BPPIITRRXXX <br />
-																	INTESTATO A: ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia <br />
-																	VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA <br />
-																</p>`
+                        <h4 class="margin-top-lg text-black">Metodo di pagamento:</h4>
+                        <p style="margin-top: 0.5em;">${payment.method}</p>
+                        ${payment.method === 'Bonifico bancario' ?
+						`<p style="margin-top: 0.5em;">L'evasione dell'ordine verrà effettuata dopo la ricezione del pagamento a queste COORDINATE BANCARIE <br />
+                            IBAN: IT93 R076 0111 5000 0102 3646 647 <br />
+                            BIC/SWIFT: BPPIITRRXXX <br />
+                            INTESTATO A: ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia <br />
+                            VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA <br />
+                        </p>`
 						: ''}
 
-															<p style="margin-top: 2em;">
-																Puoi visualizzare i dettagli completi del tuo ordine in qualsiasi momento
-																accedendo alla tua area personale:
-															</p>
-															<p>
-																<a href="${'#'}" class="btn btn-primary">
-																	Visualizza il mio Ordine
-																</a>
-															</p>
-															<p style="margin-top: 2em;">
-																Se hai domande o hai bisogno di assistenza, non esitare a contattarci
-																rispondendo a questa email o visitando la nostra pagina
-																<a href="${'#'}" style="color: #0b5ed7;">Contatti</a>.
-															</p>
-															<p>Ti ringraziamo ancora per la fiducia. Non vediamo l'ora che tu riceva i tuoi nuovi articoli!</p>
-															<p>A presto,</p>
-															<p>Il team di Riflessologia Dienchan</p>
-															<p><a href="https://riflessologiadienchan.it/" style="color: #0b5ed7;">https://riflessologiadienchan.it/</a></p>
-														</div>
-													</td>
-												</tr>
-											</table>
-										</td>
-									</tr>
-									</table>
-							</div>
-						</center>
-					</body>
-				</html>
+                        <p class="margin-top-lg">
+                            Puoi visualizzare i dettagli completi del tuo ordine in qualsiasi momento
+                            accedendo alla tua area personale
+                        </p>
+                        <h4 class="subtitle">A presto,</h4>
+                        <p class="paragraph">Il team di Riflessologia Dienchan</p>
+                        <p class="paragraph"><a href="https://riflessologiadienchan.it/">https://riflessologiadienchan.it/</a></p>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </center>
+</body>
+</html>
 				` // html body
 				// html: `<p>Dear user ${body.email},</p>
 				// <p>we received your password reset request</p>

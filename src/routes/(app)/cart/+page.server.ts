@@ -95,8 +95,8 @@ export const actions: Actions = {
 		const cartItem = JSON.parse(String(cart)) || null;
 		const discountItem = JSON.parse(String(discountList)) || null;
 		const discountArray: string[] = JSON.parse(discountList || '[]').map(item => item.code);
-		// console.log('discountItem', discountItem);
-		// return { action: 'new', success: false, message: discountItem };
+		// console.log('cartItem', cartItem);
+		// return { action: 'new', success: cartItem, message: JSON.stringify(cartItem) };
 
 		// Calculate total cart on server anche for security
 		const cartRecalculated = () => {
@@ -332,6 +332,36 @@ export const actions: Actions = {
 			if (!mailRes.ok) {
 				console.error('Mail sending failed:', await mailRes.text());
 			}
+
+			const updateQty = cartItem.map(async (item) => {
+				const updateQtyRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'product',
+						query: { prodId: item.prodId },
+						update: {
+							$inc: {
+								stockQty: -item.orderQuantity
+							}
+						},
+						options: { upsert: false },
+						multi: false
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+
+				if (!updateQtyRes.ok) {
+					const errorData = await updateQtyRes.json();
+					console.error(`Failed to update prodId ${item.prodId}:`, errorData);
+					throw new Error(`Failed to update stock for ${item.prodId}`); // return fail do not stop the map and don't trigger try/catch
+				}
+				return updateQtyRes.json();
+			});
+
+			await Promise.all(updateQty);
 
 			if (discountArray.length > 0) {
 				// Calc discount points for user
