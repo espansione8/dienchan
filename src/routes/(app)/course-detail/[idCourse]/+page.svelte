@@ -2,12 +2,14 @@
 	import type { ActionResult } from '@sveltejs/kit';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { enhance } from '$app/forms';
+	import { onMount } from 'svelte';
 	import { Image } from '@unpic/svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import { notification } from '$lib/stores/notifications';
 	import Loader from '$lib/components/Loader.svelte';
 	import { imgCheck } from '$lib/tools/tools';
 	import { country_list, province } from '$lib/stores/arrays.js';
+	import { loadStripe, type Stripe, type StripeElements } from '@stripe/stripe-js';
 	import {
 		Lock,
 		Tag,
@@ -26,8 +28,15 @@
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { getCourse, formatoreData, auth, userData, bundleProducts } = data;
-	console.log('bundleProducts', bundleProducts);
+	const { getCourse, formatoreData, auth, userData, bundleProducts, stripePublishableKey } = data;
+	//console.log('bundleProducts', bundleProducts);
+
+	// Stripe state
+	let stripe: Stripe | null = $state(null);
+	let elements: StripeElements | null = $state(null);
+	let cardElement: any;
+	let stripeError = $state<string | null>(null);
+	let paymentMethodId = $state<string | null>(null);
 
 	// discount
 	let discountCode = $state('');
@@ -70,20 +79,6 @@
 		closedInput = true;
 	}
 
-	// let formData = $state({
-	// 	name: formatoreData?.name || '',
-	// 	surname: formatoreData?.surname || '',
-	// 	email: formatoreData?.email || '',
-	// 	address: formatoreData?.address || '',
-	// 	city: formatoreData?.city || '',
-	// 	county: formatoreData?.county || '',
-	// 	postalCode: formatoreData?.postalCode || '',
-	// 	country: formatoreData?.country || 'Italy',
-	// 	phone: formatoreData?.phone || '',
-	// 	mobilePhone: formatoreData?.mobilePhone || '',
-	// 	payment: 'Bonifico bancario'
-	// });
-
 	let formData = $state({
 		name: userData?.name || '',
 		surname: userData?.surname || '',
@@ -95,7 +90,8 @@
 		country: userData?.country || 'Italy',
 		phone: userData?.phone || '',
 		mobilePhone: userData?.mobilePhone || '',
-		payment: 'Bonifico bancario'
+		payment: 'Carta di credito',
+		currentStep: 1
 	});
 
 	let password1: string = $state('');
@@ -113,6 +109,59 @@
 	let totalSteps = $state(3);
 	let passwordsMatch = $state(true);
 
+	const initializeStripe = async () => {
+		if (!stripePublishableKey) {
+			stripeError = 'La chiave pubblica di Stripe non è disponibile.';
+			return;
+		}
+
+		try {
+			if (!stripe) {
+				stripe = await loadStripe(stripePublishableKey);
+			}
+
+			if (stripe) {
+				if (!elements) {
+					elements = stripe.elements();
+				}
+				cardElement = elements.create('card', {
+					hidePostalCode: true,
+					style: {
+						base: {
+							fontSize: '16px',
+							color: '#424770',
+							'::placeholder': {
+								color: '#aab7c4'
+							}
+						},
+						invalid: {
+							color: '#9e2146'
+						}
+					}
+				});
+
+				// IMPORTANT: element DOM must be in the HTML
+				const cardElementContainer = document.getElementById('card-element');
+				if (cardElementContainer) {
+					cardElement.mount(cardElementContainer);
+					stripeError = null;
+					//console.log('Stripe Card Element montato con successo.');
+				} else {
+					console.error(
+						"ERRORE: Elemento '#card-element' non trovato nel DOM per il montaggio di Stripe."
+					);
+					stripeError =
+						"Si è verificato un errore durante l'inizializzazione del pagamento. Riprova.";
+				}
+			} else {
+				stripeError = 'Impossibile caricare Stripe. Riprova più tardi.';
+			}
+		} catch (e: any) {
+			console.error("Errore durante l'inizializzazione di Stripe:", e);
+			stripeError = `Errore di inizializzazione: ${e.message || 'Errore sconosciuto'}`;
+		}
+	};
+
 	const resetFields = () => {
 		formData.name = userData?.name || '';
 		formData.surname = userData?.surname || '';
@@ -124,17 +173,7 @@
 		formData.country = userData?.country || 'Italy';
 		formData.phone = userData?.phone || '';
 		formData.mobilePhone = userData?.mobilePhone || '';
-		// formData.name = formatoreData?.name || '';
-		// formData.surname = formatoreData?.surname || '';
-		// formData.email = formatoreData?.email || '';
-		// formData.address = formatoreData?.address || '';
-		// formData.city = formatoreData?.city || '';
-		// formData.county = formatoreData?.county || '';
-		// formData.postalCode = formatoreData?.postalCode || '';
-		// formData.country = formatoreData?.country || 'Italy';
-		// formData.phone = formatoreData?.phone || '';
-		// formData.mobilePhone = formatoreData?.mobilePhone || '';
-		formData.payment = 'Bonifico bancario';
+		formData.payment = 'Carta di credito';
 		password1 = '';
 		password2 = '';
 	};
@@ -220,6 +259,7 @@
 	const onClickModal = (type: string, item: any) => {
 		currentModal = type;
 		openModal = true;
+		initializeStripe();
 		if (type == 'new') {
 			postAction = `?/new`;
 			modalTitle = 'Acquista il Corso';
@@ -230,6 +270,59 @@
 		openModal = false;
 		resetFields();
 		currentModal = '';
+		if (cardElement) {
+			cardElement.destroy();
+			cardElement = null;
+			elements = null;
+			stripe = null;
+		}
+	};
+
+	const getStripeId = async () => {
+		if (formData.payment === 'Carta di credito' && currentStep === totalSteps) {
+			stripeError = null;
+
+			if (!stripe || !elements || !cardElement) {
+				stripeError = 'Stripe non è stato inizializzato correttamente. Riprova.';
+				notification.error(stripeError);
+				loading = false;
+			}
+
+			// get PaymentMethod  Stripe.js
+			const { paymentMethod, error } = await stripe.createPaymentMethod({
+				type: 'card',
+				card: cardElement,
+				billing_details: {
+					name: `${userData?.name || 'nome'} ${userData?.surname || 'cognome'}`,
+					email: userData?.email || 'email@example.com',
+					phone: formData.phone,
+					address: {
+						city: formData.city,
+						country: formData.country === 'Italy' ? 'IT' : formData.country,
+						line1: formData.address,
+						postal_code: formData.postalCode,
+						state: formData.county
+					}
+				}
+			});
+
+			if (error) {
+				stripeError = error.message;
+				notification.error(stripeError);
+				console.error('Stripe.js error:', error);
+				loading = false;
+			}
+
+			if (paymentMethod) {
+				paymentMethodId = paymentMethod.id;
+				//alert(`paymentMethodId created: ${paymentMethod.id}`);
+			} else {
+				// Edge case: no error but also no paymentMethod (shouldn't happen with Stripe API)
+				stripeError = 'Impossibile creare il metodo di pagamento. Riprova.';
+				notification.error(stripeError);
+				loading = false;
+			}
+		}
 	};
 
 	const formSubmit = () => {
@@ -416,7 +509,7 @@
 									<form method="POST" action="?/applyDiscount" use:enhance={formSubmit}>
 										<label class="form-control">
 											<div class="label">
-												<span class="label-text font-medium">Codice sconto</span>
+												<span class="label-text font-medium">Codice sconto / Email amico</span>
 											</div>
 											<div class="flex gap-2">
 												<input
@@ -519,10 +612,10 @@
 								<p class="mt-6">
 									Pertanto per qualunque attività è richiesta innanzitutto l'iscrizione e/o il
 									rinnovo della Quota ordinaria di € 25,00 Questo da diritto di partecipare alle
-									attività gratuite come, per esempio, il CORSO BASE DI AUTOTRATTAMENTO oppure al
-									CORSO AVANZATO INTENSIVO DI APPROFONDIMENTO RISERVATI AI SOCI, L'ASSOCIAZIONE NON
-									FA ATTIVITA' COMMERCIALI, distribuisce esclusivamente materiale didattico
-									necessario ai suoi Associati al fine della pratica della Riflessologia facciale.
+									attività come, per esempio, il CORSO BASE DI AUTOTRATTAMENTO oppure al CORSO
+									AVANZATO INTENSIVO DI APPROFONDIMENTO, L'ASSOCIAZIONE NON FA ATTIVITA'
+									COMMERCIALI, distribuisce esclusivamente materiale didattico necessario ai suoi
+									Associati al fine della pratica della Riflessologia facciale.
 								</p>
 								<p class="mt-4">
 									Per i Soci che desiderano iscriversi a entrambi i corsi Base e Avanzato, è
@@ -689,6 +782,8 @@
 		{#if loading}
 			<Loader />
 		{/if}
+
+		<!-- check -->
 		<form method="POST" action={postAction} use:enhance={formSubmit} class="px-6 pb-6">
 			<div class="px-6 pt-4">
 				<div class="w-full flex justify-between mb-2">
@@ -716,6 +811,7 @@
 					{/each}
 				</div>
 			</div>
+
 			<!-- Step 1 -->
 			<div class={currentStep === 1 ? 'block' : 'hidden'}>
 				<div class="card bg-base-100 shadow-sm border border-base-200 p-4 rounded-lg mt-4">
@@ -1049,6 +1145,51 @@
 						</label>
 					</div>
 
+					<div
+						class="card bg-base-100 shadow-xl p-6"
+						class:hidden={formData.payment !== 'Carta di credito'}
+					>
+						<h3 class="text-xl font-semibold mb-4">Informazioni sulla carta di credito</h3>
+						<div class="form-control">
+							<div id="card-element" class="border border-base-300 p-3 rounded-md"></div>
+							{#if stripeError}
+								<p class="text-error text-sm mt-2">{stripeError}</p>
+							{/if}
+						</div>
+						<p class="text-sm text-gray-500 mt-2">
+							<Lock size={14} class="inline-block mr-1" /> Le tue informazioni di pagamento sono protette.
+						</p>
+						{#if !paymentMethodId}
+							<button type="button" class="btn btn-info mt-4" onclick={getStripeId}
+								>VERIFICA CARTA
+							</button>
+						{:else}
+							<div class="btn btn-primary mt-4">CARTA OK <CheckCircle /></div>
+						{/if}
+					</div>
+
+					{#if formData.payment === 'Bonifico bancario'}
+						<div class="card bg-base-100 shadow-xl p-6">
+							<h3 class="text-xl font-semibold mb-4">Dettagli Bonifico Bancario</h3>
+							<p>Effettua un bonifico bancario alle seguenti coordinate:</p>
+							<p><strong>IBAN:</strong> IT93 R076 0111 5000 0102 3646 647</p>
+							<p><strong>BIC/SWIFT:</strong> BPPIITRRXXX</p>
+							<p><strong>INTESTATO A:</strong> ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia</p>
+							<p>VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA</p>
+							<br />
+							<p>
+								Si prega di includere il tuo ID ordine nella causale del bonifico. Il tuo ordine
+								sarà elaborato dopo la conferma del pagamento.
+							</p>
+						</div>
+					{/if}
+
+					{#if formData.payment === 'Contanti'}
+						<div class="card bg-base-100 shadow-xl p-6">
+							<h3 class="text-xl font-semibold mb-4">Da consegnare ad inizio corso</h3>
+						</div>
+					{/if}
+
 					<!-- Summary -->
 					<div class="card bg-base-200 p-4 rounded-lg">
 						<h3 class="font-bold text-lg mb-2">Riepilogo Ordine</h3>
@@ -1091,6 +1232,10 @@
 				<input type="hidden" name="cart" value={JSON.stringify(getCourse)} />
 				<input type="hidden" name="bundleProducts" value={JSON.stringify(bundleProducts)} />
 				<input type="hidden" name="totalDiscount" value={totalDiscount()} />
+
+				{#if paymentMethodId}
+					<input type="hidden" name="paymentMethodId" value={paymentMethodId} />
+				{/if}
 			</div>
 
 			<!-- Navigation -->

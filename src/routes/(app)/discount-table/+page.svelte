@@ -340,7 +340,18 @@
 									bind:group={typeDiscount}
 									checked
 								/>
-								<span>Sconto Normale</span>
+								<span>Sconto in Percentuale</span>
+							</label>
+							<label class="flex items-center cursor-pointer">
+								<input
+									type="radio"
+									name="type"
+									value="amount"
+									class="radio radio-primary mr-2"
+									bind:group={typeDiscount}
+									checked
+								/>
+								<span>Sconto valore fisso</span>
 							</label>
 							<label class="flex items-center cursor-pointer">
 								<input
@@ -419,99 +430,6 @@
 							/>
 						</div>
 					</section>
-
-					<!-- <section class="col-span-4">
-						<div class="flex flex-col sm:flex-row sm:flex-wrap gap-4">
-							<label for="categoria" class="form-label">
-								<p class="font-bold mb-2 label">Categoria:</p>
-							</label>
-							<label class="flex items-center">
-								<input
-									type="radio"
-									name="applicability"
-									value="user"
-									class="radio radio-primary mr-2"
-									bind:group={selectedApplicability}
-								/>
-								<span>Email utente</span>
-							</label>
-							<label class="flex items-center">
-								<input
-									type="radio"
-									name="applicability"
-									value="refDiscount"
-									class="radio radio-primary mr-2"
-									bind:group={selectedApplicability}
-								/>
-								<span>Ref sconto</span>
-							</label>
-							<label class="flex items-center">
-								<input
-									type="radio"
-									name="applicability"
-									value="membershipLevel"
-									class="radio radio-primary mr-2"
-									bind:group={selectedApplicability}
-								/>
-								<span>Membership</span>
-							</label>
-							<label class="flex items-center">
-								<input
-									type="radio"
-									name="applicability"
-									value="prodId"
-									class="radio radio-primary mr-2"
-									bind:group={selectedApplicability}
-								/>
-								<span>Prodotto</span>
-							</label>
-							<label class="flex items-center">
-								<input
-									type="radio"
-									name="applicability"
-									value="layoutId"
-									class="radio radio-primary mr-2"
-									bind:group={selectedApplicability}
-								/>
-								<span>Tipo Corso</span>
-							</label>
-						</div>
-						<div class="mt-2">
-							{#if selectedApplicability == 'user'}
-								<input
-									type="text"
-									name="selectId"
-									class="input w-full"
-									placeholder="Inserisci EMAIL utente"
-									bind:value={selectedId}
-								/>
-							{:else if selectedApplicability == 'membershipLevel'}
-								<select name="selectId" bind:value={selectedId} class="select w-full">
-									<option value="">Seleziona il livello associato</option>
-									<option value="Socio inattivo">Socio inattivo</option>
-									<option value="Socio ordinario">Socio ordinario</option>
-									<option value="Socio sostenitore">Socio sostenitore</option>
-									<option value="Socio vitalizio">Socio vitalizio</option>
-									<option value="Socio contributore">Socio contributore</option>
-									<option value="Master Dien Chan">Master Dien Chan</option>
-								</select>
-							{:else if selectedApplicability == 'prodId'}
-								<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full">
-									<option value="">Scegli prodotto</option>
-									{#each getProduct as option}
-										<option value={option.prodId}>{option.title}</option>
-									{/each}
-								</select>
-							{:else if selectedApplicability == 'layoutId'}
-								<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full">
-									<option value="">Scegli un tipo</option>
-									{#each getLayout as option}
-										<option value={option.layoutId}>{option.title}</option>
-									{/each}
-								</select>
-							{/if}
-						</div>
-					</section> -->
 
 					<section class="col-span-4">
 						<label for="categoria" class="form-label">

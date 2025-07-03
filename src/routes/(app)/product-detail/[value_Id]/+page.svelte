@@ -157,7 +157,9 @@
 				<div class="alert bg-primary/10 text-primary-focus border-none">
 					<CircleCheck size="20" />
 					<div>
-						<h3 class="font-bold">Spedizioni gratuite per ordini superiori a € 100</h3>
+						<h3 class="font-bold">
+							Spedizioni gratuite per ordini superiori a € 100 (escluso spese di spedizione)
+						</h3>
 						<div class="text-xs">
 							Ordini saranno evasi ogni settimana nei giorni lavorativi il Lunedi e Giovedi.
 						</div>

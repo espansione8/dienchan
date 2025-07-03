@@ -334,7 +334,7 @@
 								onclick={() => onClickModal('reset-password', null)}
 							>
 								<Shield size={18} />
-								Reset password
+								Cambia password
 							</button>
 						</div>
 					</div>

@@ -218,7 +218,7 @@
 
 				<div class="flex items-center gap-2">
 					<CreditCard size={16} class="text-success" />
-					<span>Crediti: <strong class="text-success">{pointsBalance}</strong></span>
+					<span>Punti: <strong class="text-success">{pointsBalance}</strong></span>
 				</div>
 			</div>
 		</div>

@@ -48,7 +48,7 @@ const calculateItemDiscount = (
 				totalDiscount += itemDiscount;
 			}
 		});
-	} else if (selectedApplicability === 'userId' || selectedApplicability === 'membershipLevel') {
+	} else if (selectedApplicability === 'email' || selectedApplicability === 'membershipLevel') {
 		// User-level discounts
 		if (type === 'amount') {
 			totalDiscount = value;
@@ -95,8 +95,9 @@ export const actions: Actions = {
 		const cartItem = JSON.parse(String(cart)) || null;
 		const discountItem = JSON.parse(String(discountList)) || null;
 		const discountArray: string[] = JSON.parse(discountList || '[]').map(item => item.code);
-		// console.log('cartItem', cartItem);
-		// return { action: 'new', success: cartItem, message: JSON.stringify(cartItem) };
+		const newPointsBalance = Number(formData.get('newPointsBalance'));
+		const usedPoints = Number(formData.get('usedPoints'));
+		const usePoint = formData.get('usePoint') === 'true' // 'true' make it boolean
 
 		// Calculate total cart on server anche for security
 		const cartRecalculated = () => {
@@ -113,7 +114,10 @@ export const actions: Actions = {
 		};
 		const totalDiscount = discountItem.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0)
 
-		const recalculatedTotal = cartRecalculated() - totalDiscount;
+		let recalculatedTotal = cartRecalculated() - totalDiscount;
+		if (usePoint) {
+			recalculatedTotal -= usedPoints;
+		}
 		if (Number(totalValue) !== recalculatedTotal) {
 			return fail(400, { action: 'new', success: false, message: 'Totale non valido' });
 		}
@@ -131,7 +135,7 @@ export const actions: Actions = {
 		});
 
 		//const file = formData.get('image') || '';
-		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
+		console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue, cartItem);
 		let currentUserId: string = locals.user?.userId ?? '';
 
 		if (!locals.auth) {
@@ -143,7 +147,7 @@ export const actions: Actions = {
 			}
 		}
 
-		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || !cart) {
+		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || cartItem.length < 1) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
 
@@ -423,6 +427,42 @@ export const actions: Actions = {
 				}
 			}
 
+			if (usePoint) {
+				if (newPointsBalance < 0) {
+					return fail(400, { action: 'new', success: false, message: 'Saldo punti insufficiente' });
+				}
+				const updatePoint = await fetch(`${BASE_URL}/api/mongo/update`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'user', //product | order | user | layout | discount
+						query: { userId: currentUserId },
+						update: {
+							$set: {
+								pointsBalance: Math.round(newPointsBalance)
+							},
+							$push: {
+								pointsHistory: {
+									points: -usedPoints,
+									note: `punti utilizzati per ordine: ${orderId}`
+								}
+							}
+						},
+						options: { upsert: false },
+						multi: false
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+				if (!updatePoint.ok) {
+					const errorText = await updatePoint.text();
+					console.error('user points update failed', updatePoint.status, errorText);
+					return fail(400, { action: 'new: update points balance', success: false, message: errorText });
+				}
+			}
+
+
 			if (locals.auth) {
 				return { action: 'new', success: true, message: "L'ordine è stato inviato. Controlla lo storico nel tuo profilo", payload: { redirect: false } };
 			} else {
@@ -519,8 +559,8 @@ export const actions: Actions = {
 				const { selectedApplicability } = discount;
 
 				switch (selectedApplicability) {
-					case 'userId':
-						return discount.userId === user?.userId;
+					case 'email':
+						return discount.email === user?.email;
 
 					case 'membershipLevel':
 						return discount.membershipLevel === user?.membership?.membershipLevel;

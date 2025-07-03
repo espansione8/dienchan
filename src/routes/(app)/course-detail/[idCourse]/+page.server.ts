@@ -1,12 +1,18 @@
-import type { PageServerLoad, Actions } from './$types'
+import type { PageServerLoad, Actions } from './$types';
 import type { CartItem, DiscountItem } from '$lib/types';
-import { BASE_URL, APIKEY, SALT } from '$env/static/private';
+import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK } from '$env/static/private';
 import { error, fail } from '@sveltejs/kit';
 import { hash } from '$lib/tools/hash';
-import { customAlphabet } from 'nanoid'
-const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
+import { customAlphabet } from 'nanoid';
+import Stripe from 'stripe';
+const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12);
+const stripe = new Stripe(STRIPE_KEY_BACK, {
+	apiVersion: '2025-06-30.basil' // Use a stable API version
+});
 
 export const load: PageServerLoad = async ({ fetch, locals, params }) => {
+	//console.log('stripe:', STRIPE_KEY_FRONT);
+
 	let getCourse = [];
 	let formatoreData = [];
 	//let kitProducts = [];
@@ -20,27 +26,29 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 			projection: { _id: 0 }, // 0: exclude | 1: include
 			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
 			limit: 1,
-			skip: 0,
+			skip: 0
 		}),
 		headers: {
 			'Content-Type': 'application/json'
-		},
+		}
 	});
-	const userFetch = (id: string) => fetch(`${BASE_URL}/api/mongo/find`, {
-		method: 'POST',
-		body: JSON.stringify({
-			apiKey: APIKEY,
-			schema: 'user', //product | order | user | layout | discount
-			query: { userId: id }, //IF USE Products.model -> types: course / product / membership / event
-			projection: { _id: 0, password: 0 }, // 0: exclude | 1: include
-			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
-			limit: 1,
-			skip: 0,
-		}),
-		headers: {
-			'Content-Type': 'application/json'
-		},
-	});
+
+	const userFetch = (id: string) =>
+		fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { userId: id }, //IF USE Products.model -> types: course / product / membership / event
+				projection: { _id: 0, password: 0 }, // 0: exclude | 1: include
+				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				limit: 1,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 
 	// const kitFetch = (kitProducts: Array<string>) => fetch(`${BASE_URL}/api/mongo/find`, {
 	// 	method: 'POST',
@@ -60,31 +68,36 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 
 	try {
 		const courseRes = await courseFetch;
+		// 
 		if (!courseRes.ok) {
 			console.error('course fetch failed', courseRes.status, await courseRes.text());
 			throw error(400, 'course fetch failed');
 		}
 		getCourse = await courseRes.json();
+		// 
 		getCourse = getCourse.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10)
 		}));
 
 		// const kitRes = await kitFetch(getCourse[0].bundleProducts);
+		// 
 		// if (!kitRes.ok) {
 		// 	console.error('kit fetch failed', kitRes.status, await kitRes.text());
 		// 	throw error(400, 'kit fetch failed');
+		// 
 		// }
 		// kitProducts = await kitRes.json();
 		// console.log('kitProducts', kitProducts);
 
 		const userRes = await userFetch(getCourse[0].userId);
+		// 
 		if (!userRes.ok) {
 			console.error('user fetch failed', userRes.status, await userRes.text());
 			throw error(400, 'user fetch failed');
 		}
 		formatoreData = await userRes.json();
-
+		// 
 	} catch (error) {
 		console.log('getCourse fetch error:', error);
 		throw error(500, 'Server error');
@@ -93,30 +106,32 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 	return {
 		getCourse: getCourse[0],
 		formatoreData: formatoreData[0] ?? null,
+		// 
 		auth: locals.auth,
 		userData: locals.user,
-		bundleProducts: getCourse[0].layoutView?.bundleProducts ?? []
+		bundleProducts: getCourse[0].layoutView?.bundleProducts ?? [],
+		stripePublishableKey: STRIPE_KEY_FRONT
 	};
-}
-// calculate discount for a single item used in applyDiscount/removeDiscount 
+};
+// calculate discount for a single item used in applyDiscount/removeDiscount
 const calculateItemDiscount = (
 	discount: DiscountItem,
 	cartArray: CartItem[],
 	originalTotal: number
 ): number => {
 	const { type, value, selectedApplicability } = discount;
+	// 
 	let totalDiscount = 0;
 
 	if (selectedApplicability === 'prodId' || selectedApplicability === 'layoutId') {
 		cartArray.forEach((item: CartItem) => {
 			const isProduct = selectedApplicability === 'prodId' && item.prodId === discount.prodId;
-			const isLayout = selectedApplicability === 'layoutId' && item.layoutView?.layoutId === discount.layoutId;
+			const isLayout =
+				selectedApplicability === 'layoutId' && item.layoutView?.layoutId === discount.layoutId;
 
 			if (isProduct || isLayout) {
 				const qty =
-					typeof item.orderQuantity === 'number' && item.orderQuantity > 0
-						? item.orderQuantity
-						: 1;
+					typeof item.orderQuantity === 'number' && item.orderQuantity > 0 ? item.orderQuantity : 1;
 				let itemDiscount = 0;
 				if (type === 'amount') {
 					itemDiscount = value * qty;
@@ -132,65 +147,68 @@ const calculateItemDiscount = (
 				totalDiscount += itemDiscount;
 			}
 		});
-	} else if (selectedApplicability === 'userId' || selectedApplicability === 'membershipLevel') {
+		// 
+	} else if (selectedApplicability === 'email' || selectedApplicability === 'membershipLevel') {
 		// User-level discounts
 		if (type === 'amount') {
 			totalDiscount = value;
+			// 
 		} else if (type === 'percent') {
 			totalDiscount = (originalTotal * value) / 100;
 		}
+		// 
 	}
 	// else if (selectedApplicability === 'cart') {
 	// 	// Cart-level discounts
 	// 	if (type === 'amount') {
 	// 		totalDiscount = value;
+	// 
 	// 	} else if (type === 'percent') {
 	// 		totalDiscount = (originalTotal * value) / 100;
 	// 	}
 
 	return totalDiscount;
 };
-
+// 
 export const actions: Actions = {
-	new: async ({ request, fetch, locals, cookies }) => {
 
+	new: async ({ request, fetch, locals, cookies }) => {
 		const formData = await request.formData();
-		const name = formData.get('name');
-		const surname = formData.get('surname');
-		const email = formData.get('email');
-		const address = formData.get('address');
-		const city = formData.get('city');
-		const county = formData.get('county');
-		const postalCode = formData.get('postalCode');
-		const country = formData.get('country');
-		const phone = formData.get('phone') || '';
-		const mobilePhone = formData.get('mobilePhone') || '';
-		const payment = formData.get('payment');
-		const password1: any = formData.get('password1') || '';
-		const password2 = formData.get('password2') || '';
-		const totalValue = formData.get('totalValue');
-		const cart = formData.get('cart');
+		const name = formData.get('name') as string;
+		const surname = formData.get('surname') as string;
+		const email = formData.get('email') as string;
+		const address = formData.get('address') as string;
+		const city = formData.get('city') as string;
+		const county = formData.get('county') as string;
+		const postalCode = formData.get('postalCode') as string;
+		const country = formData.get('country') as string;
+		const phone = (formData.get('phone') as string) || '';
+		const mobilePhone = (formData.get('mobilePhone') as string) || '';
+		const payment = formData.get('payment') as string;
+		const password1: any = (formData.get('password1') as string) || '';
+		const password2 = (formData.get('password2') as string) || '';
+		const totalValue = formData.get('totalValue') as string;
+		const cart = formData.get('cart') as string;
 		const cartItem = JSON.parse(String(cart)) || null;
 		const totalDiscount = formData.get('totalDiscount') || 0;
+		const paymentMethodId = formData.get('paymentMethodId') as string | null;
+
 		//Corso Base DIEN CHAN®
 		//Corso Avanzato DIEN CHAN®
 		//Accademia DIEN CHAN®
-		// console.log('cartItem', cartItem.layoutView.title);
-		// const kitBase = ['5967', '5942', '5948'] // libro, rullo, tridente
-		// const kitAvanzato = ['5953', '5954', '5958', '5963', '5957', '5964', '5965'] // balsamo, moxa 10, macinapepe, Plettro yin, Doppio Napoleone, Doppio rastrello, Doppio rullo curvo
-		// const kitAccademia = [] // libro, rullo, tridente
 
-		// let kitProducts = [];
-		// if (cartItem.layoutView?.title === 'Corso Base DIEN CHAN®') kitProducts = kitBase
-		// if (cartItem.layoutView?.title === 'Corso Avanzato DIEN CHAN®') kitProducts = kitAvanzato
-		// if (cartItem.layoutView?.title === 'Accademia DIEN CHAN®') kitProducts = kitAccademia
 		const bundle = formData.get('bundleProducts');
+
 		const bundleProducts = JSON.parse(String(bundle)) || [];
+
+		// console.log('bundleProducts', bundleProducts);
+		// return { action: 'new', success: cartItem, message: JSON.stringify(cartItem), payload: { redirect: false } };
 
 		//const file = formData.get('image') || '';
 		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
+
 		let currentUserId: string = locals.user?.userId ?? '';
-		let membership = []
+		let membership = [];
 		let userExist = false;
 
 		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
@@ -207,38 +225,22 @@ export const actions: Actions = {
 			headers: {
 				'Content-Type': 'application/json'
 			}
-		})
-
-		// const toolFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-		// 	method: 'POST',
-		// 	body: JSON.stringify({
-		// 		apiKey: APIKEY,
-		// 		schema: 'product', //product | order | user | layout | discount
-		// 		query: { prodId: { $in: kitProducts }, type: 'product' },
-		// 		projection: { _id: 0 },
-		// 		sort: { createdAt: -1 },
-		// 		limit: 1000,
-		// 		skip: 0
-		// 	}),
-		// 	headers: {
-		// 		'Content-Type': 'application/json'
-		// 	}
-		// })
+		});
 
 		const membershipFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
-				schema: 'product', //product | order | user | layout | discount
+				schema: 'product', //product |order | user | layout | discount								
 				query: { type: 'membership', title: 'Socio ordinario' }, //IF USE Products.model -> type: course / product / membership / event
-				projection: { _id: 0, userView: 0, layoutView: 0 }, // 0: exclude | 1: include
+				projection: { _id: 0, userView: 0, layoutView: 0 }, // 0: exclude | 1: 'include',
 				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
 				limit: 1,
-				skip: 0,
+				skip: 0
 			}),
 			headers: {
 				'Content-Type': 'application/json'
-			},
+			}
 		});
 
 		const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
@@ -260,23 +262,24 @@ export const actions: Actions = {
 			}
 		});
 
-		const mailFetch = (email, order) => fetch(`${BASE_URL}/api/mailer/new-order`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				email,
-				order
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
+		const mailFetch = (email, order) =>
+			fetch(`${BASE_URL}/api/mailer/new-order`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					email,
+					order
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
 
 		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || !cart || !cartItem) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
 
-		if (!locals.auth && (password1 != password2)) {
+		if (!locals.auth && password1 !== password2) {
 			return fail(400, { action: 'new', success: false, message: 'Password non corrispondenti' });
 		}
 
@@ -284,34 +287,75 @@ export const actions: Actions = {
 			return fail(400, { action: 'new', success: false, message: 'Password non valide' });
 		}
 
+		// Stripe payment processing
+		let paymentIntentId: string | null = null;
+		if (payment === 'Carta di credito') {
+			if (!paymentMethodId) {
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: 'ID metodo di pagamento non valido.'
+				});
+			}
+
+			const amountInCents = Math.round(Number(totalValue) * 100);
+
+			try {
+				const paymentIntent = await stripe.paymentIntents.create({
+					amount: amountInCents,
+					currency: 'eur',
+					payment_method: paymentMethodId,
+					confirm: true,
+					automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
+				});
+				paymentIntentId = paymentIntent.id;
+			} catch (err: any) {
+				console.error('Stripe error:', err);
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: `Pagamento fallito: ${err.message}`
+				});
+			}
+		}
+
 		if (!locals.auth) {
 			try {
-				const membershipRes = await membershipFetch
+				const membershipRes = await membershipFetch;
 				if (membershipRes.status != 200) {
-					return fail(400, { action: 'new', success: false, message: await membershipRes.text() });
+					return fail(400, {
+						action: 'new',
+						success: false,
+						message: await membershipRes.text()
+					});
 				}
-				membership = await membershipRes.json()
+
+				membership = await membershipRes.json();
 
 				if (membership.length < 1) {
-					return fail(400, { action: 'new', success: false, message: "Missing membership" });
+					return fail(400, { action: 'new', success: false, message: 'Missing membership' });
 				}
 
-				const userRes = await userFetch
+
+				const userRes = await userFetch;
 				if (userRes.status != 200) {
 					console.error('user fetch failed', userRes.status, await userRes.text());
+
 					return fail(400, { action: 'new', success: false, message: 'errore database user' });
 				}
 				const response = await userRes.json();
+
 				if (response.length > 0) {
 					userExist = true;
 					return fail(400, { action: 'new', success: false, message: 'email esistente' });
 				}
+
 			} catch (error) {
 				console.log('userCheck error:', error);
 			}
 			if (!userExist) {
 				try {
-					const cookieId = crypto.randomUUID()
+					const cookieId = crypto.randomUUID();
 					const res = await fetch(`${BASE_URL}/api/mongo/create`, {
 						method: 'POST',
 						body: JSON.stringify({
@@ -331,7 +375,7 @@ export const actions: Actions = {
 								phone,
 								mobilePhone,
 								password: hash(password1, SALT),
-								cookieId,
+								cookieId
 								// "membership.membershipLevel": 'Socio ordinario',
 								// "membership.membershipSignUp": new Date(),
 								// "membership.membershipActivation": new Date(),
@@ -344,10 +388,12 @@ export const actions: Actions = {
 							'Content-Type': 'application/json'
 						}
 					});
+
 					if (res.status != 200) {
 						return fail(400, { action: 'user', success: false, message: await res.text() });
 					}
 					const response = await res.json();
+
 					currentUserId = response.userId;
 
 					cookies.set('session_id', cookieId, {
@@ -367,12 +413,6 @@ export const actions: Actions = {
 		}
 
 		try {
-			// const toolRes = await toolFetch
-			// if (!toolRes.ok) {
-			// 	return fail(400, { action: 'new', success: false, message: `toolRes: ${await toolRes.text()}` });
-			// }
-			// const toolKit = await toolRes.json();
-
 			const newDoc = {
 				// orderId: nanoid(),
 				// orderCode: crypto.randomUUID(),
@@ -422,7 +462,7 @@ export const actions: Actions = {
 					deliveryNotes: '',
 					email,
 					phone,
-					mobilePhone,
+					mobilePhone
 					// tracking: {
 					// 	company: '',
 					// 	trackingNumber: '',
@@ -433,41 +473,19 @@ export const actions: Actions = {
 				},
 				payment: {
 					method: payment,
-					statusPayment: 'pending',
-					transactionId: '',
+					statusPayment: paymentIntentId ? 'done' : 'pending',
+					transactionId: paymentIntentId || '',
 					points: '',
 					value: ''
-				},
+				}
 				//cart: [cartItem]
 			};
 
-			let cart = []
+			let cart = [];
 			if ((!userExist || !locals.user?.membership.membershipStatus) && membership.length > 0) {
-				cart = [...bundleProducts, cartItem, membership[0]]
-				// Membership order
-				// const resMembership = await fetch(`${BASE_URL}/api/mongo/create`, {
-				// 	method: 'POST',
-				// 	body: JSON.stringify({
-				// 		apiKey: APIKEY,
-				// 		schema: 'order', //product | order | user | layout | discount
-				// 		newDoc: {
-				// 			orderId: nanoid(),
-				// 			orderCode: crypto.randomUUID(),
-				// 			totalValue: Number(membership[0]?.price || 25.00),
-				// 			...newDoc,
-				// 			cart: membership
-				// 		},
-				// 		returnObj: false
-				// 	}),
-				// 	headers: {
-				// 		'Content-Type': 'application/json'
-				// 	}
-				// });
-				// if (!resMembership.ok) {
-				// 	return fail(400, { action: 'new', success: false, message: `res: ${await resMembership.text()}` });
-				// }
+				cart = [...bundleProducts, cartItem, membership[0]];
 			} else {
-				cart = [...bundleProducts, cartItem]
+				cart = [...bundleProducts, cartItem];
 			}
 			// console.log('cart', cart);
 			// return fail(400, { action: 'new', success: false, message: `bundleProducts` });
@@ -475,8 +493,8 @@ export const actions: Actions = {
 			// TODO??? Recalculate to prevent client-side manipulation
 
 			// Cart order
-			const orderId = nanoid()
-			const orderCode = crypto.randomUUID()
+			const orderId = nanoid();
+			const orderCode = crypto.randomUUID();
 			const res = await fetch(`${BASE_URL}/api/mongo/create`, {
 				method: 'POST',
 				body: JSON.stringify({
@@ -485,7 +503,7 @@ export const actions: Actions = {
 					newDoc: {
 						orderId,
 						orderCode,
-						totalValue: Number(totalValue) - Number(totalDiscount),
+						totalValue: Number(totalValue),
 						totalDiscount: Number(totalDiscount),
 						...newDoc,
 						//cart: [cartItem]
@@ -503,20 +521,72 @@ export const actions: Actions = {
 			}
 			const order = await res.json();
 
-			const updateRes = await updateFetch
+			const updateRes = await updateFetch;
 			if (!updateRes.ok) {
-				return fail(400, { action: 'new', success: false, message: `updateRes: ${await updateRes.text()}` });
-			}
-			const mailArray = [...cartItem.notificationEmail, email]
-			const mailRes = await mailFetch(mailArray, order);
-			if (!mailRes.ok) {
-				return fail(400, { action: 'new', success: false, message: `mailRes: ${await mailRes.text()}` });
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: `updateRes: ${await updateRes.text()}`
+				});
 			}
 
+			const mailArray = [...cartItem.notificationEmail, email];
+			const mailRes = await mailFetch(mailArray, order);
+
+			if (!mailRes.ok) {
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: `mailRes: ${await mailRes.text()}`
+				});
+			}
+
+			const updateQty = bundleProducts.map(async (item) => {
+				const updateQtyRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'product',
+						query: { prodId: item.prodId },
+						update: {
+							$inc: {
+								stockQty: -1
+							}
+						},
+						options: { upsert: false },
+						multi: false
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+
+				if (!updateQtyRes.ok) {
+					const errorData = await updateQtyRes.json();
+					console.error(`Failed to update prodId ${item.prodId}:`, errorData);
+					throw new Error(`Failed to update stock for ${item.prodId}`); // return fail do not stop the map and don't trigger try/catch
+				}
+				return updateQtyRes.json();
+			});
+
+			await Promise.all(updateQty);
+
 			if (locals.auth) {
-				return { action: 'new', success: true, message: "L'ordine è stato inviato. Controlla lo storico nel tuo profilo", payload: { redirect: false } };
+				return {
+					action: 'new',
+					success: true,
+					message: "L'ordine è stato inviato. Controlla lo storico nel tuo profilo",
+					payload: { redirect: false }
+				};
+
 			} else {
-				return { action: 'new', success: true, message: "Benvenuto! L'ordine è stato inviato. Tra poco verrai reindirizzato sul tuo profilo.", payload: { redirect: true } };
+				return {
+					action: 'new',
+					success: true,
+					message:
+						"Benvenuto! L'ordine è stato inviato. Tra poco verrai reindirizzato sul tuo profilo.",
+					payload: { redirect: true }
+				};
 			}
 
 		} catch (error) {
@@ -526,36 +596,42 @@ export const actions: Actions = {
 	},
 
 	applyDiscount: async ({ request, fetch, locals }) => {
-		const discountFetch = (discountCodes: string[]) => fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'discount',
-				query: { code: { $in: discountCodes } },
-				projection: { _id: 0, password: 0 },
-				sort: { createdAt: -1 },
-				limit: 1000,
-				skip: 0
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
+		const discountFetch = (discountCodes: string[]) =>
+			fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'discount',
+					query: { code: { $in: discountCodes } },
+					projection: { _id: 0, password: 0 },
+					sort: { createdAt: -1 },
+					limit: 1000,
+					skip: 0
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
 
 		try {
 			const formData = await request.formData();
 			const discountCode = formData.get('discountCode') as string;
 			const cart = formData.get('cart') as string;
+
 			const grandTotal = formData.get('grandTotal') as string;
 			const discountList = formData.get('discountList') as string;
 			const originalTotal = Number(grandTotal) || 0;
-			const discountArray: string[] = JSON.parse(discountList || '[]').map(item => item.code);
+
+			const discountArray: string[] = JSON.parse(discountList || '[]').map((item) => item.code);
 			const cartArray: CartItem[] = JSON.parse(cart || '[]');
+
 			// let cartArray: CartItem[] = [];
 			// try {
 			// 	cartArray = JSON.parse(cart || '[]');
+
 			// } catch {
 			// 	return fail(400, { action: 'applyDiscount', success: false, message: 'Cart invalido' });
+
 			// }
 
 			if (!discountCode?.trim()) {
@@ -577,6 +653,7 @@ export const actions: Actions = {
 			// Fetch all discounts from database that match new array
 			const newDiscountArray = [...discountArray, discountCode];
 			const discountRes = await discountFetch(newDiscountArray);
+
 			const discountGroup: DiscountItem[] = await discountRes.json();
 			// console.log('newDiscountArray', newDiscountArray);
 			// console.log('discountGroup', discountGroup);
@@ -608,22 +685,23 @@ export const actions: Actions = {
 				const { selectedApplicability } = discount;
 
 				switch (selectedApplicability) {
-					case 'userId':
-						return discount.userId === user?.userId;
+					case 'email':
+						return discount.email === user?.email;
 
 					case 'membershipLevel':
 						return discount.membershipLevel === user?.membership?.membershipLevel;
 
 					case 'prodId':
-						return cartArray.some(item => item.prodId === discount.prodId);
+						return cartArray.some((item) => item.prodId === discount.prodId);
 
 					case 'layoutId':
-						return cartArray.some(item => item.layoutView?.layoutId === discount.layoutId);
+						return cartArray.some((item) => item.layoutView?.layoutId === discount.layoutId);
 
 					default:
 						return false;
 				}
 			};
+
 			if (!validateDiscountApplicability(discountItem, locals.user, cartArray)) {
 				return fail(400, {
 					action: 'applyDiscount',
@@ -634,7 +712,7 @@ export const actions: Actions = {
 
 			// Calculate all discounts
 			const discountApplied = () => {
-				return discountGroup.map(discount => ({
+				return discountGroup.map((discount) => ({
 					code: discount.code,
 					totalDiscount: calculateItemDiscount(discount, cartArray, originalTotal)
 				}));
@@ -645,45 +723,49 @@ export const actions: Actions = {
 				success: true,
 				message: 'Sconto applicato con successo',
 				payload: {
-					discountApplied: discountApplied(),
+					discountApplied: discountApplied()
 				}
 			};
-
 		} catch (error) {
 			console.error('Error applying discount:', error);
+
 			return fail(500, {
 				action: 'applyDiscount',
 				success: false,
-				message: 'Errore durante l\'applicazione dello sconto'
+				message: "Errore durante l'applicazione dello sconto"
 			});
 		}
 	},
 
 	removeDiscount: async ({ request, fetch, locals }) => {
-		const discountFetch = (discountCodes: string[]) => fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'discount',
-				query: { code: { $in: discountCodes } },
-				projection: { _id: 0, password: 0 },
-				sort: { createdAt: -1 },
-				limit: 1000,
-				skip: 0
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
+		const discountFetch = (discountCodes: string[]) =>
+			fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'discount',
+					query: { code: { $in: discountCodes } },
+					projection: { _id: 0, password: 0 },
+					sort: { createdAt: -1 },
+					limit: 1000,
+					skip: 0
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
 		try {
 			const formData = await request.formData();
 			const removeCode = formData.get('removeCode') as string;
 			const grandTotal = formData.get('grandTotal') as string;
+
 			const cart = formData.get('cart') as string;
 			const discountList = formData.get('discountList') as string;
 			const originalTotal = Number(grandTotal) || 0;
+
 			const cartArray: CartItem[] = JSON.parse(cart || '[]');
-			let discountArray: string[] = JSON.parse(discountList || '[]').map(item => item.code);
+			let discountArray: string[] = JSON.parse(discountList || '[]').map((item) => item.code);
 
 			if (!removeCode?.trim()) {
 				return fail(400, {
@@ -694,7 +776,7 @@ export const actions: Actions = {
 			}
 
 			// Remove the discount code from array
-			discountArray = discountArray.filter(code => code !== removeCode);
+			discountArray = discountArray.filter((code) => code !== removeCode);
 
 			// IF no discounts remain, return empty result
 			if (discountArray.length === 0) {
@@ -703,7 +785,7 @@ export const actions: Actions = {
 					success: true,
 					message: 'Sconto rimosso con successo',
 					payload: {
-						discountApplied: [],
+						discountApplied: []
 					}
 				};
 			}
@@ -714,7 +796,7 @@ export const actions: Actions = {
 
 			// Calculate remaining discounts
 			const discountApplied = () => {
-				return discountGroup.map(discount => ({
+				return discountGroup.map((discount) => ({
 					code: discount.code,
 					totalDiscount: calculateItemDiscount(discount, cartArray, originalTotal)
 				}));
@@ -725,12 +807,12 @@ export const actions: Actions = {
 				success: true,
 				message: 'Sconto rimosso con successo',
 				payload: {
-					discountApplied: discountApplied(),
+					discountApplied: discountApplied()
 				}
 			};
-
 		} catch (error) {
 			console.error('Error removing discount:', error);
+
 			return fail(500, {
 				action: 'removeDiscount',
 				success: false,
@@ -738,5 +820,4 @@ export const actions: Actions = {
 			});
 		}
 	}
-
-} satisfies Actions;
+};

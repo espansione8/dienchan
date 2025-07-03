@@ -55,7 +55,10 @@
 		phone: userData?.phone || '',
 		mobilePhone: userData?.mobilePhone || '',
 		paymentType: 'Bonifico bancario',
-		orderNotes: ''
+		orderNotes: '',
+		usePoint: false,
+		pointsBalance: userData?.pointsBalance || 0,
+		newBalance: 0
 	});
 
 	let closedInput = $state(true);
@@ -84,18 +87,57 @@
 		});
 		return total;
 	});
-	// testing NEW VERSION using reduce
-	let totalDiscount = $derived(() =>
+
+	let couponDiscount = $derived(() =>
 		discountList.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0)
 	);
-	// let totalDiscount = $derived(() => { // OLD VERSION using totalDiscount()
-	// 	let total = 0;
-	// 	discountList.forEach((element: any) => {
-	// 		total += element.totalDiscount || 0;
-	// 	});
-	// 	return total;
-	// });
-	let grandTotal = $derived(subTotal() - totalDiscount());
+
+	let pointsDiscount = $derived(() => {
+		if (formData.usePoint) {
+			const totalAfterOtherDiscounts = subTotal() - couponDiscount();
+			// Math.min: The points used as discount cannot exceed the available points
+			// Math.max: cannot make the total negative. always minimum 0
+			return Math.min(formData.pointsBalance, Math.max(0, totalAfterOtherDiscounts));
+		}
+		return 0;
+	});
+	let totalDiscount = $derived(() => couponDiscount() + pointsDiscount());
+
+	//let grandTotal = $derived(subTotal() - totalDiscount());
+	let grandTotal = $derived(() => {
+		let total = subTotal() - totalDiscount();
+		if (total < 100) {
+			total += 9; // Add delivery fee if total is above 100
+		}
+		return total;
+	});
+
+	const clickPoint = () => {
+		formData.usePoint = !formData.usePoint;
+		// let finalTotal = subTotal();
+		// console.log('before pointsBalance', formData.pointsBalance);
+		// if (formData.usePoint) {
+		// 	if (formData.pointsBalance < subTotal()) {
+		// 		finalTotal = subTotal() - formData.pointsBalance;
+		// 		formData.pointsBalance = 0;
+		// 	} else if (formData.pointsBalance >= grandTotal) {
+		// 		finalTotal = 0;
+		// 		formData.pointsBalance -= subTotal();
+		// 	}
+		// 	console.log('finalTotal', finalTotal);
+		// 	console.log('formData.pointsBalance', formData.pointsBalance);
+		// }
+		// return finalTotal;
+	};
+
+	let newPointsBalance = $derived(() => {
+		if (formData.usePoint) {
+			const totalAfterOtherDiscounts = subTotal() - couponDiscount();
+			const pointsUsed = Math.min(formData.pointsBalance, Math.max(0, totalAfterOtherDiscounts));
+			return formData.pointsBalance - pointsUsed;
+		}
+		return formData.pointsBalance;
+	});
 
 	const testPass = () => {
 		checkPass = password1.length >= 8;
@@ -147,7 +189,10 @@
 			formData.phone = '';
 			formData.mobilePhone = '';
 			formData.paymentType = 'Bonifico bancario bancario';
+			formData.pointsBalance = 0;
 		}
+		formData.usePoint = false;
+		formData.newBalance = 0;
 		modalTitle = '';
 		postAction = '?/';
 		loading = false;
@@ -731,13 +776,14 @@
 						<span>Carrello</span>
 						<span>€ {subTotal().toFixed(2)}</span>
 					</div>
+					{#if $cartProducts.length > 0}
+						<div class="flex justify-between text-success">
+							<span>Spedizione</span>
+							<span>{subTotal() - totalDiscount() < 100 ? '€ 9' : 'gratuita'}</span>
+						</div>
+					{/if}
 
-					<div class="flex justify-between text-success">
-						<span>Spedizione</span>
-						<span>{grandTotal < 100 ? '€ 9' : 'gratuita'}</span>
-					</div>
-
-					{#if discountList.length > 0}
+					{#if discountList.length > 0 || formData.usePoint}
 						<div class="flex justify-between text-success">
 							<span>Sconto</span>
 							<span>- € {totalDiscount().toFixed(2)}</span>
@@ -748,7 +794,7 @@
 
 					<div class="flex justify-between font-bold text-lg">
 						<span>Totale</span>
-						<span class="text-primary">€ {grandTotal.toFixed(2)}</span>
+						<span class="text-primary">€ {Math.max(0, grandTotal()).toFixed(2)}</span>
 					</div>
 
 					<!-- Discount Code -->
@@ -811,7 +857,21 @@
 							</form>
 						{/if}
 					</div>
-
+					<div>
+						<label class="label cursor-pointer justify-start gap-2">
+							<input
+								type="checkbox"
+								checked={formData.usePoint}
+								class="checkbox"
+								onclick={() => clickPoint()}
+							/>
+							<span class="label-text"
+								>Spendi saldo punti {formData.usePoint
+									? `(${Math.round(newPointsBalance())} punti rimasti)`
+									: ''}</span
+							>
+						</label>
+					</div>
 					<button
 						class="btn btn-primary w-full mt-4"
 						onclick={() => onClickModal('new', null)}
@@ -915,11 +975,11 @@
 							<tr class="text-info">
 								<td colspan="2">Spedizione</td>
 								<td class="text-right">
-									<span> {grandTotal < 100 ? '€ 9' : 'gratuita'} </span>
+									<span> {subTotal() - totalDiscount() < 100 ? '€ 9' : 'gratuita'} </span>
 								</td>
 							</tr>
 
-							{#if discountList.length > 0}
+							{#if discountList.length > 0 || formData.usePoint}
 								<tr class="text-success">
 									<td colspan="2">Sconto</td>
 									<td class="text-right">- € {totalDiscount().toFixed(2)}</td>
@@ -930,7 +990,7 @@
 							<tr>
 								<th colspan="2">Totale</th>
 								<th class="text-right">
-									€ {grandTotal.toFixed(2)}
+									€ {Math.max(0, grandTotal()).toFixed(2)}
 								</th>
 							</tr>
 						</tfoot>
@@ -1008,8 +1068,11 @@
 				<input type="hidden" name="mobilePhone" value={formData.mobilePhone} />
 				<input type="hidden" name="payment" value={formData.paymentType} />
 				<input type="hidden" name="cart" value={JSON.stringify(cart)} />
-				<input type="hidden" name="totalValue" value={grandTotal} />
+				<input type="hidden" name="totalValue" value={Math.max(0, grandTotal())} />
 				<input type="hidden" name="discountList" value={JSON.stringify(discountList)} />
+				<input type="hidden" name="newPointsBalance" value={newPointsBalance()} />
+				<input type="hidden" name="usedPoints" value={pointsDiscount()} />
+				<input type="hidden" name="usePoint" value={formData.usePoint} />
 				<div class="modal-action">
 					<button class="btn btn-outline btn-error" onclick={onCloseModal}> Annulla </button>
 					<button type="submit" class="btn btn-primary"> Conferma Acquisto </button>

@@ -40,6 +40,7 @@ declare global {
 			surnamePublic: boolean;
 			emailPublic: boolean;
 			uploadfiles: any[];
+			pointsBalance: number;
 		}
 		interface Locals {
 			userData: User | null;
