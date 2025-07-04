@@ -1,15 +1,20 @@
 import type { PageServerLoad, Actions } from './$types'
 import type { CartItem, DiscountItem } from '$lib/types';
-import { BASE_URL, APIKEY, SALT } from '$env/static/private';
+import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK } from '$env/static/private';
 import { fail, error } from '@sveltejs/kit';
 import { hash } from '$lib/tools/hash';
 import { customAlphabet } from 'nanoid'
+import Stripe from 'stripe';
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
+const stripe = new Stripe(STRIPE_KEY_BACK, {
+	apiVersion: '2025-06-30.basil' // Use a stable API version
+});
 
 export const load: PageServerLoad = async ({ locals, fetch }) => {
 	return {
 		userData: locals.user || null,
 		auth: locals.auth,
+		stripePublishableKey: STRIPE_KEY_FRONT
 	};
 };
 
@@ -98,6 +103,7 @@ export const actions: Actions = {
 		const newPointsBalance = Number(formData.get('newPointsBalance'));
 		const usedPoints = Number(formData.get('usedPoints'));
 		const usePoint = formData.get('usePoint') === 'true' // 'true' make it boolean
+		const paymentMethodId = formData.get('paymentMethodId') as string | null;
 
 		// Calculate total cart on server anche for security
 		const cartRecalculated = () => {
@@ -114,11 +120,19 @@ export const actions: Actions = {
 		};
 		const totalDiscount = discountItem.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0)
 
-		let recalculatedTotal = cartRecalculated() - totalDiscount;
-		if (usePoint) {
-			recalculatedTotal -= usedPoints;
-		}
-		if (Number(totalValue) !== recalculatedTotal) {
+		//let recalculatedTotal = cartRecalculated() - totalDiscount;
+		const recalculatedTotal = () => {
+			let total = cartRecalculated() - totalDiscount;
+			if (total < 100) {
+				total += 9; // Add delivery fee if total is above 100
+			}
+			if (usePoint) {
+				total -= usedPoints;
+			}
+			return total;
+		};
+
+		if (Number(totalValue) !== recalculatedTotal()) {
 			return fail(400, { action: 'new', success: false, message: 'Totale non valido' });
 		}
 
@@ -135,7 +149,7 @@ export const actions: Actions = {
 		});
 
 		//const file = formData.get('image') || '';
-		console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue, cartItem);
+		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue, cartItem);
 		let currentUserId: string = locals.user?.userId ?? '';
 
 		if (!locals.auth) {
@@ -149,6 +163,38 @@ export const actions: Actions = {
 
 		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || cartItem.length < 1) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
+		}
+
+		// Stripe payment processing
+		let paymentIntentId: string | null = null;
+		if (payment === 'Carta di credito') {
+			if (!paymentMethodId) {
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: 'ID metodo di pagamento non valido.'
+				});
+			}
+
+			const amountInCents = Math.round(Number(totalValue) * 100);
+
+			try {
+				const paymentIntent = await stripe.paymentIntents.create({
+					amount: amountInCents,
+					currency: 'eur',
+					payment_method: paymentMethodId,
+					confirm: true,
+					automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
+				});
+				paymentIntentId = paymentIntent.id;
+			} catch (err: any) {
+				console.error('Stripe error:', err);
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: `Pagamento fallito: ${err.message}`
+				});
+			}
 		}
 
 		if (!locals.auth) {
@@ -257,7 +303,7 @@ export const actions: Actions = {
 				agencyId: '',
 				orderConfirmed: false,
 				totalPoints: 0,
-				totalValue: totalValue < 100 ? totalValue + 9 : totalValue,
+				totalValue: totalValue,
 				totalDiscount: Number(totalDiscount),
 				totalVAT: 0,
 				browser: '',
@@ -305,8 +351,8 @@ export const actions: Actions = {
 				},
 				payment: {
 					method: payment,
-					statusPayment: 'pending',
-					transactionId: '',
+					statusPayment: paymentIntentId ? 'done' : 'pending',
+					transactionId: paymentIntentId || '',
 					points: '',
 					value: ''
 				},
@@ -461,7 +507,6 @@ export const actions: Actions = {
 					return fail(400, { action: 'new: update points balance', success: false, message: errorText });
 				}
 			}
-
 
 			if (locals.auth) {
 				return { action: 'new', success: true, message: "L'ordine è stato inviato. Controlla lo storico nel tuo profilo", payload: { redirect: false } };

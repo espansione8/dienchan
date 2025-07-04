@@ -961,12 +961,32 @@
 												<div>
 													<div class="flex items-center gap-2">
 														<Clock size={16} class="text-primary" />
-														<span class="font-medium">Ordine del {formatDate(order.createdAt)}</span
+														<span class="font-medium"
+															>Ordine del {formatDate(order.createdAt)}: € {order.totalValue.toFixed(
+																2
+															)}</span
 														>
 													</div>
+
 													<div class="text-sm text-base-content/70 mt-1">
 														ID: {order.orderId}
 													</div>
+												</div>
+
+												<div class="">
+													<div class="font-medium">Totale ordine</div>
+													<div class="font-bold text-lg text-primary">
+														€ {order.totalValue.toFixed(2)}
+													</div>
+												</div>
+
+												<div
+													class="badge"
+													class:badge-accent={order.type === 'membership'}
+													class:badge-info={order.type === 'product'}
+													class:badge-primary={order.type === 'course'}
+												>
+													{order.type}
 												</div>
 
 												<div class="flex items-center gap-3">
@@ -1048,9 +1068,11 @@
 																	<div class="text-right flex-shrink-0">
 																		<div class="font-bold text-primary">
 																			<!-- € {item.type === 'course' ? item.layoutView.price : item.price} -->
-																			{item.type === 'course'
-																				? `€ ${item.layoutView.price.toFixed(2)}`
-																				: ''}
+																			{#if item.type === 'course'}
+																				{`€ ${item.layoutView.price.toFixed(2)}`}
+																			{:else if item.type === 'membership'}
+																				{`€ ${item.price.toFixed(2)}`}
+																			{/if}
 																		</div>
 																	</div>
 																{:else}
@@ -1081,10 +1103,6 @@
 															<div class="font-medium">Totale ordine</div>
 															<div class="font-bold text-lg text-primary">
 																€ {order.totalValue.toFixed(2)}
-																<!-- € {order.cart.reduce(
-																	(total, item) => total + item.layoutView.price * (item.orderQuantity || 1),
-																	0
-																)} -->
 															</div>
 														</div>
 														{#if order.totalDiscount > 0}

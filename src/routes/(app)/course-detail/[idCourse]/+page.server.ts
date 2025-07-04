@@ -171,7 +171,6 @@ const calculateItemDiscount = (
 };
 // 
 export const actions: Actions = {
-
 	new: async ({ request, fetch, locals, cookies }) => {
 		const formData = await request.formData();
 		const name = formData.get('name') as string;
@@ -208,7 +207,7 @@ export const actions: Actions = {
 		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
 
 		let currentUserId: string = locals.user?.userId ?? '';
-		let membership = [];
+		//let membership = [];
 		let userExist = false;
 
 		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
@@ -319,26 +318,43 @@ export const actions: Actions = {
 			}
 		}
 
+		// try {
+		// 	const membershipRes = await membershipFetch;
+		// 	if (!membershipRes.ok) {
+		// 		return fail(400, {
+		// 			action: 'new',
+		// 			success: false,
+		// 			message: await membershipRes.text()
+		// 		});
+		// 	}
+
+		// 	membership = await membershipRes.json();
+
+		// 	if (membership.length < 1) {
+		// 		return fail(400, { action: 'new', success: false, message: 'Missing membership' });
+		// 	}
+
+		// } catch (error) {
+		// 	console.log('membership fetch error:', error);
+		// }
+
 		if (!locals.auth) {
 			try {
-				const membershipRes = await membershipFetch;
-				if (membershipRes.status != 200) {
-					return fail(400, {
-						action: 'new',
-						success: false,
-						message: await membershipRes.text()
-					});
-				}
-
-				membership = await membershipRes.json();
-
-				if (membership.length < 1) {
-					return fail(400, { action: 'new', success: false, message: 'Missing membership' });
-				}
-
+				// const membershipRes = await membershipFetch;
+				// if (!membershipRes.ok) {
+				// 	return fail(400, {
+				// 		action: 'new',
+				// 		success: false,
+				// 		message: await membershipRes.text()
+				// 	});
+				// }
+				// membership = await membershipRes.json();
+				// if (membership.length < 1) {
+				// 	return fail(400, { action: 'new', success: false, message: 'Missing membership' });
+				// }
 
 				const userRes = await userFetch;
-				if (userRes.status != 200) {
+				if (!userRes.ok) {
 					console.error('user fetch failed', userRes.status, await userRes.text());
 
 					return fail(400, { action: 'new', success: false, message: 'errore database user' });
@@ -353,6 +369,7 @@ export const actions: Actions = {
 			} catch (error) {
 				console.log('userCheck error:', error);
 			}
+
 			if (!userExist) {
 				try {
 					const cookieId = crypto.randomUUID();
@@ -481,6 +498,21 @@ export const actions: Actions = {
 				//cart: [cartItem]
 			};
 
+			const membershipRes = await membershipFetch;
+			if (!membershipRes.ok) {
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: await membershipRes.text()
+				});
+			}
+
+			const membership = await membershipRes.json();
+
+			if (membership.length < 1) {
+				return fail(400, { action: 'new', success: false, message: 'Missing membership' });
+			}
+
 			let cart = [];
 			if ((!userExist || !locals.user?.membership.membershipStatus) && membership.length > 0) {
 				cart = [...bundleProducts, cartItem, membership[0]];
@@ -495,7 +527,7 @@ export const actions: Actions = {
 			// Cart order
 			const orderId = nanoid();
 			const orderCode = crypto.randomUUID();
-			const res = await fetch(`${BASE_URL}/api/mongo/create`, {
+			const orderRes = await fetch(`${BASE_URL}/api/mongo/create`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey: APIKEY,
@@ -516,10 +548,36 @@ export const actions: Actions = {
 				}
 			});
 
-			if (!res.ok) {
-				return fail(400, { action: 'new', success: false, message: `res: ${await res.text()}` });
+			if (!orderRes.ok) {
+				return fail(400, { action: 'new', success: false, message: `res: ${await orderRes.text()}` });
 			}
-			const order = await res.json();
+			const order = await orderRes.json();
+
+			if (!locals.user?.membership.membershipStatus) {
+				const newExpire = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
+				const membershipUpdateRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'user', //product | order | user | layout | discount
+						query: { userId: locals.user?.userId },
+						update: {
+							$set: {
+								'membership.membershipLevel': 'Socio ordinario',
+								'membership.membershipExpiry': newExpire,
+								'membership.membershipStatus': true,
+							}
+						},
+						options: { upsert: false },
+						multi: false
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+
+				if (!membershipUpdateRes.ok) return fail(400, { action: 'new', success: false, message: 'Error new order' });
+			}
 
 			const updateRes = await updateFetch;
 			if (!updateRes.ok) {

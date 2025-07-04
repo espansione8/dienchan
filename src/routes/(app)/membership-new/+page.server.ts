@@ -1,9 +1,13 @@
 import type { PageServerLoad, Actions } from './$types'
-import { BASE_URL, APIKEY, SALT } from '$env/static/private';
+import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK } from '$env/static/private';
 import { error, fail } from '@sveltejs/kit';
 import { hash } from '$lib/tools/hash';
 import { customAlphabet } from 'nanoid'
+import Stripe from 'stripe';
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
+const stripe = new Stripe(STRIPE_KEY_BACK, {
+	apiVersion: '2025-06-30.basil' // Use a stable API version
+});
 
 export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 	let getMembership = [];
@@ -52,13 +56,13 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 	return {
 		userData: user,
 		auth: locals.auth,
-		getMembership
+		getMembership,
+		stripePublishableKey: STRIPE_KEY_FRONT
 	};
 }
 
 export const actions: Actions = {
 	new: async ({ request, fetch, locals, cookies }) => {
-
 		const formData = await request.formData();
 		const name = formData.get('name');
 		const surname = formData.get('surname');
@@ -75,6 +79,8 @@ export const actions: Actions = {
 		const password1: any = formData.get('password1') || '';
 		const password2 = formData.get('password2') || '';
 		const totalValue = formData.get('totalValue');
+		const paymentMethodId = formData.get('paymentMethodId') as string | null;
+
 		// const cart = formData.get('cart');
 		// const cartItem = JSON.parse(String(cart)) || null;
 
@@ -158,6 +164,44 @@ export const actions: Actions = {
 
 		if (!locals.auth && (password1 == '' || password2 == '')) {
 			return fail(400, { action: 'new', success: false, message: 'Password non valide' });
+		}
+
+		// Stripe payment processing
+		let paymentIntentId: string | null = null;
+		if (payment === 'Carta di credito') {
+			if (!paymentMethodId) {
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: 'ID metodo di pagamento non valido.'
+				});
+			}
+
+			const amountInCents = Math.round(Number(totalValue) * 100);
+
+			try {
+				const paymentIntent = await stripe.paymentIntents.create({
+					amount: amountInCents,
+					currency: 'eur',
+					payment_method: paymentMethodId,
+					confirm: true,
+					automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
+				});
+				console.log('paymentIntent.status', paymentIntent.status)
+				// if (paymentIntent.status === 'succeeded') {
+				// 	paymentIntentId = paymentIntent.id;
+				// } else {
+				// 	throw new Error(`Payment failed with status: ${paymentIntent.status}`);
+				// }
+				paymentIntentId = paymentIntent.id;
+			} catch (err: any) {
+				console.error('Stripe error:', err);
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: `Pagamento fallito: ${err.message}`
+				});
+			}
 		}
 
 		try {
@@ -300,14 +344,14 @@ export const actions: Actions = {
 				},
 				payment: {
 					method: payment,
-					statusPayment: 'pending',
-					transactionId: '',
+					statusPayment: paymentIntentId ? 'done' : 'pending',
+					transactionId: paymentIntentId || '',
 					points: '',
 					value: ''
 				},
 				//cart: [cartItem]
 			};
-			console.log(userExist, membershipLevel, membership);
+			//console.log(userExist, membershipLevel, membership);
 
 			if (!userExist || membership.length < 1) return fail(400, { action: 'new', success: false, message: "Errore Ordine" })
 
@@ -343,6 +387,8 @@ export const actions: Actions = {
 
 			const order = await resMembership.json();
 			const mailRes = await mailFetch(email, order);
+			//console.log('mailRes', mailRes);
+
 			if (!mailRes.ok) {
 				return fail(400, { action: 'new', success: false, message: await mailRes.text() });
 			}
@@ -365,8 +411,11 @@ export const actions: Actions = {
 
 		const formData = await request.formData();
 		const payment = formData.get('payment');
+		const paymentMethodId = formData.get('paymentMethodId') as string | null;
 
 		let newExpire = new Date()
+
+		let paymentIntentId: string | null = null;
 
 		if (!userData.name || !userData.surname || !userData.email || !userData.address ||
 			!userData.city || !userData.county || !userData.postalCode || !userData.country) {
@@ -379,6 +428,10 @@ export const actions: Actions = {
 			newExpire = currentExpiryDate;
 		} else {
 			newExpire = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
+		}
+
+		if (!payment || !locals.auth) {
+			return fail(400, { action: 'renew', success: false, message: 'Dati mancanti' });
 		}
 
 		const membershipFetch = fetch(`${BASE_URL}/api/mongo/find`, {
@@ -415,7 +468,7 @@ export const actions: Actions = {
 					agencyId: '',
 					orderConfirmed: false,
 					totalPoints: 0,
-					totalValue: Number(membership[0]?.price || 25.00),
+					totalValue: Number(membership[0]?.price),
 					totalVAT: 0,
 					browser: '',
 					orderIp: '',
@@ -461,8 +514,8 @@ export const actions: Actions = {
 					},
 					payment: {
 						method: payment,
-						statusPayment: 'pending',
-						transactionId: '',
+						statusPayment: paymentIntentId ? 'done' : 'pending',
+						transactionId: paymentIntentId || '',
 						points: '',
 						value: ''
 					},
@@ -508,16 +561,43 @@ export const actions: Actions = {
 			}
 		});
 
-		if (!payment || !locals.auth) {
-			return fail(400, { action: 'renew', success: false, message: 'Dati mancanti' });
-		}
-
 		try {
 			const resMembership = await membershipFetch;
 			if (!resMembership.ok) {
 				return fail(400, { action: 'renew', success: false, message: await resMembership.text() });
 			}
 			const membership = await resMembership.json();
+
+			// Stripe payment processing
+			if (payment === 'Carta di credito') {
+				if (!paymentMethodId) {
+					return fail(400, {
+						action: 'renew',
+						success: false,
+						message: 'ID metodo di pagamento non valido.'
+					});
+				}
+
+				const amountInCents = Math.round(Number(membership[0]?.price) * 100);
+
+				try {
+					const paymentIntent = await stripe.paymentIntents.create({
+						amount: amountInCents,
+						currency: 'eur',
+						payment_method: paymentMethodId,
+						confirm: true,
+						automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
+					});
+					paymentIntentId = paymentIntent.id;
+				} catch (err: any) {
+					console.error('Stripe error:', err);
+					return fail(400, {
+						action: 'new',
+						success: false,
+						message: `Pagamento fallito: ${err.message}`
+					});
+				}
+			}
 
 			const orderFetchRes = await orderFetch(membership);
 			if (!orderFetchRes.ok) {

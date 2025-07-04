@@ -23,26 +23,18 @@ export const POST: RequestHandler = async ({ request }) => {
         return json({ message: 'Data missing' }, { status: 400 });
     }
 
-    try {
-        const mailer = async () => {
-            // create reusable transporter object using the default SMTP transport
-            const transporter = nodemailer.createTransport({
-                host: MAILER_HOST,
-                port: Number(MAILER_PORT),
-                secure: MAILER_SECURE === 'true' ? true : false, // true for 465, false for other ports
-                auth: {
-                    user: MAILER_USER,
-                    pass: MAILER_PASS
-                }
-            });
+    const transporter = nodemailer.createTransport({
+        host: MAILER_HOST,
+        port: Number(MAILER_PORT),
+        secure: MAILER_SECURE === 'true' ? true : false, // true for 465, false for other ports
+        auth: {
+            user: MAILER_USER,
+            pass: MAILER_PASS
+        }
+    });
 
-            // send mail with defined transport object
-            const info = await transporter.sendMail({
-                from: '"Notifiche Dienchan" <no-reply@riflessologiadienchan.it>', // sender address
-                to: email, // list of receivers
-                subject: `Il tuo Ordine #${orderId} è Confermato! 🎉`, // Subject line
-                text: `Gentile utente ${email}, abbiamo ricevuto il suo ordine ID: ${orderId} controlli i dettagli nel suo profilo.`, // plain text body
-                html: `
+    try {
+        const emailContentHtml = `
 				<!DOCTYPE html>
 <html lang="it">
 <head>
@@ -136,33 +128,33 @@ export const POST: RequestHandler = async ({ request }) => {
                                 <th class="table-cell-style text-right">Prezzo</th>
                             </tr>
                             ${type === 'course' ?
-                        cart
-                            .map(
-                                (item) => `
+                cart
+                    .map(
+                        (item) => `
                                             <tr>
                                                 <td class="table-cell-style text-left">${item.type == 'course' ? item.layoutView.title : item.title}</td>
                                                 <td class="table-cell-style text-right">${item.orderQuantity || 1}</td>
                                                 <td class="table-cell-style text-right"></td>
                                             </tr>
                                         `
-                            ).join('')
-                        :
-                        cart
-                            .map(
-                                (item) => `
+                    ).join('')
+                :
+                cart
+                    .map(
+                        (item) => `
                                             <tr>
                                                 <td class="table-cell-style text-left">${item.type == 'course' ? item.layoutView.title : item.title}</td>
                                                 <td class="table-cell-style text-right">${item.orderQuantity || 1}</td>
                                                 <td class="table-cell-style text-right">${item.price.toFixed(2)}€</td>
                                             </tr>
                                         `
-                            ).join('')
-                    }
+                    ).join('')
+            }
                             <tr>
                                 <td colspan="2" class="table-cell-style text-right font-bold">Spedizione</td>
-                                <td class="table-cell-style text-right font-bold">${(totalValue - 9 < 100 || type !== 'course')
-                        ? '9.00 €'
-                        : 'Gratuita'}
+                                <td class="table-cell-style text-right font-bold">${(totalValue - 9 < 100 && type === 'product')
+                ? '9.00 €'
+                : 'Gratuita'}
                                 </td>
                             </tr>
                             <tr>
@@ -186,13 +178,13 @@ export const POST: RequestHandler = async ({ request }) => {
                         <h4 class="margin-top-lg text-black">Metodo di pagamento:</h4>
                         <p style="margin-top: 0.5em;">${payment.method}</p>
                         ${payment.method === 'Bonifico bancario' ?
-                        `<p style="margin-top: 0.5em;">L'evasione dell'ordine verrà effettuata dopo la ricezione del pagamento a queste COORDINATE BANCARIE <br />
+                `<p style="margin-top: 0.5em;">L'evasione dell'ordine verrà effettuata dopo la ricezione del pagamento a queste COORDINATE BANCARIE <br />
                             IBAN: IT93 R076 0111 5000 0102 3646 647 <br />
                             BIC/SWIFT: BPPIITRRXXX <br />
                             INTESTATO A: ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia <br />
                             VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA <br />
                         </p>`
-                        : ''}
+                : ''}
 
                         <p class="margin-top-lg">
                             Puoi visualizzare i dettagli completi del tuo ordine in qualsiasi momento
@@ -208,26 +200,20 @@ export const POST: RequestHandler = async ({ request }) => {
     </center>
 </body>
 </html>
-				` // html body
-                // html: `<p>Dear user ${body.email},</p>
-                // <p>we received your password reset request</p>
-                // <p>please use: ${body.password} to login </p>
-                // <p>and change the password with a new one in your profile</p>
-                // </ hr>
-                // <p>This is an automated message DO NOT REPLY to this communication, for questions and assistance please write to support@fast-track-ip.com.</p>
-                // <p>Best regards</p>
-                // <p>Fast Track IP</p>`
-                // html body
-            });
-
-            console.log('Message sent: %s', info.messageId);
-            // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+		`
+        const mailOptions = {
+            from: '"Notifiche Dienchan" <no-reply@riflessologiadienchan.it>', // sender address
+            to: email, // list of receivers
+            subject: `Il tuo Ordine #${orderId} è Confermato! 🎉`, // Subject line
+            html: emailContentHtml
         };
-        mailer().catch(console.error);
+
+        const checkMail = await transporter.sendMail(mailOptions);
+        if (!checkMail.messageId) return json({ message: 'New order mailing error', status: 400 });
         return json({ message: 'New order sent', status: 200 });
 
     } catch (err) {
-        console.log('New order  ERROR:', err);
-        return json({ message: 'New order  ERROR' }, { status: 500 });
+        console.log('New order mailing ERROR:', err);
+        return json({ message: 'New order mailing ERROR' }, { status: 500 });
     }
 };

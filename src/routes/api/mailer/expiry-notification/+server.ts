@@ -1,6 +1,6 @@
 // `${BASE_URL}/api/mailer/expiry-notification`
 import type { RequestHandler } from '@sveltejs/kit';
-import { BASE_URL, APIKEY, MAILER_HOST, MAILER_PORT, MAILER_USER, MAILER_PASS } from '$env/static/private';
+import { BASE_URL, APIKEY, MAILER_HOST, MAILER_PORT, MAILER_SECURE, MAILER_USER, MAILER_PASS } from '$env/static/private';
 import { json, error } from '@sveltejs/kit';
 import nodemailer from 'nodemailer';
 
@@ -44,16 +44,6 @@ export const POST: RequestHandler = async ({ request }) => {
 			}
 		});
 
-		const transporter = nodemailer.createTransport({
-			host: MAILER_HOST,
-			port: Number(MAILER_PORT),
-			secure: false, // true for 465, false for other ports
-			auth: {
-				user: MAILER_USER,
-				pass: MAILER_PASS
-			}
-		});
-
 		const res = await resFetch;
 		if (!res.ok) {
 			console.error('user fetch error:', res.status, await res.text());
@@ -61,6 +51,16 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 		const users = await res.json();
 		console.log(`Found ${users.length} membership.membershipStatus: false. Sending emails...`);
+
+		const transporter = nodemailer.createTransport({
+			host: MAILER_HOST,
+			port: Number(MAILER_PORT),
+			secure: MAILER_SECURE === 'true' ? true : false, // true for 465, false for other ports
+			auth: {
+				user: MAILER_USER,
+				pass: MAILER_PASS
+			}
+		});
 
 		for (const user of users) {
 			try {

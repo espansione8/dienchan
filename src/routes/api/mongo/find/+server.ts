@@ -66,19 +66,43 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	try {
 		await dbConnect();
-		const find = await model.find(query, projection)
+
+		// const find = await model.find(query, projection)
+		// 	.sort(sort)
+		// 	.limit(limit)
+		// 	.skip(skip)
+		// 	.populate({
+		// 		path: 'userView',
+		// 		options: { strictPopulate: false }
+		// 	})
+		// 	.populate({
+		// 		path: 'layoutView',
+		// 		options: { strictPopulate: false }
+		// 	})
+		// 	.lean().exec();
+
+		let mongooseQuery = model.find(query, projection)
 			.sort(sort)
 			.limit(limit)
-			.skip(skip)
-			.populate({
+			.skip(skip);
+
+		if (!projection || projection.userView !== 0) {
+			mongooseQuery = mongooseQuery.populate({
 				path: 'userView',
 				options: { strictPopulate: false }
-			})
-			.populate({
+				// select: '-password'
+			});
+		}
+
+		if (!projection || projection.layoutView !== 0) {
+			mongooseQuery = mongooseQuery.populate({
 				path: 'layoutView',
 				options: { strictPopulate: false }
-			})
-			.lean().exec();
+				//select: '-version'
+			});
+		}
+
+		const find = await mongooseQuery.lean().exec();
 		//console.log('find', find);
 
 		if (find) return json(find, { status: 200 });

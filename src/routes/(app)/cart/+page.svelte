@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ActionResult } from '@sveltejs/kit';
 	import { goto, invalidateAll } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { Image } from '@unpic/svelte';
 	import Modal from '$lib/components/Modal.svelte';
@@ -9,6 +10,7 @@
 	import Loader from '$lib/components/Loader.svelte';
 	import { country_list, province } from '$lib/stores/arrays';
 	import { imgCheck } from '$lib/tools/tools';
+	import { loadStripe, type Stripe, type StripeElements } from '@stripe/stripe-js';
 	import {
 		Settings,
 		X,
@@ -35,7 +37,14 @@
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { userData, auth } = $derived(data);
+	const { userData, auth, stripePublishableKey } = $derived(data);
+
+	// Stripe state
+	let stripe: Stripe | null = $state(null);
+	let elements: StripeElements | null = $state(null);
+	let cardElement: any;
+	let stripeError = $state<string | null>(null);
+	let paymentMethodId = $state<string | null>(null);
 
 	let password1 = $state('');
 	let password2 = $state('');
@@ -54,7 +63,7 @@
 		country: userData?.country || 'Italy',
 		phone: userData?.phone || '',
 		mobilePhone: userData?.mobilePhone || '',
-		paymentType: 'Bonifico bancario',
+		paymentType: 'Carta di credito',
 		orderNotes: '',
 		usePoint: false,
 		pointsBalance: userData?.pointsBalance || 0,
@@ -139,6 +148,106 @@
 		return formData.pointsBalance;
 	});
 
+	const initializeStripe = async () => {
+		if (!stripePublishableKey) {
+			stripeError = 'La chiave pubblica di Stripe non è disponibile.';
+			return;
+		}
+
+		try {
+			if (!stripe) {
+				stripe = await loadStripe(stripePublishableKey);
+			}
+
+			if (stripe) {
+				if (!elements) {
+					elements = stripe.elements();
+				}
+				cardElement = elements.create('card', {
+					hidePostalCode: true,
+					style: {
+						base: {
+							fontSize: '16px',
+							color: '#424770',
+							'::placeholder': {
+								color: '#aab7c4'
+							}
+						},
+						invalid: {
+							color: '#9e2146'
+						}
+					}
+				});
+
+				// IMPORTANT: element DOM must be in the HTML
+				const cardElementContainer = document.getElementById('card-element');
+				if (cardElementContainer) {
+					cardElement.mount(cardElementContainer);
+					stripeError = null;
+					//console.log('Stripe Card Element montato con successo.');
+				} else {
+					console.error(
+						"ERRORE: Elemento '#card-element' non trovato nel DOM per il montaggio di Stripe."
+					);
+					stripeError =
+						"Si è verificato un errore durante l'inizializzazione del pagamento. Riprova.";
+				}
+			} else {
+				stripeError = 'Impossibile caricare Stripe. Riprova più tardi.';
+			}
+		} catch (e: any) {
+			console.error("Errore durante l'inizializzazione di Stripe:", e);
+			stripeError = `Errore di inizializzazione: ${e.message || 'Errore sconosciuto'}`;
+		}
+	};
+
+	const getStripeId = async () => {
+		if (formData.paymentType === 'Carta di credito') {
+			stripeError = null;
+
+			if (!stripe || !elements || !cardElement) {
+				stripeError = 'Stripe non è stato inizializzato correttamente. Riprova.';
+				notification.error(stripeError);
+				loading = false;
+			}
+
+			// get PaymentMethod  Stripe.js
+			const { paymentMethod, error } = await stripe.createPaymentMethod({
+				type: 'card',
+				card: cardElement,
+				billing_details: {
+					name: `${userData?.name || 'nome'} ${userData?.surname || 'cognome'}`,
+					email: userData?.email || 'email@example.com',
+					phone: formData.phone,
+					address: {
+						city: formData.city,
+						country: formData.country === 'Italy' ? 'IT' : formData.country,
+						line1: formData.address,
+						postal_code: formData.postalCode,
+						state: formData.county
+					}
+				}
+			});
+
+			if (error) {
+				stripeError = error.message;
+				notification.error(stripeError);
+				console.error('Stripe.js error:', error);
+				loading = false;
+			}
+
+			if (paymentMethod) {
+				paymentMethodId = paymentMethod.id;
+				//alert(`paymentMethodId created: ${paymentMethod.id}`);
+			} else {
+				// Edge case: no error but also no paymentMethod (shouldn't happen with Stripe API)
+				stripeError = 'Impossibile creare il metodo di pagamento. Riprova.';
+				notification.error(stripeError);
+				loading = false;
+			}
+		}
+	};
+
 	const testPass = () => {
 		checkPass = password1.length >= 8;
 		checkSecondPass = password1 === password2;
@@ -188,7 +297,7 @@
 			formData.country = 'Italy';
 			formData.phone = '';
 			formData.mobilePhone = '';
-			formData.paymentType = 'Bonifico bancario bancario';
+			formData.paymentType = 'Carta di credito';
 			formData.pointsBalance = 0;
 		}
 		formData.usePoint = false;
@@ -267,6 +376,10 @@
 			loading = false;
 		};
 	};
+
+	onMount(() => {
+		initializeStripe();
+	});
 </script>
 
 <svelte:head>
@@ -276,7 +389,7 @@
 <div class="container mx-auto px-4 py-8">
 	<div class="flex flex-col lg:flex-row gap-8">
 		<!-- Cart Items Section -->
-		<div class="w-full lg:w-2/3">
+		<div class="w-full lg:w-3/5">
 			<div class="bg-white rounded-xl shadow-md overflow-hidden">
 				<div class="bg-primary text-primary-content px-6 py-4 flex justify-between items-center">
 					<h2 class="text-xl font-bold">Il tuo carrello</h2>
@@ -411,7 +524,7 @@
 		</div>
 
 		<!-- Order Summary Section -->
-		<div class="w-full lg:w-1/3 space-y-6">
+		<div class="w-full lg:w-2/5 space-y-6">
 			<!-- {#if $cartProducts.length > 0} -->
 			<!-- User Profile -->
 			<div class="bg-white rounded-xl shadow-md overflow-hidden">
@@ -726,40 +839,63 @@
 										<span class="text-center font-medium">Bonifico bancario</span>
 									</label>
 								</div>
+
 								<div class="form-control w-full">
 									<label
 										class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
-										class:border-primary={formData.paymentType === 'paypal'}
-										class:bg-base-200={formData.paymentType === 'paypal'}
+										class:border-primary={formData.paymentType === 'Carta di credito'}
+										class:bg-base-200={formData.paymentType === 'Carta di credito'}
 									>
 										<input
 											type="radio"
 											name="payment"
-											value="paypal"
+											value="Carta di credito"
 											class="hidden"
 											bind:group={formData.paymentType}
 										/>
 										<CreditCard class="h-8 w-8 text-primary" />
-										<span class="text-center font-medium">Paypal</span>
+										<span class="text-center font-medium">Carta di credito</span>
 									</label>
 								</div>
-								<!-- <label
-				class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
-				class:border-primary={formData.paymentType === 'contanti'}
-				class:bg-base-200={formData.paymentType === 'contanti'}
-			>
-				<input
-					type="radio"
-					name="payment"
-					value="contanti"
-					class="hidden"
-					bind:group={formData.paymentType}
-				/>
-				<HandCoins class="h-8 w-8 text-primary" />
-				<span class="text-center font-medium">Contanti (all'inizio corso)</span>
-			</label> -->
-								<!-- </div> -->
 							</div>
+							<div
+								class="card bg-base-100 shadow-xl p-6 w-full"
+								class:hidden={formData.paymentType !== 'Carta di credito'}
+							>
+								<h3 class="text-xl font-semibold mb-4">Informazioni sulla carta di credito</h3>
+								<div class="form-control">
+									<div id="card-element" class="border border-base-300 p-3 rounded-md"></div>
+									{#if stripeError}
+										<p class="text-error text-sm mt-2">{stripeError}</p>
+									{/if}
+								</div>
+								<p class="text-sm text-gray-500 mt-2">
+									<Lock size={14} class="inline-block mr-1" /> Le tue informazioni di pagamento sono
+									protette.
+								</p>
+								{#if !paymentMethodId}
+									<button type="button" class="btn btn-info mt-4" onclick={getStripeId}
+										>VERIFICA CARTA
+									</button>
+								{:else}
+									<div class="btn btn-primary mt-4">CARTA OK <CheckCircle /></div>
+								{/if}
+							</div>
+							{#if formData.paymentType === 'Bonifico bancario'}
+								<div class="card bg-base-100 shadow-xl p-6">
+									<h3 class="text-xl font-semibold mb-4">Dettagli Bonifico Bancario</h3>
+									<p>Effettua un bonifico bancario alle seguenti coordinate:</p>
+									<p><strong>IBAN:</strong> IT93 R076 0111 5000 0102 3646 647</p>
+									<p><strong>BIC/SWIFT:</strong> BPPIITRRXXX</p>
+									<p><strong>INTESTATO A:</strong> ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia</p>
+									<p>VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA</p>
+									<br />
+									<p>
+										Si prega di includere il tuo ID ordine nella causale del bonifico. Il tuo ordine
+										sarà elaborato dopo la conferma del pagamento.
+									</p>
+								</div>
+							{/if}
 						</div>
 					</form>
 				</div>
@@ -1073,6 +1209,9 @@
 				<input type="hidden" name="newPointsBalance" value={newPointsBalance()} />
 				<input type="hidden" name="usedPoints" value={pointsDiscount()} />
 				<input type="hidden" name="usePoint" value={formData.usePoint} />
+				{#if paymentMethodId}
+					<input type="hidden" name="paymentMethodId" value={paymentMethodId} />
+				{/if}
 				<div class="modal-action">
 					<button class="btn btn-outline btn-error" onclick={onCloseModal}> Annulla </button>
 					<button type="submit" class="btn btn-primary"> Conferma Acquisto </button>

@@ -2,7 +2,6 @@
 	import type { ActionResult } from '@sveltejs/kit';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { enhance } from '$app/forms';
-	import { onMount } from 'svelte';
 	import { Image } from '@unpic/svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import { notification } from '$lib/stores/notifications';
@@ -280,6 +279,7 @@
 
 	const getStripeId = async () => {
 		if (formData.payment === 'Carta di credito' && currentStep === totalSteps) {
+			loading = true;
 			stripeError = null;
 
 			if (!stripe || !elements || !cardElement) {
@@ -315,6 +315,7 @@
 
 			if (paymentMethod) {
 				paymentMethodId = paymentMethod.id;
+				loading = false;
 				//alert(`paymentMethodId created: ${paymentMethod.id}`);
 			} else {
 				// Edge case: no error but also no paymentMethod (shouldn't happen with Stripe API)
