@@ -75,6 +75,7 @@ export const POST: RequestHandler = async ({ request }) => {
                         <p>Gentile ${user.name || ''} ${user.surname || ''},</p>
                         <p>La tua tessera associativa in Riflessologia Dienchan sta per scadere.</p>
                         <p>Per favore, rinnovala per continuare ad usufruire dei corsi e del negozio riservato agli associati.</p>
+                        <p>Per procedere al rinnovo della tua tessera, clicca sul link <a href="https://associazione.riflessologiadienchan.it/login">https://associazione.riflessologiadienchan.it/login</a> </p>
                         <p>Cordiali saluti,</p>
                         <p>Riflessologiadienchan.it</p>
                     </body>

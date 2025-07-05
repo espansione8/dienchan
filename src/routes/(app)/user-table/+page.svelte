@@ -352,23 +352,14 @@
 						<XCircle class="mt-1" /> Reset Filtro
 					</button>
 				{:else}
-					<button
-						class="btn btn-info rounded-md text-white"
-						onclick={() => onClickModal('filter', null)}
-					>
+					<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('filter', null)}>
 						<Funnel class="mt-1" /> Filtra
 					</button>
 				{/if}
-				<button
-					class="btn btn-info rounded-md text-white"
-					onclick={() => onClickModal('new', null)}
-				>
+				<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('new', null)}>
 					<CopyPlus /> Nuovo
 				</button>
-				<button
-					class="btn btn-info text-white w-full sm:w-auto"
-					onclick={() => csvCreate(tableList)}
-				>
+				<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate(tableList)}>
 					<FileDown />CSV
 				</button>
 				<form method="POST" action={`?/downloadCsv`} use:enhance={formSubmit}>
@@ -380,11 +371,7 @@
 					</button>
 				</form>
 
-				<button
-					aria-label="uploadCSV image"
-					class="btn btn-info text-white w-full sm:w-auto"
-					onclick={() => onClickModal('uploadCsv', null)}
-				>
+				<button aria-label="uploadCSV image" class="btn btn-info text-white w-full sm:w-auto" onclick={() => onClickModal('uploadCsv', null)}>
 					<FileUp />CSV
 				</button>
 			</div>
@@ -462,9 +449,7 @@
 						</td>
 						<!-- Points -->
 						<td>
-							<button onclick={() => onClickModal('points', row)} class="btn btn-info font-bold"
-								>{row.pointsBalance} <Coins />
-							</button>
+							<button onclick={() => onClickModal('points', row)} class="btn btn-info font-bold">{row.pointsBalance} <Coins /> </button>
 						</td>
 						<!-- Status -->
 						<td>
@@ -473,13 +458,9 @@
 								<input type="hidden" name="status" value={row.status} />
 								<span class="flex items-center">
 									{#if row.status == 'enabled'}
-										<button type="submit" class="btn btn-ghost btn-sm font-semibold"
-											><ToggleRight color="darkgreen" />
-										</button>
+										<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleRight color="darkgreen" /> </button>
 									{:else}
-										<button type="submit" class="btn btn-ghost btn-sm font-semibold"
-											><ToggleLeft color="darkred" /></button
-										>
+										<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleLeft color="darkred" /></button>
 									{/if}
 								</span>
 							</form>
@@ -493,32 +474,25 @@
 							</button>
 							<a
 								href="/profile-public/{row.userId}"
-								class="btn btn-sm bg-green-200 btn-green-400 rounded-md text-green-800 hover:bg-green-300 hover:text-green-800"
-								><UserRoundSearch /></a
+								class="btn btn-sm bg-green-200 btn-green-400 rounded-md text-green-800 hover:bg-green-300 hover:text-green-800"><UserRoundSearch /></a
 							>
 							<!-- <button
 							onclick={() => onClickDetail(row.userId)}
 							class="btn btn-sm bg-green-200 btn-green-400 rounded-md text-green-800 hover:bg-green-300 hover:text-green-800"
 							><UserRoundSearch />
 						</button> -->
-							<button class="btn btn-error btn-sm" onclick={() => onClickModal('delete', row)}
-								><Trash2 /></button
-							>
+							<button class="btn btn-error btn-sm" onclick={() => onClickModal('delete', row)}><Trash2 /></button>
 						</td>
 					</tr>
 				{/each}
 			</tbody>
 		</table>
 		{#if tableList.length == 0}
-			<div
-				class="alert alert-warning shadow-lg flex item-center text-center justify-center mt-3 mx-auto w-full max-w-lg"
-			>
+			<div class="alert alert-warning shadow-lg flex item-center text-center justify-center mt-3 mx-auto w-full max-w-lg">
 				<div>
 					<ShieldAlert />
 					<br />
-					<span class="mt-2 text-semibold">
-						Nessun corso trovato. Cambia parametri o resetta il filtro.
-					</span>
+					<span class="mt-2 text-semibold"> Nessun corso trovato. Cambia parametri o resetta il filtro. </span>
 				</div>
 			</div>
 		{/if}
@@ -530,16 +504,7 @@
 					</button>
 				{/if}
 
-				<button
-					type="submit"
-					id="prev"
-					class="join-item btn"
-					name="navigation"
-					value="prev"
-					disabled={currentPage <= 1}
-				>
-					«
-				</button>
+				<button type="submit" id="prev" class="join-item btn" name="navigation" value="prev" disabled={currentPage <= 1}> « </button>
 				<button type="button" class="join-item btn">Pagina {currentPage}</button>
 				<button
 					type="submit"
@@ -559,19 +524,12 @@
 <!--Modal New and Modify  -->
 {#if currentModal == 'new' || currentModal == 'modify'}
 	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-4xl">
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{/if}
 
-		<form
-			method="POST"
-			action={postAction}
-			use:enhance={formSubmit}
-			class=" grid grid-cols-12 gap-x-4 gap-y-8 p-4"
-		>
+		<form method="POST" action={postAction} use:enhance={formSubmit} class=" grid grid-cols-12 gap-x-4 gap-y-8 p-4">
 			{#if currentModal == 'modify'}
 				<div class="form-control col-span-12 md:col-span-12">
 					<label for="userId" class="form-label">
@@ -599,19 +557,8 @@
 					<div class="flex items-center justify-between gap-4">
 						<span class="label-text font-bold">Nome</span>
 						{#if currentModal == 'modify'}
-							<input
-								type="checkbox"
-								class="hidden"
-								id="btn-check8"
-								name="namePublic"
-								bind:checked={namePublic}
-							/>
-							<label
-								class={namePublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check8"
-							>
+							<input type="checkbox" class="hidden" id="btn-check8" name="namePublic" bind:checked={namePublic} />
+							<label class={namePublic ? 'btn btn-success btn-sm rounded-md' : 'btn btn-secondary btn-sm rounded-md'} for="btn-check8">
 								{#if namePublic}
 									<Eye size="20" color="white" strokeWidth={2.5} />
 								{:else}
@@ -638,19 +585,8 @@
 					<div class="flex items-center justify-between gap-4">
 						<span class="label-text font-bold">Cognome</span>
 						{#if currentModal == 'modify'}
-							<input
-								type="checkbox"
-								class="hidden"
-								id="btn-check9"
-								name="surnamePublic"
-								bind:checked={surnamePublic}
-							/>
-							<label
-								class={surnamePublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check9"
-							>
+							<input type="checkbox" class="hidden" id="btn-check9" name="surnamePublic" bind:checked={surnamePublic} />
+							<label class={surnamePublic ? 'btn btn-success btn-sm rounded-md' : 'btn btn-secondary btn-sm rounded-md'} for="btn-check9">
 								{#if surnamePublic}
 									<Eye size="20" color="white" strokeWidth={2.5} />
 								{:else}
@@ -686,12 +622,7 @@
 								checked={emailPublic}
 								onclick={() => onSwitchPublicProfile('emailPublic', emailPublic)}
 							/>
-							<label
-								class={emailPublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check10"
-							>
+							<label class={emailPublic ? 'btn btn-success btn-sm rounded-md' : 'btn btn-secondary btn-sm rounded-md'} for="btn-check10">
 								{#if emailPublic}
 									<Eye size="20" color="white" strokeWidth={2.5} />
 								{:else}
@@ -727,12 +658,7 @@
 								checked={addressPublic}
 								onclick={() => onSwitchPublicProfile('addressPublic', addressPublic)}
 							/>
-							<label
-								class={addressPublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check1"
-							>
+							<label class={addressPublic ? 'btn btn-success btn-sm rounded-md' : 'btn btn-secondary btn-sm rounded-md'} for="btn-check1">
 								{#if addressPublic}
 									<Eye size="20" color="white" strokeWidth={2.5} />
 								{:else}
@@ -768,12 +694,7 @@
 								checked={cityPublic}
 								onclick={() => onSwitchPublicProfile('cityPublic', cityPublic)}
 							/>
-							<label
-								class={cityPublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check2"
-							>
+							<label class={cityPublic ? 'btn btn-success btn-sm rounded-md' : 'btn btn-secondary btn-sm rounded-md'} for="btn-check2">
 								{#if cityPublic}
 									<Eye size="20" color="white" strokeWidth={2.5} />
 								{:else}
@@ -809,12 +730,7 @@
 								checked={statePublic}
 								onclick={() => onSwitchPublicProfile('statePublic', statePublic)}
 							/>
-							<label
-								class={statePublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check3"
-							>
+							<label class={statePublic ? 'btn btn-success btn-sm rounded-md' : 'btn btn-secondary btn-sm rounded-md'} for="btn-check3">
 								{#if statePublic}
 									<Eye size="20" color="white" strokeWidth={2.5} />
 								{:else}
@@ -824,14 +740,7 @@
 							</label>
 						{/if}
 					</div>
-					<select
-						id="county"
-						class="select select-bordered w-full rounded-md mt-2"
-						name="county"
-						placeholder="Scegli"
-						required
-						bind:value={county}
-					>
+					<select id="county" class="select select-bordered w-full rounded-md mt-2" name="county" placeholder="Scegli" required bind:value={county}>
 						<option value="" selected disabled>Scegli</option>
 						{#each provinceFilterate as provincia, i}
 							<option value={provincia.title}>
@@ -856,12 +765,7 @@
 								checked={postalCodePublic}
 								onclick={() => onSwitchPublicProfile('postalCodePublic', postalCodePublic)}
 							/>
-							<label
-								class={postalCodePublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check4"
-							>
+							<label class={postalCodePublic ? 'btn btn-success btn-sm rounded-md' : 'btn btn-secondary btn-sm rounded-md'} for="btn-check4">
 								{#if postalCodePublic}
 									<Eye size="20" color="white" strokeWidth={2.5} />
 								{:else}
@@ -897,12 +801,7 @@
 								checked={countryPublic}
 								onclick={() => onSwitchPublicProfile('countryPublic', countryPublic)}
 							/>
-							<label
-								class={countryPublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check5"
-							>
+							<label class={countryPublic ? 'btn btn-success btn-sm rounded-md' : 'btn btn-secondary btn-sm rounded-md'} for="btn-check5">
 								{#if countryPublic}
 									<Eye size="20" color="white" strokeWidth={2.5} />
 								{:else}
@@ -944,12 +843,7 @@
 								checked={phonePublic}
 								onclick={() => onSwitchPublicProfile('phonePublic', phonePublic)}
 							/>
-							<label
-								class={phonePublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check6"
-							>
+							<label class={phonePublic ? 'btn btn-success btn-sm rounded-md' : 'btn btn-secondary btn-sm rounded-md'} for="btn-check6">
 								{#if phonePublic}
 									<Eye size="20" color="white" strokeWidth={2.5} />
 								{:else}
@@ -984,12 +878,7 @@
 								checked={mobilePhonePublic}
 								onclick={() => onSwitchPublicProfile('mobilePhonePublic', mobilePhonePublic)}
 							/>
-							<label
-								class={mobilePhonePublic
-									? 'btn btn-success btn-sm rounded-md'
-									: 'btn btn-secondary btn-sm rounded-md'}
-								for="btn-check7"
-							>
+							<label class={mobilePhonePublic ? 'btn btn-success btn-sm rounded-md' : 'btn btn-secondary btn-sm rounded-md'} for="btn-check7">
 								{#if mobilePhonePublic}
 									<Eye size="20" color="white" strokeWidth={2.5} />
 								{:else}
@@ -1019,9 +908,7 @@
 						</p>
 					</label>
 					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"
-							><Lock color={checkPass ? 'green' : 'black'} /></button
-						>
+						<button class="join-item bg-gray-300 px-3"><Lock color={checkPass ? 'green' : 'black'} /></button>
 						<input
 							class="input input-bordered join-item w-full"
 							id="password1"
@@ -1040,9 +927,7 @@
 						<p class="font-bold mb-2">Conferma password</p>
 					</label>
 					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"
-							><Lock color={checkSecondPass && checkPass ? 'green' : 'black'} /></button
-						>
+						<button class="join-item bg-gray-300 px-3"><Lock color={checkSecondPass && checkPass ? 'green' : 'black'} /></button>
 						<input
 							class="input input-bordered join-item w-full"
 							id="password2"
@@ -1060,14 +945,7 @@
 				<label for="level" class="form-label">
 					<p class="font-bold mb-2">Livello di permesso (solo per SuperAdmin)</p>
 				</label>
-				<select
-					id="level"
-					class="select select-bordered w-full rounded-md mt-2"
-					name="level"
-					placeholder="Scegli"
-					required
-					bind:value={level}
-				>
+				<select id="level" class="select select-bordered w-full rounded-md mt-2" name="level" placeholder="Scegli" required bind:value={level}>
 					<option value="" selected disabled>Seleziona livello</option>
 					<option value="user">Utente base</option>
 					<option value="formatore">Formatore</option>
@@ -1079,9 +957,7 @@
 			<!-- button -->
 			<div class="col-span-12 mt-5 flex justify-center gap-4">
 				<div class="bg-gray-50 flex justify-center">
-					<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}>
-						Annulla
-					</button>
+					<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
 					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">
 						{#if currentModal == 'new'}
 							Registra
@@ -1120,9 +996,7 @@
 		<form method="POST" action={postAction} use:enhance={formSubmit} class="p-6 space-y-6">
 			<div class="space-y-4">
 				<div>
-					<label for="level" class="block text-sm font-medium text-gray-700 mb-1"
-						>Livello utente</label
-					>
+					<label for="level" class="block text-sm font-medium text-gray-700 mb-1">Livello utente</label>
 					<select
 						id="level"
 						name="level"
@@ -1138,9 +1012,7 @@
 				</div>
 
 				<div>
-					<label for="membershipLevel" class="block text-sm font-medium text-gray-700 mb-1"
-						>Livello associato</label
-					>
+					<label for="membershipLevel" class="block text-sm font-medium text-gray-700 mb-1">Livello associato</label>
 					<select
 						id="membershipLevel"
 						name="membershipLevel"
@@ -1171,12 +1043,8 @@
 			</div>
 
 			<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
-				<button class="btn btn-error btn-sm hover:bg-red-300" onclick={onCloseModal} type="button">
-					Annulla
-				</button>
-				<button class="btn btn-success btn-sm hover:bg-green-400" type="submit">
-					Applica Filtri
-				</button>
+				<button class="btn btn-error btn-sm hover:bg-red-300" onclick={onCloseModal} type="button"> Annulla </button>
+				<button class="btn btn-success btn-sm hover:bg-green-400" type="submit"> Applica Filtri </button>
 			</div>
 		</form>
 	</Modal>
@@ -1184,9 +1052,7 @@
 
 {#if currentModal == 'uploadCsv'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{/if}
@@ -1202,13 +1068,7 @@
 					<p class="font-bold mb-2 label">Solo file CSV</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
-					<input
-						type="file"
-						id="fileUpload"
-						name="fileUpload"
-						accept=".csv, text/csv"
-						class="file-input"
-					/>
+					<input type="file" id="fileUpload" name="fileUpload" accept=".csv, text/csv" class="file-input" />
 				</div>
 			</section>
 
@@ -1224,41 +1084,22 @@
 
 {#if currentModal == 'points'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{/if}
-		<form
-			method="POST"
-			action={postAction}
-			use:enhance={formSubmit}
-			class="grid grid-cols-4 gap-4 px-4 py-4"
-		>
+		<form method="POST" action={postAction} use:enhance={formSubmit} class="grid grid-cols-4 gap-4 px-4 py-4">
 			<section class="col-span-4 flex justify-center gap-4">
 				<div class="form-control">
 					<label for="pointsType" class="form-label">
 						<p class="font-bold mb-2 label">Aggiungi Punti</p>
-						<input
-							type="radio"
-							name="pointsType"
-							class="radio"
-							value="add"
-							bind:group={pointsType}
-						/>
+						<input type="radio" name="pointsType" class="radio" value="add" bind:group={pointsType} />
 					</label>
 				</div>
 				<div class="form-control">
 					<label for="pointsType" class="form-label">
 						<p class="font-bold mb-2 label">Rimuovi Punti</p>
-						<input
-							type="radio"
-							name="pointsType"
-							class="radio"
-							value="remove"
-							bind:group={pointsType}
-						/>
+						<input type="radio" name="pointsType" class="radio" value="remove" bind:group={pointsType} />
 					</label>
 				</div>
 			</section>
@@ -1289,15 +1130,7 @@
 						<span class="label-text font-bold">Note</span>
 					</div>
 					<div class="join join-horizontal rounded-md w-full">
-						<textarea
-							class="textarea w-full"
-							id="note"
-							name="note"
-							placeholder="Note"
-							aria-label="note"
-							bind:value={note}
-						>
-						</textarea>
+						<textarea class="textarea w-full" id="note" name="note" placeholder="Note" aria-label="note" bind:value={note}> </textarea>
 					</div>
 				</label>
 			</section>
@@ -1307,12 +1140,7 @@
 			<section class="col-span-4 flex justify-center">
 				<div class="bg-gray-50 flex justify-center">
 					<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
-					<button
-						type="submit"
-						class="btn btn-sm mx-2"
-						class:btn-success={pointsType === 'add'}
-						class:btn-error={pointsType === 'remove'}
-					>
+					<button type="submit" class="btn btn-sm mx-2" class:btn-success={pointsType === 'add'} class:btn-error={pointsType === 'remove'}>
 						{#if pointsType === 'add'}
 							Aggiungi
 						{:else}
@@ -1323,23 +1151,24 @@
 			</section>
 		</form>
 
-		<div class="grid grid-cols-4 bg-base-100 grid-col gap-y-6 p-4 lg:gap-x-8 lg:p-8">
-			{#each pointsHistory || [] as item}
+		<div class="grid grid-cols-4 bg-base-100 grid-col gap-y-3 p-4 lg:gap-x-4 lg:p-4">
+			<!-- {#each pointsHistory || [] as item} -->
+			{#each [...(pointsHistory || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) as item}
 				<div
 					class="col-span-4
-                           p-4
+                           p-3
                            rounded-box
                            shadow-md
                            bg-base-200
                            flex flex-wrap
-                           gap-x-6 gap-y-2
+                           gap-x-1 gap-y-1
                            items-center
                            justify-between
                            "
 				>
 					<span class="font-bold text-lg text-primary"> punti: {item.points}</span>
 					<span class="text-sm text-base-content">{item.note}</span>
-					<span class="text-sm text-base-content">{new Date(item.date).toLocaleString()}</span>
+					<div class="w-full"><span class="text-sm text-base-content">{new Date(item.date).toLocaleString()}</span></div>
 				</div>
 			{/each}
 		</div>

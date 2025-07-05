@@ -267,10 +267,7 @@
 					<XCircle class="mt-1" /> Reset Filtro
 				</button>
 			{:else}
-				<button
-					class="btn btn-info rounded-md text-white"
-					onclick={() => onClickModal('filter', null)}
-				>
+				<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('filter', null)}>
 					<Funnel class="mt-1" /> Filtra
 				</button>
 			{/if}
@@ -280,11 +277,7 @@
 			<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate()}>
 				<FileDown />CSV
 			</button>
-			<button
-				aria-label="uploadCSV image"
-				class="btn btn-info text-white w-full sm:w-auto"
-				onclick={() => onClickModal('uploadCsv', null)}
-			>
+			<button aria-label="uploadCSV image" class="btn btn-info text-white w-full sm:w-auto" onclick={() => onClickModal('uploadCsv', null)}>
 				<FileUp />CSV
 			</button>
 		</div>
@@ -327,41 +320,20 @@
 											class="object-cover rounded-md max-w-28 max-h-28 h-auto"
 										/>
 									</figure>
-									<form
-										method="POST"
-										action={`?/delProdPic`}
-										use:enhance={formSubmit}
-										class="ml-4 flex-shrink-0"
-									>
+									<form method="POST" action={`?/delProdPic`} use:enhance={formSubmit} class="ml-4 flex-shrink-0">
 										<input type="hidden" name="prodId" value={row.prodId} />
-										<input
-											type="hidden"
-											name="fileName"
-											value={imgCheck.fileName(row.uploadfiles, 'product-primary')}
-										/>
-										<button
-											class="btn btn-sm btn-error rounded-lg border-2"
-											type="submit"
-											aria-label="Delete image"
-										>
+										<input type="hidden" name="fileName" value={imgCheck.fileName(row.uploadfiles, 'product-primary')} />
+										<button class="btn btn-sm btn-error rounded-lg border-2" type="submit" aria-label="Delete image">
 											<Trash2 size="24" />
 										</button>
 									</form>
 								</div>
 							</div>
 						{:else}
-							<form
-								action={`?/setProdPic`}
-								method="POST"
-								enctype="multipart/form-data"
-								use:enhance={formSubmit}
-								class="card-body max-w-48"
-							>
+							<form action={`?/setProdPic`} method="POST" enctype="multipart/form-data" use:enhance={formSubmit} class="card-body max-w-48">
 								<input type="hidden" name="prodId" value={row.prodId} />
 								<DragDrop />
-								<button class="btn btn-sm btn-info rounded-lg border-2" type="submit">
-									Aggiungi foto
-								</button>
+								<button class="btn btn-sm btn-info rounded-lg border-2" type="submit"> Aggiungi foto </button>
 							</form>
 						{/if}
 						<!-- img end -->
@@ -372,13 +344,9 @@
 							<input type="hidden" name="status" value={row.status} />
 							<span class="flex items-center">
 								{#if row.status == 'enabled'}
-									<button type="submit" class="btn btn-ghost btn-sm font-semibold"
-										><ToggleRight color="darkgreen" />
-									</button>
+									<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleRight color="darkgreen" /> </button>
 								{:else}
-									<button type="submit" class="btn btn-ghost btn-sm font-semibold"
-										><ToggleLeft color="darkred" /></button
-									>
+									<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleLeft color="darkred" /></button>
 								{/if}
 							</span>
 						</form>
@@ -390,14 +358,9 @@
 					<!-- <td><div class="badge badge-primary badge-md">0</div></td> -->
 					<td>
 						<!-- Action -->
-						<button onclick={() => onClickModal('modify', row)} class="btn btn-sm"
-							><Settings />
-						</button>
-						<a href="/product-detail/{row.prodId}" class="btn btn-sm btn-success"><FileSearch2 /></a
-						>
-						<button class="btn btn-error btn-sm" onclick={() => onClickModal('delete', row)}
-							><Trash2 /></button
-						>
+						<button onclick={() => onClickModal('modify', row)} class="btn btn-sm"><Settings /> </button>
+						<a href="/product-detail/{row.prodId}" class="btn btn-sm btn-success"><FileSearch2 /></a>
+						<button class="btn btn-error btn-sm" onclick={() => onClickModal('delete', row)}><Trash2 /></button>
 					</td>
 				</tr>
 			{/each}
@@ -405,12 +368,7 @@
 	</table>
 	<div class="join flex justify-center">
 		{#each pageNumbers() as page (page)}
-			<button
-				type="submit"
-				class="join-item btn"
-				class:btn-active={page === currentPage}
-				onclick={() => goToPage(page)}
-			>
+			<button type="submit" class="join-item btn" class:btn-active={page === currentPage} onclick={() => goToPage(page)}>
 				{page}
 			</button>
 		{/each}
@@ -419,366 +377,355 @@
 
 {#if currentModal == 'new'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
-		{:else}
-			<form
-				action={postAction}
-				method="POST"
-				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-				use:enhance={formSubmit}
-			>
-				<!-- <header class="col-span-4 text-center text-2xl font-bold text-green-800">
+		{/if}
+		<form
+			action={postAction}
+			method="POST"
+			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+			use:enhance={formSubmit}
+		>
+			<!-- <header class="col-span-4 text-center text-2xl font-bold text-green-800">
 				Nuovo Prodotto
 			</header> -->
-				<section class="col-span-4">
-					<label for="titolo" class="form-label">
-						<p class="font-bold mb-2">Titolo</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
-						<input
-							class="input input-bordered join-item w-full"
-							id="titolo"
-							name="title"
-							type="text"
-							placeholder="Titolo"
-							aria-label="Titolo"
-							aria-describedby="basic-titolo"
-							bind:value={title}
-							required
-						/>
-					</div>
-				</section>
-				<section class="col-span-4">
-					<label for="descrShort" class="form-label">
-						<p class="font-bold mb-2">Descrizione Breve</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
-						<textarea
-							class="textarea textarea-bordered h-24 join-item w-full"
-							id="descrShort"
-							name="descrShort"
-							placeholder="Testo Descrizione Breve"
-							aria-label="descrShort"
-							aria-describedby="basic-descrShort"
-							bind:value={descrShort}
-							required
-						></textarea>
-					</div>
-				</section>
-				<section class="col-span-4">
-					<label for="descrLong" class="form-label">
-						<p class="font-bold mb-2">Descrizione Completa</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
-						<textarea
-							class="textarea textarea-bordered h-24 join-item w-full"
-							id="descrLong"
-							name="descrLong"
-							placeholder="Testo Descrizione Completa"
-							aria-label="descrizione"
-							aria-describedby="basic-descrLong"
-							bind:value={descrLong}
-							required
-						></textarea>
-					</div>
-				</section>
-				<section class="col-span-1 md:col-span-2">
-					<label for="quantitaProdotto" class="form-label">
-						<p class="font-bold mb-2">Quantità magazzino</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Users /></button>
-						<input
-							class="input input-bordered join-item w-full"
-							id="quantitaProdotto"
-							name="stockQty"
-							type="number"
-							placeholder="N."
-							aria-label="quantitaProdotto"
-							aria-describedby="basic-quantitaProdotto"
-							step="1"
-							min="0"
-							bind:value={stockQty}
-							required
-						/>
-					</div>
-				</section>
-				<section class="col-span-4 md:col-span-2">
-					<label for="cost" class="form-label">
-						<p class="font-bold mb-2">Prezzo</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Calculator /></button>
-						<input
-							class="input input-bordered join-item w-full"
-							id="cost"
-							name="price"
-							type="number"
-							placeholder="N."
-							aria-label="cost"
-							aria-describedby="basic-cost"
-							bind:value={price}
-							min="0"
-							step="0.01"
-							required
-						/>
-					</div>
-				</section>
-				<section class="col-span-4 md:col-span-2">
-					<label for="weight" class="form-label">
-						<p class="font-bold mb-2">Peso KG</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Calculator /></button>
-						<input
-							class="input input-bordered join-item w-full"
-							id="weight"
-							name="weight"
-							type="number"
-							placeholder="KG"
-							aria-label="weight"
-							aria-describedby="shipping-weight"
-							bind:value={weight}
-							min="0"
-							step="0.01"
-							required
-						/>
-					</div>
-				</section>
-				<section class="col-span-4 md:col-span-2">
-					<label for="category" class="form-label">
-						<p class="font-bold mb-2">Categoria prodotto</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><List /></button>
-						<select
-							class="select select-bordered w-full rounded-md rounded-l-none"
-							id="category"
-							name="category"
-							aria-label="category"
-							aria-describedby="basic-category"
-							bind:value={category}
-							required
-						>
-							<option disabled value="">Scegli</option>
-							<option value="Alimentazione & Benessere">Alimentazione & Benessere</option>
-							<option value="Altri attrezzi e Accessori">Altri attrezzi e Accessori</option>
-							<option value="Cercapunti">Cercapunti</option>
-							<option value="Creme & Co.">Creme & Co.</option>
-							<option value="Martelli">Martelli</option>
-							<option value="Materiale didattico">Materiale didattico</option>
-							<option value="Pettini">Pettini</option>
-							<option value="Rulli">Rulli</option>
-							<option value="Vietmassage">Vietmassage</option>
-							<option value="Senza Categoria">Senza Categoria</option>
-						</select>
-					</div>
-				</section>
-				<section class="lg:col-span-4 mt-2">
-					<div class="col-span-4 mt-10 flex justify-center">
-						<button class="btn btn-error mx-1" type="button" onclick={onCloseModal}>Annulla</button>
-						<button class="btn btn-success mx-1" type="submit">
-							<span class="flex items-center justify-center"> REGISTRA PRODOTTO </span>
-						</button>
-					</div>
-				</section>
-			</form>
-		{/if}
+			<section class="col-span-4">
+				<label for="titolo" class="form-label">
+					<p class="font-bold mb-2">Titolo</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="titolo"
+						name="title"
+						type="text"
+						placeholder="Titolo"
+						aria-label="Titolo"
+						aria-describedby="basic-titolo"
+						bind:value={title}
+						required
+					/>
+				</div>
+			</section>
+			<section class="col-span-4">
+				<label for="descrShort" class="form-label">
+					<p class="font-bold mb-2">Descrizione Breve</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<textarea
+						class="textarea textarea-bordered h-24 join-item w-full"
+						id="descrShort"
+						name="descrShort"
+						placeholder="Testo Descrizione Breve"
+						aria-label="descrShort"
+						aria-describedby="basic-descrShort"
+						bind:value={descrShort}
+						required
+					></textarea>
+				</div>
+			</section>
+			<section class="col-span-4">
+				<label for="descrLong" class="form-label">
+					<p class="font-bold mb-2">Descrizione Completa</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<textarea
+						class="textarea textarea-bordered h-24 join-item w-full"
+						id="descrLong"
+						name="descrLong"
+						placeholder="Testo Descrizione Completa"
+						aria-label="descrizione"
+						aria-describedby="basic-descrLong"
+						bind:value={descrLong}
+						required
+					></textarea>
+				</div>
+			</section>
+			<section class="col-span-1 md:col-span-2">
+				<label for="quantitaProdotto" class="form-label">
+					<p class="font-bold mb-2">Quantità magazzino</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Users /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="quantitaProdotto"
+						name="stockQty"
+						type="number"
+						placeholder="N."
+						aria-label="quantitaProdotto"
+						aria-describedby="basic-quantitaProdotto"
+						step="1"
+						min="0"
+						bind:value={stockQty}
+						required
+					/>
+				</div>
+			</section>
+			<section class="col-span-4 md:col-span-2">
+				<label for="cost" class="form-label">
+					<p class="font-bold mb-2">Prezzo</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Calculator /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="cost"
+						name="price"
+						type="number"
+						placeholder="N."
+						aria-label="cost"
+						aria-describedby="basic-cost"
+						bind:value={price}
+						min="0"
+						step="0.01"
+						required
+					/>
+				</div>
+			</section>
+			<section class="col-span-4 md:col-span-2">
+				<label for="weight" class="form-label">
+					<p class="font-bold mb-2">Peso KG</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Calculator /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="weight"
+						name="weight"
+						type="number"
+						placeholder="KG"
+						aria-label="weight"
+						aria-describedby="shipping-weight"
+						bind:value={weight}
+						min="0"
+						step="0.01"
+						required
+					/>
+				</div>
+			</section>
+			<section class="col-span-4 md:col-span-2">
+				<label for="category" class="form-label">
+					<p class="font-bold mb-2">Categoria prodotto</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><List /></button>
+					<select
+						class="select select-bordered w-full rounded-md rounded-l-none"
+						id="category"
+						name="category"
+						aria-label="category"
+						aria-describedby="basic-category"
+						bind:value={category}
+						required
+					>
+						<option disabled value="">Scegli</option>
+						<option value="Alimentazione & Benessere">Alimentazione & Benessere</option>
+						<option value="Altri attrezzi e Accessori">Altri attrezzi e Accessori</option>
+						<option value="Cercapunti">Cercapunti</option>
+						<option value="Creme & Co.">Creme & Co.</option>
+						<option value="Martelli">Martelli</option>
+						<option value="Materiale didattico">Materiale didattico</option>
+						<option value="Pettini">Pettini</option>
+						<option value="Rulli">Rulli</option>
+						<option value="Vietmassage">Vietmassage</option>
+						<option value="Senza Categoria">Senza Categoria</option>
+					</select>
+				</div>
+			</section>
+			<section class="lg:col-span-4 mt-2">
+				<div class="col-span-4 mt-10 flex justify-center">
+					<button class="btn btn-error mx-1" type="button" onclick={onCloseModal}>Annulla</button>
+					<button class="btn btn-success mx-1" type="submit">
+						<span class="flex items-center justify-center"> REGISTRA PRODOTTO </span>
+					</button>
+				</div>
+			</section>
+		</form>
 	</Modal>
 {/if}
 
 {#if currentModal == 'modify'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModify}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModify}>✕</button>
 		{#if loading}
 			<Loader />
-		{:else}
-			<form
-				action={postAction}
-				method="POST"
-				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-				use:enhance={formSubmit}
-			>
-				<input type="hidden" name="prodId" value={prodId} />
-				<!-- <header class="col-span-4 text-center text-2xl font-bold text-green-800">
-			Modifica Prodotto
-		</header> -->
-				<section class="col-span-4">
-					<label for="titolo" class="form-label">
-						<p class="font-bold mb-2">Titolo</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
-						<input
-							class="input input-bordered join-item w-full"
-							id="titolo"
-							name="title"
-							type="text"
-							placeholder="Titolo"
-							aria-label="Titolo"
-							aria-describedby="basic-titolo"
-							bind:value={title}
-							required
-						/>
-					</div>
-				</section>
-				<section class="col-span-4">
-					<label for="descrShort" class="form-label">
-						<p class="font-bold mb-2">Descrizione Breve</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
-						<textarea
-							class="textarea textarea-bordered h-24 join-item w-full"
-							id="descrShort"
-							name="descrShort"
-							placeholder="Descrizione Breve"
-							aria-label="descrShort"
-							aria-describedby="basic-descrShort"
-							bind:value={descrShort}
-							required
-						></textarea>
-					</div>
-				</section>
-				<section class="col-span-4">
-					<label for="descrLong" class="form-label">
-						<p class="font-bold mb-2">Descrizione Completa</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
-						<textarea
-							class="textarea textarea-bordered h-24 join-item w-full"
-							id="descrLong"
-							name="descrLong"
-							placeholder="Descrizione Completa"
-							aria-label="descrLong"
-							aria-describedby="basic-descrLong"
-							bind:value={descrLong}
-							required
-						></textarea>
-					</div>
-				</section>
-				<section class="col-span-1 md:col-span-2">
-					<label for="quantitaProdotto" class="form-label">
-						<p class="font-bold mb-2">Quantità magazzino</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Users /></button>
-						<input
-							class="input input-bordered join-item w-full"
-							id="quantitaProdotto"
-							name="stockQty"
-							type="number"
-							placeholder="N."
-							aria-label="quantitaProdotto"
-							aria-describedby="basic-quantitaProdotto"
-							step="1"
-							min="0"
-							bind:value={stockQty}
-							required
-						/>
-					</div>
-				</section>
-				<section class="col-span-4 md:col-span-2">
-					<label for="cost" class="form-label">
-						<p class="font-bold mb-2">Prezzo</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Calculator /></button>
-						<input
-							class="input input-bordered join-item w-full"
-							id="cost"
-							name="price"
-							type="number"
-							placeholder="N."
-							aria-label="cost"
-							aria-describedby="basic-cost"
-							bind:value={price}
-							min="0"
-							step="0.01"
-							required
-						/>
-					</div>
-				</section>
-				<section class="col-span-4 md:col-span-2">
-					<label for="weight" class="form-label">
-						<p class="font-bold mb-2">Peso KG</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Calculator /></button>
-						<input
-							class="input input-bordered join-item w-full"
-							id="weight"
-							name="weight"
-							type="number"
-							placeholder="KG"
-							aria-label="weight"
-							aria-describedby="shipping-weight"
-							bind:value={weight}
-							min="0"
-							step="0.01"
-							required
-						/>
-					</div>
-				</section>
-				<section class="col-span-4 md:col-span-2">
-					<label for="category" class="form-label">
-						<p class="font-bold mb-2">Categoria prodotto</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><List /></button>
-						<select
-							class="select select-bordered w-full rounded-md rounded-l-none"
-							id="category"
-							name="category"
-							aria-label="category"
-							aria-describedby="basic-category"
-							bind:value={category}
-							required
-						>
-							<option disabled value="">Scegli</option>
-							<option value="Alimentazione & Benessere">Alimentazione & Benessere</option>
-							<option value="Altri attrezzi e Accessori">Altri attrezzi e Accessori</option>
-							<option value="Cercapunti">Cercapunti</option>
-							<option value="Creme & Co.">Creme & Co.</option>
-							<option value="Martelli">Martelli</option>
-							<option value="Materiale didattico">Materiale didattico</option>
-							<option value="Pettini">Pettini</option>
-							<option value="Rulli">Rulli</option>
-							<option value="Vietmassage">Vietmassage</option>
-							<option value="Senza Categoria">Senza Categoria</option>
-						</select>
-					</div>
-				</section>
-
-				<section class="lg:col-span-4 mt-2">
-					<div class="col-span-4 mt-10 flex justify-center">
-						<button class="btn btn-error mx-1" type="button" onclick={onCloseModify}>Annulla</button
-						>
-						<button class="btn btn-success mx-1" type="submit">
-							<span class="flex items-center justify-center">CONFERMA MODIFICA</span>
-						</button>
-					</div>
-				</section>
-			</form>
 		{/if}
+		<form
+			action={postAction}
+			method="POST"
+			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+			use:enhance={formSubmit}
+		>
+			<input type="hidden" name="prodId" value={prodId} />
+
+			<section class="col-span-4">
+				<label for="titolo" class="form-label">
+					<p class="font-bold mb-2">Titolo</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="titolo"
+						name="title"
+						type="text"
+						placeholder="Titolo"
+						aria-label="Titolo"
+						aria-describedby="basic-titolo"
+						bind:value={title}
+						required
+					/>
+				</div>
+			</section>
+			<section class="col-span-4">
+				<label for="descrShort" class="form-label">
+					<p class="font-bold mb-2">Descrizione Breve</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<textarea
+						class="textarea textarea-bordered h-24 join-item w-full"
+						id="descrShort"
+						name="descrShort"
+						placeholder="Descrizione Breve"
+						aria-label="descrShort"
+						aria-describedby="basic-descrShort"
+						bind:value={descrShort}
+						required
+					></textarea>
+				</div>
+			</section>
+			<section class="col-span-4">
+				<label for="descrLong" class="form-label">
+					<p class="font-bold mb-2">Descrizione Completa</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<textarea
+						class="textarea textarea-bordered h-24 join-item w-full"
+						id="descrLong"
+						name="descrLong"
+						placeholder="Descrizione Completa"
+						aria-label="descrLong"
+						aria-describedby="basic-descrLong"
+						bind:value={descrLong}
+						required
+					></textarea>
+				</div>
+			</section>
+			<section class="col-span-1 md:col-span-2">
+				<label for="quantitaProdotto" class="form-label">
+					<p class="font-bold mb-2">Quantità magazzino</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Users /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="quantitaProdotto"
+						name="stockQty"
+						type="number"
+						placeholder="N."
+						aria-label="quantitaProdotto"
+						aria-describedby="basic-quantitaProdotto"
+						step="1"
+						min="0"
+						bind:value={stockQty}
+						required
+					/>
+				</div>
+			</section>
+			<section class="col-span-4 md:col-span-2">
+				<label for="cost" class="form-label">
+					<p class="font-bold mb-2">Prezzo</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Calculator /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="cost"
+						name="price"
+						type="number"
+						placeholder="N."
+						aria-label="cost"
+						aria-describedby="basic-cost"
+						bind:value={price}
+						min="0"
+						step="0.01"
+						required
+					/>
+				</div>
+			</section>
+			<section class="col-span-4 md:col-span-2">
+				<label for="weight" class="form-label">
+					<p class="font-bold mb-2">Peso KG</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Calculator /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="weight"
+						name="weight"
+						type="number"
+						placeholder="KG"
+						aria-label="weight"
+						aria-describedby="shipping-weight"
+						bind:value={weight}
+						min="0"
+						step="0.01"
+						required
+					/>
+				</div>
+			</section>
+			<section class="col-span-4 md:col-span-2">
+				<label for="category" class="form-label">
+					<p class="font-bold mb-2">Categoria prodotto</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><List /></button>
+					<select
+						class="select select-bordered w-full rounded-md rounded-l-none"
+						id="category"
+						name="category"
+						aria-label="category"
+						aria-describedby="basic-category"
+						bind:value={category}
+						required
+					>
+						<option disabled value="">Scegli</option>
+						<option value="Alimentazione & Benessere">Alimentazione & Benessere</option>
+						<option value="Altri attrezzi e Accessori">Altri attrezzi e Accessori</option>
+						<option value="Cercapunti">Cercapunti</option>
+						<option value="Creme & Co.">Creme & Co.</option>
+						<option value="Martelli">Martelli</option>
+						<option value="Materiale didattico">Materiale didattico</option>
+						<option value="Pettini">Pettini</option>
+						<option value="Rulli">Rulli</option>
+						<option value="Vietmassage">Vietmassage</option>
+						<option value="Senza Categoria">Senza Categoria</option>
+					</select>
+				</div>
+			</section>
+
+			<section class="lg:col-span-4 mt-2">
+				<div class="col-span-4 mt-10 flex justify-center">
+					<button class="btn btn-error mx-1" type="button" onclick={onCloseModify}>Annulla</button>
+					<button class="btn btn-success mx-1" type="submit">
+						<span class="flex items-center justify-center">CONFERMA MODIFICA</span>
+					</button>
+				</div>
+			</section>
+		</form>
 	</Modal>
 {/if}
 
 {#if currentModal == 'delete'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{:else}
@@ -789,9 +736,7 @@
 				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 			>
 				<input type="hidden" name="prodId" value={prodId} />
-				<header class="col-span-4 text-center text-2xl font-bold text-green-800">
-					Conferma rimozione
-				</header>
+				<header class="col-span-4 text-center text-2xl font-bold text-green-800">Conferma rimozione</header>
 				<div class="col-span-4 mt-5 flex justify-center">
 					<div class="bg-gray-50 flex justify-center">
 						<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
@@ -805,106 +750,80 @@
 
 {#if currentModal == 'filter'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
-		{:else}
-			<form method="POST" action={postAction} use:enhance={formSubmit} class="p-6 space-y-6">
-				<fieldset class="fieldset space-y-4">
-					<!-- <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Titolo</label> -->
-					<legend class="fieldset-legend">ID</legend>
-					<input
-						class="input input-bordered w-full"
-						id="prodId"
-						name="prodId"
-						type="text"
-						placeholder="ID"
-						bind:value={prodId}
-					/>
-					<legend class="fieldset-legend">Titolo</legend>
-					<input
-						class="input input-bordered w-full"
-						id="title"
-						name="title"
-						type="text"
-						placeholder="Titolo"
-						bind:value={title}
-					/>
-
-					<legend class="fieldset-legend">Categoria</legend>
-					<select class="select w-full" id="category" name="category" bind:value={category}>
-						<option disabled value="">Scegli</option>
-						<option value="Alimentazione & Benessere">Alimentazione & Benessere</option>
-						<option value="Altri attrezzi e Accessori">Altri attrezzi e Accessori</option>
-						<option value="Cercapunti">Cercapunti</option>
-						<option value="Creme & Co.">Creme & Co.</option>
-						<option value="Martelli">Martelli</option>
-						<option value="Materiale didattico">Materiale didattico</option>
-						<option value="Pettini">Pettini</option>
-						<option value="Rulli">Rulli</option>
-						<option value="Vietmassage">Vietmassage</option>
-						<option value="Senza Categoria">Senza Categoria</option>
-					</select>
-
-					<legend class="fieldset-legend">Status</legend>
-					<select class="select w-full" id="status" name="status" bind:value={status}>
-						<option value="enabled">Attivo</option>
-						<option value="disabled">Inattivo</option>
-					</select>
-				</fieldset>
-
-				<section class="lg:col-span-4 mt-2">
-					<div class="col-span-4 mt-10 flex justify-center">
-						<button class="btn btn-error mx-1" type="button" onclick={onCloseModal}>Annulla</button>
-						<button class="btn btn-success mx-1" type="submit">
-							<span class="flex items-center justify-center">Applica Filtri</span>
-						</button>
-					</div>
-				</section>
-			</form>
 		{/if}
+		<form method="POST" action={postAction} use:enhance={formSubmit} class="p-6 space-y-6">
+			<fieldset class="fieldset space-y-4">
+				<!-- <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Titolo</label> -->
+				<legend class="fieldset-legend">ID</legend>
+				<input class="input input-bordered w-full" id="prodId" name="prodId" type="text" placeholder="ID" bind:value={prodId} />
+				<legend class="fieldset-legend">Titolo</legend>
+				<input class="input input-bordered w-full" id="title" name="title" type="text" placeholder="Titolo" bind:value={title} />
+
+				<legend class="fieldset-legend">Categoria</legend>
+				<select class="select w-full" id="category" name="category" bind:value={category}>
+					<option disabled value="">Scegli</option>
+					<option value="Alimentazione & Benessere">Alimentazione & Benessere</option>
+					<option value="Altri attrezzi e Accessori">Altri attrezzi e Accessori</option>
+					<option value="Cercapunti">Cercapunti</option>
+					<option value="Creme & Co.">Creme & Co.</option>
+					<option value="Martelli">Martelli</option>
+					<option value="Materiale didattico">Materiale didattico</option>
+					<option value="Pettini">Pettini</option>
+					<option value="Rulli">Rulli</option>
+					<option value="Vietmassage">Vietmassage</option>
+					<option value="Senza Categoria">Senza Categoria</option>
+				</select>
+
+				<legend class="fieldset-legend">Status</legend>
+				<select class="select w-full" id="status" name="status" bind:value={status}>
+					<option value="enabled">Attivo</option>
+					<option value="disabled">Inattivo</option>
+				</select>
+			</fieldset>
+
+			<section class="lg:col-span-4 mt-2">
+				<div class="col-span-4 mt-10 flex justify-center">
+					<button class="btn btn-error mx-1" type="button" onclick={onCloseModal}>Annulla</button>
+					<button class="btn btn-success mx-1" type="submit">
+						<span class="flex items-center justify-center">Applica Filtri</span>
+					</button>
+				</div>
+			</section>
+		</form>
 	</Modal>
 {/if}
 
 {#if currentModal == 'uploadCsv'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
-		{:else}
-			<form
-				method="POST"
-				action={postAction}
-				enctype="multipart/form-data"
-				use:enhance={formSubmit}
-				class="grid grid-cols-2 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-			>
-				<section class="col-span-2">
-					<label for="price" class="form-label">
-						<p class="font-bold mb-2 label">Solo file CSV</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<input
-							type="file"
-							id="fileUpload"
-							name="fileUpload"
-							accept=".csv, text/csv"
-							class="file-input"
-						/>
-					</div>
-				</section>
-
-				<div class="col-span-4 mt-5 flex justify-center">
-					<div class="bg-gray-50 flex justify-center">
-						<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
-						<button type="submit" class="btn btn-success btn-sm mx-2 text-white">Carica</button>
-					</div>
-				</div>
-			</form>
 		{/if}
+		<form
+			method="POST"
+			action={postAction}
+			enctype="multipart/form-data"
+			use:enhance={formSubmit}
+			class="grid grid-cols-2 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+		>
+			<section class="col-span-2">
+				<label for="price" class="form-label">
+					<p class="font-bold mb-2 label">Solo file CSV</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<input type="file" id="fileUpload" name="fileUpload" accept=".csv, text/csv" class="file-input" />
+				</div>
+			</section>
+
+			<div class="col-span-4 mt-5 flex justify-center">
+				<div class="bg-gray-50 flex justify-center">
+					<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
+					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">Carica</button>
+				</div>
+			</div>
+		</form>
 	</Modal>
 {/if}

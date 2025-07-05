@@ -9,22 +9,7 @@
 	import { imgCheck } from '$lib/tools/tools';
 	import { country_list, province } from '$lib/stores/arrays.js';
 	import { loadStripe, type Stripe, type StripeElements } from '@stripe/stripe-js';
-	import {
-		Lock,
-		Tag,
-		Calendar,
-		MapPin,
-		User,
-		Users,
-		HandCoins,
-		CreditCard,
-		Landmark,
-		Coins,
-		Mail,
-		ArrowLeft,
-		CheckCircle,
-		X
-	} from 'lucide-svelte';
+	import { Lock, Tag, Calendar, MapPin, User, Users, HandCoins, CreditCard, Landmark, Coins, Mail, ArrowLeft, CheckCircle, X } from 'lucide-svelte';
 
 	const { data } = $props();
 	const { getCourse, formatoreData, auth, userData, bundleProducts, stripePublishableKey } = data;
@@ -55,9 +40,7 @@
 		return total;
 	});
 	// testing NEW VERSION using reduce
-	let totalDiscount = $derived(
-		() => discountList.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0) || 0
-	);
+	let totalDiscount = $derived(() => discountList.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0) || 0);
 
 	// let totalDiscount = $derived(() => { // OLD VERSION using totalDiscount()
 	// 	let total = 0;
@@ -66,11 +49,7 @@
 	// 	});
 	// 	return total;
 	// });
-	let subTotal = $derived(
-		!auth || !userData?.membership.membershipStatus
-			? grandTotal() - totalDiscount() + 25
-			: grandTotal() - totalDiscount()
-	);
+	let subTotal = $derived(!auth || !userData?.membership.membershipStatus ? grandTotal() - totalDiscount() + 25 : grandTotal() - totalDiscount());
 
 	// form
 	let closedInput = $state(false);
@@ -146,11 +125,8 @@
 					stripeError = null;
 					//console.log('Stripe Card Element montato con successo.');
 				} else {
-					console.error(
-						"ERRORE: Elemento '#card-element' non trovato nel DOM per il montaggio di Stripe."
-					);
-					stripeError =
-						"Si è verificato un errore durante l'inizializzazione del pagamento. Riprova.";
+					console.error("ERRORE: Elemento '#card-element' non trovato nel DOM per il montaggio di Stripe.");
+					stripeError = "Si è verificato un errore durante l'inizializzazione del pagamento. Riprova.";
 				}
 			} else {
 				stripeError = 'Impossibile caricare Stripe. Riprova più tardi.';
@@ -175,6 +151,14 @@
 		formData.payment = 'Carta di credito';
 		password1 = '';
 		password2 = '';
+		if (cardElement) {
+			cardElement.destroy();
+			cardElement = null;
+			elements = null;
+			stripe = null;
+			stripeError = null;
+			paymentMethodId = null;
+		}
 	};
 
 	const checkPasswordsMatch = () => {
@@ -229,13 +213,7 @@
 	};
 
 	const isStep2Valid = () => {
-		return !!(
-			formData.address &&
-			formData.city &&
-			formData.postalCode &&
-			formData.county &&
-			formData.country
-		);
+		return !!(formData.address && formData.city && formData.postalCode && formData.county && formData.country);
 	};
 
 	const isStep3Valid = () => {
@@ -269,12 +247,6 @@
 		openModal = false;
 		resetFields();
 		currentModal = '';
-		if (cardElement) {
-			cardElement.destroy();
-			cardElement = null;
-			elements = null;
-			stripe = null;
-		}
 	};
 
 	const getStripeId = async () => {
@@ -396,9 +368,7 @@
 					<div class="flex flex-col md:flex-row items-center gap-8">
 						<!-- Course Image -->
 						<div class="w-full md:w-1/3">
-							<div
-								class="relative rounded-xl overflow-hidden shadow-2xl transform transition-transform hover:scale-105"
-							>
+							<div class="relative rounded-xl overflow-hidden shadow-2xl transform transition-transform hover:scale-105">
 								<Image
 									layout="constrained"
 									aspectRatio={1}
@@ -415,9 +385,7 @@
 							</div> -->
 								<div class="absolute -top-1 -right-1 z-10 opacity-85">
 									<div class="relative">
-										<div
-											class="bg-gradient-to-r from-primary to-primary/80 text-primary-content px-4 py-2 rounded-bl-lg rounded-tr-lg shadow-md"
-										>
+										<div class="bg-gradient-to-r from-primary to-primary/80 text-primary-content px-4 py-2 rounded-bl-lg rounded-tr-lg shadow-md">
 											<span class="text-xs font-semibold">PREZZO</span>
 											<div class="flex items-baseline">
 												<span class="text-2xl font-bold">€ {getCourse.layoutView.price}</span>
@@ -436,10 +404,7 @@
 							<div class="flex items-center gap-3">
 								<div class="badge badge-lg bg-blue-100 text-blue-800 p-3">
 									<Calendar class="w-4 h-4 mr-1" />
-									{getCourse.eventStartDate.substring(0, 10)} alle {getCourse.eventStartDate.substring(
-										11,
-										16
-									)}
+									{getCourse.eventStartDate.substring(0, 10)} alle {getCourse.eventStartDate.substring(11, 16)}
 								</div>
 								<div class="badge badge-lg bg-blue-100 text-blue-800 p-3">
 									<MapPin class="w-4 h-4 mr-1" />
@@ -455,12 +420,7 @@
 								<!-- Instructor Avatar -->
 								<div class="avatar">
 									<div class="w-24 rounded-full ring ring-blue-500 ring-offset-2">
-										<Image
-											layout="constrained"
-											aspectRatio={1}
-											src={imgCheck.single(formatoreData.uploadfiles, 'profile')}
-											alt="avatar"
-										/>
+										<Image layout="constrained" aspectRatio={1} src={imgCheck.single(formatoreData.uploadfiles, 'profile')} alt="avatar" />
 										<!-- {#if picFilter.length > 0}
 											<Image
 	layout="constrained"
@@ -524,16 +484,8 @@
 												/>
 												<input type="hidden" name="cart" value={JSON.stringify(cart)} />
 												<input type="hidden" name="grandTotal" value={grandTotal()} />
-												<input
-													type="hidden"
-													name="discountList"
-													value={JSON.stringify(discountList)}
-												/>
-												<button
-													type="submit"
-													class="btn btn-primary"
-													disabled={!discountCode || loading}
-												>
+												<input type="hidden" name="discountList" value={JSON.stringify(discountList)} />
+												<button type="submit" class="btn btn-primary" disabled={!discountCode || loading}>
 													{#if loading}
 														<span class="loading loading-spinner loading-sm"></span>
 													{:else}
@@ -549,25 +501,14 @@
 									<form method="POST" action="?/removeDiscount" use:enhance={formSubmit}>
 										<div class="flex flex-wrap gap-2 mt-3">
 											{#each discountList as badgeCode, i}
-												<div
-													class="badge badge-lg bg-primary/10 text-primary gap-2 px-4 py-2 text-sm font-semibold rounded-full"
-												>
+												<div class="badge badge-lg bg-primary/10 text-primary gap-2 px-4 py-2 text-sm font-semibold rounded-full">
 													<Tag size={14} />
 													{badgeCode.code}
 													<input type="hidden" name="cart" value={JSON.stringify(cart)} />
 													<input type="hidden" name="grandTotal" value={grandTotal()} />
-													<input
-														type="hidden"
-														name="discountList"
-														value={JSON.stringify(discountList)}
-													/>
+													<input type="hidden" name="discountList" value={JSON.stringify(discountList)} />
 													<input type="hidden" name="removeCode" value={badgeCode.code} />
-													<button
-														type="submit"
-														name="removeCode"
-														class="btn btn-xs btn-circle btn-ghost"
-														disabled={loading}
-													>
+													<button type="submit" name="removeCode" class="btn btn-xs btn-circle btn-ghost" disabled={loading}>
 														<X size={14} />
 													</button>
 												</div>
@@ -588,42 +529,27 @@
 					<!-- Course Description -->
 					<div class="lg:col-span-2">
 						<div class="tabs tabs-lift">
-							<input
-								type="radio"
-								name="course_tabs"
-								role="tab"
-								class="tab text-lg font-medium"
-								aria-label="Descrizione"
-								checked={true}
-							/>
-							<div
-								role="tabpanel"
-								class="tab-content bg-white rounded-b-xl p-6 shadow-md max-w-none"
-							>
+							<input type="radio" name="course_tabs" role="tab" class="tab text-lg font-medium" aria-label="Descrizione" checked={true} />
+							<div role="tabpanel" class="tab-content bg-white rounded-b-xl p-6 shadow-md max-w-none">
 								<p class="text-lg text-gray-700 leading-relaxed">
 									{getCourse.layoutView.descr}
 								</p>
 								<hr class="my-6" />
 								<div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
 									<p class="text-blue-800">
-										Le attività dell'Associazione sono rivolte esclusivamente agli Associati con la
-										quota associativa rinnovata nell'anno corrente.
+										Le attività dell'Associazione sono rivolte esclusivamente agli Associati con la quota associativa rinnovata nell'anno corrente.
 									</p>
 								</div>
 								<p class="mt-6">
-									Pertanto per qualunque attività è richiesta innanzitutto l'iscrizione e/o il
-									rinnovo della Quota ordinaria di € 25,00 Questo da diritto di partecipare alle
-									attività come, per esempio, il CORSO BASE DI AUTOTRATTAMENTO oppure al CORSO
-									AVANZATO INTENSIVO DI APPROFONDIMENTO, L'ASSOCIAZIONE NON FA ATTIVITA'
-									COMMERCIALI, distribuisce esclusivamente materiale didattico necessario ai suoi
+									Pertanto per qualunque attività è richiesta innanzitutto l'iscrizione e/o il rinnovo della Quota ordinaria di € 25,00 Questo da
+									diritto di partecipare alle attività come, per esempio, il CORSO BASE DI AUTOTRATTAMENTO oppure al CORSO AVANZATO INTENSIVO DI
+									APPROFONDIMENTO, L'ASSOCIAZIONE NON FA ATTIVITA' COMMERCIALI, distribuisce esclusivamente materiale didattico necessario ai suoi
 									Associati al fine della pratica della Riflessologia facciale.
 								</p>
 								<p class="mt-4">
-									Per i Soci che desiderano iscriversi a entrambi i corsi Base e Avanzato, è
-									richiesto il possesso dei Kit Base e Plus, contenente strumenti e materiali
-									didattici indispensabili. Il kit può essere acquistato presso il negozio online
-									www.dienchan-online.com (con sede in Vietnam), attività completamente indipendente
-									dall'Associazione. Il materiale verrà ritirato dai partecipanti all'inizio del
+									Per i Soci che desiderano iscriversi a entrambi i corsi Base e Avanzato, è richiesto il possesso dei Kit Base e Plus, contenente
+									strumenti e materiali didattici indispensabili. Il kit può essere acquistato presso il negozio online www.dienchan-online.com (con
+									sede in Vietnam), attività completamente indipendente dall'Associazione. Il materiale verrà ritirato dai partecipanti all'inizio del
 									corso.
 								</p>
 							</div>
@@ -634,9 +560,7 @@
 								<h3 class="text-xl font-semibold text-gray-800 mb-4">Tag del corso:</h3>
 								<div class="flex flex-wrap gap-3">
 									{#each getCourse.tag as tag}
-										<div
-											class="badge badge-lg bg-blue-100 text-blue-800 p-4 font-medium hover:bg-blue-200 transition-colors cursor-pointer"
-										>
+										<div class="badge badge-lg bg-blue-100 text-blue-800 p-4 font-medium hover:bg-blue-200 transition-colors cursor-pointer">
 											{tag}
 										</div>
 									{/each}
@@ -662,10 +586,7 @@
 									<div>
 										<p class="text-sm text-gray-500">Data e Ora</p>
 										<p class="font-medium">
-											{getCourse.eventStartDate.substring(0, 10)} alle {getCourse.eventStartDate.substring(
-												11,
-												16
-											)}
+											{getCourse.eventStartDate.substring(0, 10)} alle {getCourse.eventStartDate.substring(11, 16)}
 										</p>
 									</div>
 								</div>
@@ -753,9 +674,7 @@
 								<div class="mt-8">
 									<div class="collapse collapse-arrow bg-blue-50 rounded-lg">
 										<input type="checkbox" checked />
-										<div class="collapse-title text-lg font-medium text-blue-800">
-											Informazioni Extra
-										</div>
+										<div class="collapse-title text-lg font-medium text-blue-800">Informazioni Extra</div>
 										<div class="collapse-content">
 											<p class="text-gray-700">{getCourse.infoExtra}</p>
 										</div>
@@ -771,15 +690,8 @@
 {/if}
 
 {#if currentModal == 'new'}
-	<Modal
-		isOpen={openModal}
-		header={modalTitle}
-		cssClass={'bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto'}
-	>
-		<button
-			class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content"
-			onclick={onCloseModal}>✕</button
-		>
+	<Modal isOpen={openModal} header={modalTitle} cssClass={'bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto'}>
+		<button class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{/if}
@@ -804,9 +716,7 @@
 
 						{#if i < totalSteps - 1}
 							<div class="flex-1 flex items-center mx-2">
-								<div
-									class={`h-1 w-full ${i + 1 < currentStep ? 'bg-success' : 'bg-base-200'}`}
-								></div>
+								<div class={`h-1 w-full ${i + 1 < currentStep ? 'bg-success' : 'bg-base-200'}`}></div>
 							</div>
 						{/if}
 					{/each}
@@ -884,9 +794,7 @@
 							<div class="form-control w-full">
 								<label for="password" class="label">
 									<span class="label-text font-medium">
-										Password <span class="text-xs">
-											(Almeno 8 caratteri con numeri e lettere)
-										</span>
+										Password <span class="text-xs"> (Almeno 8 caratteri con numeri e lettere) </span>
 									</span>
 								</label>
 								<div class="input validator input-bordered flex items-center gap-2 pr-2">
@@ -916,11 +824,7 @@
 									>
 								</label>
 								<div class="input validator input-bordered flex items-center gap-2 pr-2">
-									<Lock
-										size={18}
-										class="ml-2"
-										color={passwordsMatch ? (password2 ? 'green' : 'currentColor') : 'red'}
-									/>
+									<Lock size={18} class="ml-2" color={passwordsMatch ? (password2 ? 'green' : 'currentColor') : 'red'} />
 									<input
 										class="flex-1 outline-none bg-transparent"
 										id="password2"
@@ -1040,14 +944,7 @@
 							<label for="state" class="label">
 								<span class="label-text font-medium">Provincia</span>
 							</label>
-							<select
-								id="county"
-								class="select select-bordered w-full"
-								name="county"
-								required
-								disabled={closedInput}
-								bind:value={formData.county}
-							>
+							<select id="county" class="select select-bordered w-full" name="county" required disabled={closedInput} bind:value={formData.county}>
 								<option value="" disabled selected>Seleziona provincia</option>
 								{#each $province as provincia, i}
 									{#if provincia.title !== 'Online'}
@@ -1066,14 +963,7 @@
 							<label for="country" class="label">
 								<span class="label-text font-medium">Nazione</span>
 							</label>
-							<select
-								id="country"
-								class="select select-bordered w-full"
-								name="country"
-								required
-								disabled={closedInput}
-								bind:value={formData.country}
-							>
+							<select id="country" class="select select-bordered w-full" name="country" required disabled={closedInput} bind:value={formData.country}>
 								<option value="" disabled selected>Seleziona nazione</option>
 								{#each $country_list as country}
 									<option value={country}>
@@ -1102,13 +992,7 @@
 							class:border-primary={formData.payment === 'Carta di credito'}
 							class:bg-base-200={formData.payment === 'Carta di credito'}
 						>
-							<input
-								type="radio"
-								name="payment"
-								value="Carta di credito"
-								class="hidden"
-								bind:group={formData.payment}
-							/>
+							<input type="radio" name="payment" value="Carta di credito" class="hidden" bind:group={formData.payment} />
 							<CreditCard class="h-8 w-8 text-primary" />
 							<span class="text-center font-medium">Carta di Credito</span>
 						</label>
@@ -1118,13 +1002,7 @@
 							class:border-primary={formData.payment === 'Bonifico bancario'}
 							class:bg-base-200={formData.payment === 'Bonifico bancario'}
 						>
-							<input
-								type="radio"
-								name="payment"
-								value="Bonifico bancario"
-								class="hidden"
-								bind:group={formData.payment}
-							/>
+							<input type="radio" name="payment" value="Bonifico bancario" class="hidden" bind:group={formData.payment} />
 							<Landmark class="h-8 w-8 text-primary" />
 							<span class="text-center font-medium">Bonifico Bancario</span>
 						</label>
@@ -1134,22 +1012,13 @@
 							class:border-primary={formData.payment === 'Contanti'}
 							class:bg-base-200={formData.payment === 'Contanti'}
 						>
-							<input
-								type="radio"
-								name="payment"
-								value="Contanti"
-								class="hidden"
-								bind:group={formData.payment}
-							/>
+							<input type="radio" name="payment" value="Contanti" class="hidden" bind:group={formData.payment} />
 							<HandCoins class="h-8 w-8 text-primary" />
 							<span class="text-center font-medium"> Contanti (all'inizio corso) </span>
 						</label>
 					</div>
 
-					<div
-						class="card bg-base-100 shadow-xl p-6"
-						class:hidden={formData.payment !== 'Carta di credito'}
-					>
+					<div class="card bg-base-100 shadow-xl p-6" class:hidden={formData.payment !== 'Carta di credito'}>
 						<h3 class="text-xl font-semibold mb-4">Informazioni sulla carta di credito</h3>
 						<div class="form-control">
 							<div id="card-element" class="border border-base-300 p-3 rounded-md"></div>
@@ -1161,9 +1030,7 @@
 							<Lock size={14} class="inline-block mr-1" /> Le tue informazioni di pagamento sono protette.
 						</p>
 						{#if !paymentMethodId}
-							<button type="button" class="btn btn-info mt-4" onclick={getStripeId}
-								>VERIFICA CARTA
-							</button>
+							<button type="button" class="btn btn-info mt-4" onclick={getStripeId}>VERIFICA CARTA </button>
 						{:else}
 							<div class="btn btn-primary mt-4">CARTA OK <CheckCircle /></div>
 						{/if}
@@ -1178,10 +1045,7 @@
 							<p><strong>INTESTATO A:</strong> ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia</p>
 							<p>VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA</p>
 							<br />
-							<p>
-								Si prega di includere il tuo ID ordine nella causale del bonifico. Il tuo ordine
-								sarà elaborato dopo la conferma del pagamento.
-							</p>
+							<p>Si prega di includere il tuo ID ordine nella causale del bonifico. Il tuo ordine sarà elaborato dopo la conferma del pagamento.</p>
 						</div>
 					{/if}
 
@@ -1196,16 +1060,13 @@
 						<h3 class="font-bold text-lg mb-2">Riepilogo Ordine</h3>
 
 						<div class="flex justify-between items-center py-2 border-b border-base-300">
-							<span class="text-base-content/80 font-medium"
-								>{getCourse.layoutView.title || 'Corso'}</span
-							>
+							<span class="text-base-content/80 font-medium">{getCourse.layoutView.title || 'Corso'}</span>
 							<span class="font-semibold">{getCourse.layoutView.price.toFixed(2)} €</span>
 						</div>
 
 						{#if !auth}
 							<div class="flex justify-between items-center py-2 border-b border-base-300">
-								<span class="text-base-content/80 font-medium">Tesseramento per il primo corso</span
-								>
+								<span class="text-base-content/80 font-medium">Tesseramento per il primo corso</span>
 								<span class="font-semibold">25.00 €</span>
 							</div>
 						{:else if !userData?.membership.membershipStatus}
@@ -1241,34 +1102,18 @@
 
 			<!-- Navigation -->
 			<div class="flex justify-between mt-6">
-				<button
-					type="button"
-					class="btn btn-outline"
-					onclick={prevStep}
-					class:hidden={currentStep === 1}
-				>
+				<button type="button" class="btn btn-outline" onclick={prevStep} class:hidden={currentStep === 1}>
 					<ArrowLeft size={16} />
 					Indietro
 				</button>
 
 				<div class="flex gap-2 ml-auto">
-					<button type="button" class="btn btn-error btn-outline" onclick={onCloseModal}>
-						Annulla
-					</button>
+					<button type="button" class="btn btn-error btn-outline" onclick={onCloseModal}> Annulla </button>
 
 					{#if currentStep < totalSteps}
-						<button
-							type="button"
-							class="btn btn-primary"
-							onclick={nextStep}
-							disabled={!isCurrentStepValid()}
-						>
-							Continua
-						</button>
+						<button type="button" class="btn btn-primary" onclick={nextStep} disabled={!isCurrentStepValid()}> Continua </button>
 					{:else}
-						<button type="submit" class="btn btn-success" disabled={!isCurrentStepValid()}>
-							Conferma Acquisto
-						</button>
+						<button type="submit" class="btn btn-success" disabled={!isCurrentStepValid()}> Conferma Acquisto </button>
 					{/if}
 				</div>
 			</div>

@@ -8,6 +8,7 @@
 	import Modal from '$lib/components/Modal.svelte';
 	import { courseKeysToDelete } from '$lib/stores/arrays';
 	import Loader from '$lib/components/Loader.svelte';
+	import { Image } from '@unpic/svelte';
 	import {
 		Funnel,
 		XCircle,
@@ -82,9 +83,7 @@
 		years.push(i.toString());
 	}
 
-	let eventStartDate = $derived(
-		new Date(`${startYear}-${startMonth}-${startDay}T${startHour}:${startMinute}:00.000+00:00`)
-	);
+	let eventStartDate = $derived(new Date(`${startYear}-${startMonth}-${startDay}T${startHour}:${startMinute}:00.000+00:00`));
 
 	// const sortTable = (column: string) => {
 	// 	if (sortColumn === column) {
@@ -395,17 +394,11 @@
 						<XCircle class="mt-1" /> Reset Filtro
 					</button>
 				{:else}
-					<button
-						class="btn btn-info rounded-md text-white"
-						onclick={() => onClickModal('filter', null)}
-					>
+					<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('filter', null)}>
 						<Funnel class="mt-1" /> Filtra
 					</button>
 				{/if}
-				<button
-					class="btn btn-info rounded-md text-white"
-					onclick={() => onClickModal('new', null)}
-				>
+				<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('new', null)}>
 					<CopyPlus /> Nuovo
 				</button>
 				<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate()}>
@@ -419,6 +412,7 @@
 			<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">
 				<tr class="">
 					<th>ID</th>
+					<th>Immagine</th>
 					<th>Data inserimento</th>
 					<th>Riflessologo</th>
 					<th>Titolo</th>
@@ -441,6 +435,24 @@
 						<tr class="hover:bg-gray-300">
 							<td>{row.prodId}</td>
 
+							<td>
+								<!-- img start -->
+								<div class="card-body p-4">
+									<div class="flex items-center">
+										<figure class="flex-shrink-0">
+											<Image
+												layout="constrained"
+												aspectRatio={1}
+												src={row.layoutView?.urlPic || '/images/placeholder.jpg'}
+												alt="product-primary"
+												class="object-cover rounded-md max-w-16 max-h-16 h-auto"
+											/>
+										</figure>
+									</div>
+								</div>
+								<!-- img end -->
+							</td>
+
 							<td>{row.createdAt}</td>
 
 							<td>{row.name} {row.surname}</td>
@@ -458,23 +470,15 @@
 							<td>{row.layoutView.price} €</td>
 
 							<td>
-								<button
-									class="btn"
-									onclick={() => onClickModal('subscribers', row.listSubscribers)}
-									disabled={row.listSubscribers.length == 0}
-								>
+								<button class="btn" onclick={() => onClickModal('subscribers', row.listSubscribers)} disabled={row.listSubscribers.length == 0}>
 									<UserRoundCheck />
 									{row.listSubscribers.length}
 								</button>
 							</td>
 
 							<td class="flex items-center space-x-4">
-								<button class="btn btn-sm" onclick={() => onClickModal('modify', row)}
-									><Settings />
-								</button>
-								<button class="btn btn-error btn-sm" onclick={() => onClickModal('delete', row)}
-									><Trash2 />
-								</button>
+								<button class="btn btn-sm" onclick={() => onClickModal('modify', row)}><Settings /> </button>
+								<button class="btn btn-error btn-sm" onclick={() => onClickModal('delete', row)}><Trash2 /> </button>
 							</td>
 						</tr>
 					{/each}
@@ -482,15 +486,11 @@
 			</tbody>
 		</table>
 		{#if tableList.length == 0}
-			<div
-				class="alert alert-warning shadow-lg flex item-center text-center justify-center rounded-md mt-3 mx-auto w-full max-w-lg"
-			>
+			<div class="alert alert-warning shadow-lg flex item-center text-center justify-center rounded-md mt-3 mx-auto w-full max-w-lg">
 				<div>
 					<ShieldAlert />
 					<br />
-					<span class="mt-2 text-semibold">
-						Nessun corso trovato. Cambia parametri o resetta il filtro.
-					</span>
+					<span class="mt-2 text-semibold"> Nessun corso trovato. Cambia parametri o resetta il filtro. </span>
 				</div>
 			</div>
 		{/if}
@@ -500,313 +500,292 @@
 {#if currentModal == 'modify' || currentModal == 'new'}
 	{#if loading}
 		<Loader />
-	{:else}
-		<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-4xl">
-			{#if currentModal == 'modify'}
-				<button
-					class="btn btn-sm btn-circle btn-error absolute right-2 top-2"
-					onclick={onCloseModify}>✕</button
-				>
-			{:else}
-				<button
-					class="btn btn-sm btn-circle btn-error absolute right-2 top-2"
-					onclick={onCloseModal}>✕</button
-				>
-			{/if}
+	{/if}
+	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-4xl">
+		{#if currentModal == 'modify'}
+			<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModify}>✕</button>
+		{:else}
+			<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
+		{/if}
 
-			<form
-				method="POST"
-				action={postAction}
-				use:enhance={formSubmit}
-				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-			>
-				{#if currentDialog == 'modify'}
-					<section class="col-span-4 md:col-span-4">
-						<label for="prodId" class="form-label">
-							<p class="font-bold mb-2">ID codice</p>
-						</label>
-
-						<div class="join join-horizontal w-full">
-							<button class="join-item bg-gray-300 px-3"><Pen /></button>
-							<input
-								class="input input-bordered join-item w-full"
-								id="prodId"
-								name="prodId"
-								type="text"
-								placeholder="prodId"
-								bind:value={prodId}
-								readonly
-							/>
-						</div>
-					</section>
-				{/if}
-
-				<!-- Categoria  -->
-				<section class="col-span-4 md:col-span-2">
-					<label for="layoutId" class="form-label">
-						<p class="font-bold">Tipo corso</p>
+		<form
+			method="POST"
+			action={postAction}
+			use:enhance={formSubmit}
+			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+		>
+			{#if currentDialog == 'modify'}
+				<section class="col-span-4 md:col-span-4">
+					<label for="prodId" class="form-label">
+						<p class="font-bold mb-2">ID codice</p>
 					</label>
-					<div class="join join-horizontal rounded-md w-full">
+
+					<div class="join join-horizontal w-full">
 						<button class="join-item bg-gray-300 px-3"><Pen /></button>
-						<select
-							class="select select-bordered w-full rounded-md rounded-l-none"
-							id="layoutId"
-							name="layoutId"
-							bind:value={layoutId}
-							onchange={() => selectLayout(layoutId)}
-							required
-						>
-							<option disabled value="">Scegli</option>
-							{#each getLayout as option}
-								<option value={option.layoutId}>{option.title}</option>
-							{/each}
-						</select>
-					</div>
-				</section>
-				<!-- Prezzo corso -->
-				<section class="col-span-4 md:col-span-2">
-					<label for="price" class="form-label">
-						<p class="font-bold mb-2">Prezzo corso</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Calculator /></button>
 						<input
 							class="input input-bordered join-item w-full"
-							id="price"
-							name="price"
-							type="number"
-							placeholder="Prezzo €"
-							bind:value={price}
+							id="prodId"
+							name="prodId"
+							type="text"
+							placeholder="prodId"
+							bind:value={prodId}
 							readonly
 						/>
 					</div>
 				</section>
-				<!-- Data Inizio -->
-				<section class="col-span-4 md:col-span-2">
-					<label for="data-inizio" class="form-label">
-						<p class="font-bold mb-2">Data inizio</p>
-					</label>
-					<div class=" join join-horizontal rounded-md">
-						<button class="join-item bg-gray-300 px-3"><Calendar /></button>
-						<!-- Giorno Dropdown -->
-						<select
-							id="productCorsoDataInizioGiorno"
-							name="productCorsoDataInizioGiorno"
-							class="join-item select select-bordered w-20"
-							aria-label="Seleziona Giorno"
-							bind:value={startDay}
-							required
-						>
-							<option value="" disabled selected>Giorno</option>
-							{#each $days as day}
-								<option value={day}>{day}</option>
-							{/each}
-						</select>
-						<button class="join-item bg-gray-300 px-3"> - </button>
-						<!-- Mese Dropdown -->
-						<select
-							id="productCorsoDataInizioMese"
-							name="productCorsoDataInizioMese"
-							class="join-item select select-bordered w-32"
-							aria-label="Seleziona Mese"
-							bind:value={startMonth}
-							required
-						>
-							<option value="" disabled selected>Mese</option>
-							{#each $months as month}
-								<option value={month.value}>{month.title}</option>
-							{/each}
-						</select>
-						<button class="join-item bg-gray-300 px-3"> - </button>
-						<!-- Anno Dropdown -->
-						<select
-							id="productCorsoDataInizioAnno"
-							name="productCorsoDataInizioAnno"
-							class="join-item select select-bordered w-26 rounded-r-md"
-							aria-label="Seleziona Anno"
-							bind:value={startYear}
-							required
-						>
-							{#if currentDialog == 'modify'}
-								<option value={startYear}>{startYear}</option>
-							{:else}
-								<option value="" disabled>Anno</option>
-							{/if}
+			{/if}
 
-							{#each years as year}
-								<option value={year}>{year}</option>
-							{/each}
-						</select>
-					</div>
-				</section>
-				<!-- Orario Inizio -->
-				<section class="ml-10 col-span-4 md:col-span-2">
-					<label for="orario-inizio" class="form-label">
-						<p class="font-bold mb-2">Orario inizio</p>
-					</label>
-					<div class="join join-horizontal rounded-md">
-						<!-- Ore Dropdown -->
-						<select
-							id="productCorsoDataInizioOra"
-							name="productCorsoDataInizioOra"
-							class="join-item select select-bordered w-20 rounded-l-md"
-							aria-label="Seleziona Ora"
-							bind:value={startHour}
-							required
-						>
-							<option value="" disabled selected>Ore</option>
-							{#each $hours as hour}
-								<option value={hour}>{hour}</option>
-							{/each}
-						</select>
-						<button class="join-item bg-gray-300 px-3"> : </button>
-						<!-- Minuti Dropdown -->
-						<select
-							id="productCorsoDataInizioMinuto"
-							name="productCorsoDataInizioMinuto"
-							class="join-item select select-bordered w-20 rounded-r-md"
-							aria-label="Seleziona Minuti"
-							bind:value={startMinute}
-							required
-						>
-							<option value="" disabled selected>Minuti</option>
-							{#each $minutes as minute}
-								<option value={minute}>{minute}</option>
-							{/each}
-						</select>
-					</div>
-					<!-- <div id="data-inizio-orario-Help" class="text-gray-600 mt-2 text-sm">
+			<!-- Categoria  -->
+			<section class="col-span-4 md:col-span-2">
+				<label for="layoutId" class="form-label">
+					<p class="font-bold">Tipo corso</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<select
+						class="select select-bordered w-full rounded-md rounded-l-none"
+						id="layoutId"
+						name="layoutId"
+						bind:value={layoutId}
+						onchange={() => selectLayout(layoutId)}
+						required
+					>
+						<option disabled value="">Scegli</option>
+						{#each getLayout as option}
+							<option value={option.layoutId}>
+								{option.title}
+							</option>
+						{/each}
+					</select>
+				</div>
+			</section>
+			<!-- Prezzo corso -->
+			<section class="col-span-4 md:col-span-2">
+				<label for="price" class="form-label">
+					<p class="font-bold mb-2">Prezzo corso</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Calculator /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="price"
+						name="price"
+						type="number"
+						placeholder="Prezzo €"
+						bind:value={price}
+						readonly
+					/>
+				</div>
+			</section>
+			<!-- Data Inizio -->
+			<section class="col-span-4 md:col-span-2">
+				<label for="data-inizio" class="form-label">
+					<p class="font-bold mb-2">Data inizio</p>
+				</label>
+				<div class=" join join-horizontal rounded-md">
+					<button class="join-item bg-gray-300 px-3"><Calendar /></button>
+					<!-- Giorno Dropdown -->
+					<select
+						id="productCorsoDataInizioGiorno"
+						name="productCorsoDataInizioGiorno"
+						class="join-item select select-bordered w-20"
+						aria-label="Seleziona Giorno"
+						bind:value={startDay}
+						required
+					>
+						<option value="" disabled selected>Giorno</option>
+						{#each $days as day}
+							<option value={day}>{day}</option>
+						{/each}
+					</select>
+					<button class="join-item bg-gray-300 px-3"> - </button>
+					<!-- Mese Dropdown -->
+					<select
+						id="productCorsoDataInizioMese"
+						name="productCorsoDataInizioMese"
+						class="join-item select select-bordered w-32"
+						aria-label="Seleziona Mese"
+						bind:value={startMonth}
+						required
+					>
+						<option value="" disabled selected>Mese</option>
+						{#each $months as month}
+							<option value={month.value}>{month.title}</option>
+						{/each}
+					</select>
+					<button class="join-item bg-gray-300 px-3"> - </button>
+					<!-- Anno Dropdown -->
+					<select
+						id="productCorsoDataInizioAnno"
+						name="productCorsoDataInizioAnno"
+						class="join-item select select-bordered w-26 rounded-r-md"
+						aria-label="Seleziona Anno"
+						bind:value={startYear}
+						required
+					>
+						{#if currentDialog == 'modify'}
+							<option value={startYear}>{startYear}</option>
+						{:else}
+							<option value="" disabled>Anno</option>
+						{/if}
+
+						{#each years as year}
+							<option value={year}>{year}</option>
+						{/each}
+					</select>
+				</div>
+			</section>
+			<!-- Orario Inizio -->
+			<section class="ml-10 col-span-4 md:col-span-2">
+				<label for="orario-inizio" class="form-label">
+					<p class="font-bold mb-2">Orario inizio</p>
+				</label>
+				<div class="join join-horizontal rounded-md">
+					<!-- Ore Dropdown -->
+					<select
+						id="productCorsoDataInizioOra"
+						name="productCorsoDataInizioOra"
+						class="join-item select select-bordered w-20 rounded-l-md"
+						aria-label="Seleziona Ora"
+						bind:value={startHour}
+						required
+					>
+						<option value="" disabled selected>Ore</option>
+						{#each $hours as hour}
+							<option value={hour}>{hour}</option>
+						{/each}
+					</select>
+					<button class="join-item bg-gray-300 px-3"> : </button>
+					<!-- Minuti Dropdown -->
+					<select
+						id="productCorsoDataInizioMinuto"
+						name="productCorsoDataInizioMinuto"
+						class="join-item select select-bordered w-20 rounded-r-md"
+						aria-label="Seleziona Minuti"
+						bind:value={startMinute}
+						required
+					>
+						<option value="" disabled selected>Minuti</option>
+						{#each $minutes as minute}
+							<option value={minute}>{minute}</option>
+						{/each}
+					</select>
+				</div>
+				<!-- <div id="data-inizio-orario-Help" class="text-gray-600 mt-2 text-sm">
 			Esempio orario: 23:59
 		</div> -->
+			</section>
+			<!-- Numero partecipanti -->
+			<section class="col-span-4 md:col-span-4">
+				<label for="stockQty" class="form-label">
+					<p class="font-bold mb-2">Numero partecipanti</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Users /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="stockQty"
+						name="stockQty"
+						type="number"
+						placeholder="N."
+						step="1"
+						min="0"
+						bind:value={stockQty}
+						required
+					/>
+				</div>
+			</section>
+
+			<!-- Modalità corso -->
+			<section class="col-span-4">
+				<p class="font-bold mb-2">Modalità corso</p>
+				<div class="flex gap-4">
+					<label class="label cursor-pointer flex gap-2">
+						<input type="radio" name="mode" value="ONLINE" bind:group={mode} class="radio" />
+						<span class="label-text">Online</span>
+					</label>
+					<label class="label cursor-pointer flex gap-2">
+						<input type="radio" name="mode" value="IN_PRESENZA" bind:group={mode} class="radio" />
+						<span class="label-text">In presenza</span>
+					</label>
+				</div>
+			</section>
+
+			{#if mode == 'IN_PRESENZA'}
+				<!-- Provincia -->
+				<section class="col-span-4 md:col-span-2">
+					<label for="county" class="form-label">
+						<p class="font-bold mb-2">Provincia</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full mb-2">
+						<button class="join-item bg-gray-300 px-3"><Building2 /></button>
+						<input type="hidden" name="provinceArray" bind:value={provinceArray} />
+						<select class="select select-bordered w-full rounded-md rounded-l-none" id="county" name="county" bind:value={county}>
+							<option disabled value="">Scegli</option>
+							{#each $province as provincia}
+								<option value={provincia.title}>
+									{provincia.title} ({provincia.region})
+								</option>
+							{/each}
+						</select>
+						<button type="button" class="join-item btn btn-primary" onclick={() => addItem(county, 'province')}> Aggiungi </button>
+					</div>
+
+					{#if provinceArray.length > 0}
+						{#each provinceArray as prov, i}
+							<div class="btn btn-primary btn-sm m-1 rounded-md">
+								{prov}
+								<button type="button" class="badge badge-error ml-2" onclick={() => removeItem(i, 'province')}> X </button>
+							</div>
+						{/each}
+					{/if}
 				</section>
-				<!-- Numero partecipanti -->
-				<section class="col-span-4 md:col-span-4">
-					<label for="stockQty" class="form-label">
-						<p class="font-bold mb-2">Numero partecipanti</p>
+
+				<!-- Luogo -->
+				<section class="col-span-4 md:col-span-2">
+					<label for="location" class="form-label">
+						<p class="font-bold mb-2">Luogo (indirizzo, città, CAP)</p>
 					</label>
 					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Users /></button>
+						<button class="join-item bg-gray-300 px-3"><Pen /></button>
 						<input
 							class="input input-bordered join-item w-full"
-							id="stockQty"
-							name="stockQty"
-							type="number"
-							placeholder="N."
-							step="1"
-							min="0"
-							bind:value={stockQty}
+							id="location"
+							name="location"
+							type="text"
+							placeholder="es: via Roma, 1, Vigasio, 37069"
+							bind:value={location}
 							required
 						/>
 					</div>
 				</section>
+			{/if}
 
-				<!-- Modalità corso -->
-				<section class="col-span-4">
-					<p class="font-bold mb-2">Modalità corso</p>
-					<div class="flex gap-4">
-						<label class="label cursor-pointer flex gap-2">
-							<input type="radio" name="mode" value="ONLINE" bind:group={mode} class="radio" />
-							<span class="label-text">Online</span>
-						</label>
-						<label class="label cursor-pointer flex gap-2">
-							<input type="radio" name="mode" value="IN_PRESENZA" bind:group={mode} class="radio" />
-							<span class="label-text">In presenza</span>
-						</label>
+			{#if mode == 'ONLINE'}
+				<!-- Luogo -->
+
+				<section class="col-span-4 md:col-span-4">
+					<input type="hidden" name="provinceArray" value="Online" />
+					<label for="location" class="form-label">
+						<p class="font-bold mb-2">Luogo</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button class="join-item bg-gray-300 px-3"><Pen /></button>
+						<input
+							class="input input-bordered join-item w-full"
+							id="location"
+							name="location"
+							type="text"
+							placeholder="es: via Roma, 1, Vigasio, 37069"
+							value="Online"
+							readonly
+						/>
 					</div>
 				</section>
+			{/if}
 
-				{#if mode == 'IN_PRESENZA'}
-					<!-- Provincia -->
-					<section class="col-span-4 md:col-span-2">
-						<label for="county" class="form-label">
-							<p class="font-bold mb-2">Provincia</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full mb-2">
-							<button class="join-item bg-gray-300 px-3"><Building2 /></button>
-							<input type="hidden" name="provinceArray" bind:value={provinceArray} />
-							<select
-								class="select select-bordered w-full rounded-md rounded-l-none"
-								id="county"
-								name="county"
-								bind:value={county}
-							>
-								<option disabled value="">Scegli</option>
-								{#each $province as provincia}
-									<option value={provincia.title}>
-										{provincia.title} ({provincia.region})
-									</option>
-								{/each}
-							</select>
-							<button
-								type="button"
-								class="join-item btn btn-primary"
-								onclick={() => addItem(county, 'province')}
-							>
-								Aggiungi
-							</button>
-						</div>
-
-						{#if provinceArray.length > 0}
-							{#each provinceArray as prov, i}
-								<div class="btn btn-primary btn-sm m-1 rounded-md">
-									{prov}
-									<button
-										type="button"
-										class="badge badge-error ml-2"
-										onclick={() => removeItem(i, 'province')}
-									>
-										X
-									</button>
-								</div>
-							{/each}
-						{/if}
-					</section>
-
-					<!-- Luogo -->
-					<section class="col-span-4 md:col-span-2">
-						<label for="location" class="form-label">
-							<p class="font-bold mb-2">Luogo (indirizzo, città, CAP)</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full">
-							<button class="join-item bg-gray-300 px-3"><Pen /></button>
-							<input
-								class="input input-bordered join-item w-full"
-								id="location"
-								name="location"
-								type="text"
-								placeholder="es: via Roma, 1, Vigasio, 37069"
-								bind:value={location}
-								required
-							/>
-						</div>
-					</section>
-				{/if}
-
-				{#if mode == 'ONLINE'}
-					<!-- Luogo -->
-
-					<section class="col-span-4 md:col-span-4">
-						<input type="hidden" name="provinceArray" value="Online" />
-						<label for="location" class="form-label">
-							<p class="font-bold mb-2">Luogo</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full">
-							<button class="join-item bg-gray-300 px-3"><Pen /></button>
-							<input
-								class="input input-bordered join-item w-full"
-								id="location"
-								name="location"
-								type="text"
-								placeholder="es: via Roma, 1, Vigasio, 37069"
-								value="Online"
-								readonly
-							/>
-						</div>
-					</section>
-				{/if}
-
-				<!-- Provincia -->
-				<!-- <section class="col-span-4 md:col-span-2">
+			<!-- Provincia -->
+			<!-- <section class="col-span-4 md:col-span-2">
 			<label for="countryState" class="form-label">
 				<p class="font-bold mb-2">Provincia</p>
 			</label>
@@ -829,8 +808,8 @@
 				</select>
 			</div>
 		</section> -->
-				<!-- place -->
-				<!-- <section class="col-span-4 md:col-span-2">
+			<!-- place -->
+			<!-- <section class="col-span-4 md:col-span-2">
 			<label for="location" class="form-label">
 				<p class="font-bold mb-2">Luogo (indirizzo, citta, CAP)</p></label
 			>
@@ -847,287 +826,223 @@
 				/>
 			</div>
 		</section> -->
-				<!-- Tag -->
-				<section class="col-span-4 md:col-span-2">
-					<label for="tag" class="form-label">
-						<p class="font-bold mb-2">Tag</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full mb-2">
-						<button class="join-item bg-gray-300 px-3"><List /></button>
-						<input type="hidden" name="tagArray" bind:value={tagArray} />
-						<input
-							class="input input-bordered join-item w-full"
-							id="tag"
-							name="tag"
-							type="text"
-							placeholder="Aggiungi Tag"
-							bind:value={tag}
-						/>
-						<button
-							type="button"
-							class="join-item btn btn-primary disabled:blue-500 disabled:cursor-not-allowed"
-							onclick={() => addItem(tag, 'tag')}
-						>
-							Aggiungi
-						</button>
-					</div>
-					{#if tagArray.length !== 0}
-						{#each tagArray as badgeTag, i}
-							<div class="btn btn-primary btn-sm m-1 rounded-md">
-								{badgeTag}
-								{' '}
-								<button
-									type="button"
-									class="badge badge-error felx items-center"
-									onclick={() => removeItem(i, 'tag')}
-								>
-									X
-								</button>
-							</div>
-						{/each}
-					{/if}
-				</section>
-				<!-- Notifica email -->
-				<section class="col-span-4 md:col-span-2">
-					<label for="notificationEmail" class="form-label">
-						<p class="font-bold mb-2">Notifica Email</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full mb-2">
-						<div class="join-item bg-gray-300 px-3"><Send /></div>
-						<input type="hidden" name="notificationEmail" bind:value={notificationEmail} />
-						<input
-							class="input input-bordered join-item w-full"
-							id="inputEmail"
-							name="inputEmail"
-							type="email"
-							placeholder="Aggiungi Email"
-							aria-label="InputEmailNotifica"
-							aria-describedby="basic-InputEmailNotifica"
-							bind:value={inputEmail}
-						/>
-						<button
-							type="button"
-							class="join-item btn btn-primary"
-							onclick={() => addItem(inputEmail, 'email')}
-						>
-							Aggiungi
-						</button>
-					</div>
-					{#if notificationEmail.length > 0}
-						{#each notificationEmail as badgeEmailNotifica, i}
-							<div class="btn btn-primary btn-sm m-1 rounded-md">
-								{badgeEmailNotifica} &nbsp;
-								<button
-									type="button"
-									class="badge badge-error felx items-center"
-									onclick={() => removeItem(i, 'email')}
-								>
-									X
-								</button>
-							</div>
-						{/each}
-					{/if}
-				</section>
-				<!-- Titolo -->
-				<section class="col-span-4 md:col-span-2">
-					<label for="title" class="form-label">
-						<p class="font-bold mb-2">Titolo</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
-						<input
-							class="input input-bordered join-item w-full"
-							id="title"
-							name="title"
-							type="text"
-							placeholder="Titolo"
-							bind:value={title}
-							readonly
-						/>
-					</div>
-				</section>
-				<!-- Descrizione -->
-				<section class="col-span-4 md:col-span-4">
-					<!-- Descrizione -->
-					<label for="descrLong" class="form-label">
-						<p class="font-bold mb-2">Descrizione</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
-						<textarea
-							class="textarea textarea-bordered h-24 join-item w-full"
-							id="descrLong"
-							name="descrLong"
-							placeholder="Descrizione"
-							bind:value={descrLong}
-							readonly
-						></textarea>
-					</div>
-				</section>
-				<!-- ALtre informazione -->
-				<section class="col-span-4">
-					<label for="infoExtra" class="form-label">
-						<p class="font-bold mb-2">Altre informazioni</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
-						<textarea
-							class="textarea textarea-bordered join-item w-full"
-							id="infoExtra"
-							name="infoExtra"
-							rows="6"
-							placeholder="Altre informazioni"
-							bind:value={infoExtra}
-						></textarea>
-					</div>
-				</section>
-
-				<!-- button -->
-				<div class="col-span-4 mt-5 flex justify-center">
-					<div class="bg-gray-50 flex justify-center">
-						{#if currentModal == 'modify'}
-							<button class="btn btn-error btn-sm mx-2" onclick={onCloseModify}> Annulla </button>
-						{:else}
-							<button class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
-						{/if}
-
-						<button type="submit" class="btn btn-success btn-sm mx-2 text-white">
-							{#if currentDialog == 'new'}
-								Registra
-							{:else if currentDialog == 'modify'}
-								Modifica
-							{/if}
-						</button>
-					</div>
+			<!-- Tag -->
+			<section class="col-span-4 md:col-span-2">
+				<label for="tag" class="form-label">
+					<p class="font-bold mb-2">Tag</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full mb-2">
+					<button class="join-item bg-gray-300 px-3"><List /></button>
+					<input type="hidden" name="tagArray" bind:value={tagArray} />
+					<input class="input input-bordered join-item w-full" id="tag" name="tag" type="text" placeholder="Aggiungi Tag" bind:value={tag} />
+					<button type="button" class="join-item btn btn-primary disabled:blue-500 disabled:cursor-not-allowed" onclick={() => addItem(tag, 'tag')}>
+						Aggiungi
+					</button>
 				</div>
-				<input type="hidden" name="eventStartDate" value={eventStartDate.toISOString()} />
-			</form>
-		</Modal>
-	{/if}
+				{#if tagArray.length !== 0}
+					{#each tagArray as badgeTag, i}
+						<div class="btn btn-primary btn-sm m-1 rounded-md">
+							{badgeTag}
+							{' '}
+							<button type="button" class="badge badge-error felx items-center" onclick={() => removeItem(i, 'tag')}> X </button>
+						</div>
+					{/each}
+				{/if}
+			</section>
+			<!-- Notifica email -->
+			<section class="col-span-4 md:col-span-2">
+				<label for="notificationEmail" class="form-label">
+					<p class="font-bold mb-2">Notifica Email</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full mb-2">
+					<div class="join-item bg-gray-300 px-3"><Send /></div>
+					<input type="hidden" name="notificationEmail" bind:value={notificationEmail} />
+					<input
+						class="input input-bordered join-item w-full"
+						id="inputEmail"
+						name="inputEmail"
+						type="email"
+						placeholder="Aggiungi Email"
+						aria-label="InputEmailNotifica"
+						aria-describedby="basic-InputEmailNotifica"
+						bind:value={inputEmail}
+					/>
+					<button type="button" class="join-item btn btn-primary" onclick={() => addItem(inputEmail, 'email')}> Aggiungi </button>
+				</div>
+				{#if notificationEmail.length > 0}
+					{#each notificationEmail as badgeEmailNotifica, i}
+						<div class="btn btn-primary btn-sm m-1 rounded-md">
+							{badgeEmailNotifica} &nbsp;
+							<button type="button" class="badge badge-error felx items-center" onclick={() => removeItem(i, 'email')}> X </button>
+						</div>
+					{/each}
+				{/if}
+			</section>
+			<!-- Titolo -->
+			<section class="col-span-4 md:col-span-2">
+				<label for="title" class="form-label">
+					<p class="font-bold mb-2">Titolo</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<input class="input input-bordered join-item w-full" id="title" name="title" type="text" placeholder="Titolo" bind:value={title} readonly />
+				</div>
+			</section>
+			<!-- Descrizione -->
+			<section class="col-span-4 md:col-span-4">
+				<!-- Descrizione -->
+				<label for="descrLong" class="form-label">
+					<p class="font-bold mb-2">Descrizione</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<textarea
+						class="textarea textarea-bordered h-24 join-item w-full"
+						id="descrLong"
+						name="descrLong"
+						placeholder="Descrizione"
+						bind:value={descrLong}
+						readonly
+					></textarea>
+				</div>
+			</section>
+			<!-- ALtre informazione -->
+			<section class="col-span-4">
+				<label for="infoExtra" class="form-label">
+					<p class="font-bold mb-2">Altre informazioni</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<textarea
+						class="textarea textarea-bordered join-item w-full"
+						id="infoExtra"
+						name="infoExtra"
+						rows="6"
+						placeholder="Altre informazioni"
+						bind:value={infoExtra}
+					></textarea>
+				</div>
+			</section>
+
+			<!-- button -->
+			<div class="col-span-4 mt-5 flex justify-center">
+				<div class="bg-gray-50 flex justify-center">
+					{#if currentModal == 'modify'}
+						<button class="btn btn-error btn-sm mx-2" onclick={onCloseModify}> Annulla </button>
+					{:else}
+						<button class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
+					{/if}
+
+					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">
+						{#if currentDialog == 'new'}
+							Registra
+						{:else if currentDialog == 'modify'}
+							Modifica
+						{/if}
+					</button>
+				</div>
+			</div>
+			<input type="hidden" name="eventStartDate" value={eventStartDate.toISOString()} />
+		</form>
+	</Modal>
 {/if}
 
 {#if currentModal == 'delete'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
-		{:else}
-			<form
-				method="POST"
-				action={postAction}
-				use:enhance={formSubmit}
-				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-			>
-				<input type="hidden" name="prodId" value={prodId} />
-				<header class="col-span-4 text-center text-2xl font-bold text-green-800">
-					Conferma rimozione
-				</header>
-				<div class="col-span-4 mt-5 flex justify-center">
-					<div class="bg-gray-50 flex justify-center">
-						<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
-						<button type="submit" class="btn btn-error btn-sm mx-2 text-white"> Elimina </button>
-					</div>
-				</div>
-			</form>
 		{/if}
+		<form
+			method="POST"
+			action={postAction}
+			use:enhance={formSubmit}
+			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+		>
+			<input type="hidden" name="prodId" value={prodId} />
+			<header class="col-span-4 text-center text-2xl font-bold text-green-800">Conferma rimozione</header>
+			<div class="col-span-4 mt-5 flex justify-center">
+				<div class="bg-gray-50 flex justify-center">
+					<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
+					<button type="submit" class="btn btn-error btn-sm mx-2 text-white"> Elimina </button>
+				</div>
+			</div>
+		</form>
 	</Modal>
 {/if}
 
 {#if currentModal == 'filter'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
-		{:else}
-			<form method="POST" action={postAction} use:enhance={formSubmit} class="p-6 space-y-6">
-				<div class="space-y-4">
-					<div>
-						<label for="county" class="block text-sm font-medium text-gray-700 mb-1"
-							>Provincia</label
-						>
-						<select
-							id="county"
-							name="county"
-							bind:value={county}
-							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-						>
-							<option value="">Scegli una Provincia</option>
-							{#each $province as item}
-								<option value={item.title}>{item.title}</option>
-							{/each}
-						</select>
-					</div>
-
-					<div>
-						<label for="layoutId" class="block text-sm font-medium text-gray-700 mb-1"
-							>Tipo corso</label
-						>
-						<select
-							id="layoutId"
-							name="layoutId"
-							bind:value={layoutId}
-							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-						>
-							<option value="">Scegli un tipo</option>
-							{#each getLayout as option}
-								<option value={option.layoutId}>{option.title}</option>
-							{/each}
-						</select>
-					</div>
-
-					<div>
-						<label for="userId" class="block text-sm font-medium text-gray-700 mb-1"
-							>Riflessologo</label
-						>
-						<select
-							id="userId"
-							name="userId"
-							bind:value={userId}
-							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-						>
-							<option value="">Scegli un riflessologo</option>
-							{#each getTableNames as item}
-								<option value={item.userId}>{item.name} {item.surname}</option>
-							{/each}
-						</select>
-					</div>
-				</div>
-
-				<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
-					<button
-						class="btn btn-error btn-sm rounded-md hover:bg-red-300"
-						type="button"
-						onclick={onCloseModal}
-					>
-						Annulla
-					</button>
-					<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit">
-						Applica Filtri
-					</button>
-				</div>
-			</form>
 		{/if}
+		<form method="POST" action={postAction} use:enhance={formSubmit} class="p-6 space-y-6">
+			<div class="space-y-4">
+				<div>
+					<label for="county" class="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
+					<select
+						id="county"
+						name="county"
+						bind:value={county}
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					>
+						<option value="">Scegli una Provincia</option>
+						{#each $province as item}
+							<option value={item.title}>{item.title}</option>
+						{/each}
+					</select>
+				</div>
+
+				<div>
+					<label for="layoutId" class="block text-sm font-medium text-gray-700 mb-1">Tipo corso</label>
+					<select
+						id="layoutId"
+						name="layoutId"
+						bind:value={layoutId}
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					>
+						<option value="">Scegli un tipo</option>
+						{#each getLayout as option}
+							<option value={option.layoutId}>{option.title}</option>
+						{/each}
+					</select>
+				</div>
+
+				<div>
+					<label for="userId" class="block text-sm font-medium text-gray-700 mb-1">Riflessologo</label>
+					<select
+						id="userId"
+						name="userId"
+						bind:value={userId}
+						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					>
+						<option value="">Scegli un riflessologo</option>
+						{#each getTableNames as item}
+							<option value={item.userId}>{item.name} {item.surname}</option>
+						{/each}
+					</select>
+				</div>
+			</div>
+
+			<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
+				<button class="btn btn-error btn-sm rounded-md hover:bg-red-300" type="button" onclick={onCloseModal}> Annulla </button>
+				<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit"> Applica Filtri </button>
+			</div>
+		</form>
 	</Modal>
 {/if}
 
 {#if currentModal == 'subscribers'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
-		{:else}
-			<div
-				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-			>
-				{#each subscribers || [] as item}
-					<div
-						class="col-span-4
+		{/if}
+		<div class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8">
+			{#each subscribers || [] as item}
+				<div
+					class="col-span-4
                            p-4
                            rounded-box
                            shadow-md
@@ -1137,15 +1052,14 @@
                            items-center
                            justify-between
                            "
-					>
-						<span class="font-bold text-lg text-primary">{item.name} {item.surname}</span>
-						<span class="text-info-content break-words">{item.email}</span>
-						<span class="text-sm text-base-content">{item.phone}</span>
-						<span class="text-sm text-base-content">{item.mobilePhone}</span>
-						<span class="text-sm text-base-content">{item.city}</span>
-					</div>
-				{/each}
-			</div>
-		{/if}
+				>
+					<span class="font-bold text-lg text-primary">{item.name} {item.surname}</span>
+					<span class="text-info-content break-words">{item.email}</span>
+					<span class="text-sm text-base-content">{item.phone}</span>
+					<span class="text-sm text-base-content">{item.mobilePhone}</span>
+					<span class="text-sm text-base-content">{item.city}</span>
+				</div>
+			{/each}
+		</div>
 	</Modal>
 {/if}

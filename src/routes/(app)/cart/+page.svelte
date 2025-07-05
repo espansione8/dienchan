@@ -33,7 +33,8 @@
 		ArrowLeft,
 		CheckCircle,
 		Tag,
-		HandCoins
+		HandCoins,
+		Car
 	} from 'lucide-svelte';
 
 	const { data } = $props();
@@ -50,7 +51,6 @@
 	let password2 = $state('');
 	let checkPass = $state(false);
 	let checkSecondPass = $state(false);
-	let inputRef = $state(null);
 
 	let formData = $state({
 		name: userData?.name || '',
@@ -97,13 +97,21 @@
 		return total;
 	});
 
-	let couponDiscount = $derived(() =>
-		discountList.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0)
-	);
+	const calculateDeliveryFee = (subtotal: number) => {
+		return subtotal < 100 ? 9 : 0;
+	};
+
+	let couponDiscount = $derived(() => discountList.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0));
 
 	let pointsDiscount = $derived(() => {
 		if (formData.usePoint) {
-			const totalAfterOtherDiscounts = subTotal() - couponDiscount();
+			let total = subTotal() + calculateDeliveryFee(subTotal());
+			// let total = subTotal();
+			// if (total < 100) {
+			// 	total += 9; // Add delivery fee if total is below  100
+			// }
+			//const totalAfterOtherDiscounts = subTotal() - couponDiscount();
+			const totalAfterOtherDiscounts = total - couponDiscount();
 			// Math.min: The points used as discount cannot exceed the available points
 			// Math.max: cannot make the total negative. always minimum 0
 			return Math.min(formData.pointsBalance, Math.max(0, totalAfterOtherDiscounts));
@@ -114,15 +122,22 @@
 
 	//let grandTotal = $derived(subTotal() - totalDiscount());
 	let grandTotal = $derived(() => {
-		let total = subTotal() - totalDiscount();
-		if (total < 100) {
-			total += 9; // Add delivery fee if total is above 100
-		}
+		let tempTotal = subTotal() + calculateDeliveryFee(subTotal());
+		// let tempTotal = subTotal();
+		// if (tempTotal < 100) {
+		// 	tempTotal += 9; // Add delivery fee if total is above 100
+		// }
+
+		let total = tempTotal - totalDiscount();
+
 		return total;
 	});
 
 	const clickPoint = () => {
 		formData.usePoint = !formData.usePoint;
+		if (grandTotal() == 0) {
+			formData.paymentType = 'Bonifico bancario';
+		}
 		// let finalTotal = subTotal();
 		// console.log('before pointsBalance', formData.pointsBalance);
 		// if (formData.usePoint) {
@@ -141,7 +156,12 @@
 
 	let newPointsBalance = $derived(() => {
 		if (formData.usePoint) {
-			const totalAfterOtherDiscounts = subTotal() - couponDiscount();
+			let total = subTotal() + calculateDeliveryFee(subTotal());
+			// let total = subTotal();
+			// if (total < 100) {
+			// 	total += 9; // Add delivery fee if total is above 100
+			// }
+			const totalAfterOtherDiscounts = total - couponDiscount();
 			const pointsUsed = Math.min(formData.pointsBalance, Math.max(0, totalAfterOtherDiscounts));
 			return formData.pointsBalance - pointsUsed;
 		}
@@ -186,11 +206,8 @@
 					stripeError = null;
 					//console.log('Stripe Card Element montato con successo.');
 				} else {
-					console.error(
-						"ERRORE: Elemento '#card-element' non trovato nel DOM per il montaggio di Stripe."
-					);
-					stripeError =
-						"Si è verificato un errore durante l'inizializzazione del pagamento. Riprova.";
+					console.error("ERRORE: Elemento '#card-element' non trovato nel DOM per il montaggio di Stripe.");
+					stripeError = "Si è verificato un errore durante l'inizializzazione del pagamento. Riprova.";
 				}
 			} else {
 				stripeError = 'Impossibile caricare Stripe. Riprova più tardi.';
@@ -305,6 +322,14 @@
 		modalTitle = '';
 		postAction = '?/';
 		loading = false;
+		if (cardElement) {
+			cardElement.destroy();
+			cardElement = null;
+			elements = null;
+			stripe = null;
+			stripeError = null;
+			paymentMethodId = null;
+		}
 	};
 
 	const refresh = () => {
@@ -360,10 +385,12 @@
 				//onCloseModal();
 			}
 			if (result.type === 'failure') {
+				resetFields();
 				notification.error(result.data.message || 'Errore carrello');
 				discountCode = '';
 			}
 			if (result.type === 'error') {
+				resetFields();
 				notification.error(result.error.message || 'Errore ');
 				discountCode = '';
 			}
@@ -372,6 +399,7 @@
 			// }
 			// 'update()' is called by default by use:enhance
 			// call 'await update()' if you need to ensure it completes before further client logic.
+			await invalidateAll();
 			resetFields();
 			loading = false;
 		};
@@ -393,9 +421,7 @@
 			<div class="bg-white rounded-xl shadow-md overflow-hidden">
 				<div class="bg-primary text-primary-content px-6 py-4 flex justify-between items-center">
 					<h2 class="text-xl font-bold">Il tuo carrello</h2>
-					<span class="badge badge-lg badge-outline font-semibold"
-						>{$cartProducts.length} prodotti</span
-					>
+					<span class="badge badge-lg badge-outline font-semibold">{$cartProducts.length} prodotti</span>
 				</div>
 
 				{#if $cartProducts.length > 0}
@@ -406,9 +432,7 @@
 									<div class="flex flex-col h-full">
 										<div class="p-4 flex gap-4">
 											<div class="w-1/3">
-												<div
-													class="aspect-square bg-base-200/30 rounded-lg overflow-hidden flex items-center justify-center"
-												>
+												<div class="aspect-square bg-base-200/30 rounded-lg overflow-hidden flex items-center justify-center">
 													<Image
 														layout="constrained"
 														aspectRatio={1}
@@ -421,10 +445,7 @@
 
 											<div class="w-2/3">
 												<div class="flex justify-between items-start">
-													<a
-														href="/product-detail/{item.prodId}"
-														class="hover:text-primary transition-colors"
-													>
+													<a href="/product-detail/{item.prodId}" class="hover:text-primary transition-colors">
 														<h3 class="text-base font-bold">{item.title}</h3>
 													</a>
 													<!-- <div class="text-lg font-bold text-primary">€{item.price}</div> -->
@@ -454,14 +475,9 @@
 											</div>
 										</div>
 
-										<div
-											class="mt-auto border-t border-base-200 p-4 flex items-center justify-between"
-										>
+										<div class="mt-auto border-t border-base-200 p-4 flex items-center justify-between">
 											<div class="flex items-center gap-2">
-												<button
-													class="btn btn-xs btn-outline btn-error"
-													onclick={() => onRemoveFromCart(item)}
-												>
+												<button class="btn btn-xs btn-outline btn-error" onclick={() => onRemoveFromCart(item)}>
 													<Trash2 size={14} />
 													Rimuovi
 												</button>
@@ -473,21 +489,15 @@
 											</div>
 
 											<div class="join">
-												<button
-													class="join-item btn btn-xs"
-													onclick={() => updateQuantity(item, false)}
-													disabled={item.orderQuantity <= 1}>-</button
-												>
+												<button class="join-item btn btn-xs" onclick={() => updateQuantity(item, false)} disabled={item.orderQuantity <= 1}>-</button>
 												<input
 													type="text"
 													class="join-item input input-xs input-bordered w-10 text-center"
 													value={item.orderQuantity || 1}
 													readonly
 												/>
-												<button
-													class="join-item btn btn-xs"
-													onclick={() => updateQuantity(item, true)}
-													disabled={item.orderQuantity >= item.stockQty}>+</button
+												<button class="join-item btn btn-xs" onclick={() => updateQuantity(item, true)} disabled={item.orderQuantity >= item.stockQty}
+													>+</button
 												>
 											</div>
 										</div>
@@ -514,9 +524,7 @@
 							<ShoppingCart size={32} class="text-base-content/50" />
 						</div>
 						<h3 class="text-xl font-bold mb-2">Il tuo carrello è vuoto</h3>
-						<p class="text-base-content/70 mb-6">
-							Aggiungi alcuni prodotti per iniziare lo shopping
-						</p>
+						<p class="text-base-content/70 mb-6">Aggiungi alcuni prodotti per iniziare lo shopping</p>
 						<a href="/product-shop" class="btn btn-primary"> Inizia lo shopping </a>
 					</div>
 				{/if}
@@ -639,15 +647,7 @@
 											</span>
 										</label>
 										<div class="input input-bordered flex items-center gap-2 pr-2">
-											<Lock
-												size={18}
-												class="ml-2"
-												color={checkSecondPass && checkPass
-													? 'green'
-													: password2
-														? 'red'
-														: 'currentColor'}
-											/>
+											<Lock size={18} class="ml-2" color={checkSecondPass && checkPass ? 'green' : password2 ? 'red' : 'currentColor'} />
 											<input
 												class="flex-1 outline-none bg-transparent"
 												id="password2"
@@ -828,13 +828,7 @@
 										class:border-primary={formData.paymentType === 'Bonifico bancario'}
 										class:bg-base-200={formData.paymentType === 'Bonifico bancario'}
 									>
-										<input
-											type="radio"
-											name="payment"
-											value="Bonifico bancario"
-											class="hidden"
-											bind:group={formData.paymentType}
-										/>
+										<input type="radio" name="payment" value="Bonifico bancario" class="hidden" bind:group={formData.paymentType} />
 										<Landmark class="h-8 w-8 text-primary" />
 										<span class="text-center font-medium">Bonifico bancario</span>
 									</label>
@@ -846,22 +840,13 @@
 										class:border-primary={formData.paymentType === 'Carta di credito'}
 										class:bg-base-200={formData.paymentType === 'Carta di credito'}
 									>
-										<input
-											type="radio"
-											name="payment"
-											value="Carta di credito"
-											class="hidden"
-											bind:group={formData.paymentType}
-										/>
+										<input type="radio" name="payment" value="Carta di credito" class="hidden" bind:group={formData.paymentType} />
 										<CreditCard class="h-8 w-8 text-primary" />
 										<span class="text-center font-medium">Carta di credito</span>
 									</label>
 								</div>
 							</div>
-							<div
-								class="card bg-base-100 shadow-xl p-6 w-full"
-								class:hidden={formData.paymentType !== 'Carta di credito'}
-							>
+							<div class="card bg-base-100 shadow-xl p-6 w-full" class:hidden={formData.paymentType !== 'Carta di credito'}>
 								<h3 class="text-xl font-semibold mb-4">Informazioni sulla carta di credito</h3>
 								<div class="form-control">
 									<div id="card-element" class="border border-base-300 p-3 rounded-md"></div>
@@ -870,18 +855,15 @@
 									{/if}
 								</div>
 								<p class="text-sm text-gray-500 mt-2">
-									<Lock size={14} class="inline-block mr-1" /> Le tue informazioni di pagamento sono
-									protette.
+									<Lock size={14} class="inline-block mr-1" /> Le tue informazioni di pagamento sono protette.
 								</p>
 								{#if !paymentMethodId}
-									<button type="button" class="btn btn-info mt-4" onclick={getStripeId}
-										>VERIFICA CARTA
-									</button>
+									<button type="button" class="btn btn-info mt-4" onclick={getStripeId}>VERIFICA CARTA </button>
 								{:else}
 									<div class="btn btn-primary mt-4">CARTA OK <CheckCircle /></div>
 								{/if}
 							</div>
-							{#if formData.paymentType === 'Bonifico bancario'}
+							{#if formData.paymentType === 'Bonifico bancario' && grandTotal() > 0}
 								<div class="card bg-base-100 shadow-xl p-6">
 									<h3 class="text-xl font-semibold mb-4">Dettagli Bonifico Bancario</h3>
 									<p>Effettua un bonifico bancario alle seguenti coordinate:</p>
@@ -891,9 +873,12 @@
 									<p>VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA</p>
 									<br />
 									<p>
-										Si prega di includere il tuo ID ordine nella causale del bonifico. Il tuo ordine
-										sarà elaborato dopo la conferma del pagamento.
+										Si prega di includere il tuo ID ordine nella causale del bonifico. Il tuo ordine sarà elaborato dopo la conferma del pagamento.
 									</p>
+								</div>
+							{:else if formData.paymentType === 'Bonifico bancario' && grandTotal() === 0 && formData.usePoint}
+								<div class="card bg-base-100 shadow-xl p-6">
+									<h3 class="text-xl font-semibold mb-4">Pagamento con punti: {pointsDiscount()}</h3>
 								</div>
 							{/if}
 						</div>
@@ -915,7 +900,7 @@
 					{#if $cartProducts.length > 0}
 						<div class="flex justify-between text-success">
 							<span>Spedizione</span>
-							<span>{subTotal() - totalDiscount() < 100 ? '€ 9' : 'gratuita'}</span>
+							<span>{subTotal() < 100 ? '€ 9' : 'gratuita'}</span>
 						</div>
 					{/if}
 
@@ -930,7 +915,11 @@
 
 					<div class="flex justify-between font-bold text-lg">
 						<span>Totale</span>
-						<span class="text-primary">€ {Math.max(0, grandTotal()).toFixed(2)}</span>
+						<span class="text-primary"
+							>{#if $cartProducts.length > 0}
+								€ {Math.max(0, grandTotal()).toFixed(2)}
+							{/if}</span
+						>
 					</div>
 
 					<!-- Discount Code -->
@@ -973,18 +962,9 @@
 											{badgeCode.code}
 											<input type="hidden" name="cart" value={JSON.stringify($cartProducts)} />
 											<input type="hidden" name="subTotal" value={subTotal()} />
-											<input
-												type="hidden"
-												name="discountList"
-												value={JSON.stringify(discountList)}
-											/>
+											<input type="hidden" name="discountList" value={JSON.stringify(discountList)} />
 											<input type="hidden" name="removeCode" value={badgeCode.code} />
-											<button
-												type="submit"
-												name="removeCode"
-												class="btn btn-xs btn-circle btn-ghost"
-												disabled={loading}
-											>
+											<button type="submit" name="removeCode" class="btn btn-xs btn-circle btn-ghost" disabled={loading}>
 												<X size={14} />
 											</button>
 										</div>
@@ -1000,19 +980,12 @@
 								checked={formData.usePoint}
 								class="checkbox"
 								onclick={() => clickPoint()}
+								disabled={formData.pointsBalance < 1}
 							/>
-							<span class="label-text"
-								>Spendi saldo punti {formData.usePoint
-									? `(${Math.round(newPointsBalance())} punti rimasti)`
-									: ''}</span
-							>
+							<span class="label-text">Spendi saldo punti {formData.usePoint ? `(${Math.round(newPointsBalance())} punti rimasti)` : ''}</span>
 						</label>
 					</div>
-					<button
-						class="btn btn-primary w-full mt-4"
-						onclick={() => onClickModal('new', null)}
-						disabled={$cartProducts.length === 0}
-					>
+					<button class="btn btn-primary w-full mt-4" onclick={() => onClickModal('new', null)} disabled={$cartProducts.length === 0}>
 						Procedi al checkout
 					</button>
 				</div>
@@ -1024,9 +997,7 @@
 
 {#if currentModal == 'new'}
 	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-3xl p-6">
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{/if}
@@ -1126,12 +1097,43 @@
 							<tr>
 								<th colspan="2">Totale</th>
 								<th class="text-right">
-									€ {Math.max(0, grandTotal()).toFixed(2)}
+									{#if $cartProducts.length > 0}
+										€ {Math.max(0, grandTotal()).toFixed(2)}
+									{/if}
 								</th>
 							</tr>
 						</tfoot>
 					</table>
 				</div>
+				{#if formData.paymentType === 'Bonifico bancario' && grandTotal() > 0}
+					<div class="card bg-base-100 shadow-xl p-6">
+						<h3 class="text-xl font-semibold mb-4">Dettagli Bonifico Bancario</h3>
+						<p>Effettua un bonifico bancario alle seguenti coordinate:</p>
+						<p><strong>IBAN:</strong> IT93 R076 0111 5000 0102 3646 647</p>
+						<p><strong>BIC/SWIFT:</strong> BPPIITRRXXX</p>
+						<p><strong>INTESTATO A:</strong> ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia</p>
+						<p>VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA</p>
+						<br />
+						<p>Si prega di includere il tuo ID ordine nella causale del bonifico. Il tuo ordine sarà elaborato dopo la conferma del pagamento.</p>
+					</div>
+				{:else if formData.paymentType === 'Bonifico bancario' && grandTotal() === 0 && formData.usePoint}
+					<div class="card bg-base-100 shadow-xl p-6">
+						<h3 class="text-xl font-semibold mb-4">Pagamento con punti: {pointsDiscount()}</h3>
+					</div>
+				{/if}
+
+				{#if formData.paymentType === 'Carta di credito'}
+					<div class="card bg-base-100 shadow-xl p-6">
+						<h3 class="text-xl font-semibold mb-4">Pagamento:</h3>
+						<p>
+							{#if paymentMethodId}
+								<Check /> Addebito su carta
+							{:else}
+								<CircleX /> Carta non verificata
+							{/if}
+						</p>
+					</div>
+				{/if}
 			</div>
 
 			<!-- <div class="space-y-4">
@@ -1214,7 +1216,12 @@
 				{/if}
 				<div class="modal-action">
 					<button class="btn btn-outline btn-error" onclick={onCloseModal}> Annulla </button>
-					<button type="submit" class="btn btn-primary"> Conferma Acquisto </button>
+					<!-- {#if (formData.paymentType === 'Carta di credito' && paymentMethodId) || formData.paymentType !== 'Carta di credito'}
+						<button type="submit" class="btn btn-primary"> Conferma Acquisto </button>
+					{/if} -->
+					<button type="submit" class="btn btn-primary" disabled={!paymentMethodId && formData.paymentType === 'Carta di credito'}>
+						Conferma Acquisto
+					</button>
 				</div>
 			</form>
 		</div>
@@ -1224,9 +1231,7 @@
 {#if currentModal == 'success'}
 	<dialog id="success-modal" class="modal modal-open">
 		<div class="modal-box text-center">
-			<div
-				class="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-4"
-			>
+			<div class="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-4">
 				<CheckCircle size={40} class="text-success" />
 			</div>
 			<h3 class="font-bold text-xl mb-2">Ordine Confermato</h3>
@@ -1244,9 +1249,7 @@
 {#if currentModal == 'newUser'}
 	<dialog id="success-login-modal" class="modal modal-open">
 		<div class="modal-box text-center">
-			<div
-				class="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-4"
-			>
+			<div class="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-4">
 				<CheckCircle size={40} class="text-success" />
 			</div>
 			<h3 class="font-bold text-xl mb-2">Ordine Confermato</h3>

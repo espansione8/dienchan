@@ -307,7 +307,15 @@ export const actions: Actions = {
 					confirm: true,
 					automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
 				});
-				paymentIntentId = paymentIntent.id;
+				if (paymentIntent.status === 'succeeded') {
+					paymentIntentId = paymentIntent.id;
+				} else {
+					return fail(400, {
+						action: 'new',
+						success: false,
+						message: `Pagamento fallito: ${paymentIntent.status}`
+					});
+				}
 			} catch (err: any) {
 				console.error('Stripe error:', err);
 				return fail(400, {

@@ -41,16 +41,17 @@ export const POST: RequestHandler = async (event) => {
         return json({ message: 'Invalid folder name after sanitization.' }, { status: 400 });
     }
 
-    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '').trim();
+    //const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '').trim();
 
-    if (!sanitizedFileName) {
-        console.error(`Errore: Nome file non valido dopo sanitizzazione. fileName originale: '${fileName}'.`);
-        await event.request.body.cancel();
-        return json({ message: 'Invalid fileName after sanitization.' }, { status: 400 });
-    }
+    // if (!sanitizedFileName) {
+    //     console.error(`Errore: Nome file non valido dopo sanitizzazione. fileName originale: '${fileName}'.`);
+    //     await event.request.body.cancel();
+    //     return json({ message: 'Invalid fileName after sanitization.' }, { status: 400 });
+    // }
 
     const dirPath = path.join(FILES_DIR, ...sanitizedFolderComponents);
-    const filePath = path.join(dirPath, sanitizedFileName);
+    //const filePath = path.join(dirPath, sanitizedFileName);
+    const filePath = path.join(dirPath, fileName);
 
     // console.log(`Tentativo di upload: folderName='${folderName}' (sanitizzato a '${sanitizedFolderComponents.join(path.sep)}'), fileName='${sanitizedFileName}'`);
     // console.log(`Percorso directory: ${dirPath}`);

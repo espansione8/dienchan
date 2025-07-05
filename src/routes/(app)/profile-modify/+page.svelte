@@ -10,7 +10,7 @@
 	import { province, country_list } from '$lib/stores/arrays.js';
 	import { imgCheck } from '$lib/tools/tools';
 	import {
-		KeyRound,
+		HandCoins,
 		X,
 		Check,
 		Eye,
@@ -55,9 +55,7 @@
 	let postAction = $state('?/');
 
 	//const picFilter = $derived(userData.uploadfiles.filter((item: any) => item.type == 'profile'));
-	const picFilter = $derived(
-		(userData.uploadfiles ?? []).filter((item: any) => item.type === 'profile')
-	);
+	const picFilter = $derived((userData.uploadfiles ?? []).filter((item: any) => item.type === 'profile'));
 
 	const openInput = () => (closedInput = false);
 	const closeInput = () => {
@@ -191,9 +189,7 @@
 	<title>Area Personale | {userData.name} {userData.surname}</title>
 </svelte:head>
 
-<div
-	class="min-h-screen flex justify-center items-center p-4 bg-gradient-to-br from-teal-50 to-emerald-300"
->
+<div class="min-h-screen flex justify-center items-center p-4 bg-gradient-to-br from-teal-50 to-emerald-300">
 	<div class="container mx-auto px-4">
 		<!-- Header Section -->
 		<div class="mb-8">
@@ -212,15 +208,11 @@
 							<div class="relative mb-4">
 								{#if picFilter.length > 0 && picFilter[0]?.type == 'profile'}
 									<div class="avatar">
-										<div
-											class="w-48 h-48 rounded-full ring ring-emerald-600 ring-offset-base-100 ring-offset-2 overflow-hidden"
-										>
+										<div class="w-48 h-48 rounded-full ring ring-emerald-600 ring-offset-base-100 ring-offset-2 overflow-hidden">
 											<Image
 												layout="constrained"
 												aspectRatio={1}
-												src={picFilter.length > 0
-													? `/uploads/user/${userData.userId}/${picFilter[0].fileName}`
-													: '/images/placeholder.jpg'}
+												src={picFilter.length > 0 ? `/uploads/user/${userData.userId}/${picFilter[0].fileName}` : '/images/placeholder.jpg'}
 												alt="Profile"
 												class="object-cover w-full h-full"
 											/>
@@ -229,31 +221,16 @@
 									<form method="POST" action={`?/delProfilePic`} use:enhance={formSubmit}>
 										<input type="hidden" name="userId" value={userData.userId} />
 										<input type="hidden" name="fileName" value={picFilter[0].fileName} />
-										<button
-											class="absolute bottom-0 right-0 btn btn-circle btn-lg btn-error"
-											type="submit"
-											aria-label="Delete image"
-										>
+										<button class="absolute bottom-0 right-0 btn btn-circle btn-lg btn-error" type="submit" aria-label="Delete image">
 											<Trash2 size="24" />
 										</button>
 									</form>
 								{:else}
 									<div class="avatar placeholder">
-										<div
-											class="w-48 h-48 rounded-full bg-primary-focus text-primary-content ring ring-primary ring-offset-base-100 ring-offset-2"
-										>
-											<Image
-												layout="constrained"
-												aspectRatio={1}
-												src="/images/placeholder.jpg"
-												alt="Profile"
-												class="object-cover w-full h-full"
-											/>
+										<div class="w-48 h-48 rounded-full bg-primary-focus text-primary-content ring ring-primary ring-offset-base-100 ring-offset-2">
+											<Image layout="constrained" aspectRatio={1} src="/images/placeholder.jpg" alt="Profile" class="object-cover w-full h-full" />
 										</div>
-										<button
-											class="absolute bottom-0 right-0 btn btn-circle btn-lg btn-primary"
-											onclick={() => onClickModal('upload-photo', null)}
-										>
+										<button class="absolute bottom-0 right-0 btn btn-circle btn-lg btn-primary" onclick={() => onClickModal('upload-photo', null)}>
 											<Camera />
 										</button>
 									</div>
@@ -283,19 +260,17 @@
 						{#if membershipExpiry}
 							<div class="flex items-center gap-2 text-sm text-base-content/70">
 								<Calendar size={16} />
-								<span
-									>Scadenza: {formatDate(
-										typeof membershipExpiry === 'string'
-											? membershipExpiry
-											: membershipExpiry.toISOString()
-									)}</span
-								>
+								<span>Scadenza: {formatDate(typeof membershipExpiry === 'string' ? membershipExpiry : membershipExpiry.toISOString())}</span>
 							</div>
 						{/if}
 
 						<div class="flex items-center gap-2 text-sm text-base-content/70 mt-2">
 							<BadgeCheck size={16} />
 							<span>Livello: {level || 'Base'}</span>
+						</div>
+						<div class="flex items-center gap-2 text-sm text-base-content/70 mt-2">
+							<HandCoins size={16} />
+							<span>Punti: {userData.pointsBalance || 0}</span>
 						</div>
 
 						<div class="flex items-center gap-2 text-sm text-base-content/70 mt-2">
@@ -307,21 +282,11 @@
 					<!-- Navigation -->
 					<div class="p-4">
 						<div class="flex flex-col gap-2">
-							<button
-								class="btn btn-ghost justify-start gap-3 {activeTab === 'profile'
-									? 'btn-active'
-									: ''}"
-								onclick={() => (activeTab = 'profile')}
-							>
+							<button class="btn btn-ghost justify-start gap-3 {activeTab === 'profile' ? 'btn-active' : ''}" onclick={() => (activeTab = 'profile')}>
 								<User size={18} />
 								Profilo
 							</button>
-							<button
-								class="btn btn-ghost justify-start gap-3 {activeTab === 'orders'
-									? 'btn-active'
-									: ''}"
-								onclick={() => (activeTab = 'orders')}
-							>
+							<button class="btn btn-ghost justify-start gap-3 {activeTab === 'orders' ? 'btn-active' : ''}" onclick={() => (activeTab = 'orders')}>
 								<ShoppingBag size={18} />
 								Ordini
 							</button>
@@ -329,10 +294,7 @@
 								<Eye size={18} />
 								Anteprima profilo pubblico
 							</a>
-							<button
-								class="btn btn-ghost justify-start gap-3 text-error"
-								onclick={() => onClickModal('reset-password', null)}
-							>
+							<button class="btn btn-ghost justify-start gap-3 text-error" onclick={() => onClickModal('reset-password', null)}>
 								<Shield size={18} />
 								Cambia password
 							</button>
@@ -346,9 +308,7 @@
 				{#if activeTab === 'profile'}
 					<!-- Profile Tab -->
 					<div class="bg-base-100 rounded-xl shadow-md overflow-hidden">
-						<div
-							class="bg-gradient-to-br from-teal-300 to-emerald-100 border-b border-base-200 p-6 flex justify-between items-center"
-						>
+						<div class="bg-gradient-to-br from-teal-300 to-emerald-100 border-b border-base-200 p-6 flex justify-between items-center">
 							<h2 class="text-xl font-bold text-base-content">Informazioni Personali</h2>
 
 							{#if closedInput}
@@ -371,13 +331,7 @@
 						</div>
 
 						<div class="p-6">
-							<form
-								id="profile-form"
-								action="?/modify"
-								method="POST"
-								use:enhance={formSubmit}
-								class="space-y-6"
-							>
+							<form id="profile-form" action="?/modify" method="POST" use:enhance={formSubmit} class="space-y-6">
 								<input type="hidden" name="userId" value={userData.userId} />
 
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -412,9 +366,7 @@
 																<ToggleLeft color="darkred" />
 															{/if}</span
 														>
-														<span class="label-text {namePublic ? 'text-success' : 'text-error'}">
-															{namePublic ? 'Visibile' : 'Privato'}</span
-														>
+														<span class="label-text {namePublic ? 'text-success' : 'text-error'}"> {namePublic ? 'Visibile' : 'Privato'}</span>
 													</label>
 												</div>
 											</div>
@@ -447,8 +399,7 @@
 																id="check-surnamePublic"
 																name="surnamePublic"
 																checked={surnamePublic}
-																onclick={() =>
-																	onSwitchPublicProfile('surnamePublic', surnamePublic)}
+																onclick={() => onSwitchPublicProfile('surnamePublic', surnamePublic)}
 															/>
 														{/if}
 
@@ -463,11 +414,7 @@
 																<ToggleLeft color="darkred" />
 															{/if}</span
 														>
-														<span
-															class="label-text {surnamePublic ? 'text-success' : 'text-error'}"
-														>
-															{surnamePublic ? 'Visibile' : 'Privato'}</span
-														>
+														<span class="label-text {surnamePublic ? 'text-success' : 'text-error'}"> {surnamePublic ? 'Visibile' : 'Privato'}</span>
 													</label>
 												</div>
 											</div>
@@ -515,9 +462,7 @@
 																<ToggleLeft color="darkred" />
 															{/if}</span
 														>
-														<span class="label-text {emailPublic ? 'text-success' : 'text-error'}">
-															{emailPublic ? 'Visibile' : 'Privato'}</span
-														>
+														<span class="label-text {emailPublic ? 'text-success' : 'text-error'}"> {emailPublic ? 'Visibile' : 'Privato'}</span>
 													</label>
 												</div>
 											</div>
@@ -557,8 +502,7 @@
 																id="check-addressPublic"
 																name="addressPublic"
 																checked={addressPublic}
-																onclick={() =>
-																	onSwitchPublicProfile('addressPublic', addressPublic)}
+																onclick={() => onSwitchPublicProfile('addressPublic', addressPublic)}
 															/>
 														{/if}
 
@@ -573,11 +517,7 @@
 																<ToggleLeft color="darkred" />
 															{/if}</span
 														>
-														<span
-															class="label-text {addressPublic ? 'text-success' : 'text-error'}"
-														>
-															{addressPublic ? 'Visibile' : 'Privato'}</span
-														>
+														<span class="label-text {addressPublic ? 'text-success' : 'text-error'}"> {addressPublic ? 'Visibile' : 'Privato'}</span>
 													</label>
 												</div>
 											</div>
@@ -628,9 +568,7 @@
 																<ToggleLeft color="darkred" />
 															{/if}</span
 														>
-														<span class="label-text {cityPublic ? 'text-success' : 'text-error'}">
-															{cityPublic ? 'Visibile' : 'Privato'}</span
-														>
+														<span class="label-text {cityPublic ? 'text-success' : 'text-error'}"> {cityPublic ? 'Visibile' : 'Privato'}</span>
 													</label>
 												</div>
 											</div>
@@ -655,11 +593,7 @@
 												<div class="form-control">
 													<label class="label cursor-pointer gap-2" for="check-postalCodePublic">
 														{#if closedInput}
-															<input
-																type="hidden"
-																name="postalCodePublic"
-																checked={postalCodePublic}
-															/>
+															<input type="hidden" name="postalCodePublic" checked={postalCodePublic} />
 														{:else}
 															<input
 																type="checkbox"
@@ -667,8 +601,7 @@
 																id="check-postalCodePublic"
 																name="postalCodePublic"
 																checked={postalCodePublic}
-																onclick={() =>
-																	onSwitchPublicProfile('postalCodePublic', postalCodePublic)}
+																onclick={() => onSwitchPublicProfile('postalCodePublic', postalCodePublic)}
 															/>
 														{/if}
 
@@ -683,9 +616,7 @@
 																<ToggleLeft color="darkred" />
 															{/if}</span
 														>
-														<span
-															class="label-text {postalCodePublic ? 'text-success' : 'text-error'}"
-														>
+														<span class="label-text {postalCodePublic ? 'text-success' : 'text-error'}">
 															{postalCodePublic ? 'Visibile' : 'Privato'}</span
 														>
 													</label>
@@ -735,21 +666,12 @@
 																<ToggleLeft color="darkred" />
 															{/if}</span
 														>
-														<span class="label-text {countyPublic ? 'text-success' : 'text-error'}">
-															{countyPublic ? 'Visibile' : 'Privato'}</span
-														>
+														<span class="label-text {countyPublic ? 'text-success' : 'text-error'}"> {countyPublic ? 'Visibile' : 'Privato'}</span>
 													</label>
 												</div>
 											</div>
 										</label>
-										<select
-											id="county"
-											class="select select-bordered w-full"
-											name="county"
-											required
-											disabled={closedInput}
-											bind:value={county}
-										>
+										<select id="county" class="select select-bordered w-full" name="county" required disabled={closedInput} bind:value={county}>
 											<option value="" disabled>Seleziona provincia</option>
 											{#each provinceFilterate as provincia}
 												<option value={provincia.title}>
@@ -775,8 +697,7 @@
 																id="check-countryPublic"
 																name="countryPublic"
 																checked={countryPublic}
-																onclick={() =>
-																	onSwitchPublicProfile('countryPublic', countryPublic)}
+																onclick={() => onSwitchPublicProfile('countryPublic', countryPublic)}
 															/>
 														{/if}
 
@@ -791,23 +712,12 @@
 																<ToggleLeft color="darkred" />
 															{/if}</span
 														>
-														<span
-															class="label-text {countryPublic ? 'text-success' : 'text-error'}"
-														>
-															{countryPublic ? 'Visibile' : 'Privato'}</span
-														>
+														<span class="label-text {countryPublic ? 'text-success' : 'text-error'}"> {countryPublic ? 'Visibile' : 'Privato'}</span>
 													</label>
 												</div>
 											</div>
 										</label>
-										<select
-											id="country"
-											class="select select-bordered w-full"
-											name="country"
-											required
-											disabled={closedInput}
-											bind:value={country}
-										>
+										<select id="country" class="select select-bordered w-full" name="country" required disabled={closedInput} bind:value={country}>
 											<option value="" disabled>Seleziona nazione</option>
 											{#each $country_list as countryItem}
 												<option value={countryItem}>
@@ -848,9 +758,7 @@
 																<ToggleLeft color="darkred" />
 															{/if}</span
 														>
-														<span class="label-text {phonePublic ? 'text-success' : 'text-error'}">
-															{phonePublic ? 'Visibile' : 'Privato'}</span
-														>
+														<span class="label-text {phonePublic ? 'text-success' : 'text-error'}"> {phonePublic ? 'Visibile' : 'Privato'}</span>
 													</label>
 												</div>
 											</div>
@@ -877,11 +785,7 @@
 												<div class="form-control">
 													<label class="label cursor-pointer gap-2" for="check-mobilePhonePublic">
 														{#if closedInput}
-															<input
-																type="hidden"
-																name="mobilePhonePublic"
-																checked={mobilePhonePublic}
-															/>
+															<input type="hidden" name="mobilePhonePublic" checked={mobilePhonePublic} />
 														{:else}
 															<input
 																type="checkbox"
@@ -889,8 +793,7 @@
 																id="check-mobilePhonePublic"
 																name="mobilePhonePublic"
 																checked={mobilePhonePublic}
-																onclick={() =>
-																	onSwitchPublicProfile('mobilePhonePublic', mobilePhonePublic)}
+																onclick={() => onSwitchPublicProfile('mobilePhonePublic', mobilePhonePublic)}
 															/>
 														{/if}
 
@@ -905,11 +808,9 @@
 																<ToggleLeft color="darkred" />
 															{/if}</span
 														>
-														<span
-															class="label-text {mobilePhonePublic ? 'text-success' : 'text-error'}"
-														>
-															{mobilePhonePublic ? 'Visibile' : 'Privato'}</span
-														>
+														<span class="label-text {mobilePhonePublic ? 'text-success' : 'text-error'}">
+															{mobilePhonePublic ? 'Visibile' : 'Privato'}
+														</span>
 													</label>
 												</div>
 											</div>
@@ -942,9 +843,7 @@
 						<div class="p-6">
 							{#if orderData.length === 0}
 								<div class="text-center py-12">
-									<div
-										class="w-20 h-20 bg-base-200 rounded-full flex items-center justify-center mx-auto mb-4"
-									>
+									<div class="w-20 h-20 bg-base-200 rounded-full flex items-center justify-center mx-auto mb-4">
 										<ShoppingBag size={32} class="text-base-content/50" />
 									</div>
 									<h3 class="text-xl font-bold mb-2">Nessun ordine</h3>
@@ -955,17 +854,11 @@
 								<div class="space-y-6">
 									{#each orderData as order, index}
 										<div class="card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
-											<div
-												class="bg-base-200 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
-											>
+											<div class="bg-base-200 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
 												<div>
 													<div class="flex items-center gap-2">
 														<Clock size={16} class="text-primary" />
-														<span class="font-medium"
-															>Ordine del {formatDate(order.createdAt)}: € {order.totalValue.toFixed(
-																2
-															)}</span
-														>
+														<span class="font-medium">Ordine del {formatDate(order.createdAt)} </span>
 													</div>
 
 													<div class="text-sm text-base-content/70 mt-1">
@@ -994,10 +887,7 @@
 														{order.cart.length}
 														{order.cart.length === 1 ? 'prodotto' : 'prodotti'}
 													</div>
-													<button
-														class="btn btn-sm btn-ghost"
-														onclick={() => toggleOrderDetails(order.orderId)}
-													>
+													<button class="btn btn-sm btn-ghost" onclick={() => toggleOrderDetails(order.orderId)}>
 														{#if expandedOrderId === order.orderId}
 															<ChevronUp size={18} />
 														{:else}
@@ -1012,9 +902,7 @@
 													<div class="space-y-4">
 														{#each order.cart as item}
 															<div class="flex gap-4 p-3 bg-base-200/30 rounded-lg">
-																<div
-																	class="w-20 h-20 bg-base-200 rounded-lg overflow-hidden flex-shrink-0"
-																>
+																<div class="w-20 h-20 bg-base-200 rounded-lg overflow-hidden flex-shrink-0">
 																	{#if item.type === 'course'}
 																		<Image
 																			layout="constrained"
@@ -1038,9 +926,7 @@
 																	<h4 class="font-bold text-base-content">{item.title}</h4>
 
 																	{#if item.type === 'course'}
-																		<div
-																			class="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-base-content/70"
-																		>
+																		<div class="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-base-content/70">
 																			<div class="flex items-center gap-1">
 																				<Calendar size={14} />
 																				<span>{formatDate(item.eventStartDate)}</span>
@@ -1055,9 +941,7 @@
 																			</div>
 																		</div>
 																	{:else}
-																		<div
-																			class="flex items-center gap-2 mt-1 text-sm text-base-content/70"
-																		>
+																		<div class="flex items-center gap-2 mt-1 text-sm text-base-content/70">
 																			<Package size={14} />
 																			<span>Quantità: {item.orderQuantity || 1}</span>
 																		</div>
@@ -1087,9 +971,7 @@
 														{/each}
 
 														{#if order.type === 'product'}
-															<div
-																class="flex justify-between items-center pt-3 border-t border-base-200"
-															>
+															<div class="flex justify-between items-center pt-3 border-t border-base-200">
 																<div class="font-medium">Spedizione</div>
 																<div class="font-bold text-lg text-info">
 																	<p>{order.totalValue < 100 ? '€ 9' : 'gratuita'}</p>
@@ -1097,18 +979,14 @@
 															</div>
 														{/if}
 
-														<div
-															class="flex justify-between items-center pt-3 border-t border-base-200"
-														>
+														<div class="flex justify-between items-center pt-3 border-t border-base-200">
 															<div class="font-medium">Totale ordine</div>
 															<div class="font-bold text-lg text-primary">
 																€ {order.totalValue.toFixed(2)}
 															</div>
 														</div>
 														{#if order.totalDiscount > 0}
-															<div
-																class="flex justify-between items-center pt-3 border-t border-base-200"
-															>
+															<div class="flex justify-between items-center pt-3 border-t border-base-200">
 																<div class="font-medium">Totale sconti</div>
 																<div class="font-bold text-lg text-error">
 																	<p>- € {order.totalDiscount.toFixed(2)}</p>
@@ -1132,9 +1010,7 @@
 
 {#if currentModal == 'upload-photo'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		<div class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative">
 			{#if loading}
 				<Loader />
@@ -1162,21 +1038,14 @@
 
 {#if currentModal == 'reset-password'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		<div class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative">
 			{#if loading}
 				<Loader />
 			{:else}
 				<!-- <h3 class="font-bold text-xl mb-4">Cambio password</h3> -->
 				<!-- <p class="text-base-content/70 mb-6">Cambia la password</p> -->
-				<form
-					method="POST"
-					action={postAction}
-					use:enhance={formSubmit}
-					class="grid grid-cols-2 bg-base-100 grid-rows-[min-content]"
-				>
+				<form method="POST" action={postAction} use:enhance={formSubmit} class="grid grid-cols-2 bg-base-100 grid-rows-[min-content]">
 					<section class="col-span-2">
 						<label for="passwordOld" class="form-label">
 							<p class="font-bold mb-2 label">Password Corrente</p>
@@ -1185,13 +1054,7 @@
 							<button type="button" class="join-item bg-primary/20 px-3">
 								<Mail class="text-emerald-500" />
 							</button>
-							<input
-								name="passwordOld"
-								type="text"
-								placeholder="inserisci password"
-								class="input input-bordered w-full"
-								required
-							/>
+							<input name="passwordOld" type="text" placeholder="inserisci password" class="input input-bordered w-full" required />
 						</div>
 					</section>
 					<section class="col-span-2">
@@ -1199,16 +1062,8 @@
 							<p class="font-bold mb-2 label">Nuova Password</p>
 						</label>
 						<div class="join join-horizontal rounded-md w-full">
-							<button type="button" class="join-item bg-primary/20 px-3"
-								><Mail class="text-emerald-500" /></button
-							>
-							<input
-								name="passwordNew"
-								type="text"
-								placeholder="inserisci password"
-								class="input input-bordered w-full"
-								required
-							/>
+							<button type="button" class="join-item bg-primary/20 px-3"><Mail class="text-emerald-500" /></button>
+							<input name="passwordNew" type="text" placeholder="inserisci password" class="input input-bordered w-full" required />
 						</div>
 					</section>
 					<div class="modal-action mt-6 col-span-2">

@@ -118,7 +118,15 @@ export const actions: Actions = {
 			});
 			return total;
 		};
-		const totalDiscount = discountItem.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0)
+
+		let totalDiscount = 0
+		if (usePoint) {
+			totalDiscount = discountItem.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0) + usedPoints
+		} else {
+			totalDiscount = discountItem.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0)
+		}
+
+		//const totalDiscount = discountItem.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0)
 
 		//let recalculatedTotal = cartRecalculated() - totalDiscount;
 		const recalculatedTotal = () => {
@@ -126,9 +134,9 @@ export const actions: Actions = {
 			if (total < 100) {
 				total += 9; // Add delivery fee if total is above 100
 			}
-			if (usePoint) {
-				total -= usedPoints;
-			}
+			// if (usePoint) {
+			// 	total -= usedPoints;
+			// }
 			return total;
 		};
 
@@ -161,13 +169,16 @@ export const actions: Actions = {
 			}
 		}
 
-		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || cartItem.length < 1) {
+		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || cartItem.length < 1) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
 
 		// Stripe payment processing
 		let paymentIntentId: string | null = null;
+		const amountInCents = Math.round(Number(totalValue) * 100);
+
 		if (payment === 'Carta di credito') {
+
 			if (!paymentMethodId) {
 				return fail(400, {
 					action: 'new',
@@ -176,7 +187,13 @@ export const actions: Actions = {
 				});
 			}
 
-			const amountInCents = Math.round(Number(totalValue) * 100);
+			if (amountInCents < 50) {
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: `Pagamenti con carta solo per importi superiori a € 0.50`
+				});
+			}
 
 			try {
 				const paymentIntent = await stripe.paymentIntents.create({
@@ -186,7 +203,17 @@ export const actions: Actions = {
 					confirm: true,
 					automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
 				});
-				paymentIntentId = paymentIntent.id;
+				// console.log('paymentIntent.status', paymentIntent.status)
+				// paymentIntentId = paymentIntent.id;
+				if (paymentIntent.status === 'succeeded') {
+					paymentIntentId = paymentIntent.id;
+				} else {
+					return fail(400, {
+						action: 'new',
+						success: false,
+						message: `Pagamento fallito: ${paymentIntent.status}`
+					});
+				}
 			} catch (err: any) {
 				console.error('Stripe error:', err);
 				return fail(400, {

@@ -70,20 +70,7 @@
 
 	numCoursesInProvince = sortedNumCoursesInProvince;
 
-	const nomiMesi = [
-		'Gennaio',
-		'Febbraio',
-		'Marzo',
-		'Aprile',
-		'Maggio',
-		'Giugno',
-		'Luglio',
-		'Agosto',
-		'Settembre',
-		'Ottobre',
-		'Novembre',
-		'Dicembre'
-	];
+	const nomiMesi = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
 
 	const capitalizzaPrimaLettera = (stringa) => {
 		return stringa.replace(/\b\w/g, (l) => l.toUpperCase());
@@ -147,9 +134,7 @@
 		// provincia
 		if (filtriAttivi.provincia) {
 			// coursesList = coursesList.filter((item) => item.county == filtriAttivi.provincia);
-			coursesList = coursesList.filter((item) =>
-				item.county.some((county) => county === filtriAttivi.provincia)
-			);
+			coursesList = coursesList.filter((item) => item.county.some((county) => county === filtriAttivi.provincia));
 		}
 		// riflessologo
 		if (filtriAttivi.riflessologo) {
@@ -208,9 +193,7 @@
 
 <div class="bg-base-200 grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-8 lg:p-8">
 	<!-- Filter column -->
-	<section
-		class="col-span-12 xl:col-span-2 bg-base-100 rounded-lg shadow-md border border-base-200 overflow-hidden"
-	>
+	<section class="col-span-12 xl:col-span-2 bg-base-100 rounded-lg shadow-md border border-base-200 overflow-hidden">
 		<div class="flex flex-col w-auto">
 			<!-- Filter Header -->
 			<div class="bg-primary text-primary-content p-4 relative overflow-hidden">
@@ -224,13 +207,9 @@
 			<!-- Filter Body -->
 			<div class="p-4 space-y-4">
 				<!-- Event Filter -->
-				<div
-					class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200"
-				>
+				<div class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200">
 					<input id="accordion1" type="checkbox" class="peer" />
-					<div
-						class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
-					>
+					<div class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold">
 						<span class="inline-flex items-center">
 							<b><TextSearch class="-mt-1 mr-2" /> Evento</b>
 							{#if filtriAttivi?.evento.length > 0}
@@ -238,22 +217,28 @@
 							{/if}
 						</span>
 					</div>
-					<div
-						class="collapse-content bg-blue-50 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto"
-					>
+					<div class="collapse-content bg-blue-50 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto">
 						<ul class="list-none -mx-4 divide-y divide-base-200/70">
 							{#each getLayout as option}
 								<li>
 									<button
 										type="button"
-										class="p-3 cursor-pointer transition-all duration-300 flex items-center
-                {filtriAttivi.evento == option.title
-											? 'bg-orange-200 text-red-900 font-bold'
-											: 'hover:bg-blue-200 hover:text-blue-900'}
+										class="p-3 cursor-pointer transition-all duration-300 flex items-center w-full
+                {filtriAttivi.evento == option.title ? 'bg-orange-200 text-red-900 font-bold' : 'hover:bg-blue-200 hover:text-blue-900'}
 "
 										onclick={() => onClickFilterEvent(option.title)}
 									>
-										<span class="flex-1">{option.title} </span>
+										<!-- <span class="flex-1">{option.title} </span> -->
+										<span class="flex-1 text-center font-semibold">
+											{option.title}
+											<Image
+												layout="constrained"
+												aspectRatio={1}
+												src={option.urlPic || '/images/placeholder.jpg'}
+												alt={option.title}
+												class="h-full max-h-20 w-auto object-contain rounded-lg hover:scale-80 transition-transform duration-500 block mx-auto"
+											/>
+										</span>
 										{#if filtriAttivi.evento == option.title}
 											<Check size={18} class="flex-shrink-0 text-green-600" />
 										{/if}
@@ -265,13 +250,9 @@
 				</div>
 
 				<!-- Month Filter -->
-				<div
-					class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200"
-				>
+				<div class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200">
 					<input id="accordion2" type="checkbox" class="peer" />
-					<div
-						class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
-					>
+					<div class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold">
 						<span class="inline-flex items-center">
 							<b><CalendarSearch class="-mt-1 mr-2" /> Mese</b>
 							{#if filtriAttivi.mese.length > 0}
@@ -279,18 +260,14 @@
 							{/if}
 						</span>
 					</div>
-					<div
-						class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto"
-					>
+					<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto">
 						<ul class="list-none -mx-4 divide-y divide-base-200/70">
 							{#each informazioniMesi as { mese, conteggio }}
 								<li>
 									<button
 										type="button"
 										class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
-                {filtriAttivi.mese == mese
-											? 'bg-orange-200 text-red-900 font-bold'
-											: 'hover:bg-blue-200 hover:text-blue-900'}
+                {filtriAttivi.mese == mese ? 'bg-orange-200 text-red-900 font-bold' : 'hover:bg-blue-200 hover:text-blue-900'}
                   {conteggio == 0 ? 'text-gray-400 pointer-events-none opacity-50' : ''}"
 										onclick={() => onClickFilterMonth(mese)}
 									>
@@ -309,13 +286,9 @@
 				</div>
 
 				<!-- Province Filter -->
-				<div
-					class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200"
-				>
+				<div class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200">
 					<input id="accordion3" type="checkbox" class="peer" />
-					<div
-						class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
-					>
+					<div class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold">
 						<span class="inline-flex items-center">
 							<b><MapPinned class="-mt-1 mr-2" /> Provincia</b>
 							{#if filtriAttivi.provincia.length > 0}
@@ -323,18 +296,14 @@
 							{/if}
 						</span>
 					</div>
-					<div
-						class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto"
-					>
+					<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto">
 						<ul class="list-none -mx-4 divide-y divide-base-200/70">
 							{#each Object.entries(numCoursesInProvince) as [chiave, valore]}
 								<li>
 									<button
 										type="button"
 										class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
-                {filtriAttivi.provincia == chiave
-											? 'bg-orange-200 text-red-900 font-bold'
-											: 'hover:bg-blue-200 hover:text-blue-900'}"
+                {filtriAttivi.provincia == chiave ? 'bg-orange-200 text-red-900 font-bold' : 'hover:bg-blue-200 hover:text-blue-900'}"
 										onclick={() => onClickFilterProvincia(chiave)}
 									>
 										<span>{chiave}</span>
@@ -352,13 +321,9 @@
 				</div>
 
 				<!-- Riflessologo Filter -->
-				<div
-					class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200"
-				>
+				<div class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200">
 					<input id="accordion4" type="checkbox" class="peer" />
-					<div
-						class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
-					>
+					<div class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold">
 						<span class="inline-flex items-center">
 							<b><UserSearch class="-mt-1 mr-2" /> Riflessologo</b>
 							{#if filtriAttivi.riflessologo.length > 0}
@@ -366,9 +331,7 @@
 							{/if}
 						</span>
 					</div>
-					<div
-						class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto"
-					>
+					<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto">
 						<ul class="list-none -mx-4 divide-y divide-base-200/70">
 							{#each getTableNames as item}
 								<li>
@@ -409,11 +372,7 @@
 	<!-- Product column -->
 	<section class="col-span-12 xl:col-span-10 bg-base-100 rounded-lg">
 		<div class="flex items-center p-4">
-			<div
-				class="btn btn-sm rounded-md cursor-default {coursesList.length > 0
-					? 'bg-green-300 hover:bg-green-300'
-					: 'bg-red-300 hover:bg-red-300'}"
-			>
+			<div class="btn btn-sm rounded-md cursor-default {coursesList.length > 0 ? 'bg-green-300 hover:bg-green-300' : 'bg-red-300 hover:bg-red-300'}">
 				Corsi disponibili:
 				<div class="badge rounded-md flex justify-center">
 					<strong class="">{coursesList.length}</strong>
@@ -518,15 +477,11 @@
 		<!-- CARD -->
 		<div class="flex flex-wrap justify-center gap-4 pl-3 pb-4">
 			{#if coursesList.length == 0}
-				<div
-					class="alert alert-warning shadow-lg text-center rounded-md mt-6 mx-auto w-full max-w-md"
-				>
+				<div class="alert alert-warning shadow-lg text-center rounded-md mt-6 mx-auto w-full max-w-md">
 					<div>
 						<ShieldAlert />
 						<br />
-						<span class="mt-2 text-semibold">
-							Nessun corso trovato. Cambia parametri o resetta il filtro.
-						</span>
+						<span class="mt-2 text-semibold"> Nessun corso trovato. Cambia parametri o resetta il filtro. </span>
 					</div>
 				</div>
 			{/if}
@@ -541,14 +496,10 @@
 						<a href="/course-detail/{courseData.prodId}">
 							<div class="absolute -top-1 -right-1 z-10 opacity-85">
 								<div class="relative">
-									<div
-										class="bg-gradient-to-r from-primary to-primary/80 text-primary-content px-4 py-2 rounded-bl-lg rounded-tr-lg shadow-md"
-									>
+									<div class="bg-gradient-to-r from-primary to-primary/80 text-primary-content px-4 py-2 rounded-bl-lg rounded-tr-lg shadow-md">
 										<span class="text-xs font-semibold">PREZZO</span>
 										<div class="flex items-baseline">
-											<span class="text-2xl font-bold"
-												>€ {courseData.layoutView?.price || 'N/A'}
-											</span>
+											<span class="text-2xl font-bold">€ {courseData.layoutView?.price || 'N/A'} </span>
 										</div>
 									</div>
 									<div
@@ -607,10 +558,7 @@
 					<div class="px-5 pb-4 pt-0">
 						<div class="divider my-1"></div>
 						<div class="card-actions flex justify-between items-center w-full gap-2">
-							<a
-								class="btn btn-primary flex-1 rounded-md flex items-center gap-1"
-								href="/course-detail/{courseData.prodId}"
-							>
+							<a class="btn btn-primary flex-1 rounded-md flex items-center gap-1" href="/course-detail/{courseData.prodId}">
 								<Info size={20} />
 								Visualizza
 							</a>

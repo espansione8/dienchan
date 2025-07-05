@@ -2,7 +2,7 @@ import { readable, writable } from 'svelte/store';
 
 export const sidebarData = writable();
 
-export const nazioni = readable([
+export const countries = readable([
     { value: "S", title: "Select" },
     { value: "AF", title: "Afghanistan" },
     { value: "AX", title: "Aland Islands" },

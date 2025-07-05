@@ -44,8 +44,7 @@
 		{
 			name: 'Moria',
 			image: '/images/avatar.png',
-			review:
-				'Associazione ben organizzata che insegna egregiamente e con passione tecniche utili per il benessere psicofisico.'
+			review: 'Associazione ben organizzata che insegna egregiamente e con passione tecniche utili per il benessere psicofisico.'
 		}
 	];
 
@@ -132,11 +131,8 @@
 					stripeError = null;
 					//console.log('Stripe Card Element montato con successo.');
 				} else {
-					console.error(
-						"ERRORE: Elemento '#card-element' non trovato nel DOM per il montaggio di Stripe."
-					);
-					stripeError =
-						"Si è verificato un errore durante l'inizializzazione del pagamento. Riprova.";
+					console.error("ERRORE: Elemento '#card-element' non trovato nel DOM per il montaggio di Stripe.");
+					stripeError = "Si è verificato un errore durante l'inizializzazione del pagamento. Riprova.";
 				}
 			} else {
 				stripeError = 'Impossibile caricare Stripe. Riprova più tardi.';
@@ -215,8 +211,14 @@
 		formData.membershipLevel = '';
 		password1 = '';
 		password2 = '';
-		stripeError = null;
-		paymentMethodId = null;
+		if (cardElement) {
+			cardElement.destroy();
+			cardElement = null;
+			elements = null;
+			stripe = null;
+			stripeError = null;
+			paymentMethodId = null;
+		}
 	};
 
 	const checkPasswordsMatch = () => {
@@ -271,13 +273,7 @@
 	};
 
 	const isStep2Valid = () => {
-		return !!(
-			formData.address &&
-			formData.city &&
-			formData.postalCode &&
-			formData.county &&
-			formData.country
-		);
+		return !!(formData.address && formData.city && formData.postalCode && formData.county && formData.country);
 	};
 
 	const isStep3Valid = () => {
@@ -318,12 +314,6 @@
 		resetFields();
 		currentModal = '';
 		currentStep = 1;
-		if (cardElement) {
-			cardElement.destroy();
-			cardElement = null;
-			elements = null;
-			stripe = null;
-		}
 	};
 
 	const formSubmit = () => {
@@ -369,10 +359,7 @@
 
 <svelte:head>
 	<title>Diventa socio Diện Chẩn</title>
-	<meta
-		name="description"
-		content="Diventa socio dell'associazione Diện Chẩn e accedi a tutti i vantaggi"
-	/>
+	<meta name="description" content="Diventa socio dell'associazione Diện Chẩn e accedi a tutti i vantaggi" />
 </svelte:head>
 
 <noscript>
@@ -391,21 +378,13 @@
 			<div class="md:w-1/2">
 				<h1 class="text-4xl md:text-5xl font-bold text-blue-900 mb-6">Diventa socio Diện Chẩn®</h1>
 				<p class="text-lg text-blue-800 mb-8">
-					Unisciti alla nostra comunità di professionisti del benessere e accedi a risorse
-					esclusive, formazione continua e supporto professionale.
+					Unisciti alla nostra comunità di professionisti del benessere e accedi a risorse esclusive, formazione continua e supporto professionale.
 				</p>
 				<div class="flex flex-wrap gap-4">
 					{#if !auth}
-						<button
-							class="btn btn-primary btn-lg"
-							onclick={() => onClickModal('new', 'Socio ordinario')}
-						>
-							Diventa Socio
-						</button>
+						<button class="btn btn-primary btn-lg" onclick={() => onClickModal('new', 'Socio ordinario')}> Diventa Socio </button>
 					{:else if userData?.membership?.membershipLevel != 'Socio vitalizio'}
-						<button class="btn btn-primary btn-lg" onclick={() => onClickModal('renew', null)}>
-							Rinnova Iscrizione
-						</button>
+						<button class="btn btn-primary btn-lg" onclick={() => onClickModal('renew', null)}> Rinnova Iscrizione </button>
 					{/if}
 				</div>
 			</div>
@@ -425,9 +404,7 @@
 <!-- Benefits Section -->
 <section class="py-16 px-4 bg-white">
 	<div class="container mx-auto">
-		<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-12">
-			Vantaggi dell'Associazione
-		</h2>
+		<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-12">Vantaggi dell'Associazione</h2>
 
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
@@ -437,10 +414,7 @@
 					</div>
 					<div>
 						<h3 class="font-semibold text-lg text-blue-900 mb-2">Mappatura Punti Online</h3>
-						<p class="text-blue-800">
-							Accedi al servizio di mappatura punti online e disegna schemi personalizzati per i
-							tuoi trattamenti.
-						</p>
+						<p class="text-blue-800">Accedi al servizio di mappatura punti online e disegna schemi personalizzati per i tuoi trattamenti.</p>
 					</div>
 				</div>
 			</div>
@@ -453,8 +427,7 @@
 					<div>
 						<h3 class="font-semibold text-lg text-blue-900 mb-2">Video Corso Base</h3>
 						<p class="text-blue-800">
-							Accedi gratuitamente ai video del corso base registrato da My Le dopo aver frequentato
-							il corso con uno dei nostri riflessologi.
+							Accedi gratuitamente ai video del corso base registrato da My Le dopo aver frequentato il corso con uno dei nostri riflessologi.
 						</p>
 					</div>
 				</div>
@@ -467,10 +440,7 @@
 					</div>
 					<div>
 						<h3 class="font-semibold text-lg text-blue-900 mb-2">Sconti Esclusivi</h3>
-						<p class="text-blue-800">
-							Acquista strumenti e materiale didattico con lo sconto del 10% grazie al codice
-							fornito dal tuo riflessologo.
-						</p>
+						<p class="text-blue-800">Acquista strumenti e materiale didattico con lo sconto del 10% grazie al codice fornito dal tuo riflessologo.</p>
 					</div>
 				</div>
 			</div>
@@ -482,10 +452,7 @@
 					</div>
 					<div>
 						<h3 class="font-semibold text-lg text-blue-900 mb-2">Incontri Online</h3>
-						<p class="text-blue-800">
-							Partecipa agli incontri in diretta online organizzati annualmente con il nostro
-							professore Bui Quoc Chau.
-						</p>
+						<p class="text-blue-800">Partecipa agli incontri in diretta online organizzati annualmente con il nostro professore Bui Quoc Chau.</p>
 					</div>
 				</div>
 			</div>
@@ -497,10 +464,7 @@
 					</div>
 					<div>
 						<h3 class="font-semibold text-lg text-blue-900 mb-2">Pratica e Aggiornamento</h3>
-						<p class="text-blue-800">
-							Frequenta incontri di pratica o di aggiornamento organizzati dal tuo riflessologo di
-							riferimento.
-						</p>
+						<p class="text-blue-800">Frequenta incontri di pratica o di aggiornamento organizzati dal tuo riflessologo di riferimento.</p>
 					</div>
 				</div>
 			</div>
@@ -511,15 +475,11 @@
 <!-- Membership Options -->
 <section class="py-16 px-4 bg-gradient-to-b from-teal-50 to-blue-50">
 	<div class="container mx-auto">
-		<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-12">
-			Scegli il Tuo Piano di Associazione
-		</h2>
+		<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-12">Scegli il Tuo Piano di Associazione</h2>
 
 		<div class="flex flex-col md:flex-row justify-center gap-8">
 			{#if userData?.membership?.membershipLevel != 'Socio vitalizio'}
-				<div
-					class="bg-white rounded-xl overflow-hidden shadow-lg transition-all hover:shadow-2xl w-full md:w-96"
-				>
+				<div class="bg-white rounded-xl overflow-hidden shadow-lg transition-all hover:shadow-2xl w-full md:w-96">
 					<div class="bg-blue-600 p-4 text-white text-center">
 						<h3 class="text-xl font-bold">SOCIO ORDINARIO</h3>
 					</div>
@@ -560,32 +520,21 @@
 						</ul>
 						<div class="mt-auto">
 							{#if !auth}
-								<button
-									class="btn btn-primary w-full"
-									onclick={() => onClickModal('new', 'Socio ordinario')}
-								>
-									Associati Ora
-								</button>
+								<button class="btn btn-primary w-full" onclick={() => onClickModal('new', 'Socio ordinario')}> Associati Ora </button>
 							{:else}
-								<button class="btn btn-primary w-full" onclick={() => onClickModal('renew', null)}>
-									Rinnova Iscrizione
-								</button>
+								<button class="btn btn-primary w-full" onclick={() => onClickModal('renew', null)}> Rinnova Iscrizione </button>
 							{/if}
 						</div>
 					</div>
 				</div>
 			{/if}
 
-			<div
-				class="bg-white rounded-xl overflow-hidden shadow-lg transition-all hover:shadow-2xl w-full md:w-96 relative"
-			>
+			<div class="bg-white rounded-xl overflow-hidden shadow-lg transition-all hover:shadow-2xl w-full md:w-96 relative">
 				<div class="bg-yellow-500 p-4 text-white text-center">
 					<h3 class="text-xl font-bold">
 						SOCIO VITALIZIO
 						{#if userData?.membership?.membershipLevel != 'Socio vitalizio'}
-							<div class="badge badge-warning text-white px-4 py-1 rounded-bl-lg font-semibold">
-								Consigliato
-							</div>
+							<div class="badge badge-warning text-white px-4 py-1 rounded-bl-lg font-semibold">Consigliato</div>
 						{/if}
 					</h3>
 				</div>
@@ -626,10 +575,7 @@
 					</ul>
 					<div class="mt-auto">
 						{#if userData?.membership?.membershipLevel != 'Socio vitalizio'}
-							<button
-								class="btn bg-yellow-500 hover:bg-yellow-600 text-white w-full"
-								onclick={() => onClickModal('new', 'Socio vitalizio')}
-							>
+							<button class="btn bg-yellow-500 hover:bg-yellow-600 text-white w-full" onclick={() => onClickModal('new', 'Socio vitalizio')}>
 								Diventa Socio Vitalizio
 							</button>
 						{:else}
@@ -647,12 +593,8 @@
 <!-- Testimonials Section -->
 <section class="py-16 px-4 bg-white">
 	<div class="container mx-auto">
-		<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-4">
-			Le parole dei nostri associati
-		</h2>
-		<p class="text-lg text-center text-blue-700 mb-12">
-			Scopri cosa pensano di noi i nostri clienti
-		</p>
+		<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-4">Le parole dei nostri associati</h2>
+		<p class="text-lg text-center text-blue-700 mb-12">Scopri cosa pensano di noi i nostri clienti</p>
 
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 			{#each testimonials as testimonial}
@@ -681,9 +623,7 @@
 
 		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
 			<div class="bg-white rounded-xl p-6 shadow-md text-center transition-all hover:shadow-lg">
-				<div
-					class="bg-blue-100 p-3 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4"
-				>
+				<div class="bg-blue-100 p-3 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
 					<Calendar class="text-blue-600 h-8 w-8" />
 				</div>
 				<h3 class="text-4xl font-bold text-blue-900 mb-2">2,000+</h3>
@@ -691,9 +631,7 @@
 			</div>
 
 			<div class="bg-white rounded-xl p-6 shadow-md text-center transition-all hover:shadow-lg">
-				<div
-					class="bg-blue-100 p-3 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4"
-				>
+				<div class="bg-blue-100 p-3 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
 					<Users class="text-blue-600 h-8 w-8" />
 				</div>
 				<h3 class="text-4xl font-bold text-blue-900 mb-2">360+</h3>
@@ -701,9 +639,7 @@
 			</div>
 
 			<div class="bg-white rounded-xl p-6 shadow-md text-center transition-all hover:shadow-lg">
-				<div
-					class="bg-blue-100 p-3 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4"
-				>
+				<div class="bg-blue-100 p-3 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
 					<Globe class="text-blue-600 h-8 w-8" />
 				</div>
 				<h3 class="text-4xl font-bold text-blue-900 mb-2">40+</h3>
@@ -711,9 +647,7 @@
 			</div>
 
 			<div class="bg-white rounded-xl p-6 shadow-md text-center transition-all hover:shadow-lg">
-				<div
-					class="bg-blue-100 p-3 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4"
-				>
+				<div class="bg-blue-100 p-3 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
 					<Clock class="text-blue-600 h-8 w-8" />
 				</div>
 				<h3 class="text-4xl font-bold text-blue-900 mb-2">12+</h3>
@@ -726,51 +660,40 @@
 <!-- FAQ Section -->
 <section class="py-16 px-4 bg-white">
 	<div class="container mx-auto">
-		<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-12">
-			Domande frequenti
-		</h2>
+		<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-12">Domande frequenti</h2>
 
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
 				<h3 class="font-semibold text-lg text-blue-900 mb-3">Come divento socio?</h3>
 				<p class="text-blue-800">
-					In questa pagina "Quote associative" è possibile iscriversi come socio ordinario premendo
-					il pulsante "Associati" per 25 euro all\'anno oppure come socio vitalizio premendo il
-					pulsante "Associati a vita" per un singolo pagamento di 390€.
+					In questa pagina "Quote associative" è possibile iscriversi come socio ordinario premendo il pulsante "Associati" per 25 euro all\'anno
+					oppure come socio vitalizio premendo il pulsante "Associati a vita" per un singolo pagamento di 390€.
 				</p>
 			</div>
 
 			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
-				<h3 class="font-semibold text-lg text-blue-900 mb-3">
-					Cosa succede se come socio ordinario non rinnovo l\'iscrizione in tempo?
-				</h3>
+				<h3 class="font-semibold text-lg text-blue-900 mb-3">Cosa succede se come socio ordinario non rinnovo l\'iscrizione in tempo?</h3>
 				<p class="text-blue-800">
-					Se l\'iscrizione a socio ordinario non viene rinnovato entro un anno dalla prima
-					associazione o dall\'ultimo rinnovo i privilegi da socio decadono.
+					Se l\'iscrizione a socio ordinario non viene rinnovato entro un anno dalla prima associazione o dall\'ultimo rinnovo i privilegi da socio
+					decadono.
 				</p>
 			</div>
 
 			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
-				<h3 class="font-semibold text-lg text-blue-900 mb-3">
-					Quali sono le differenze tra un socio ordinario e un socio vitalizio?
-				</h3>
+				<h3 class="font-semibold text-lg text-blue-900 mb-3">Quali sono le differenze tra un socio ordinario e un socio vitalizio?</h3>
 				<p class="text-blue-800">
-					Il socio ordinario e il socio vitalizio godono degli stessi privilegi e accessi. L\'unica
-					differenza risiede nel pagamento. Al socio ordinario sarà richiesto di rinnovare
-					manualmente l\'abbonamento di 25 euro ogni anno, con il rischio di perdita dei privilegi
-					in caso di mancato rinnovo. Al contrario al socio vitalizio sarà necessario pagare
-					solamente una volta l\'acconto di 390 euro per rimanere associato a vita, senza alcun
-					bisogno di rinnovamento.
+					Il socio ordinario e il socio vitalizio godono degli stessi privilegi e accessi. L\'unica differenza risiede nel pagamento. Al socio
+					ordinario sarà richiesto di rinnovare manualmente l\'abbonamento di 25 euro ogni anno, con il rischio di perdita dei privilegi in caso di
+					mancato rinnovo. Al contrario al socio vitalizio sarà necessario pagare solamente una volta l\'acconto di 390 euro per rimanere associato a
+					vita, senza alcun bisogno di rinnovamento.
 				</p>
 			</div>
 
 			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
-				<h3 class="font-semibold text-lg text-blue-900 mb-3">
-					Posso diventare socio vitalizio se sono già socio ordinario?
-				</h3>
+				<h3 class="font-semibold text-lg text-blue-900 mb-3">Posso diventare socio vitalizio se sono già socio ordinario?</h3>
 				<p class="text-blue-800">
-					Come socio ordinario è possibile diventare soci vitalizi in qualsiasi momento premendo il
-					pulsante "Associati a vita" e procedendo con il pagamento.
+					Come socio ordinario è possibile diventare soci vitalizi in qualsiasi momento premendo il pulsante "Associati a vita" e procedendo con il
+					pagamento.
 				</p>
 			</div>
 		</div>
@@ -778,15 +701,8 @@
 </section>
 
 {#if currentModal == 'new'}
-	<Modal
-		isOpen={openModal}
-		header={modalTitle}
-		cssClass={'bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto'}
-	>
-		<button
-			class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content"
-			onclick={onCloseModal}>✕</button
-		>
+	<Modal isOpen={openModal} header={modalTitle} cssClass={'bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto'}>
+		<button class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{/if}
@@ -809,9 +725,7 @@
 
 						{#if i < totalSteps - 1}
 							<div class="flex-1 flex items-center mx-2">
-								<div
-									class={`h-1 w-full ${i + 1 < currentStep ? 'bg-success' : 'bg-base-200'}`}
-								></div>
+								<div class={`h-1 w-full ${i + 1 < currentStep ? 'bg-success' : 'bg-base-200'}`}></div>
 							</div>
 						{/if}
 					{/each}
@@ -888,9 +802,7 @@
 							<div class="form-control w-full">
 								<label for="password" class="label">
 									<span class="label-text font-medium">
-										Password <span class="text-xs">
-											(Almeno 8 caratteri con numeri e lettere)
-										</span>
+										Password <span class="text-xs"> (Almeno 8 caratteri con numeri e lettere) </span>
 									</span>
 								</label>
 								<div class="input validator input-bordered flex items-center gap-2 pr-2">
@@ -920,11 +832,7 @@
 									>
 								</label>
 								<div class="input validator input-bordered flex items-center gap-2 pr-2">
-									<Lock
-										size={18}
-										class="ml-2"
-										color={passwordsMatch ? (password2 ? 'green' : 'currentColor') : 'red'}
-									/>
+									<Lock size={18} class="ml-2" color={passwordsMatch ? (password2 ? 'green' : 'currentColor') : 'red'} />
 									<input
 										class="flex-1 outline-none bg-transparent"
 										id="password2"
@@ -1044,14 +952,7 @@
 							<label for="state" class="label">
 								<span class="label-text font-medium">Provincia</span>
 							</label>
-							<select
-								id="county"
-								class="select select-bordered w-full"
-								name="county"
-								required
-								disabled={closedInput}
-								bind:value={formData.county}
-							>
+							<select id="county" class="select select-bordered w-full" name="county" required disabled={closedInput} bind:value={formData.county}>
 								<option value="" disabled selected>Seleziona provincia</option>
 								{#each $province as provincia, i}
 									{#if provincia.title !== 'Online'}
@@ -1070,14 +971,7 @@
 							<label for="country" class="label">
 								<span class="label-text font-medium">Nazione</span>
 							</label>
-							<select
-								id="country"
-								class="select select-bordered w-full"
-								name="country"
-								required
-								disabled={closedInput}
-								bind:value={formData.country}
-							>
+							<select id="country" class="select select-bordered w-full" name="country" required disabled={closedInput} bind:value={formData.country}>
 								<option value="" disabled selected>Seleziona nazione</option>
 								{#each $country_list as country}
 									<option value={country}>
@@ -1106,13 +1000,7 @@
 							class:border-primary={formData.payment === 'Carta di credito'}
 							class:bg-base-200={formData.payment === 'Carta di credito'}
 						>
-							<input
-								type="radio"
-								name="payment"
-								value="Carta di credito"
-								class="hidden"
-								bind:group={formData.payment}
-							/>
+							<input type="radio" name="payment" value="Carta di credito" class="hidden" bind:group={formData.payment} />
 							<CreditCard class="h-8 w-8 text-primary" />
 							<span class="text-center font-medium">Carta di Credito</span>
 						</label>
@@ -1122,22 +1010,13 @@
 							class:border-primary={formData.payment === 'Bonifico bancario'}
 							class:bg-base-200={formData.payment === 'Bonifico bancario'}
 						>
-							<input
-								type="radio"
-								name="payment"
-								value="Bonifico bancario"
-								class="hidden"
-								bind:group={formData.payment}
-							/>
+							<input type="radio" name="payment" value="Bonifico bancario" class="hidden" bind:group={formData.payment} />
 							<Landmark class="h-8 w-8 text-primary" />
 							<span class="text-center font-medium">Bonifico Bancario</span>
 						</label>
 					</div>
 
-					<div
-						class="card bg-base-100 shadow-xl p-6"
-						class:hidden={formData.payment !== 'Carta di credito'}
-					>
+					<div class="card bg-base-100 shadow-xl p-6" class:hidden={formData.payment !== 'Carta di credito'}>
 						<h3 class="text-xl font-semibold mb-4">Informazioni sulla carta di credito</h3>
 						<div class="form-control">
 							<div id="card-element" class="border border-base-300 p-3 rounded-md"></div>
@@ -1149,9 +1028,7 @@
 							<Lock size={14} class="inline-block mr-1" /> Le tue informazioni di pagamento sono protette.
 						</p>
 						{#if !paymentMethodId}
-							<button type="button" class="btn btn-info mt-4" onclick={getStripeId}
-								>VERIFICA CARTA
-							</button>
+							<button type="button" class="btn btn-info mt-4" onclick={getStripeId}>VERIFICA CARTA </button>
 						{:else}
 							<div class="btn btn-primary mt-4">CARTA OK <CheckCircle /></div>
 						{/if}
@@ -1166,10 +1043,7 @@
 							<p><strong>INTESTATO A:</strong> ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia</p>
 							<p>VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA</p>
 							<br />
-							<p>
-								Si prega di includere il tuo ID ordine nella causale del bonifico. Il tuo ordine
-								sarà elaborato dopo la conferma del pagamento.
-							</p>
+							<p>Si prega di includere il tuo ID ordine nella causale del bonifico. Il tuo ordine sarà elaborato dopo la conferma del pagamento.</p>
 						</div>
 					{/if}
 
@@ -1178,9 +1052,7 @@
 						<h3 class="font-bold text-lg mb-2">Riepilogo Ordine</h3>
 
 						<div class="flex justify-between items-center py-2 border-b border-base-300">
-							<span class="text-base-content/80 font-medium"
-								>{cartItem?.title || 'Tesseramento'}</span
-							>
+							<span class="text-base-content/80 font-medium">{cartItem?.title || 'Tesseramento'}</span>
 							<span class="font-semibold">{cartItem?.price || 0} €</span>
 						</div>
 
@@ -1201,34 +1073,18 @@
 
 			<!-- Navigation -->
 			<div class="flex justify-between mt-6">
-				<button
-					type="button"
-					class="btn btn-outline"
-					onclick={prevStep}
-					class:hidden={currentStep === 1}
-				>
+				<button type="button" class="btn btn-outline" onclick={prevStep} class:hidden={currentStep === 1}>
 					<ArrowLeft size={16} />
 					Indietro
 				</button>
 
 				<div class="flex gap-2 ml-auto">
-					<button type="button" class="btn btn-error btn-outline" onclick={onCloseModal}>
-						Annulla
-					</button>
+					<button type="button" class="btn btn-error btn-outline" onclick={onCloseModal}> Annulla </button>
 
 					{#if currentStep < totalSteps}
-						<button
-							type="button"
-							class="btn btn-primary"
-							onclick={nextStep}
-							disabled={!isCurrentStepValid()}
-						>
-							Continua
-						</button>
+						<button type="button" class="btn btn-primary" onclick={nextStep} disabled={!isCurrentStepValid()}> Continua </button>
 					{:else}
-						<button type="submit" class="btn btn-success" disabled={!isCurrentStepValid()}>
-							Conferma Acquisto
-						</button>
+						<button type="submit" class="btn btn-success" disabled={!isCurrentStepValid()}> Conferma Acquisto </button>
 					{/if}
 				</div>
 			</div>
@@ -1237,15 +1093,8 @@
 {/if}
 
 {#if currentModal == 'renew'}
-	<Modal
-		isOpen={openModal}
-		header={modalTitle}
-		cssClass={'bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto'}
-	>
-		<button
-			class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content"
-			onclick={onCloseModal}>✕</button
-		>
+	<Modal isOpen={openModal} header={modalTitle} cssClass={'bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto'}>
+		<button class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{/if}
@@ -1268,9 +1117,7 @@
 
 						{#if i < totalSteps - 1}
 							<div class="flex-1 flex items-center mx-2">
-								<div
-									class={`h-1 w-full ${i + 1 < currentStep ? 'bg-success' : 'bg-base-200'}`}
-								></div>
+								<div class={`h-1 w-full ${i + 1 < currentStep ? 'bg-success' : 'bg-base-200'}`}></div>
 							</div>
 						{/if}
 					{/each}
@@ -1446,14 +1293,7 @@
 							<label for="state" class="label">
 								<span class="label-text font-medium">Provincia</span>
 							</label>
-							<select
-								id="county"
-								class="select select-bordered w-full"
-								name="county"
-								required
-								disabled={closedInput}
-								bind:value={formData.county}
-							>
+							<select id="county" class="select select-bordered w-full" name="county" required disabled={closedInput} bind:value={formData.county}>
 								<option value="" disabled selected>Seleziona provincia</option>
 								{#each $province as provincia, i}
 									{#if provincia.title !== 'Online'}
@@ -1472,14 +1312,7 @@
 							<label for="country" class="label">
 								<span class="label-text font-medium">Nazione</span>
 							</label>
-							<select
-								id="country"
-								class="select select-bordered w-full"
-								name="country"
-								required
-								disabled={closedInput}
-								bind:value={formData.country}
-							>
+							<select id="country" class="select select-bordered w-full" name="country" required disabled={closedInput} bind:value={formData.country}>
 								<option value="" disabled selected>Seleziona nazione</option>
 								{#each $country_list as country}
 									<option value={country}>
@@ -1508,13 +1341,7 @@
 							class:border-primary={formData.payment === 'Carta di credito'}
 							class:bg-base-200={formData.payment === 'Carta di credito'}
 						>
-							<input
-								type="radio"
-								name="payment"
-								value="Carta di credito"
-								class="hidden"
-								bind:group={formData.payment}
-							/>
+							<input type="radio" name="payment" value="Carta di credito" class="hidden" bind:group={formData.payment} />
 							<CreditCard class="h-8 w-8 text-primary" />
 							<span class="text-center font-medium">Carta di Credito</span>
 						</label>
@@ -1524,22 +1351,13 @@
 							class:border-primary={formData.payment === 'Bonifico bancario'}
 							class:bg-base-200={formData.payment === 'Bonifico bancario'}
 						>
-							<input
-								type="radio"
-								name="payment"
-								value="Bonifico bancario"
-								class="hidden"
-								bind:group={formData.payment}
-							/>
+							<input type="radio" name="payment" value="Bonifico bancario" class="hidden" bind:group={formData.payment} />
 							<Landmark class="h-8 w-8 text-primary" />
 							<span class="text-center font-medium">Bonifico Bancario</span>
 						</label>
 					</div>
 
-					<div
-						class="card bg-base-100 shadow-xl p-6"
-						class:hidden={formData.payment !== 'Carta di credito'}
-					>
+					<div class="card bg-base-100 shadow-xl p-6" class:hidden={formData.payment !== 'Carta di credito'}>
 						<h3 class="text-xl font-semibold mb-4">Informazioni sulla carta di credito</h3>
 						<div class="form-control">
 							<div id="card-element" class="border border-base-300 p-3 rounded-md"></div>
@@ -1551,9 +1369,7 @@
 							<Lock size={14} class="inline-block mr-1" /> Le tue informazioni di pagamento sono protette.
 						</p>
 						{#if !paymentMethodId}
-							<button type="button" class="btn btn-info mt-4" onclick={getStripeId}
-								>VERIFICA CARTA
-							</button>
+							<button type="button" class="btn btn-info mt-4" onclick={getStripeId}>VERIFICA CARTA </button>
 						{:else}
 							<div class="btn btn-primary mt-4">CARTA OK <CheckCircle /></div>
 						{/if}
@@ -1568,10 +1384,7 @@
 							<p><strong>INTESTATO A:</strong> ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia</p>
 							<p>VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA</p>
 							<br />
-							<p>
-								Si prega di includere il tuo ID ordine nella causale del bonifico. Il tuo ordine
-								sarà elaborato dopo la conferma del pagamento.
-							</p>
+							<p>Si prega di includere il tuo ID ordine nella causale del bonifico. Il tuo ordine sarà elaborato dopo la conferma del pagamento.</p>
 						</div>
 					{/if}
 
@@ -1600,34 +1413,18 @@
 
 			<!-- Navigation -->
 			<div class="flex justify-between mt-6">
-				<button
-					type="button"
-					class="btn btn-outline"
-					onclick={prevStep}
-					class:hidden={currentStep === 1}
-				>
+				<button type="button" class="btn btn-outline" onclick={prevStep} class:hidden={currentStep === 1}>
 					<ArrowLeft size={16} />
 					Indietro
 				</button>
 
 				<div class="flex gap-2 ml-auto">
-					<button type="button" class="btn btn-error btn-outline" onclick={onCloseModal}>
-						Annulla
-					</button>
+					<button type="button" class="btn btn-error btn-outline" onclick={onCloseModal}> Annulla </button>
 
 					{#if currentStep < totalSteps}
-						<button
-							type="button"
-							class="btn btn-primary"
-							onclick={nextStep}
-							disabled={!isCurrentStepValid()}
-						>
-							Continua
-						</button>
+						<button type="button" class="btn btn-primary" onclick={nextStep} disabled={!isCurrentStepValid()}> Continua </button>
 					{:else}
-						<button type="submit" class="btn btn-success" disabled={!isCurrentStepValid()}>
-							Conferma Acquisto
-						</button>
+						<button type="submit" class="btn btn-success" disabled={!isCurrentStepValid()}> Conferma Acquisto </button>
 					{/if}
 				</div>
 			</div>

@@ -2,29 +2,15 @@
 	import { page } from '$app/state';
 	import { enhance, applyAction } from '$app/forms';
 	import { cartProducts, emptyCart, cdata } from '$lib/stores/cart';
-	import {
-		LogOut,
-		ChevronDown,
-		Menu,
-		X,
-		Megaphone,
-		LogIn,
-		IdCard,
-		ShoppingCart,
-		User,
-		Layers,
-		BookOpen,
-		Package,
-		CreditCard
-	} from 'lucide-svelte';
+	import { LogOut, ChevronDown, Menu, X, Megaphone, LogIn, IdCard, ShoppingCart, User, Layers, BookOpen, Package, CreditCard } from 'lucide-svelte';
 
 	const { user, auth } = $props();
 
-	let pointsBalance = user?.pointsBalance || 0;
-	let level = user?.level || '';
+	const pointsBalance = $derived(user?.pointsBalance || 0);
+	const level = $derived(user?.level || '');
+	const userName = $derived(user?.name || '');
+	const userSurname = $derived(user?.surname || '');
 	let menuActive = $state(false);
-	let userName = user?.name || '';
-	let userSurname = user?.surname || '';
 
 	const toggleMenu = () => {
 		menuActive = !menuActive;
@@ -55,42 +41,27 @@
 
 				<!-- Desktop  -->
 				<div class="hidden md:flex md:items-center md:gap-1">
-					<a
-						href="/membership-new"
-						class={`btn btn-sm ${isActive('/membership-new') ? 'btn-primary' : 'btn-ghost'}`}
-					>
+					<a href="/membership-new" class={`btn btn-sm ${isActive('/membership-new') ? 'btn-primary' : 'btn-ghost'}`}>
 						<Megaphone size={16} />
 						<span>Tesseramento</span>
 					</a>
 
-					<a
-						href="/course-shop"
-						class={`btn btn-sm ${isActive('/course-shop') ? 'btn-primary' : 'btn-ghost'}`}
-					>
+					<a href="/course-shop" class={`btn btn-sm ${isActive('/course-shop') ? 'btn-primary' : 'btn-ghost'}`}>
 						<BookOpen size={16} />
 						<span>Corsi</span>
 					</a>
 
-					<a
-						href="/product-shop"
-						class={`btn btn-sm ${isActive('/product-shop') ? 'btn-primary' : 'btn-ghost'}`}
-					>
+					<a href="/product-shop" class={`btn btn-sm ${isActive('/product-shop') ? 'btn-primary' : 'btn-ghost'}`}>
 						<Package size={16} />
 						<span>Prodotti</span>
 					</a>
 
-					<a
-						href="/user-list"
-						class={`btn btn-sm ${isActive('/user-list') ? 'btn-primary' : 'btn-ghost'}`}
-					>
+					<a href="/user-list" class={`btn btn-sm ${isActive('/user-list') ? 'btn-primary' : 'btn-ghost'}`}>
 						<IdCard size={16} />
 						<span>Albo Riflessologi</span>
 					</a>
 
-					<a
-						href="/cart"
-						class={`btn btn-sm ${isActive('/cart') ? 'btn-primary' : 'btn-ghost'} relative`}
-					>
+					<a href="/cart" class={`btn btn-sm ${isActive('/cart') ? 'btn-primary' : 'btn-ghost'} relative`}>
 						<ShoppingCart size={16} />
 						<span>Carrello</span>
 						{#if $cartProducts.length > 0}
@@ -99,10 +70,7 @@
 					</a>
 
 					{#if auth}
-						<a
-							href="/profile-modify"
-							class={`btn btn-sm ${isActive('/profile-modify') ? 'btn-primary' : 'btn-ghost'}`}
-						>
+						<a href="/profile-modify" class={`btn btn-sm ${isActive('/profile-modify') ? 'btn-primary' : 'btn-ghost'}`}>
 							<User size={16} />
 							<span>Area personale</span>
 						</a>
@@ -115,9 +83,7 @@
 									<ChevronDown size={14} />
 								</button>
 
-								<ul
-									class="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2"
-								>
+								<ul class="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2">
 									<li>
 										<a href="/course-table" class={isActive('/course-table') ? 'active' : ''}>
 											<BookOpen size={16} />
@@ -134,10 +100,7 @@
 										</li>
 
 										<li>
-											<a
-												href="/membership-table"
-												class={isActive('/membership-table') ? 'active' : ''}
-											>
+											<a href="/membership-table" class={isActive('/membership-table') ? 'active' : ''}>
 												<CreditCard size={16} />
 												Membership
 											</a>
@@ -190,12 +153,7 @@
 
 				<!-- Mobile menu button -->
 				<div class="flex md:hidden">
-					<button
-						class="btn btn-sm btn-ghost"
-						onclick={toggleMenu}
-						aria-label={menuActive ? 'Chiudi menu' : 'Apri menu'}
-						aria-expanded={menuActive}
-					>
+					<button class="btn btn-sm btn-ghost" onclick={toggleMenu} aria-label={menuActive ? 'Chiudi menu' : 'Apri menu'} aria-expanded={menuActive}>
 						{#if menuActive}
 							<X size={20} />
 						{:else}
@@ -243,55 +201,35 @@
 				<ul class="menu w-full gap-2">
 					<li>
 						<!-- class={`btn btn-sm ${isActive('/membership-new') ? 'btn-primary' : 'btn-ghost'}`} -->
-						<a
-							href="/membership-new"
-							class={`btn btn-sm ${isActive('/membership-new') ? 'btn-primary' : 'btn-ghost'}`}
-							onclick={toggleMenu}
-						>
+						<a href="/membership-new" class={`btn btn-sm ${isActive('/membership-new') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
 							<Megaphone size={18} />
 							Tesseramento
 						</a>
 					</li>
 
 					<li>
-						<a
-							href="/course-shop"
-							class={`btn btn-sm ${isActive('/course-shop') ? 'btn-primary' : 'btn-ghost'}`}
-							onclick={toggleMenu}
-						>
+						<a href="/course-shop" class={`btn btn-sm ${isActive('/course-shop') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
 							<BookOpen size={18} />
 							Corsi
 						</a>
 					</li>
 
 					<li>
-						<a
-							href="/product-shop"
-							class={`btn btn-sm ${isActive('/product-shop') ? 'btn-primary' : 'btn-ghost'}`}
-							onclick={toggleMenu}
-						>
+						<a href="/product-shop" class={`btn btn-sm ${isActive('/product-shop') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
 							<Package size={18} />
 							Prodotti
 						</a>
 					</li>
 
 					<li>
-						<a
-							href="/user-list"
-							class={`btn btn-sm ${isActive('/user-list') ? 'btn-primary' : 'btn-ghost'}`}
-							onclick={toggleMenu}
-						>
+						<a href="/user-list" class={`btn btn-sm ${isActive('/user-list') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
 							<IdCard size={16} />
 							<span>Albo Riflessologi</span>
 						</a>
 					</li>
 
 					<li>
-						<a
-							href="/cart"
-							class={`btn btn-sm ${isActive('/cart') ? 'btn-primary' : 'btn-ghost'}`}
-							onclick={toggleMenu}
-						>
+						<a href="/cart" class={`btn btn-sm ${isActive('/cart') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
 							<div class="flex items-center gap-2">
 								<ShoppingCart size={18} />
 								<span>Carrello</span>
@@ -304,11 +242,7 @@
 
 					{#if auth}
 						<li>
-							<a
-								href="/profile-modify"
-								class={`btn btn-sm ${isActive('/profile-modify') ? 'btn-primary' : 'btn-ghost'}`}
-								onclick={toggleMenu}
-							>
+							<a href="/profile-modify" class={`btn btn-sm ${isActive('/profile-modify') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
 								<User size={18} />
 								Area personale
 							</a>
@@ -320,11 +254,7 @@
 							</li>
 
 							<li>
-								<a
-									href="/course-table"
-									class={`btn btn-sm ${isActive('/course-table') ? 'btn-primary' : 'btn-ghost'}`}
-									onclick={toggleMenu}
-								>
+								<a href="/course-table" class={`btn btn-sm ${isActive('/course-table') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
 									<BookOpen size={18} />
 									Corsi
 								</a>
@@ -332,11 +262,7 @@
 
 							{#if level === 'superadmin'}
 								<li>
-									<a
-										href="/product-table"
-										class={`btn btn-sm ${isActive('/product-table') ? 'btn-primary' : 'btn-ghost'}`}
-										onclick={toggleMenu}
-									>
+									<a href="/product-table" class={`btn btn-sm ${isActive('/product-table') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
 										<Package size={18} />
 										Prodotti
 									</a>
@@ -354,44 +280,28 @@
 								</li>
 
 								<li>
-									<a
-										href="/layout-table"
-										class={`btn btn-sm ${isActive('/layout-table') ? 'btn-primary' : 'btn-ghost'}`}
-										onclick={toggleMenu}
-									>
+									<a href="/layout-table" class={`btn btn-sm ${isActive('/layout-table') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
 										<Layers size={18} />
 										Modelli corsi
 									</a>
 								</li>
 
 								<li>
-									<a
-										href="/user-table"
-										class={`btn btn-sm ${isActive('/user-table') ? 'btn-primary' : 'btn-ghost'}`}
-										onclick={toggleMenu}
-									>
+									<a href="/user-table" class={`btn btn-sm ${isActive('/user-table') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
 										<User size={18} />
 										Utenti
 									</a>
 								</li>
 
 								<li>
-									<a
-										href="/order-table"
-										class={`btn btn-sm ${isActive('/order-table') ? 'btn-primary' : 'btn-ghost'}`}
-										onclick={toggleMenu}
-									>
+									<a href="/order-table" class={`btn btn-sm ${isActive('/order-table') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
 										<ShoppingCart size={18} />
 										Ordini
 									</a>
 								</li>
 
 								<li>
-									<a
-										href="/discount-table"
-										class={`btn btn-sm ${isActive('/discount-table') ? 'btn-primary' : 'btn-ghost'}`}
-										onclick={toggleMenu}
-									>
+									<a href="/discount-table" class={`btn btn-sm ${isActive('/discount-table') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
 										<Megaphone size={18} />
 										Sconti
 									</a>
