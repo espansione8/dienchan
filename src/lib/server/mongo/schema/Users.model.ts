@@ -39,9 +39,10 @@ const UserSchema = new mongoose.Schema(
 				enum: [
 					'Socio inattivo', // Membership Type: Life Time || Billing Type: Free
 					'Socio ordinario', // Membership Type: Regular Period || Billing Type: Payment|| Price 25 EUR
-					'Socio sostenitore', // Membership Type: Regular Period || Billing Type: Payment || Price 150 EUR
+					'Socio praticante', // Membership Type: Regular Period || Billing Type: Payment|| Price 25 EUR
+					//'Socio sostenitore', // Membership Type: Regular Period || Billing Type: Payment || Price 150 EUR
 					'Socio vitalizio', // Membership Type: Life Time || Billing Type: Payment|| Price 380 EUR
-					'Socio contributore', // Membership Type: Life Time || Billing Type: Payment|| Price 1900 EUR
+					//'Socio contributore', // Membership Type: Life Time || Billing Type: Payment|| Price 1900 EUR
 					'Master Dien Chan', // Membership Type: Life Time || Billing Type: Free
 				],
 				default: 'Socio ordinario'
@@ -57,6 +58,10 @@ const UserSchema = new mongoose.Schema(
 				}
 			}, // quando scade
 			membershipStatus: { type: Boolean, default: true }
+		},
+		insurance: {
+			insuranceDate: { type: Date, default: Date.now },
+			insuranceStatus: { type: Boolean, default: false }
 		},
 		codeSales: { type: String, default: '' },
 		codeManager: { type: String, default: '' },

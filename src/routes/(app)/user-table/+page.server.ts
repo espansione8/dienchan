@@ -357,6 +357,62 @@ export const actions: Actions = {
 		}
 	},
 
+	changeInsurance: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const userId = formData.get('userId');
+		const insuranceStatus = formData.get('insuranceStatus');
+		const insuranceDate = formData.get('insuranceDate');
+		const newStatus = insuranceStatus === 'true' ? false : true;
+		const newDate = insuranceDate ? new Date(insuranceDate.toString()) : new Date();
+
+		// console.log('insuranceStatus', typeof insuranceStatus, insuranceStatus);
+		// console.log('insuranceDate', typeof insuranceDate, JSON.stringify(insuranceDate));
+		// console.log('newStatus', typeof newStatus, newStatus);
+		// console.log('newDate', typeof newDate, newDate);
+
+		if (!userId) {
+			return fail(400, { action: 'disableUser', success: false, message: 'Dati mancanti' });
+		}
+
+		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { userId },
+				update: {
+					$set: {
+						insurance: {
+							insuranceDate: newDate,
+							insuranceStatus: newStatus
+						}
+					}
+				},
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		try {
+			const res = await resFetch;
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('changeInsurance update failed', res.status, errorText);
+				return fail(400, { action: 'changeInsurance', success: false, message: errorText });
+			}
+			const result = await res.json();
+
+			return { action: 'changeInsurance', success: true, message: result.message };
+
+		} catch (error) {
+			console.error('Error changeInsurance:', error);
+			return fail(400, { action: 'changeInsurance', success: false, message: 'Error changeInsurance' });
+		}
+	},
+
 	uploadCsv: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const file = formData.get('fileUpload');

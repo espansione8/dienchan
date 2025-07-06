@@ -71,22 +71,16 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		getTableNames = await resName.json();
 
 		// get layout
-		const queryLayout = {};
-		const projectionLayout = { _id: 0 };
-		const sortLayout = { createdAt: -1 };
-		const limitLayout = 1000;
-		const skipLayout = 0;
-
 		const resLayout = await fetch(`${baseURL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey,
 				schema: 'layout',
-				query: queryLayout,
-				projection: projectionLayout,
-				sort: sortLayout,
-				limit: limitLayout,
-				skip: skipLayout
+				query: {},
+				projection: { _id: 0 },
+				sort: { title: 1 },
+				limit: 1000,
+				skip: 0
 			}),
 			headers: {
 				'Content-Type': 'application/json'

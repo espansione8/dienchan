@@ -14,7 +14,6 @@
 		X,
 		Check,
 		Eye,
-		EyeOff,
 		ToggleLeft,
 		ToggleRight,
 		Trash2,
@@ -26,17 +25,19 @@
 		Calendar,
 		ShoppingBag,
 		Clock,
-		CreditCard,
 		ChevronDown,
 		ChevronUp,
 		Edit,
 		Camera,
 		Shield,
-		FileText,
 		Package,
 		BadgeCheck,
 		IdCard,
-		Home
+		Home,
+		NotebookPen,
+		Plus,
+		FileText,
+		Upload
 	} from 'lucide-svelte';
 
 	const { data } = $props();
@@ -87,12 +88,95 @@
 	let surnamePublic = $state(userData.surnamePublic || false);
 	let emailPublic = $state(userData.emailPublic || false);
 	let level = $state(userData.level || '');
-	let activeTab = $state('profile'); // 'profile' or 'orders'
+	let activeTab = $state('dashboard'); // dashboard profile orders training certificates
 	let expandedOrderId = $state('');
 	// let passwordNew = $state('');
 	// let passwordOld = $state('');
 
 	let loading = $state(false);
+
+	// State for new training entry form
+	let newTrainingEntry = $state({
+		date: '',
+		description: '',
+		hours: 0,
+		file: null as File | null
+	});
+
+	// State for training entries list (example data)
+	let trainingEntries = $state([
+		{
+			id: 1,
+			date: '2024-01-15',
+			description: 'Fiera Verona',
+			hours: 8,
+			fileName: 'svelte_cert.pdf'
+		},
+		{
+			id: 2,
+			date: '2024-03-01',
+			description: 'Open day Bologna',
+			hours: 4,
+			fileName: 'security_workshop.docx'
+		}
+	]);
+
+	let sample = $state({
+		certificates: [
+			{
+				id: 101,
+				name: 'Certificato Corso BASE',
+				issueDate: '2023-11-20',
+				imageUrl: '/uploads/layout/XW7LYV2LG2BU/Corso-Base-Dien-Chan-Riflessologia-Facciale-vietnamita.png', // Replace with a real path if you have one
+				fileUrl: '/certificates/svelte_certificate.pdf' // Replace with a real path if you have one
+			},
+			{
+				id: 102,
+				name: 'Attestato di Partecipazione Bellezza Viso',
+				issueDate: '2024-02-10',
+				imageUrl: '/uploads/layout/71XA84LX1AJ6/Bellezza-Viso-Dien-Chan-Riflessologia-Facciale-vietnamita.png', // Replace with a real path if you have one
+				fileUrl: '/certificates/tailwind_certificate.pdf' // Replace with a real path if you have one
+			},
+			{
+				id: 103,
+				name: 'Certificato Corso AVANZATO',
+				issueDate: '2023-09-05',
+				imageUrl: '/uploads/layout/794792843/corso_dienchan_avanzato.jpg', // Replace with a real path if you have one
+				fileUrl: '/certificates/mongodb_certificate.pdf' // Replace with a real path if you have one
+			},
+			{
+				id: 104,
+				name: 'Diploma ACCADEMIA',
+				issueDate: '2024-04-22',
+				imageUrl: '/uploads/layout/PYSYPA4QCTH1/12-Massaggi-mattutini-Dien-Chan-Riflessologia-Facciale-vietnamita.png', // Replace with a real path if you have one
+				fileUrl: '/certificates/security_certificate.pdf' // Replace with a real path if you have one
+			}
+		]
+		// ... potentially more user data
+	});
+
+	const addTrainingEntry = async () => {
+		if (newTrainingEntry.date && newTrainingEntry.description && newTrainingEntry.hours > 0) {
+			const newEntry = {
+				id: trainingEntries.length + 1,
+				date: newTrainingEntry.date,
+				description: newTrainingEntry.description,
+				hours: newTrainingEntry.hours,
+				fileName: newTrainingEntry.file ? newTrainingEntry.file.name : 'N/A'
+			};
+			trainingEntries.push(newEntry);
+			// Reset form
+			newTrainingEntry = { date: '', description: '', hours: 0, file: null };
+			notification.info('Nuova voce di formazione aggiunta!');
+		} else {
+			notification.info('Compila tutti i campi richiesti per la formazione.');
+		}
+	};
+
+	const handleDeleteTraining = (id: number) => {
+		trainingEntries = trainingEntries.filter((entry) => entry.id !== id);
+		notification.info('Voce di formazione eliminata.');
+	};
 
 	const onSwitchPublicProfile = async (type: string, value: boolean) => {
 		if (type == 'namePublic') namePublic = !value;
@@ -198,7 +282,7 @@
 		</div>
 
 		<!-- Main Content -->
-		<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+		<div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
 			<!-- Left Column - Profile Summary -->
 			<div class="lg:col-span-1">
 				<div class="bg-base-100 rounded-xl shadow-md overflow-hidden">
@@ -282,13 +366,42 @@
 					<!-- Navigation -->
 					<div class="p-4">
 						<div class="flex flex-col gap-2">
+							<button
+								class="btn btn-ghost justify-start gap-3 {activeTab === 'dashboard' ? 'btn-active' : ''}"
+								onclick={() => (activeTab = 'dashboard')}
+							>
+								<Home size={18} />
+								Dashboard
+							</button>
 							<button class="btn btn-ghost justify-start gap-3 {activeTab === 'profile' ? 'btn-active' : ''}" onclick={() => (activeTab = 'profile')}>
 								<User size={18} />
 								Profilo
 							</button>
+							<button
+								class="btn btn-ghost justify-start gap-3 {activeTab === 'membership' ? 'btn-active' : ''}"
+								onclick={() => (activeTab = 'membership')}
+							>
+								<IdCard size={18} />
+								Tessera
+							</button>
+
 							<button class="btn btn-ghost justify-start gap-3 {activeTab === 'orders' ? 'btn-active' : ''}" onclick={() => (activeTab = 'orders')}>
 								<ShoppingBag size={18} />
 								Ordini
+							</button>
+							<button
+								class="btn btn-ghost justify-start gap-3 {activeTab === 'training' ? 'btn-active' : ''}"
+								onclick={() => (activeTab = 'training')}
+							>
+								<NotebookPen size={18} />
+								Formazione
+							</button>
+							<button
+								class="btn btn-ghost justify-start gap-3 {activeTab === 'certificates' ? 'btn-active' : ''}"
+								onclick={() => (activeTab = 'certificates')}
+							>
+								<Award size={18} />
+								Certificati
 							</button>
 							<a href="/profile-public/{userData.userId}" class="btn btn-ghost justify-start gap-3">
 								<Eye size={18} />
@@ -304,8 +417,103 @@
 			</div>
 
 			<!-- Right Column - Main Content -->
-			<div class="lg:col-span-2">
-				{#if activeTab === 'profile'}
+			<div class="lg:col-span-3">
+				{#if activeTab === 'dashboard'}
+					<!-- Dashboard Tab -->
+					<h2 class="text-2xl font-bold mb-4">Dashboard Utente</h2>
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+						<!-- Card: Ordini Recenti -->
+						<div class="card bg-base-100 shadow-md p-6 flex flex-col justify-between">
+							<div class="flex items-center gap-3 mb-2">
+								<ShoppingBag size={24} class="text-primary" />
+								<span class="font-semibold text-lg">Ultimo Ordine</span>
+							</div>
+							{#if orderData.length > 0}
+								<div class="mb-2">
+									<div class="text-base-content/80 text-sm">Data: {formatDate(orderData[0].createdAt)}</div>
+									<div class="text-base-content/80 text-sm">Totale: <span class="font-bold">€ {orderData[0].totalValue.toFixed(2)}</span></div>
+									<div class="text-base-content/80 text-sm">Tipo: <span class="capitalize">{orderData[0].type}</span></div>
+								</div>
+								<a href="#" class="btn btn-sm btn-primary mt-2" onclick={() => (activeTab = 'orders')}>Vedi ordini</a>
+							{:else}
+								<div class="text-base-content/60">Nessun ordine recente.</div>
+							{/if}
+						</div>
+
+						<!-- Card: Stato Tessera -->
+						<div class="card bg-base-100 shadow-md p-6 flex flex-col justify-between">
+							<div class="flex items-center gap-3 mb-2">
+								<IdCard size={24} class="text-primary" />
+								<span class="font-semibold text-lg">Stato Tessera</span>
+							</div>
+							<div class="mb-2">
+								<div class="flex items-center gap-2">
+									{#if userData.membership.membershipStatus}
+										<span class="badge badge-success">Attiva</span>
+									{:else}
+										<span class="badge badge-error">Scaduta</span>
+									{/if}
+									<span class="text-base-content/80 text-sm">Livello: <span class="font-bold">{membershipLevel || 'Base'}</span></span>
+								</div>
+								{#if membershipExpiry}
+									<div class="text-base-content/80 text-sm mt-1">
+										Scadenza: {formatDate(typeof membershipExpiry === 'string' ? membershipExpiry : membershipExpiry.toISOString())}
+									</div>
+								{/if}
+							</div>
+							<a href="#" class="btn btn-sm btn-primary mt-2" onclick={() => (activeTab = 'membership')}>Vedi tessera</a>
+						</div>
+
+						<!-- Card: Punti e Attività -->
+						<div class="card bg-base-100 shadow-md p-6 flex flex-col justify-between">
+							<div class="flex items-center gap-3 mb-2">
+								<HandCoins size={24} class="text-primary" />
+								<span class="font-semibold text-lg">Saldo Punti</span>
+							</div>
+							<div class="mb-2">
+								<span class="text-3xl font-bold text-primary">{userData.pointsBalance || 0}</span>
+								<div class="text-base-content/80 text-sm mt-1">Punti disponibili</div>
+							</div>
+						</div>
+
+						<!-- Card: Prossima Formazione -->
+						<div class="card bg-base-100 shadow-md p-6 flex flex-col justify-between">
+							<div class="flex items-center gap-3 mb-2">
+								<NotebookPen size={24} class="text-primary" />
+								<span class="font-semibold text-lg">Formazione</span>
+							</div>
+							{#if trainingEntries.length > 0}
+								<div class="mb-2">
+									<div class="text-base-content/80 text-sm">
+										Ultima formazione: <span class="font-bold">{trainingEntries[trainingEntries.length - 1].description}</span>
+									</div>
+									<div class="text-base-content/80 text-sm">Data: {trainingEntries[trainingEntries.length - 1].date}</div>
+								</div>
+								<a href="#" class="btn btn-sm btn-primary mt-2" onclick={() => (activeTab = 'training')}>Gestisci formazione</a>
+							{:else}
+								<div class="text-base-content/60">Nessuna formazione registrata.</div>
+							{/if}
+						</div>
+					</div>
+					<!-- Quick Actions -->
+					<!-- <div class="mt-8">
+						<h3 class="text-lg font-semibold mb-4">Azioni rapide</h3>
+						<div class="flex flex-wrap gap-4">
+							<button class="btn btn-outline btn-primary flex items-center gap-2" onclick={() => (activeTab = 'profile')}
+								><User size={18} /> Modifica Profilo</button
+							>
+							<button class="btn btn-outline btn-primary flex items-center gap-2" onclick={() => (activeTab = 'orders')}
+								><ShoppingBag size={18} /> Storico Ordini</button
+							>
+							<button class="btn btn-outline btn-primary flex items-center gap-2" onclick={() => (activeTab = 'membership')}
+								><IdCard size={18} /> Tessera</button
+							>
+							<button class="btn btn-outline btn-primary flex items-center gap-2" onclick={() => (activeTab = 'training')}
+								><NotebookPen size={18} /> Formazione</button
+							>
+						</div>
+					</div> -->
+				{:else if activeTab === 'profile'}
 					<!-- Profile Tab -->
 					<div class="bg-base-100 rounded-xl shadow-md overflow-hidden">
 						<div class="bg-gradient-to-br from-teal-300 to-emerald-100 border-b border-base-200 p-6 flex justify-between items-center">
@@ -833,7 +1041,7 @@
 							</form>
 						</div>
 					</div>
-				{:else}
+				{:else if activeTab === 'orders'}
 					<!-- Orders Tab -->
 					<div class="bg-base-100 rounded-xl shadow-md overflow-hidden">
 						<div class="bg-primary/10 border-b border-base-200 p-6">
@@ -879,7 +1087,15 @@
 													class:badge-info={order.type === 'product'}
 													class:badge-primary={order.type === 'course'}
 												>
-													{order.type}
+													<span class="capitalize font-semibold">{order.type}</span>
+												</div>
+												<div
+													class="badge"
+													class:badge-warning={order.payment.statusPayment === 'pending'}
+													class:badge-success={order.payment.statusPayment === 'done'}
+													class:badge-error={order.payment.statusPayment === 'canceled'}
+												>
+													{order.payment.method}
 												</div>
 
 												<div class="flex items-center gap-3">
@@ -1001,6 +1217,160 @@
 								</div>
 							{/if}
 						</div>
+					</div>
+				{:else if activeTab === 'membership'}
+					<!-- Membership Tab -->
+					<p>spazio tessera</p>
+				{:else if activeTab === 'training'}
+					<div class="card bg-base-200 shadow-xl mb-6 p-6">
+						<h2 class="text-2xl font-bold mb-4">Gestione Formazione</h2>
+						<h3 class="text-xl font-bold mb-4">Aggiungi Nuova Voce di Formazione</h3>
+						<form onsubmit={addTrainingEntry} class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+							<div class="form-control">
+								<label for="trainingDate" class="label">
+									<span class="label-text flex items-center gap-2">
+										<Calendar size={16} />Data
+									</span>
+								</label>
+								<input type="date" id="trainingDate" class="input input-bordered w-full" bind:value={newTrainingEntry.date} required />
+							</div>
+
+							<div class="form-control">
+								<label for="trainingDescription" class="label">
+									<span class="label-text flex items-center gap-2">
+										<FileText size={16} />Descrizione
+									</span>
+								</label>
+								<input
+									type="text"
+									id="trainingDescription"
+									placeholder="Descrizione della formazione"
+									class="input input-bordered w-full"
+									bind:value={newTrainingEntry.description}
+									required
+								/>
+							</div>
+
+							<div class="form-control">
+								<label for="trainingHours" class="label">
+									<span class="label-text flex items-center gap-2">
+										<Clock size={16} />Ore
+									</span>
+								</label>
+								<input
+									type="number"
+									id="trainingHours"
+									placeholder="Ore di formazione"
+									class="input input-bordered w-full"
+									bind:value={newTrainingEntry.hours}
+									min="0"
+									required
+								/>
+							</div>
+
+							<div class="form-control col-span-full">
+								<label for="trainingFile" class="label">
+									<span class="label-text flex items-center gap-2">
+										<Upload size={16} />Carica File (Certificato, Attestato, ecc.)
+									</span>
+								</label>
+								<input
+									type="file"
+									id="trainingFile"
+									class="file-input file-input-bordered w-full"
+									onchange={(e) => {
+										const target = e.target as HTMLInputElement;
+										newTrainingEntry.file = target.files ? target.files[0] : null;
+									}}
+								/>
+								{#if newTrainingEntry.file}
+									<p class="text-sm text-gray-500 mt-2">File selezionato: {newTrainingEntry.file.name}</p>
+								{/if}
+							</div>
+
+							<div class="col-span-full flex justify-end">
+								<button type="submit" class="btn btn-primary flex items-center gap-2">
+									<Plus size={20} /> Aggiungi Formazione
+								</button>
+							</div>
+						</form>
+					</div>
+					<div class="card bg-base-200 shadow-xl p-6">
+						<!-- <h3 class="text-xl font-bold mb-4">Le Tue Voci di Formazione</h3> -->
+						{#if trainingEntries.length > 0}
+							<div class="overflow-x-auto">
+								<table class="table w-full table-zebra">
+									<thead>
+										<tr>
+											<th>Data</th>
+											<th>Descrizione</th>
+											<th>Ore</th>
+											<th>File</th>
+											<th class="text-center">Azioni</th>
+										</tr>
+									</thead>
+									<tbody>
+										{#each trainingEntries as entry (entry.id)}
+											<tr class="hover">
+												<td>{entry.date}</td>
+												<td>{entry.description}</td>
+												<td>{entry.hours}</td>
+												<td>
+													{#if entry.fileName !== 'N/A'}
+														<a href="#" class="link link-primary flex items-center gap-1"><FileText size={16} /> {entry.fileName}</a>
+													{:else}
+														N/A
+													{/if}
+												</td>
+												<td class="text-center">
+													<button
+														class="btn btn-ghost btn-circle btn-sm text-error"
+														onclick={() => handleDeleteTraining(entry.id)}
+														aria-label="Elimina voce di formazione"
+													>
+														<Trash2 size={18} />
+													</button>
+												</td>
+											</tr>
+										{/each}
+									</tbody>
+								</table>
+							</div>
+						{:else}
+							<p>Nessuna voce di formazione aggiunta.</p>
+						{/if}
+					</div>
+				{:else if activeTab === 'certificates'}
+					<div class="card bg-base-200 shadow-xl p-6">
+						<h2 class="text-2xl font-bold mb-4">I Miei Certificati</h2>
+						{#if sample.certificates && sample.certificates.length > 0}
+							<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+								{#each sample.certificates as certificate (certificate.id)}
+									<div class="card card-compact bg-base-200 shadow-xl image-full">
+										<figure>
+											<Image
+												src={certificate.imageUrl || '/images/placeholder.jpg'}
+												alt={certificate.name}
+												class="w-full h-48 object-cover"
+												width={250}
+												height={250}
+											/>
+										</figure>
+										<div class="card-body justify-end">
+											<h3 class="card-title text-white">{certificate.name}</h3>
+											<p class="text-gray-200 text-sm">Rilasciato il: {new Date(certificate.issueDate).toLocaleDateString()}</p>
+											<div class="card-actions justify-end">
+												<a href={certificate.fileUrl} download class="btn btn-primary btn-sm flex items-center gap-1">
+													<FileText size={16} /> Scarica
+												</a>
+											</div>
+										</div>
+									</div>
+								{/each}
+							</div>
+						{:else}
+							<p>Nessun certificato disponibile.</p>
+						{/if}
 					</div>
 				{/if}
 			</div>

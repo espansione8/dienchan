@@ -388,6 +388,7 @@
 					<th>Dati utente</th>
 					<th>Punti</th>
 					<th>Status</th>
+					<th>Praticante</th>
 					<th>Azione</th>
 				</tr>
 			</thead>
@@ -458,6 +459,24 @@
 								<input type="hidden" name="status" value={row.status} />
 								<span class="flex items-center">
 									{#if row.status == 'enabled'}
+										<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleRight color="darkgreen" /> </button>
+									{:else}
+										<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleLeft color="darkred" /></button>
+									{/if}
+								</span>
+							</form>
+						</td>
+						<!-- Insurance -->
+						<td>
+							<form method="POST" action={`?/changeInsurance`} use:enhance={formSubmit}>
+								<input type="hidden" name="userId" value={row.userId} />
+								<input type="hidden" name="insuranceStatus" value={row.insurance.insuranceStatus} />
+								<input type="hidden" name="insuranceDate" value={row.insurance.insuranceDate} />
+								{#if row.insurance.insuranceStatus == true}
+									<span class="flex items-center">{row.insurance.insuranceDate.substring(0, 10)}</span>
+								{/if}
+								<span class="flex items-center">
+									{#if row.insurance.insuranceStatus == true}
 										<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleRight color="darkgreen" /> </button>
 									{:else}
 										<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleLeft color="darkred" /></button>
