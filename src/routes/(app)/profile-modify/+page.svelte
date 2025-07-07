@@ -8,7 +8,7 @@
 	import Modal from '$lib/components/Modal.svelte';
 	import Loader from '$lib/components/Loader.svelte';
 	import { province, country_list } from '$lib/stores/arrays.js';
-	import { imgCheck } from '$lib/tools/tools';
+	import { imgCheck, formatDate } from '$lib/tools/tools';
 	import {
 		HandCoins,
 		X,
@@ -37,17 +37,17 @@
 		NotebookPen,
 		Plus,
 		FileText,
-		Upload
+		Upload,
+		CalendarClock,
+		CalendarPlus
 	} from 'lucide-svelte';
 
 	const { data } = $props();
 	const { userData, orderData } = $derived(data);
 
-	//console.log('membership', userData.membership);
+	let loading = $state(false);
 
-	// Declare the province variable
 	let provinceFilterate = $province.filter((p) => p.title !== 'Online');
-	let closedInput = $state(true);
 
 	// modal
 	let currentModal = $state('');
@@ -55,9 +55,8 @@
 	let modalTitle = $state('');
 	let postAction = $state('?/');
 
-	//const picFilter = $derived(userData.uploadfiles.filter((item: any) => item.type == 'profile'));
-	const picFilter = $derived((userData.uploadfiles ?? []).filter((item: any) => item.type === 'profile'));
-
+	// profile input
+	let closedInput = $state(true);
 	const openInput = () => (closedInput = false);
 	const closeInput = () => {
 		invalidateAll();
@@ -93,34 +92,13 @@
 	// let passwordNew = $state('');
 	// let passwordOld = $state('');
 
-	let loading = $state(false);
+	// Training
+	let trainingDate = $state('');
+	let trainingDescription = $state('');
+	let trainingHours = $state<number>(0);
+	let setTrainingFile = $state<File | null>(null);
 
-	// State for new training entry form
-	let newTrainingEntry = $state({
-		date: '',
-		description: '',
-		hours: 0,
-		file: null as File | null
-	});
-
-	// State for training entries list (example data)
-	let trainingEntries = $state([
-		{
-			id: 1,
-			date: '2024-01-15',
-			description: 'Fiera Verona',
-			hours: 8,
-			fileName: 'svelte_cert.pdf'
-		},
-		{
-			id: 2,
-			date: '2024-03-01',
-			description: 'Open day Bologna',
-			hours: 4,
-			fileName: 'security_workshop.docx'
-		}
-	]);
-
+	// Certificates
 	let sample = $state({
 		certificates: [
 			{
@@ -146,7 +124,7 @@
 			},
 			{
 				id: 104,
-				name: 'Diploma ACCADEMIA',
+				name: 'Certificato ACCADEMIA',
 				issueDate: '2024-04-22',
 				imageUrl: '/uploads/layout/PYSYPA4QCTH1/12-Massaggi-mattutini-Dien-Chan-Riflessologia-Facciale-vietnamita.png', // Replace with a real path if you have one
 				fileUrl: '/certificates/security_certificate.pdf' // Replace with a real path if you have one
@@ -154,29 +132,6 @@
 		]
 		// ... potentially more user data
 	});
-
-	const addTrainingEntry = async () => {
-		if (newTrainingEntry.date && newTrainingEntry.description && newTrainingEntry.hours > 0) {
-			const newEntry = {
-				id: trainingEntries.length + 1,
-				date: newTrainingEntry.date,
-				description: newTrainingEntry.description,
-				hours: newTrainingEntry.hours,
-				fileName: newTrainingEntry.file ? newTrainingEntry.file.name : 'N/A'
-			};
-			trainingEntries.push(newEntry);
-			// Reset form
-			newTrainingEntry = { date: '', description: '', hours: 0, file: null };
-			notification.info('Nuova voce di formazione aggiunta!');
-		} else {
-			notification.info('Compila tutti i campi richiesti per la formazione.');
-		}
-	};
-
-	const handleDeleteTraining = (id: number) => {
-		trainingEntries = trainingEntries.filter((entry) => entry.id !== id);
-		notification.info('Voce di formazione eliminata.');
-	};
 
 	const onSwitchPublicProfile = async (type: string, value: boolean) => {
 		if (type == 'namePublic') namePublic = !value;
@@ -199,16 +154,17 @@
 		}
 	};
 
-	const formatDate = (dateString: string) => {
-		const date = new Date(dateString);
-		return new Intl.DateTimeFormat('it-IT', {
-			day: '2-digit',
-			month: '2-digit',
-			year: 'numeric'
-		}).format(date);
-	};
+	// const formatDate = (dateString: string) => {
+	// 	const date = new Date(dateString);
+	// 	return new Intl.DateTimeFormat('it-IT', {
+	// 		day: '2-digit',
+	// 		month: '2-digit',
+	// 		year: 'numeric'
+	// 	}).format(date);
+	// };
 
 	const resetFields = () => {
+		closedInput = true;
 		namePublic = userData.namePublic;
 		surnamePublic = userData.surnamePublic;
 		emailPublic = userData.emailPublic;
@@ -219,7 +175,11 @@
 		countryPublic = userData.countryPublic;
 		phonePublic = userData.phonePublic;
 		mobilePhonePublic = userData.mobilePhonePublic;
-		closedInput = true;
+		//
+		trainingDate = '';
+		trainingDescription = '';
+		trainingHours = 0;
+		setTrainingFile = null;
 	};
 
 	const onClickModal = (type: string, item: any) => {
@@ -242,8 +202,8 @@
 	};
 
 	const formSubmit = () => {
+		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
-			loading = true;
 			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
@@ -274,6 +234,9 @@
 </svelte:head>
 
 <div class="min-h-screen flex justify-center items-center p-4 bg-gradient-to-br from-teal-50 to-emerald-300">
+	{#if loading}
+		<Loader />
+	{/if}
 	<div class="container mx-auto px-4">
 		<!-- Header Section -->
 		<div class="mb-8">
@@ -290,13 +253,13 @@
 					<div class="bg-primary text-primary-content p-6">
 						<div class="flex flex-col items-center">
 							<div class="relative mb-4">
-								{#if picFilter.length > 0 && picFilter[0]?.type == 'profile'}
+								{#if userData.uploadfiles.some((file) => file.type === 'profile')}
 									<div class="avatar">
 										<div class="w-48 h-48 rounded-full ring ring-emerald-600 ring-offset-base-100 ring-offset-2 overflow-hidden">
 											<Image
 												layout="constrained"
 												aspectRatio={1}
-												src={picFilter.length > 0 ? `/uploads/user/${userData.userId}/${picFilter[0].fileName}` : '/images/placeholder.jpg'}
+												src={imgCheck.single(userData.uploadfiles, 'profile')}
 												alt="Profile"
 												class="object-cover w-full h-full"
 											/>
@@ -304,7 +267,7 @@
 									</div>
 									<form method="POST" action={`?/delProfilePic`} use:enhance={formSubmit}>
 										<input type="hidden" name="userId" value={userData.userId} />
-										<input type="hidden" name="fileName" value={picFilter[0].fileName} />
+										<input type="hidden" name="fileName" value={imgCheck.fileName(userData.uploadfiles, 'profile')} />
 										<button class="absolute bottom-0 right-0 btn btn-circle btn-lg btn-error" type="submit" aria-label="Delete image">
 											<Trash2 size="24" />
 										</button>
@@ -377,13 +340,13 @@
 								<User size={18} />
 								Profilo
 							</button>
-							<button
+							<!-- <button
 								class="btn btn-ghost justify-start gap-3 {activeTab === 'membership' ? 'btn-active' : ''}"
 								onclick={() => (activeTab = 'membership')}
 							>
 								<IdCard size={18} />
 								Tessera
-							</button>
+							</button> -->
 
 							<button class="btn btn-ghost justify-start gap-3 {activeTab === 'orders' ? 'btn-active' : ''}" onclick={() => (activeTab = 'orders')}>
 								<ShoppingBag size={18} />
@@ -391,7 +354,10 @@
 							</button>
 							<button
 								class="btn btn-ghost justify-start gap-3 {activeTab === 'training' ? 'btn-active' : ''}"
-								onclick={() => (activeTab = 'training')}
+								onclick={() => {
+									activeTab = 'training';
+									postAction = `?/setTraining`;
+								}}
 							>
 								<NotebookPen size={18} />
 								Formazione
@@ -434,7 +400,7 @@
 									<div class="text-base-content/80 text-sm">Totale: <span class="font-bold">€ {orderData[0].totalValue.toFixed(2)}</span></div>
 									<div class="text-base-content/80 text-sm">Tipo: <span class="capitalize">{orderData[0].type}</span></div>
 								</div>
-								<a href="#" class="btn btn-sm btn-primary mt-2" onclick={() => (activeTab = 'orders')}>Vedi ordini</a>
+								<button type="button" class="btn btn-sm btn-primary mt-2" onclick={() => (activeTab = 'orders')}> Vedi ordini </button>
 							{:else}
 								<div class="text-base-content/60">Nessun ordine recente.</div>
 							{/if}
@@ -461,7 +427,7 @@
 									</div>
 								{/if}
 							</div>
-							<a href="#" class="btn btn-sm btn-primary mt-2" onclick={() => (activeTab = 'membership')}>Vedi tessera</a>
+							<!-- <button type="button" class="btn btn-sm btn-primary mt-2" onclick={() => (activeTab = 'membership')}>Vedi tessera</button> -->
 						</div>
 
 						<!-- Card: Punti e Attività -->
@@ -482,14 +448,23 @@
 								<NotebookPen size={24} class="text-primary" />
 								<span class="font-semibold text-lg">Formazione</span>
 							</div>
-							{#if trainingEntries.length > 0}
+							{#if userData?.trainingHistory.length > 0}
 								<div class="mb-2">
 									<div class="text-base-content/80 text-sm">
-										Ultima formazione: <span class="font-bold">{trainingEntries[trainingEntries.length - 1].description}</span>
+										Ultima formazione: <span class="font-bold">{userData?.trainingHistory[userData?.trainingHistory.length - 1].description}</span>
 									</div>
-									<div class="text-base-content/80 text-sm">Data: {trainingEntries[trainingEntries.length - 1].date}</div>
+									<div class="text-base-content/80 text-sm">
+										Data: {formatDate(userData?.trainingHistory[userData?.trainingHistory.length - 1]?.date)}
+									</div>
 								</div>
-								<a href="#" class="btn btn-sm btn-primary mt-2" onclick={() => (activeTab = 'training')}>Gestisci formazione</a>
+								<button
+									type="button"
+									class="btn btn-sm btn-primary mt-2"
+									onclick={() => {
+										activeTab = 'training';
+										postAction = `?/setTraining`;
+									}}>Gestisci formazione</button
+								>
 							{:else}
 								<div class="text-base-content/60">Nessuna formazione registrata.</div>
 							{/if}
@@ -1223,16 +1198,31 @@
 					<p>spazio tessera</p>
 				{:else if activeTab === 'training'}
 					<div class="card bg-base-200 shadow-xl mb-6 p-6">
-						<h2 class="text-2xl font-bold mb-4">Gestione Formazione</h2>
+						<h2 class="text-2xl font-bold mb-4"><NotebookPen size={24} class="text-primary" /> Gestione Formazione</h2>
+						<div class="mb-4 text-lg">
+							<p class="font-semibold">
+								<CalendarPlus size={24} class="text-primary" /> Eventi: <span class="font-normal">{userData?.trainingHistory?.length || 0}</span>
+							</p>
+							<p class="font-semibold">
+								<CalendarClock size={24} class="text-primary" /> Ore totali:
+								<span class="font-normal">{userData?.trainingHistory?.reduce((sum, entry) => sum + (entry.hours || 0), 0) || 0}</span>
+							</p>
+						</div>
 						<h3 class="text-xl font-bold mb-4">Aggiungi Nuova Voce di Formazione</h3>
-						<form onsubmit={addTrainingEntry} class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+						<form
+							method="POST"
+							action={postAction}
+							enctype="multipart/form-data"
+							use:enhance={formSubmit}
+							class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+						>
 							<div class="form-control">
 								<label for="trainingDate" class="label">
 									<span class="label-text flex items-center gap-2">
 										<Calendar size={16} />Data
 									</span>
 								</label>
-								<input type="date" id="trainingDate" class="input input-bordered w-full" bind:value={newTrainingEntry.date} required />
+								<input type="date" id="trainingDate" name="trainingDate" class="input input-bordered w-full" bind:value={trainingDate} required />
 							</div>
 
 							<div class="form-control">
@@ -1244,9 +1234,10 @@
 								<input
 									type="text"
 									id="trainingDescription"
+									name="trainingDescription"
 									placeholder="Descrizione della formazione"
 									class="input input-bordered w-full"
-									bind:value={newTrainingEntry.description}
+									bind:value={trainingDescription}
 									required
 								/>
 							</div>
@@ -1260,10 +1251,11 @@
 								<input
 									type="number"
 									id="trainingHours"
+									name="trainingHours"
 									placeholder="Ore di formazione"
 									class="input input-bordered w-full"
-									bind:value={newTrainingEntry.hours}
 									min="0"
+									bind:value={trainingHours}
 									required
 								/>
 							</div>
@@ -1277,27 +1269,34 @@
 								<input
 									type="file"
 									id="trainingFile"
+									name="fileUpload"
 									class="file-input file-input-bordered w-full"
 									onchange={(e) => {
 										const target = e.target as HTMLInputElement;
-										newTrainingEntry.file = target.files ? target.files[0] : null;
+										setTrainingFile = target.files ? target.files[0] : null;
 									}}
 								/>
-								{#if newTrainingEntry.file}
-									<p class="text-sm text-gray-500 mt-2">File selezionato: {newTrainingEntry.file.name}</p>
+								{#if setTrainingFile}
+									<p class="text-sm text-gray-500 mt-2">File selezionato: {setTrainingFile.name}</p>
 								{/if}
 							</div>
 
+							<input type="hidden" name="userId" value={userData.userId} />
+
 							<div class="col-span-full flex justify-end">
-								<button type="submit" class="btn btn-primary flex items-center gap-2">
-									<Plus size={20} /> Aggiungi Formazione
-								</button>
+								{#if loading}
+									<Loader />
+								{:else}
+									<button type="submit" class="btn btn-primary flex items-center gap-2">
+										<Plus size={20} /> Aggiungi Formazione
+									</button>
+								{/if}
 							</div>
 						</form>
 					</div>
 					<div class="card bg-base-200 shadow-xl p-6">
 						<!-- <h3 class="text-xl font-bold mb-4">Le Tue Voci di Formazione</h3> -->
-						{#if trainingEntries.length > 0}
+						{#if userData?.trainingHistory.length > 0}
 							<div class="overflow-x-auto">
 								<table class="table w-full table-zebra">
 									<thead>
@@ -1310,26 +1309,29 @@
 										</tr>
 									</thead>
 									<tbody>
-										{#each trainingEntries as entry (entry.id)}
+										<!-- {#each userData?.trainingHistory as entry (entry.date)} -->
+										{#each [...(userData?.trainingHistory || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) as entry (entry.date)}
 											<tr class="hover">
-												<td>{entry.date}</td>
+												<td>{formatDate(entry.date)}</td>
 												<td>{entry.description}</td>
 												<td>{entry.hours}</td>
 												<td>
 													{#if entry.fileName !== 'N/A'}
-														<a href="#" class="link link-primary flex items-center gap-1"><FileText size={16} /> {entry.fileName}</a>
+														<a href={entry.fileUrl} target="_blank" class="link link-primary flex items-center gap-1"
+															><FileText size={16} /> {entry.fileName}</a
+														>
 													{:else}
 														N/A
 													{/if}
 												</td>
 												<td class="text-center">
-													<button
-														class="btn btn-ghost btn-circle btn-sm text-error"
-														onclick={() => handleDeleteTraining(entry.id)}
-														aria-label="Elimina voce di formazione"
-													>
-														<Trash2 size={18} />
-													</button>
+													<form method="POST" action={`?/delTraining`} use:enhance={formSubmit}>
+														<input type="hidden" name="userId" value={userData.userId} />
+														<input type="hidden" name="fileName" value={entry.fileName} />
+														<button class="btn btn-ghost btn-circle text-error btn-sm" type="submit" aria-label="Delete training entry">
+															<Trash2 size="18" />
+														</button>
+													</form>
 												</td>
 											</tr>
 										{/each}
@@ -1360,9 +1362,9 @@
 											<h3 class="card-title text-white">{certificate.name}</h3>
 											<p class="text-gray-200 text-sm">Rilasciato il: {new Date(certificate.issueDate).toLocaleDateString()}</p>
 											<div class="card-actions justify-end">
-												<a href={certificate.fileUrl} download class="btn btn-primary btn-sm flex items-center gap-1">
+												<button type="button" class="btn btn-primary btn-sm flex items-center gap-1">
 													<FileText size={16} /> Scarica
-												</a>
+												</button>
 											</div>
 										</div>
 									</div>

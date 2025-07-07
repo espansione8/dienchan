@@ -41,13 +41,22 @@ export const POST: RequestHandler = async (event) => {
         return json({ message: 'Invalid folder name after sanitization.' }, { status: 400 });
     }
 
-    //const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '').trim();
+    //const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '').trim(); // OLD
+    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._\- ]/g, '').trim(); // GPT
 
-    // if (!sanitizedFileName) {
-    //     console.error(`Errore: Nome file non valido dopo sanitizzazione. fileName originale: '${fileName}'.`);
-    //     await event.request.body.cancel();
-    //     return json({ message: 'Invalid fileName after sanitization.' }, { status: 400 });
-    // }
+    if (!sanitizedFileName) {
+        console.error(`Errore: Nome file non valido dopo sanitizzazione. fileName originale: '${fileName}'.`);
+        await event.request.body.cancel();
+        return json({ message: 'Invalid fileName after sanitization.' }, { status: 400 });
+    }
+
+    // Validate filename for security
+    const validFileNameRegex = /^[a-zA-Z0-9._\- ]+$/;
+    if (!validFileNameRegex.test(fileName) || fileName !== fileName.trim()) {
+        console.error(`Errore: Nome file non valido. fileName originale: '${fileName}'.`);
+        await event.request.body.cancel();
+        return json({ message: 'Invalid fileName. Contains forbidden characters or leading/trailing spaces.' }, { status: 400 });
+    }
 
     const dirPath = path.join(FILES_DIR, ...sanitizedFolderComponents);
     //const filePath = path.join(dirPath, sanitizedFileName);
@@ -62,7 +71,7 @@ export const POST: RequestHandler = async (event) => {
         //console.log(`Directory '${dirPath}' assicurata/creata.`);
 
         // Configura gli stream
-        const webReadStream = event.request.body;
+        const webReadStream: any = event.request.body;
         const nodeReadStream = Readable.fromWeb(webReadStream);
         const writeStream = fsSync.createWriteStream(filePath);
         //console.log(`WriteStream creato per '${filePath}'. Inizio pipeline...`);

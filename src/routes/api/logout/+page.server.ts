@@ -2,9 +2,7 @@ import type { Actions } from './$types';
 import { BASE_URL, APIKEY } from '$env/static/private';
 import { redirect, error } from '@sveltejs/kit';
 
-const apiKey = APIKEY;
-const baseApiUrl = BASE_URL;
-
+// NOTE USE THIS FOR FORM ACTION
 export const actions: Actions = {
     default: async ({ fetch, cookies }) => {
         const session_id = cookies.get('session_id')
@@ -16,10 +14,10 @@ export const actions: Actions = {
         cookies.delete('session_id', { path: '/' });
 
         try {
-            const res = await fetch(`${baseApiUrl}/api/mongo/update`, {
+            const res = await fetch(`${BASE_URL}/api/mongo/update`, {
                 method: 'POST',
                 body: JSON.stringify({
-                    apiKey,
+                    apiKey: APIKEY,
                     schema: 'user', //product | order | user | layout | discount
                     query: { cookieId: session_id }, // 'course', 'product', 'membership', 'event'
                     update: { $set: { cookieId: '' } },

@@ -421,19 +421,6 @@
 								<div class="avatar">
 									<div class="w-24 rounded-full ring ring-blue-500 ring-offset-2">
 										<Image layout="constrained" aspectRatio={1} src={imgCheck.single(formatoreData.uploadfiles, 'profile')} alt="avatar" />
-										<!-- {#if picFilter.length > 0}
-											<Image
-	layout="constrained"
-	aspectRatio={1}
-												src={`/uploads/${formatoreData.userId}/${picFilter[0].filename}`}
-												alt="avatar"
-												loading="lazy"
-											/>
-										{:else}
-											<Image
-	layout="constrained"
-	aspectRatio={1} src="/images/avatar.png" alt="avatar" loading="lazy" />
-										{/if} -->
 									</div>
 								</div>
 								<div>
@@ -1113,7 +1100,13 @@
 					{#if currentStep < totalSteps}
 						<button type="button" class="btn btn-primary" onclick={nextStep} disabled={!isCurrentStepValid()}> Continua </button>
 					{:else}
-						<button type="submit" class="btn btn-success" disabled={!isCurrentStepValid()}> Conferma Acquisto </button>
+						<button
+							type="submit"
+							class="btn btn-success"
+							disabled={!isCurrentStepValid() || (!paymentMethodId && formData.payment === 'Carta di credito')}
+						>
+							Conferma Acquisto
+						</button>
 					{/if}
 				</div>
 			</div>

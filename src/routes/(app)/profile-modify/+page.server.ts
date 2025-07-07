@@ -186,7 +186,7 @@ export const actions: Actions = {
 	setProfilePic: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const userId = formData.get('userId');
-		const file = formData.get('fileUpload');
+		const file = formData.get('fileUpload') as File;
 
 		if (!userId || !file || !file.name) {
 			return fail(400, { action: 'setProfilePic', success: false, message: 'File mancante' });
@@ -357,6 +357,133 @@ export const actions: Actions = {
 		} catch (error) {
 			console.error('Error changePassword:', error);
 			return fail(400, { action: 'changePassword', success: false, message: 'Errore changePassword' });
+		}
+	},
+	setTraining: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const userId = formData.get('userId');
+		const trainingDate = formData.get('trainingDate');
+		const trainingDescription = formData.get('trainingDescription');
+		const trainingHours = formData.get('trainingHours');
+		const file = formData.get('fileUpload') as File;
+
+		// console.log(trainingDate, trainingDescription, trainingHours, file, userId);
+		// return
+
+		if (!userId || !file || !file.name || !trainingDate || !trainingDescription || !trainingHours) {
+			return fail(400, { action: 'setTraining', success: false, message: 'File mancante' });
+		}
+
+		// file size (10MB limit)
+		const maxSize = 10 * 1024 * 1024; // 10MB
+		if (file.size > maxSize) {
+			return fail(400, { action: 'setTraining', success: false, message: 'File troppo grande (max 10MB)' });
+		}
+
+		// Validate file type
+		const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'application/msword', 'application/vnd.oasis.opendocument.spreadsheet', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/msexcel'];
+		if (!allowedTypes.includes(file.type)) {
+			return fail(400, { action: 'setTraining', success: false, message: 'Tipo di file non supportato' });
+		}
+		try {
+			const uploadFile = await fetch(`${BASE_URL}/api/uploads/files`, {
+				method: 'POST',
+				headers: {
+					//'Content-Type': 'application/json',
+					'x-file-name': file.name,
+					'x-folder-name': `user/${userId}`
+				},
+				body: file
+			});
+
+			if (!uploadFile.ok) return fail(400, { action: 'setTraining', success: false, message: `uploadImg: ${await uploadFile.text()}` })
+
+			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user', //product | order | user | layout | discount
+					query: { userId }, //IF USE Products.model -> types: course / product / membership / event,
+					update: {
+						$push: {
+							trainingHistory: {
+								hours: Number(trainingHours),
+								description: trainingDescription,
+								date: trainingDate,
+								fileName: file.name,
+								fileUrl: `/uploads/user/${userId}/${file.name}`
+							}
+						}
+					},
+					options: { upsert: false },
+					multi: false
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (!res.ok) return fail(400, { action: 'setTraining', success: false, message: await res.text() })
+
+			return { action: 'setTraining', success: true, message: 'Formazione aggiunta' };
+
+		} catch (error) {
+			console.error('Error setTraining:', error);
+			return fail(400, { action: 'setTraining', success: false, message: 'Errore setTraining' });
+		}
+	},
+	delTraining: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const userId = formData.get('userId');
+		const fileName = formData.get('fileName');
+		//console.log(fileName);
+
+		if (!userId || !fileName) {
+			return fail(400, { action: 'delTraining', success: false, message: 'Dati mancanti' });
+		}
+
+		try {
+			const responseDelete = await fetch(`${BASE_URL}/api/uploads/files`, {
+				method: 'DELETE',
+				body: JSON.stringify({
+					dir: `user/${userId}`,
+					fileName
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (!responseDelete.ok) return fail(400, { action: 'delTraining', success: false, message: await responseDelete.text() });
+
+			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user', //product | order | user | layout | discount
+					query: { userId }, //IF USE Products.model -> types: course / product / membership / event,
+					update: {
+						$pull: {
+							trainingHistory: {
+								fileName,
+								fileUrl: `/uploads/user/${userId}/${fileName}`
+							}
+						}
+					},
+					options: { upsert: false },
+					multi: false
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (!res.ok) return fail(400, { action: 'delTraining', success: false, message: await res.text() });
+			const response = await res.json();
+
+			return { action: 'delTraining', success: true, message: response.message };
+
+		} catch (error) {
+			console.error('Error delTraining:', error);
+			return fail(400, { action: 'delTraining', success: false, message: 'Errore rimozione' });
 		}
 	},
 } satisfies Actions;

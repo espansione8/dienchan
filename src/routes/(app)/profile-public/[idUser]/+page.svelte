@@ -1,42 +1,10 @@
 <script lang="ts">
 	import { Image } from '@unpic/svelte';
-	import {
-		Mail,
-		MapPin,
-		Globe,
-		Phone,
-		Smartphone,
-		Printer,
-		Building2,
-		Landmark,
-		MapPinned,
-		Leaf,
-		Heart
-	} from 'lucide-svelte';
+	import { imgCheck } from '$lib/tools/tools.js';
+	import { Mail, MapPin, Globe, Phone, Smartphone, MapPinned, Leaf, Heart, Printer } from 'lucide-svelte';
 
 	const { data } = $props();
 	const { getUser } = $derived(data);
-
-	let picFilter = $derived(
-		getUser.uploadfiles.filter((item: any) => {
-			return item.type == 'profile';
-		})
-	);
-
-	let userfiles = $derived(getUser.uploadfiles);
-	let findAvatar = $derived(userfiles.filter((file: any) => file.type === 'profile'));
-
-	// Get first letter of name and surname for avatar fallback
-	const getInitials = () => {
-		let initials = '';
-		if (getUser.namePublic && getUser.name) {
-			initials += getUser.name.charAt(0);
-		}
-		if (getUser.surnamePublic && getUser.surname) {
-			initials += getUser.surname.charAt(0);
-		}
-		return initials || '?';
-	};
 </script>
 
 <svelte:head>
@@ -55,15 +23,11 @@
 	</style>
 </noscript>
 
-<div
-	class="min-h-screen flex justify-center items-center p-4 bg-gradient-to-br from-teal-50 to-emerald-50"
->
+<div class="min-h-screen flex justify-center items-center p-4 bg-gradient-to-br from-teal-50 to-emerald-50">
 	<div class="max-w-2xl w-full perspective">
 		<!-- Business Card -->
 		<div class="card-container relative">
-			<div
-				class="business-card bg-white rounded-lg shadow-lg overflow-hidden border border-teal-100 transform transition-all duration-500"
-			>
+			<div class="business-card bg-white rounded-lg shadow-lg overflow-hidden border border-teal-100 transform transition-all duration-500">
 				<!-- Card Content with proper business card ratio -->
 				<div class="flex flex-col md:flex-row h-full">
 					<!-- Left Side - Photo and Name -->
@@ -82,19 +46,13 @@
 							<div
 								class="w-24 h-24 rounded-full ring ring-white ring-offset-teal-500 ring-offset-2 bg-teal-100 flex items-center justify-center overflow-hidden"
 							>
-								<Image
-									layout="constrained"
-									aspectRatio={1}
-									src={`/images/dienchan_logo.jpg`}
-									alt="Profile"
-									class="w-full h-full object-contain"
-								/>
+								<Image layout="constrained" aspectRatio={1} src={`/images/dienchan_logo.jpg`} alt="Profile" class="w-full h-full object-contain" />
 							</div>
 						</div>
 
 						<!-- Name and Title -->
 						<div class="text-center">
-							<h1 class="text-xl font-bold mb-1">
+							<h1 class="text-sm font-bold mb-1">
 								{#if getUser.namePublic === true || getUser.surnamePublic === true}
 									{#if getUser.namePublic === true}
 										{getUser.name}
@@ -103,45 +61,25 @@
 										{getUser.surname}
 									{/if}
 								{:else}
-									<span class="italic">Nome riservato</span>
+									<span class="italic">Nome Privato</span>
 								{/if}
 							</h1>
-							<div class="font-medium text-teal-50">ASSOCIATO</div>
+							<div class="font-medium text-teal-50 text-xs">ASSOCIATO</div>
 
 							<div class="flex justify-center mt-3 flex-wrap gap-2">
-								<div class="badge badge-xl bg-teal-700 border-none text-teal-50">Diện Chẩn</div>
+								<div class="badge badge-xl bg-teal-700 border-none text-teal-50 text-sm">Diện Chẩn</div>
 							</div>
 							<div class="avatar mt-4">
 								<div
 									class="w-24 h-24 rounded-full ring ring-white ring-offset-teal-500 ring-offset-2 bg-teal-100 flex items-center justify-center overflow-hidden"
 								>
-									{#if findAvatar.length > 0}
-										<!-- <Image
-	layout="constrained"
-	aspectRatio={1}
-										src={`/uploads/${getUser.userId}/${picFilter[0].fileName}`}
+									<Image
+										layout="constrained"
+										aspectRatio={1}
+										src={imgCheck.single(getUser.uploadfiles, 'profile')}
 										alt="Profile"
-										class="w-full h-full object-contain"
-									/> -->
-										<Image
-											layout="constrained"
-											aspectRatio={1}
-											src={picFilter.length > 0
-												? `/uploads/user/${getUser.userId}/${picFilter[0].fileName}`
-												: '/images/placeholder.jpg'}
-											alt="Profile"
-											class="object-cover w-full h-full"
-										/>
-									{:else}
-										<!-- <span class="text-3xl font-bold text-teal-600">{getInitials()}</span> -->
-										<Image
-											layout="constrained"
-											aspectRatio={1}
-											src={`/images/dienchan.jpg`}
-											alt="Profile"
-											class="w-full h-full object-contain"
-										/>
-									{/if}
+										class="object-cover w-full h-full"
+									/>
 								</div>
 							</div>
 						</div>
@@ -228,9 +166,7 @@
 
 						<!-- Card Footer -->
 						<div class="mt-2 pt-2 border-t border-gray-200">
-							<div class="text-xs text-gray-500 text-center">
-								Professionista certificato Diện Chẩn Bùi Quốc Châu ®
-							</div>
+							<div class="text-xs text-gray-500 text-center">Professionista certificato Diện Chẩn Bùi Quốc Châu ®</div>
 						</div>
 					</div>
 				</div>
@@ -248,43 +184,4 @@
 </div>
 
 <style>
-	.perspective {
-		perspective: 1000px;
-	}
-
-	.business-card {
-		transform-style: preserve-3d;
-		box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
-		/* Standard business card ratio approximately 3.5:2 */
-		aspect-ratio: 1.75 / 1;
-		display: flex;
-	}
-
-	.business-card:hover {
-		box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.15);
-		transform: translateY(-5px) rotateX(2deg);
-	}
-
-	@media print {
-		.btn {
-			display: none !important;
-		}
-
-		body {
-			background: white !important;
-		}
-
-		.business-card {
-			box-shadow: none !important;
-			border: 1px solid #ddd !important;
-			transform: none !important;
-		}
-	}
-
-	/* Responsive adjustments */
-	@media (max-width: 768px) {
-		.business-card {
-			aspect-ratio: auto;
-		}
-	}
 </style>

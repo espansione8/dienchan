@@ -178,6 +178,14 @@ export type User = {
         filename: string;
         fileUrl: string;
     }>;
+    trainingHistory: Array<{
+        hours: number;
+        description: string;
+        date: Date;
+        fileName: string;
+        fileUrl: string;
+    }>;
+
 } & UserPublic;
 
 export type MembershipPublic = {

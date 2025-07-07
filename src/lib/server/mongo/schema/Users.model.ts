@@ -129,9 +129,18 @@ const UserSchema = new mongoose.Schema(
 		pointsBalanceDate: { type: Date, default: '' },
 		pointsHistory: [
 			{
-				points: { type: Number, default: '' },
+				points: { type: Number, default: 0 },
 				note: { type: String, default: '' },
 				date: { type: Date, default: Date.now }
+			}
+		],
+		trainingHistory: [
+			{
+				hours: { type: Number, default: 0 },
+				description: { type: String, default: '' },
+				date: { type: Date, default: Date.now },
+				fileName: { type: String, default: 'N/A' },
+				fileUrl: { type: String, default: '' },
 			}
 		],
 		userAvatar: { type: String, default: '' },

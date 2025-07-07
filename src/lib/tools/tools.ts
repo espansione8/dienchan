@@ -36,3 +36,15 @@ export const imgCheck = {
 
 // RETURN ARRAY URLs
 // imgCheck.array(product.uploadfiles, 'product-gallery')
+
+// RETURN FILENAME
+// imgCheck.fileName(row.uploadfiles, 'product-primary'
+
+export const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('it-IT', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    }).format(date);
+};

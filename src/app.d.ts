@@ -41,6 +41,13 @@ declare global {
 			emailPublic: boolean;
 			uploadfiles: any[];
 			pointsBalance: number;
+			trainingHistory: Array<{
+				hours: number;
+				description: string;
+				date: Date;
+				fileName: string;
+				fileUrl: string;
+			}>;
 		}
 		interface Locals {
 			userData: User | null;
