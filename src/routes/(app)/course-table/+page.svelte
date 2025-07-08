@@ -33,6 +33,26 @@
 	let tableList = $state(getTable);
 	let loading = $state(false);
 
+	let showCheckboxes = $state(false);
+	let selectedSubscriberIds = $state<string[]>([]);
+	let certificationStatus = $state(false);
+	const toggleCheckboxes = () => {
+		showCheckboxes = !showCheckboxes;
+		if (!showCheckboxes) {
+			selectedSubscriberIds = [];
+		}
+	};
+
+	const handleCheckboxChange = (id: string, isChecked: boolean) => {
+		if (isChecked) {
+			// Add the ID if checked
+			selectedSubscriberIds = [...selectedSubscriberIds, id];
+		} else {
+			// Remove the ID if unchecked
+			selectedSubscriberIds = selectedSubscriberIds.filter((subscriberId) => subscriberId !== id);
+		}
+	};
+
 	const now = new Date();
 	let currentYear = now.getFullYear().toString();
 	let currentMonth = (now.getMonth() + 1).toString().padStart(2, '0'); // getMonth() restituisce 0-11, quindi aggiungiamo 1
@@ -302,9 +322,8 @@
 			startYear = item.eventStartDate.substring(0, 4);
 			startMonth = item.eventStartDate.substring(5, 7);
 			startDay = item.eventStartDate.substring(8, 10);
-			startHour = item.eventStartDate.substring(11, 13);
-			startMinute = item.eventStartDate.substring(14, 16);
-
+			startHour = item.timeStartDate.substring(0, 2);
+			startMinute = item.timeStartDate.substring(3, 5);
 			if (county[0] == 'Online') {
 				mode = 'ONLINE';
 			} else {
@@ -326,7 +345,8 @@
 		}
 		if (type == 'subscribers') {
 			modalTitle = 'Lista iscritti';
-			subscribers = item;
+			subscribers = item.listSubscribers;
+			certificationStatus = item.certificationStatus;
 		}
 	};
 
@@ -459,7 +479,7 @@
 
 							<td>{row.layoutView?.title}</td>
 
-							<td>{row.eventStartDate?.substring(0, 10)}</td>
+							<td>{row.eventStartDate} - {row.timeStartDate} </td>
 
 							<td>
 								<p class="card-text">
@@ -470,7 +490,7 @@
 							<td>{row.layoutView.price} €</td>
 
 							<td>
-								<button class="btn" onclick={() => onClickModal('subscribers', row.listSubscribers)} disabled={row.listSubscribers.length == 0}>
+								<button class="btn" onclick={() => onClickModal('subscribers', row)} disabled={row.listSubscribers.length == 0}>
 									<UserRoundCheck />
 									{row.listSubscribers.length}
 								</button>
@@ -498,9 +518,6 @@
 {/if}
 
 {#if currentModal == 'modify' || currentModal == 'new'}
-	{#if loading}
-		<Loader />
-	{/if}
 	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-4xl">
 		{#if currentModal == 'modify'}
 			<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModify}>✕</button>
@@ -508,6 +525,9 @@
 			<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{/if}
 
+		{#if loading}
+			<Loader />
+		{/if}
 		<form
 			method="POST"
 			action={postAction}
@@ -559,6 +579,7 @@
 					</select>
 				</div>
 			</section>
+
 			<!-- Prezzo corso -->
 			<section class="col-span-4 md:col-span-2">
 				<label for="price" class="form-label">
@@ -577,6 +598,7 @@
 					/>
 				</div>
 			</section>
+
 			<!-- Data Inizio -->
 			<section class="col-span-4 md:col-span-2">
 				<label for="data-inizio" class="form-label">
@@ -784,48 +806,6 @@
 				</section>
 			{/if}
 
-			<!-- Provincia -->
-			<!-- <section class="col-span-4 md:col-span-2">
-			<label for="countryState" class="form-label">
-				<p class="font-bold mb-2">Provincia</p>
-			</label>
-			<div class="join join-horizontal rounded-md w-full">
-				<button class="join-item bg-gray-300 px-3"><Building2 /></button>
-				<select
-					class="select select-bordered w-full rounded-md rounded-l-none"
-					id="countryState"
-					name="countryState"
-					placeholder="Scegli"
-					bind:value={countryState}
-					required
-				>
-					<option disabled value="">Scegli</option>
-					{#each $province as provincia, i}
-						<option value={provincia.title}>
-							{provincia.title} ({provincia.region})
-						</option>
-					{/each}
-				</select>
-			</div>
-		</section> -->
-			<!-- place -->
-			<!-- <section class="col-span-4 md:col-span-2">
-			<label for="location" class="form-label">
-				<p class="font-bold mb-2">Luogo (indirizzo, citta, CAP)</p></label
-			>
-			<div class="join join-horizontal rounded-md w-full">
-				<button class="join-item bg-gray-300 px-3"><Pen /></button>
-				<input
-					class="input input-bordered join-item w-full"
-					id="location"
-					name="location"
-					type="text"
-					placeholder="es: via Roma, 1, Vigasio, 37069"
-					bind:value={location}
-					required
-				/>
-			</div>
-		</section> -->
 			<!-- Tag -->
 			<section class="col-span-4 md:col-span-2">
 				<label for="tag" class="form-label">
@@ -942,7 +922,7 @@
 					</button>
 				</div>
 			</div>
-			<input type="hidden" name="eventStartDate" value={eventStartDate.toISOString()} />
+			<input type="hidden" name="eventStartDate" value={eventStartDate} />
 		</form>
 	</Modal>
 {/if}
@@ -1039,7 +1019,7 @@
 		{#if loading}
 			<Loader />
 		{/if}
-		<div class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8">
+		<!-- <div class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8">
 			{#each subscribers || [] as item}
 				<div
 					class="col-span-4
@@ -1060,6 +1040,85 @@
 					<span class="text-sm text-base-content">{item.city}</span>
 				</div>
 			{/each}
+		</div> -->
+		<div class="p-4 lg:p-8">
+			<div class="mb-6">
+				<button class="btn" class:btn-error={showCheckboxes} onclick={toggleCheckboxes} type="button" disabled={certificationStatus}>
+					{showCheckboxes ? 'Annulla' : 'Genera Attestati'}
+				</button>
+			</div>
+
+			{#if showCheckboxes}
+				<form method="POST" action={postAction} use:enhance={formSubmit} class="mb-8 p-6 rounded-box shadow-lg bg-base-100">
+					<h2 class="text-lg font-semibold mb-2 text-primary">Dettagli Attestato</h2>
+
+					<div class="form-control mb-4">
+						<label for="location" class="label">
+							<span class="label-text">Location</span>
+						</label>
+						<input type="text" id="location" name="location" placeholder="Enter location" class="input input-bordered w-full" />
+					</div>
+
+					<div class="form-control mb-6">
+						<label for="date" class="label">
+							<span class="label-text">Date</span>
+						</label>
+						<input type="date" id="date" name="date" class="input input-bordered w-full" />
+					</div>
+
+					<input type="hidden" name="selectedSubscriberIds" value={JSON.stringify(selectedSubscriberIds)} />
+
+					<button type="submit" class="btn btn-success" disabled={selectedSubscriberIds.length === 0}> Crea Attestati </button>
+				</form>
+			{/if}
+
+			<div class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8">
+				{#each subscribers || [] as item (item.userId)}
+					<div
+						class="col-span-4 p-4 rounded-box shadow-md bg-base-200
+           flex flex-col gap-y-2"
+					>
+						<div class="flex items-center justify-between gap-x-6">
+							{#if showCheckboxes}
+								<label class="flex items-center cursor-pointer gap-2">
+									<input
+										type="checkbox"
+										class="checkbox checkbox-primary"
+										checked={selectedSubscriberIds.includes(item.userId)}
+										onchange={(e) => handleCheckboxChange(item.userId, e.currentTarget.checked)}
+									/>
+									<span class="font-bold text-lg text-primary">{item.name} {item.surname}</span>
+								</label>
+							{:else}
+								<span class="font-bold text-lg text-primary">{item.name} {item.surname}</span>
+							{/if}
+							<div class="flex-grow"></div>
+						</div>
+
+						<div class="flex flex-wrap gap-x-6">
+							<span class="text-info-content break-words">{item.email}</span>
+						</div>
+
+						<div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+							<div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+								<span class="text-sm text-base-content">{item.phone}</span>
+								<span class="text-sm text-base-content">{item.mobilePhone}</span>
+								<span class="text-sm text-base-content">{item.city}</span>
+							</div>
+
+							{#if item.certificationStatus}
+								<button
+									class="btn btn-sm btn-outline btn-info shrink-0"
+									onclick={() => 'downloadCertificate(item.certificateUrl)'}
+									disabled={!item.certificateUrl}
+								>
+									Download Attestato
+								</button>
+							{/if}
+						</div>
+					</div>
+				{/each}
+			</div>
 		</div>
 	</Modal>
 {/if}

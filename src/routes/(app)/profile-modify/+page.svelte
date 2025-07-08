@@ -1,5 +1,8 @@
 <script lang="ts">
 	import type { ActionResult } from '@sveltejs/kit';
+	import { quintOut } from 'svelte/easing';
+	import { crossfade } from 'svelte/transition';
+	import { flip } from 'svelte/animate';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { notification } from '$lib/stores/notifications';
@@ -131,6 +134,23 @@
 			}
 		]
 		// ... potentially more user data
+	});
+	const [send, receive] = crossfade({
+		duration: 300, // Adjust duration as needed
+		easing: quintOut,
+		fallback(node, params) {
+			const style = getComputedStyle(node);
+			const transform = style.transform === 'none' ? '' : style.transform;
+
+			return {
+				duration: 600,
+				easing: quintOut,
+				css: (t) => `
+          transform: ${transform} scale(${t});
+          opacity: ${t}
+        `
+			};
+		}
 	});
 
 	const onSwitchPublicProfile = async (type: string, value: boolean) => {
@@ -1294,7 +1314,7 @@
 							</div>
 						</form>
 					</div>
-					<div class="card bg-base-200 shadow-xl p-6">
+					<div class="card bg-base-200/75 shadow-xl p-6">
 						<!-- <h3 class="text-xl font-bold mb-4">Le Tue Voci di Formazione</h3> -->
 						{#if userData?.trainingHistory.length > 0}
 							<div class="overflow-x-auto">
@@ -1311,7 +1331,7 @@
 									<tbody>
 										<!-- {#each userData?.trainingHistory as entry (entry.date)} -->
 										{#each [...(userData?.trainingHistory || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) as entry (entry.date)}
-											<tr class="hover">
+											<tr class="hover" in:receive={{ key: entry.date }} out:send={{ key: entry.date }} animate:flip={{ duration: 300 }}>
 												<td>{formatDate(entry.date)}</td>
 												<td>{entry.description}</td>
 												<td>{entry.hours}</td>

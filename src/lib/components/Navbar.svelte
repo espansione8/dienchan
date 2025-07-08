@@ -2,7 +2,22 @@
 	import { page } from '$app/state';
 	import { enhance, applyAction } from '$app/forms';
 	import { cartProducts, emptyCart, cdata } from '$lib/stores/cart';
-	import { LogOut, ChevronDown, Menu, X, Megaphone, LogIn, IdCard, ShoppingCart, User, Layers, BookOpen, Package, CreditCard } from 'lucide-svelte';
+	import {
+		//Award,
+		LogOut,
+		ChevronDown,
+		Menu,
+		X,
+		Megaphone,
+		LogIn,
+		IdCard,
+		ShoppingCart,
+		User,
+		Layers,
+		BookOpen,
+		Package,
+		CreditCard
+	} from 'lucide-svelte';
 
 	const { user, auth } = $props();
 
@@ -93,13 +108,6 @@
 
 									{#if level === 'superadmin'}
 										<li>
-											<a href="/product-table" class={isActive('/product-table') ? 'active' : ''}>
-												<Package size={16} />
-												Prodotti
-											</a>
-										</li>
-
-										<li>
 											<a href="/membership-table" class={isActive('/membership-table') ? 'active' : ''}>
 												<CreditCard size={16} />
 												Membership
@@ -112,18 +120,16 @@
 												Modelli corsi
 											</a>
 										</li>
-
-										<li>
-											<a href="/user-table" class={isActive('/user-table') ? 'active' : ''}>
-												<User size={16} />
-												Utenti
-											</a>
-										</li>
-
 										<li>
 											<a href="/order-table" class={isActive('/order-table') ? 'active' : ''}>
 												<ShoppingCart size={16} />
 												Ordini
+											</a>
+										</li>
+										<li>
+											<a href="/product-table" class={isActive('/product-table') ? 'active' : ''}>
+												<Package size={16} />
+												Prodotti
 											</a>
 										</li>
 
@@ -131,6 +137,13 @@
 											<a href="/discount-table" class={isActive('/discount-table') ? 'active' : ''}>
 												<Megaphone size={16} />
 												Sconti
+											</a>
+										</li>
+
+										<li>
+											<a href="/user-table" class={isActive('/user-table') ? 'active' : ''}>
+												<User size={16} />
+												Utenti
 											</a>
 										</li>
 									{/if}
