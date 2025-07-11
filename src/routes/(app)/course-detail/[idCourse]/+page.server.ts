@@ -208,7 +208,7 @@ export const actions: Actions = {
 
 		let currentUserId: string = locals.user?.userId ?? '';
 		//let membership = [];
-		let userExist = false;
+		let userExist = locals.auth;
 
 		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
@@ -251,6 +251,24 @@ export const actions: Actions = {
 				update: {
 					$push: {
 						listSubscribers: { userId: currentUserId, email, name, surname, phone, mobilePhone }
+					}
+				},
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		const updateUserFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { userId: currentUserId }, // 'course', 'product', 'membership', 'event',
+				update: {
+					$push: {
+						courseJoined: cartItem.prodId
 					}
 				},
 				options: { upsert: false },
@@ -522,7 +540,9 @@ export const actions: Actions = {
 			}
 
 			let cart = [];
-			if ((!userExist || !locals.user?.membership.membershipStatus) && membership.length > 0) {
+			console.log('soccorso:', !userExist, !locals.user?.membership.membershipStatus);
+
+			if (!userExist || !locals.user?.membership.membershipStatus) {
 				cart = [...bundleProducts, cartItem, membership[0]];
 			} else {
 				cart = [...bundleProducts, cartItem];
@@ -604,6 +624,18 @@ export const actions: Actions = {
 					action: 'new',
 					success: false,
 					message: `mailRes: ${await mailRes.text()}`
+				});
+			}
+
+			const updateUserRes = await updateUserFetch(orderId);
+			console.log('updateUserRes', updateUserRes);
+			console.log('Res', await updateUserRes.json());
+
+			if (!updateUserRes.ok) {
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: `updateUserRes: ${await updateUserRes.text()}`
 				});
 			}
 

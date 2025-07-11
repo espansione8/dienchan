@@ -349,7 +349,7 @@ export const actions: Actions = {
 			const res = await resFetch;
 			if (!res.ok) {
 				const errorText = await res.text();
-				console.error('discount update failed', res.status, errorText);
+				console.error('modify update failed', res.status, errorText);
 				return fail(400, { action: 'modify', success: false, message: errorText });
 			}
 			const result = await res.json();
@@ -442,5 +442,66 @@ export const actions: Actions = {
 			console.error('Error filter:', error);
 			return { action: 'filter', success: false, message: 'Error filter' };
 		}
-	}
+	},
+
+	createCertification: async ({ request, fetch, locals }) => {
+		const formData = await request.formData();
+		const prodId = formData.get('prodId');
+		const certificationPlace = formData.get('certificationPlace');
+		const certificationDate = formData.get('certificationDate');
+		const selectedSubscriber = formData.get('selectedSubscriber') as string;
+		const subscriberArray = JSON.parse(selectedSubscriber) || [];
+		const userId = locals.user.userId;
+
+		if (!certificationPlace || !certificationDate || !userId) {
+			return fail(400, { action: 'createCertification', success: false, message: 'Dati mancanti' });
+		}
+
+		if (subscriberArray.length === 0) {
+			return fail(400, { action: 'createCertification', success: false, message: 'Nessun partecipante selezionato' });
+		}
+
+		const selectedUserIds = subscriberArray.map((sub: { userId: string }) => sub.userId);
+
+		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'product', //product | order | user | layout | discount
+				query: { prodId, type: 'course' }, // 'course', 'product', 'membership', 'event'
+				update: {
+					$set: {
+						certificationStatus: true,
+						"listSubscribers.$[elem].certificationStatus": true,
+						"listSubscribers.$[elem].certificationDate": certificationDate,
+						"listSubscribers.$[elem].certificationPlace": certificationPlace
+					}
+				},
+				options: {
+					arrayFilters: [{ "elem.userId": { $in: selectedUserIds } }],
+					upsert: false
+				},
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		try {
+			const res = await resFetch;
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('createCertification update failed', res.status, errorText);
+				return fail(400, { action: 'createCertification', success: false, message: errorText });
+			}
+			const result = await res.json();
+
+			return { action: 'createCertification', success: true, message: result.message };
+
+		} catch (error) {
+			console.error('Error createCertification:', error);
+			return { action: 'createCertification', success: false, message: 'Error createCertification' };
+		}
+	},
 } satisfies Actions;

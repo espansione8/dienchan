@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { PUBLIC_BASE_URL } from '$env/static/public';
 	import type { ActionResult } from '@sveltejs/kit';
 	import { invalidateAll } from '$app/navigation';
 	import Papa from 'papaparse';
@@ -28,31 +29,185 @@
 		UserRoundCheck
 	} from 'lucide-svelte';
 
+	// PDF maker
+	import * as pdfMake from 'pdfmake/build/pdfmake';
+	// PDF Fonts
+	const pdfFonts = {
+		// download default Roboto font from cdnjs.com
+		Roboto: {
+			normal: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Regular.ttf',
+			bold: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Medium.ttf',
+			italics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Italic.ttf',
+			bolditalics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-MediumItalic.ttf'
+		},
+		Albatros: {
+			normal: `${PUBLIC_BASE_URL}/font/albatros.ttf`
+		}
+	};
+
 	const { data } = $props();
 	const { getTable, getTableNames, userData, getLayout } = $derived(data);
 	let tableList = $state(getTable);
 	let loading = $state(false);
 
+	// certification
 	let showCheckboxes = $state(false);
-	let selectedSubscriberIds = $state<string[]>([]);
+	let selectedSubscriber = $state<string[]>([]);
 	let certificationStatus = $state(false);
 	const toggleCheckboxes = () => {
 		showCheckboxes = !showCheckboxes;
 		if (!showCheckboxes) {
-			selectedSubscriberIds = [];
+			selectedSubscriber = [];
 		}
 	};
 
-	const handleCheckboxChange = (id: string, isChecked: boolean) => {
+	const handleCheckboxChange = (item: any, isChecked: boolean) => {
 		if (isChecked) {
-			// Add the ID if checked
-			selectedSubscriberIds = [...selectedSubscriberIds, id];
+			selectedSubscriber = [...selectedSubscriber, item];
 		} else {
-			// Remove the ID if unchecked
-			selectedSubscriberIds = selectedSubscriberIds.filter((subscriberId) => subscriberId !== id);
+			selectedSubscriber = selectedSubscriber.filter((user) => user.userId !== item.userId);
 		}
 	};
 
+	let pdfLayout = $state();
+
+	const pdfBase = {
+		// XW7LYV2LG2BU
+		background: `${PUBLIC_BASE_URL}/training/base.jpg`,
+		pageMargins: [20, 80, 20, 0], // [left, top, right, bottom]
+		separatorMargin1: [0, 375, 0, 0], // [left, top, right, bottom]
+		separatorMargin2: [0, 0, 0, 0], // [left, top, right, bottom]
+		placeCenterWidth: 320,
+		formatoreWidth: 540,
+		centerWidth: 20,
+		dateWidth: 200
+	};
+	const pdfAvanzato = {
+		// 794792843
+		background: `${PUBLIC_BASE_URL}/training/avanzato.jpg`,
+		pageMargins: [20, 240, 20, 0], // [left, top, right, bottom]
+		separatorMargin1: [0, 200, 0, 0], // [left, top, right, bottom]
+		separatorMargin2: [0, 0, 0, 0], // [left, top, right, bottom]
+		placeCenterWidth: 320,
+		formatoreWidth: 540,
+		centerWidth: 20,
+		dateWidth: 200
+	};
+
+	const pdfSoccorso = {
+		// 3GLAAQRJF2A9
+		background: `${PUBLIC_BASE_URL}/training/Pronto_Soccorso.jpg`,
+		pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
+		separatorMargin1: [0, 95, 0, 0],
+		separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+		placeCenterWidth: 260,
+		formatoreWidth: 390,
+		centerWidth: 0,
+		dateWidth: 320
+	};
+
+	const createPDFcert = (item, user) => {
+		//console.log('item', item.layoutView.layoutId);
+		const layoutId = item.layoutView.layoutId;
+		if (layoutId === 'XW7LYV2LG2BU') pdfLayout = pdfBase;
+		if (layoutId === '794792843') pdfLayout = pdfAvanzato;
+		if (layoutId === '3GLAAQRJF2A9') pdfLayout = pdfSoccorso;
+
+		const dateObject = new Date(user.certificationDate);
+		const year = dateObject.getFullYear();
+		const month = dateObject.getMonth() + 1; // getMonth() returns 0-11, so add 1 for 1-12
+		const day = dateObject.getDate();
+		const doc = {
+			compress: true,
+			pageSize: 'A4',
+			pageOrientation: 'landscape', // portrait or landscape
+			pageMargins: pdfLayout.pageMargins, // [left, top, right, bottom]
+			background: {
+				image: 'background',
+				width: 841.89, // A4 landscape width in points
+				height: 595.28, // A4 landscape height in points
+				absolutePosition: { x: 0, y: 0 }
+			},
+			// header: {
+			// 	width: 200,
+			// 	image: '/images/cert-header.png',
+			// 	margin: [10, 10]
+			// },
+			content: [
+				{
+					text: `${user.name} ${user.surname}`,
+					font: 'Albatros',
+					style: ['header', { color: '#333333' }, { fontSize: 42 }, { alignment: 'center' }]
+				},
+				{
+					text: '',
+					margin: pdfLayout.separatorMargin1 // [left, top, right, bottom]
+				},
+				{
+					alignment: 'center',
+					columns: [
+						{ width: 200, text: '' },
+						{ width: pdfLayout.placeCenterWidth, text: '' },
+						{ width: 200, text: user.certificationPlace, style: [{ color: '#333333' }, { fontSize: 20 }] }
+					]
+				},
+				{
+					text: '',
+					margin: pdfLayout.separatorMargin2 // [left, top, right, bottom]
+				},
+				{
+					alignment: 'center',
+					columns: [
+						{
+							width: pdfLayout.formatoreWidth,
+							text: `${item.name} ${item.surname}`,
+							font: 'Albatros',
+							style: [{ color: '#333333' }, { fontSize: 34 }, { alignment: 'left' }]
+						},
+						{ width: pdfLayout.centerWidth, text: '' },
+						{ width: pdfLayout.dateWidth, text: `${day} / ${month} / ${year}`, style: [{ color: '#333333' }, { fontSize: 24 }] }
+					]
+				}
+			],
+
+			images: {
+				// in browser is supported loading images via url (https or http protocol) (minimal version: 0.1.67)
+				background: pdfLayout.background
+			}
+			//images: ['/training/base.jpg'] // DEPRECATED
+		};
+		// DEPRECATED
+		// const fetchImage = (url) => {
+		// 	return fetch(url)
+		// 		.then((response) => response.blob())
+		// 		.then(
+		// 			(blob) =>
+		// 				new Promise((resolve, reject) => {
+		// 					const reader = new FileReader();
+		// 					reader.onloadend = () => resolve(reader.result);
+		// 					reader.onerror = reject;
+		// 					reader.readAsDataURL(blob);
+		// 				})
+		// 		);
+		// };
+
+		// const fetches = [];
+		// doc.images.forEach((src) => {
+		// 	fetches.push(
+		// 		fetchImage(src).then((data) => {
+		// 			doc.images[src] = data;
+		// 		})
+		// 	);
+		// });
+
+		// Promise.all(fetches).then(() => {
+		// 	pdfMake.createPdf(doc, null, pdfFonts).download(`${item.shortDescription}-attestato.pdf`);
+		// });
+
+		pdfMake.createPdf(doc, null, pdfFonts).download(`Attestato_${item.layoutView.title}_${user.name}_${user.surname}.pdf`);
+	};
+
+	// Date & Time
 	const now = new Date();
 	let currentYear = now.getFullYear().toString();
 	let currentMonth = (now.getMonth() + 1).toString().padStart(2, '0'); // getMonth() restituisce 0-11, quindi aggiungiamo 1
@@ -60,6 +215,7 @@
 	let currentHour = now.getHours().toString().padStart(2, '0');
 	//let currentMinute = now.getMinutes();
 
+	// form
 	let title = $state('');
 	let prodId = $state('');
 	let descrLong = $state('');
@@ -87,9 +243,10 @@
 	// filter Data
 	let sortDirection = $state('asc');
 	let sortColumn = $state('createdAt');
-	let currentDialog = $state('');
-	let currentModal = $state('');
 
+	// modal
+	let currentModal = $state('');
+	let currentObj: any = $state();
 	let openModal = $state(false);
 	let postAction = $state('?/');
 	let modalTitle = $state('');
@@ -229,6 +386,7 @@
 		postAction = '?/';
 		mode = 'ONLINE';
 		provinceArray = [];
+		showCheckboxes = false;
 	};
 
 	const refresh = () => {
@@ -298,7 +456,7 @@
 
 	const onClickModal = (type: string, item: any) => {
 		currentModal = type;
-		currentDialog = type;
+		currentObj = item;
 		openModal = true;
 		if (type == 'new') {
 			postAction = `?/new`;
@@ -345,22 +503,21 @@
 		}
 		if (type == 'subscribers') {
 			modalTitle = 'Lista iscritti';
-			subscribers = item.listSubscribers;
-			certificationStatus = item.certificationStatus;
+			subscribers = currentObj.listSubscribers;
+			certificationStatus = currentObj.certificationStatus;
+			postAction = `?/createCertification`;
 		}
 	};
 
 	const onCloseModal = () => {
 		openModal = false;
 		currentModal = '';
-		currentDialog = '';
 		resetFields();
 	};
 
 	const onCloseModify = () => {
 		openModal = false;
 		currentModal = '';
-		currentDialog = '';
 		refresh();
 	};
 
@@ -534,7 +691,7 @@
 			use:enhance={formSubmit}
 			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 		>
-			{#if currentDialog == 'modify'}
+			{#if currentModal == 'modify'}
 				<section class="col-span-4 md:col-span-4">
 					<label for="prodId" class="form-label">
 						<p class="font-bold mb-2">ID codice</p>
@@ -645,7 +802,7 @@
 						bind:value={startYear}
 						required
 					>
-						{#if currentDialog == 'modify'}
+						{#if currentModal == 'modify'}
 							<option value={startYear}>{startYear}</option>
 						{:else}
 							<option value="" disabled>Anno</option>
@@ -914,9 +1071,9 @@
 					{/if}
 
 					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">
-						{#if currentDialog == 'new'}
+						{#if currentModal == 'new'}
 							Registra
-						{:else if currentDialog == 'modify'}
+						{:else if currentModal == 'modify'}
 							Modifica
 						{/if}
 					</button>
@@ -1042,38 +1199,44 @@
 			{/each}
 		</div> -->
 		<div class="p-4 lg:p-8">
+			{#if showCheckboxes}
+				<form method="POST" action={postAction} use:enhance={formSubmit} class="mb-8 p-6 rounded-box shadow-lg bg-base-100">
+					<h2 class="text-lg font-semibold mb-2 text-primary">Dettagli Attestato</h2>
+
+					<div class="form-control mb-4">
+						<label for="certificationPlace" class="label">
+							<span class="label-text">Luogo</span>
+						</label>
+						<input type="text" id="certificationPlace" name="certificationPlace" placeholder="Scrivere luogo" class="input input-bordered w-full" />
+					</div>
+
+					<div class="form-control mb-6">
+						<label for="certificationDate" class="label">
+							<span class="label-text">Data</span>
+						</label>
+						<input type="date" id="certificationDate" name="certificationDate" class="input input-bordered w-full" />
+					</div>
+
+					<input type="hidden" name="selectedSubscriber" value={JSON.stringify(selectedSubscriber)} />
+					<input type="hidden" name="prodId" value={currentObj.prodId} />
+					<!-- <input type="hidden" name="layoutId" value={currentObj?.layoutView?.layoutId} /> -->
+
+					<button type="submit" class="btn btn-success" disabled={selectedSubscriber.length === 0}> Crea Attestati </button>
+					{#if selectedSubscriber.length === 0}
+						<p class="text-sm text-error mt-2">
+							<span class="label-text">Selezionare almeno un partecipante</span>
+						</p>
+					{/if}
+				</form>
+			{/if}
 			<div class="mb-6">
 				<button class="btn" class:btn-error={showCheckboxes} onclick={toggleCheckboxes} type="button" disabled={certificationStatus}>
 					{showCheckboxes ? 'Annulla' : 'Genera Attestati'}
 				</button>
 			</div>
 
-			{#if showCheckboxes}
-				<form method="POST" action={postAction} use:enhance={formSubmit} class="mb-8 p-6 rounded-box shadow-lg bg-base-100">
-					<h2 class="text-lg font-semibold mb-2 text-primary">Dettagli Attestato</h2>
-
-					<div class="form-control mb-4">
-						<label for="location" class="label">
-							<span class="label-text">Location</span>
-						</label>
-						<input type="text" id="location" name="location" placeholder="Enter location" class="input input-bordered w-full" />
-					</div>
-
-					<div class="form-control mb-6">
-						<label for="date" class="label">
-							<span class="label-text">Date</span>
-						</label>
-						<input type="date" id="date" name="date" class="input input-bordered w-full" />
-					</div>
-
-					<input type="hidden" name="selectedSubscriberIds" value={JSON.stringify(selectedSubscriberIds)} />
-
-					<button type="submit" class="btn btn-success" disabled={selectedSubscriberIds.length === 0}> Crea Attestati </button>
-				</form>
-			{/if}
-
 			<div class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8">
-				{#each subscribers || [] as item (item.userId)}
+				{#each subscribers || [] as item}
 					<div
 						class="col-span-4 p-4 rounded-box shadow-md bg-base-200
            flex flex-col gap-y-2"
@@ -1084,8 +1247,8 @@
 									<input
 										type="checkbox"
 										class="checkbox checkbox-primary"
-										checked={selectedSubscriberIds.includes(item.userId)}
-										onchange={(e) => handleCheckboxChange(item.userId, e.currentTarget.checked)}
+										checked={selectedSubscriber.includes(item)}
+										onchange={(e) => handleCheckboxChange(item, e.currentTarget.checked)}
 									/>
 									<span class="font-bold text-lg text-primary">{item.name} {item.surname}</span>
 								</label>
@@ -1107,13 +1270,14 @@
 							</div>
 
 							{#if item.certificationStatus}
-								<button
+								<button class="btn btn-sm btn-outline btn-info shrink-0" onclick={() => createPDFcert(currentObj, item)}> Download Attestato </button>
+								<!-- <button
 									class="btn btn-sm btn-outline btn-info shrink-0"
-									onclick={() => 'downloadCertificate(item.certificateUrl)'}
+									onclick={() => createPDFcert(item)}
 									disabled={!item.certificateUrl}
 								>
 									Download Attestato
-								</button>
+								</button> -->
 							{/if}
 						</div>
 					</div>

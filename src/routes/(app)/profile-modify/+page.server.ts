@@ -8,6 +8,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
 
 	let getOrder = [];
+	let getCourse = [];
 	// console.log('locals.user.userId', locals.user.userId);
 
 	const resFetch = fetch(`${BASE_URL}/api/mongo/find`, {
@@ -17,6 +18,41 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			schema: 'order', //product | order | user | layout | discount
 			query: { userId: locals.user.userId }, //IF USE Products.model -> types: course / product / membership / event,
 			projection: { _id: 0 },  // 0: exclude | 1: include
+			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+			limit: 1000,
+			skip: 0
+		}),
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	});
+
+	const courseFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+		method: 'POST',
+		body: JSON.stringify({
+			apiKey: APIKEY,
+			schema: 'product', //product | order | user | layout | discount
+			//query: {type: 'course', query: { type: 'course', prodId: { $in: array } } }, //IF USE Products.model -> types: course / product / membership / event,
+			query: {
+				listSubscribers: {
+					$elemMatch: {
+						userId: locals.user.userId,
+						certificationStatus: true
+					}
+				}
+			},
+			projection: {
+				listSubscribers: {
+					$elemMatch: {
+						userId: locals.user.userId,
+						certificationStatus: true
+					}
+				},
+				_id: 0,
+				prodId: 1,
+				layoutId: 1,
+				layoutView: 1
+			}, // 0: exclude | 1: include
 			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
 			limit: 1000,
 			skip: 0
@@ -40,6 +76,15 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			orderDate: obj.orderDate.substring(0, 10),
 			totalCart: obj.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(2)
 		}));
+
+		const courseRes = await courseFetch;
+		if (!courseRes.ok) {
+			console.error('orders fetch error:', courseRes.status, await courseRes.text());
+			return fail(400, { action: 'page load', success: false, message: await courseRes.text() });
+		}
+
+		getCourse = await courseRes.json();
+
 	} catch (error) {
 		console.log('orders fetch error:', error);
 	}
@@ -54,6 +99,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	return {
 		userData: user,
 		orderData: getOrder,
+		courseData: getCourse,
 		auth: locals.auth
 	};
 }
