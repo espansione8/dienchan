@@ -181,9 +181,9 @@
 	};
 
 	const formSubmit = () => {
+		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
 			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
-			loading = true;
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
 				const { action, message, payload } = result.data; // { action, success, message, payload }
@@ -224,7 +224,7 @@
 	</style>
 </noscript>
 
-{#if !getTable}
+{#if !getTable || loading}
 	<Loader />
 {:else}
 	<div class="overflow-x-auto mt-5 px-4 mb-5">
@@ -239,17 +239,11 @@
 						<XCircle class="mt-1" /> Reset Filtro
 					</button>
 				{:else}
-					<button
-						class="btn btn-info rounded-md text-white"
-						onclick={() => onClickModal('filter', null)}
-					>
+					<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('filter', null)}>
 						<Funnel class="mt-1" /> Filtra
 					</button>
 				{/if}
-				<button
-					class="btn btn-info rounded-md text-white"
-					onclick={() => onClickModal('new', null)}
-				>
+				<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('new', null)}>
 					<CopyPlus /> Nuovo
 				</button>
 				<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate()}>
@@ -287,13 +281,9 @@
 									<input type="hidden" name="status" value={row.status} />
 									<span class="flex items-center">
 										{#if row.status == 'enabled'}
-											<button type="submit" class="btn btn-ghost btn-sm font-semibold"
-												><ToggleRight color="darkgreen" />
-											</button>
+											<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleRight color="darkgreen" /> </button>
 										{:else}
-											<button type="submit" class="btn btn-ghost btn-sm font-semibold"
-												><ToggleLeft color="darkred" /></button
-											>
+											<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleLeft color="darkred" /></button>
 										{/if}
 									</span>
 								</div>
@@ -316,23 +306,10 @@
 												class="object-cover rounded-md max-w-36 max-h-36 h-auto"
 											/>
 										</figure>
-										<form
-											method="POST"
-											action={`?/delProdPic`}
-											use:enhance={formSubmit}
-											class="ml-4 flex-shrink-0"
-										>
+										<form method="POST" action={`?/delProdPic`} use:enhance={formSubmit} class="ml-4 flex-shrink-0">
 											<input type="hidden" name="layoutId" value={row.layoutId} />
-											<input
-												type="hidden"
-												name="fileName"
-												value={getFileNameFromPath(row.urlPic)}
-											/>
-											<button
-												class="btn btn-sm btn-error rounded-lg border-2"
-												type="submit"
-												aria-label="Delete image"
-											>
+											<input type="hidden" name="fileName" value={getFileNameFromPath(row.urlPic)} />
+											<button class="btn btn-sm btn-error rounded-lg border-2" type="submit" aria-label="Delete image">
 												<Trash2 size="24" />
 											</button>
 										</form>
@@ -342,18 +319,10 @@
 								<!-- <Image
 	layout="constrained"
 	aspectRatio={1} class="w-3xs" src="/images/no_img.jpg" alt="no pic" /> -->
-								<form
-									action={`?/setProdPic`}
-									method="POST"
-									enctype="multipart/form-data"
-									use:enhance={formSubmit}
-									class="card-body max-w-48"
-								>
+								<form action={`?/setProdPic`} method="POST" enctype="multipart/form-data" use:enhance={formSubmit} class="card-body max-w-48">
 									<input type="hidden" name="layoutId" value={row.layoutId} />
 									<DragDrop />
-									<button class="btn btn-sm btn-info rounded-lg border-2" type="submit">
-										Aggiungi foto
-									</button>
+									<button class="btn btn-sm btn-info rounded-lg border-2" type="submit"> Aggiungi foto </button>
 								</form>
 							{/if}
 						</td>
@@ -373,9 +342,7 @@
 								class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:bg-gray-300 hover:text-gray-800"
 								><Settings />
 							</button>
-							<button class="btn btn-error btn-sm" onclick={() => onClickModal('delete', row)}
-								><Trash2 /></button
-							>
+							<button class="btn btn-error btn-sm" onclick={() => onClickModal('delete', row)}><Trash2 /></button>
 						</td>
 					</tr>
 				{/each}
@@ -386,9 +353,7 @@
 
 {#if currentModal == 'new' || currentModal == 'modify'}
 	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-4xl">
-		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{/if}
@@ -424,13 +389,7 @@
 				</label>
 				<div class="join join-horizontal w-full">
 					<button class="join-item bg-gray-300 px-3"><Pen /></button>
-					<textarea
-						class="textarea textarea-bordered h-24 join-item w-full"
-						id="title"
-						name="title"
-						placeholder="Titolo"
-						bind:value={title}
-					>
+					<textarea class="textarea textarea-bordered h-24 join-item w-full" id="title" name="title" placeholder="Titolo" bind:value={title}>
 					</textarea>
 				</div>
 			</section>
@@ -441,49 +400,12 @@
 				</label>
 				<div class="join join-horizontal w-full">
 					<button class="join-item bg-gray-300 px-3"><StretchHorizontal /></button>
-					<textarea
-						class="textarea textarea-bordered h-24 join-item w-full"
-						id="descr"
-						name="descr"
-						placeholder="Descrizione"
-						bind:value={descr}
-					>
+					<textarea class="textarea textarea-bordered h-24 join-item w-full" id="descr" name="descr" placeholder="Descrizione" bind:value={descr}>
 					</textarea>
 				</div>
 			</section>
-			<!-- Value -->
-			<section class="col-span-2 md:col-span-2">
-				<label for="price" class="form-label">
-					<p class="font-bold mb-2">Prezzo</p>
-				</label>
-				<div class="join join-horizontal w-full">
-					<button class="join-item bg-gray-300 px-3"><Calculator /></button>
-					<input
-						class="input input-bordered join-item w-full"
-						id="price"
-						type="number"
-						name="price"
-						bind:value={price}
-					/>
-				</div>
-			</section>
 
-			<!-- <section class="col-span-4">
-					<label for="bundleProducts" class="form-label">
-						<p class="font-bold mb-2">Correlati</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
-						<textarea
-							class="textarea textarea-bordered h-24 join-item w-full"
-							id="correlati"
-							name="bundleProducts"
-							placeholder="Correlati"
-							bind:value={bundleProducts}
-						/>
-					</div>
-				</section> -->
-
+			<!-- Bundle -->
 			<section class="col-span-4 md:col-span-2">
 				<label for="bundle" class="form-label">
 					<p class="font-bold mb-2">Prodotti Kit corso</p>
@@ -492,12 +414,7 @@
 					<button class="join-item bg-gray-300 px-3"><FileBox /></button>
 					<!-- <input type="hidden" bind:value={bundleProducts} /> -->
 					<input type="hidden" name="bundleProducts" value={JSON.stringify(bundleProducts)} />
-					<select
-						class="select select-bordered w-full rounded-md rounded-l-none"
-						id="bundle"
-						name="bundle"
-						bind:value={singleProduct}
-					>
+					<select class="select select-bordered w-full rounded-md rounded-l-none" id="bundle" name="bundle" bind:value={singleProduct}>
 						<option disabled value="">Scegli</option>
 						{#each getProducts as prod}
 							<option value={prod}>
@@ -505,36 +422,34 @@
 							</option>
 						{/each}
 					</select>
-					<button
-						type="button"
-						class="join-item btn btn-primary"
-						onclick={() => addItem(singleProduct, 'bundleKit')}
-					>
-						Aggiungi
-					</button>
+					<button type="button" class="join-item btn btn-primary" onclick={() => addItem(singleProduct, 'bundleKit')}> Aggiungi </button>
 				</div>
 
 				{#if bundleProducts.length > 0}
 					{#each bundleProducts as prod, i}
 						<div class="btn btn-primary btn-sm m-1 rounded-md">
 							{prod.title}
-							<button
-								type="button"
-								class="badge badge-error ml-2"
-								onclick={() => removeItem(i, 'bundleKit')}
-							>
-								X
-							</button>
+							<button type="button" class="badge badge-error ml-2" onclick={() => removeItem(i, 'bundleKit')}> X </button>
 						</div>
 					{/each}
 				{/if}
 			</section>
+
+			<!-- Value -->
+			<section class="col-span-2 md:col-span-2">
+				<label for="price" class="form-label">
+					<p class="font-bold mb-2">Prezzo</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-gray-300 px-3"><Calculator /></button>
+					<input class="input input-bordered join-item w-full" id="price" type="number" name="price" bind:value={price} />
+				</div>
+			</section>
+
 			<!-- Action -->
 			<div class="col-span-4 mt-5 flex justify-center">
 				<div class="bg-gray-50 flex justify-center">
-					<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}>
-						Annulla
-					</button>
+					<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
 					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">
 						{#if currentModal == 'new'}
 							Registra
@@ -550,9 +465,7 @@
 
 {#if currentModal == 'delete'}
 	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-2xl">
-		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{/if}
@@ -571,9 +484,7 @@
 
 {#if currentModal == 'filter'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{/if}
@@ -621,8 +532,7 @@
 					/>
 				</div>
 				<div>
-					<label for="descr" class="block text-sm font-medium text-gray-700 mb-1">Descrizione</label
-					>
+					<label for="descr" class="block text-sm font-medium text-gray-700 mb-1">Descrizione</label>
 					<input
 						type="text"
 						id="descr"
@@ -646,9 +556,7 @@
 			</div>
 
 			<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
-				<button type="button" class="btn btn-error btn-sm hover:bg-red-300" onclick={onCloseModal}>
-					Annulla
-				</button>
+				<button type="button" class="btn btn-error btn-sm hover:bg-red-300" onclick={onCloseModal}> Annulla </button>
 				<button type="submit" class="btn btn-success btn-sm hover:bg-green-400"> Filtra </button>
 			</div>
 		</form>

@@ -11,7 +11,7 @@
 	import DragDrop from '$lib/components/DragDrop.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import Loader from '$lib/components/Loader.svelte';
-	import { province, country_list } from '$lib/stores/arrays.js';
+	import { province, country_list, pdfValue, layoutArray } from '$lib/stores/arrays.js';
 	import { imgCheck, formatDate } from '$lib/tools/tools';
 	import {
 		HandCoins,
@@ -118,48 +118,6 @@
 	let trainingHours = $state<number>(0);
 	let setTrainingFile = $state<File | null>(null);
 
-	let pdfLayout: any = $state();
-
-	const pdfBase = {
-		layoutId: 'XW7LYV2LG2BU',
-		background: `${PUBLIC_BASE_URL}/training/base.jpg`,
-		pageMargins: [20, 80, 20, 0], // [left, top, right, bottom]
-		separatorMargin1: [0, 385, 0, 0], // [left, top, right, bottom]
-		separatorMargin2: [0, 0, 0, 0], // [left, top, right, bottom]
-		placeCenterWidth: 370,
-		formatoreWidth: 540,
-		centerWidth: 0,
-		dateWidth: 200
-	};
-	const pdfAvanzato = {
-		layoutId: '794792843',
-		background: `${PUBLIC_BASE_URL}/training/avanzato.jpg`,
-		pageMargins: [20, 240, 20, 0], // [left, top, right, bottom]
-		separatorMargin1: [0, 235, 0, 0], // [left, top, right, bottom]
-		separatorMargin2: [0, 0, 0, 0], // [left, top, right, bottom]
-		placeCenterWidth: 365,
-		formatoreWidth: 540,
-		centerWidth: 0,
-		dateWidth: 200
-	};
-	const pdfSoccorso = {
-		layoutId: '3GLAAQRJF2A9',
-		background: `${PUBLIC_BASE_URL}/training/Pronto_Soccorso.jpg`,
-		pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
-		separatorMargin1: [0, 95, 0, 0],
-		separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
-		placeCenterWidth: 260,
-		formatoreWidth: 390,
-		centerWidth: 0,
-		dateWidth: 320
-	};
-
-	const layoutArray = {
-		base: 'XW7LYV2LG2BU',
-		avanzato: '794792843',
-		soccorso: '3GLAAQRJF2A9'
-	};
-
 	const createPDFcert = (item, user) => {
 		if (!item?.layoutView?.layoutId || !user?.name || !user?.surname || !user?.certificationDate) {
 			notification.error('Dati mancanti per generare il certificato');
@@ -170,15 +128,37 @@
 		// if (layoutId === 'XW7LYV2LG2BU') pdfLayout = pdfBase;
 		// if (layoutId === '794792843') pdfLayout = pdfAvanzato;
 		// if (layoutId === '3GLAAQRJF2A9') pdfLayout = pdfSoccorso;
+		let pdfLayout;
 		switch (layoutId) {
-			case layoutArray.base:
-				pdfLayout = pdfBase;
+			case $layoutArray.base:
+				pdfLayout = $pdfValue.base;
 				break;
-			case layoutArray.avanzato:
-				pdfLayout = pdfAvanzato;
+			case $layoutArray.avanzato:
+				pdfLayout = $pdfValue.avanzato;
 				break;
-			case layoutArray.soccorso:
-				pdfLayout = pdfSoccorso;
+			case $layoutArray.soccorso:
+				pdfLayout = $pdfValue.soccorso;
+				break;
+			case $layoutArray.difese:
+				pdfLayout = $pdfValue.difese;
+				break;
+			case $layoutArray.occhiVista:
+				pdfLayout = $pdfValue.occhiVista;
+				break;
+			case $layoutArray.occhiVistaCorso:
+				pdfLayout = $pdfValue.occhiVistaCorso;
+				break;
+			case $layoutArray.bellezzaViso:
+				pdfLayout = $pdfValue.bellezzaViso;
+				break;
+			case $layoutArray.bellezzaPancia:
+				pdfLayout = $pdfValue.bellezzaPancia;
+				break;
+			case $layoutArray.dimagriamoInsieme:
+				pdfLayout = $pdfValue.dimagriamoInsieme;
+				break;
+			case $layoutArray.respirazione:
+				pdfLayout = $pdfValue.respirazione;
 				break;
 			default:
 				notification.error('Layout certificato non riconosciuto');
@@ -209,7 +189,7 @@
 				{
 					text: `${user.name} ${user.surname}`,
 					font: 'Albatros',
-					style: ['header', { color: '#333333' }, { fontSize: 42 }, { alignment: 'center' }]
+					style: ['header', { color: '#333333' }, { fontSize: 55 }, { alignment: 'center' }]
 				},
 				{
 					text: '',

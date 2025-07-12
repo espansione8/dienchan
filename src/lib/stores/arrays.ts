@@ -1,3 +1,4 @@
+import { PUBLIC_BASE_URL } from '$env/static/public';
 import { readable, writable } from 'svelte/store';
 
 export const sidebarData = writable();
@@ -1874,3 +1875,128 @@ export const membershipKeysToDelete = readable([
     'createdAt'
 ])
 
+export const layoutArray = readable({
+    base: 'XW7LYV2LG2BU',
+    avanzato: '794792843',
+    soccorso: '3GLAAQRJF2A9',
+    difese: '24PNXXEGM3YC',
+    occhiVista: '1BVVLV57EPUG',
+    occhiVistaCorso: 'L6DEQ457PP44',
+    bellezzaViso: '71XA84LX1AJ6',
+    bellezzaPancia: 'QZTBKRVHEQYF',
+    dimagriamoInsieme: '1PT84785XL3D',
+    respirazione: 'D1R6C1TN1VA3'
+});
+
+export const pdfValue = readable({
+    base: {
+        layoutId: 'XW7LYV2LG2BU',
+        background: `${PUBLIC_BASE_URL}/training/base.jpg`,
+        pageMargins: [20, 67, 20, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 385, 0, 0], // [left, top, right, bottom]
+        separatorMargin2: [0, 0, 0, 0], // [left, top, right, bottom]
+        placeCenterWidth: 375,
+        formatoreWidth: 540,
+        centerWidth: 0,
+        dateWidth: 200
+    },
+    avanzato: {
+        layoutId: '794792843',
+        background: `${PUBLIC_BASE_URL}/training/avanzato.jpg`,
+        pageMargins: [20, 240, 20, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 223, 0, 0], // [left, top, right, bottom]
+        separatorMargin2: [0, 0, 0, 0], // [left, top, right, bottom]
+        placeCenterWidth: 365,
+        formatoreWidth: 540,
+        centerWidth: 0,
+        dateWidth: 200
+    },
+    soccorso: {
+        layoutId: '3GLAAQRJF2A9',
+        background: `${PUBLIC_BASE_URL}/training/Pronto_Soccorso.jpg`,
+        pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 95, 0, 0],
+        separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+        placeCenterWidth: 260,
+        formatoreWidth: 390,
+        centerWidth: 0,
+        dateWidth: 320
+    },
+    difese: {
+        layoutId: '24PNXXEGM3YC',
+        background: `${PUBLIC_BASE_URL}/training/Difese_Immunitarie.jpg`,
+        pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 95, 0, 0],
+        separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+        placeCenterWidth: 260,
+        formatoreWidth: 390,
+        centerWidth: 0,
+        dateWidth: 320
+    },
+    occhiVista: {
+        layoutId: '1BVVLV57EPUG',
+        background: `${PUBLIC_BASE_URL}/training/Occhi_Vista.jpg`,
+        pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 95, 0, 0],
+        separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+        placeCenterWidth: 260,
+        formatoreWidth: 390,
+        centerWidth: 0,
+        dateWidth: 320
+    },
+    occhiVistaCorso: {
+        layoutId: 'L6DEQ457PP44',
+        background: `${PUBLIC_BASE_URL}/training/occhi_vista_corso.jpg`,
+        pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 95, 0, 0],
+        separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+        placeCenterWidth: 260,
+        formatoreWidth: 390,
+        centerWidth: 0,
+        dateWidth: 320
+    },
+    bellezzaViso: {
+        layoutId: '71XA84LX1AJ6',
+        background: `${PUBLIC_BASE_URL}/training/Bellezza_Viso.jpg`,
+        pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 95, 0, 0],
+        separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+        placeCenterWidth: 260,
+        formatoreWidth: 390,
+        centerWidth: 0,
+        dateWidth: 320
+    },
+    bellezzaPancia: {
+        layoutId: 'QZTBKRVHEQYF',
+        background: `${PUBLIC_BASE_URL}/training/Bellezza_Pancia.jpg`,
+        pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 95, 0, 0],
+        separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+        placeCenterWidth: 260,
+        formatoreWidth: 390,
+        centerWidth: 0,
+        dateWidth: 320
+    },
+    dimagriamoInsieme: {
+        layoutId: '1PT84785XL3D', // MISSING CERTIFICATION
+        background: `${PUBLIC_BASE_URL}/training/MISSING CERTIFICATION.jpg`,
+        pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 95, 0, 0],
+        separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+        placeCenterWidth: 260,
+        formatoreWidth: 390,
+        centerWidth: 0,
+        dateWidth: 320
+    },
+    respirazione: {
+        layoutId: 'D1R6C1TN1VA3', // MISSING CERTIFICATION
+        background: `${PUBLIC_BASE_URL}/training/MISSING CERTIFICATION.jpg`,
+        pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 95, 0, 0],
+        separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+        placeCenterWidth: 260,
+        formatoreWidth: 390,
+        centerWidth: 0,
+        dateWidth: 320
+    },
+})

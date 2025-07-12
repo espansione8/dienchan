@@ -5,7 +5,7 @@
 	import Papa from 'papaparse';
 	import { enhance } from '$app/forms';
 	import { notification } from '$lib/stores/notifications';
-	import { province, months, days, hours, minutes } from '$lib/stores/arrays';
+	import { province, months, days, hours, minutes, pdfValue, layoutArray } from '$lib/stores/arrays';
 	import Modal from '$lib/components/Modal.svelte';
 	import { courseKeysToDelete } from '$lib/stores/arrays';
 	import Loader from '$lib/components/Loader.svelte';
@@ -69,49 +69,31 @@
 		}
 	};
 
-	let pdfLayout = $state();
-
-	const pdfBase = {
-		// XW7LYV2LG2BU
-		background: `${PUBLIC_BASE_URL}/training/base.jpg`,
-		pageMargins: [20, 80, 20, 0], // [left, top, right, bottom]
-		separatorMargin1: [0, 385, 0, 0], // [left, top, right, bottom]
-		separatorMargin2: [0, 0, 0, 0], // [left, top, right, bottom]
-		placeCenterWidth: 370,
-		formatoreWidth: 540,
-		centerWidth: 0,
-		dateWidth: 200
-	};
-	const pdfAvanzato = {
-		// 794792843
-		background: `${PUBLIC_BASE_URL}/training/avanzato.jpg`,
-		pageMargins: [20, 240, 20, 0], // [left, top, right, bottom]
-		separatorMargin1: [0, 235, 0, 0], // [left, top, right, bottom]
-		separatorMargin2: [0, 0, 0, 0], // [left, top, right, bottom]
-		placeCenterWidth: 365,
-		formatoreWidth: 540,
-		centerWidth: 0,
-		dateWidth: 200
-	};
-
-	const pdfSoccorso = {
-		// 3GLAAQRJF2A9
-		background: `${PUBLIC_BASE_URL}/training/Pronto_Soccorso.jpg`,
-		pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
-		separatorMargin1: [0, 95, 0, 0],
-		separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
-		placeCenterWidth: 260,
-		formatoreWidth: 390,
-		centerWidth: 0,
-		dateWidth: 320
-	};
-
 	const createPDFcert = (item, user) => {
-		//console.log('item', item.layoutView.layoutId);
+		if (!item?.layoutView?.layoutId || !user?.name || !user?.surname || !user?.certificationDate) {
+			notification.error('Dati mancanti per generare il certificato');
+			return;
+		}
+		//console.log('item', item);
 		const layoutId = item.layoutView.layoutId;
-		if (layoutId === 'XW7LYV2LG2BU') pdfLayout = pdfBase;
-		if (layoutId === '794792843') pdfLayout = pdfAvanzato;
-		if (layoutId === '3GLAAQRJF2A9') pdfLayout = pdfSoccorso;
+		// if (layoutId === 'XW7LYV2LG2BU') pdfLayout = pdfBase;
+		// if (layoutId === '794792843') pdfLayout = pdfAvanzato;
+		// if (layoutId === '3GLAAQRJF2A9') pdfLayout = pdfSoccorso;
+		let pdfLayout;
+		switch (layoutId) {
+			case $layoutArray.base:
+				pdfLayout = $pdfValue.base;
+				break;
+			case $layoutArray.avanzato:
+				pdfLayout = $pdfValue.avanzato;
+				break;
+			case $layoutArray.soccorso:
+				pdfLayout = $pdfValue.soccorso;
+				break;
+			default:
+				notification.error('Layout certificato non riconosciuto');
+				return;
+		}
 
 		const dateObject = new Date(user.certificationDate);
 		const year = dateObject.getFullYear();
@@ -137,7 +119,7 @@
 				{
 					text: `${user.name} ${user.surname}`,
 					font: 'Albatros',
-					style: ['header', { color: '#333333' }, { fontSize: 42 }, { alignment: 'center' }]
+					style: ['header', { color: '#333333' }, { fontSize: 55 }, { alignment: 'center' }]
 				},
 				{
 					text: '',
@@ -522,9 +504,10 @@
 	};
 
 	const formSubmit = () => {
+		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
 			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
-			loading = true;
+
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
 				const { action, message, payload } = result.data; // { action, success, message, payload }
@@ -556,7 +539,7 @@
 	<title>Lista corsi</title>
 </svelte:head>
 
-{#if !getTable}
+{#if !getTable || loading}
 	<Loader />
 {:else}
 	<div class="overflow-x-auto table-zebra mt-5 px-4 mb-5">
