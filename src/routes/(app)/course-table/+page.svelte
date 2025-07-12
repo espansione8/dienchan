@@ -75,22 +75,22 @@
 		// XW7LYV2LG2BU
 		background: `${PUBLIC_BASE_URL}/training/base.jpg`,
 		pageMargins: [20, 80, 20, 0], // [left, top, right, bottom]
-		separatorMargin1: [0, 375, 0, 0], // [left, top, right, bottom]
+		separatorMargin1: [0, 385, 0, 0], // [left, top, right, bottom]
 		separatorMargin2: [0, 0, 0, 0], // [left, top, right, bottom]
-		placeCenterWidth: 320,
+		placeCenterWidth: 370,
 		formatoreWidth: 540,
-		centerWidth: 20,
+		centerWidth: 0,
 		dateWidth: 200
 	};
 	const pdfAvanzato = {
 		// 794792843
 		background: `${PUBLIC_BASE_URL}/training/avanzato.jpg`,
 		pageMargins: [20, 240, 20, 0], // [left, top, right, bottom]
-		separatorMargin1: [0, 200, 0, 0], // [left, top, right, bottom]
+		separatorMargin1: [0, 235, 0, 0], // [left, top, right, bottom]
 		separatorMargin2: [0, 0, 0, 0], // [left, top, right, bottom]
-		placeCenterWidth: 320,
+		placeCenterWidth: 365,
 		formatoreWidth: 540,
-		centerWidth: 20,
+		centerWidth: 0,
 		dateWidth: 200
 	};
 
@@ -148,7 +148,7 @@
 					columns: [
 						{ width: 200, text: '' },
 						{ width: pdfLayout.placeCenterWidth, text: '' },
-						{ width: 200, text: user.certificationPlace, style: [{ color: '#333333' }, { fontSize: 20 }] }
+						{ width: 200, text: user.certificationPlace, style: [{ color: '#333333' }, { fontSize: 20 }, { alignment: 'left' }] }
 					]
 				},
 				{
@@ -1270,7 +1270,9 @@
 							</div>
 
 							{#if item.certificationStatus}
-								<button class="btn btn-sm btn-outline btn-info shrink-0" onclick={() => createPDFcert(currentObj, item)}> Download Attestato </button>
+								<button type="button" class="btn btn-sm btn-outline btn-info shrink-0" onclick={() => createPDFcert(currentObj, item)}>
+									Download Attestato
+								</button>
 								<!-- <button
 									class="btn btn-sm btn-outline btn-info shrink-0"
 									onclick={() => createPDFcert(item)}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { PUBLIC_BASE_URL } from '$env/static/public';
 	import type { ActionResult } from '@sveltejs/kit';
 	import { quintOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
@@ -45,8 +46,24 @@
 		CalendarPlus
 	} from 'lucide-svelte';
 
+	// PDF maker
+	import * as pdfMake from 'pdfmake/build/pdfmake';
+	// PDF Fonts
+	const pdfFonts = {
+		// download default Roboto font from cdnjs.com
+		Roboto: {
+			normal: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Regular.ttf',
+			bold: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Medium.ttf',
+			italics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Italic.ttf',
+			bolditalics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-MediumItalic.ttf'
+		},
+		Albatros: {
+			normal: `${PUBLIC_BASE_URL}/font/albatros.ttf`
+		}
+	};
+
 	const { data } = $props();
-	const { userData, orderData } = $derived(data);
+	const { userData, orderData, courseData } = $derived(data);
 
 	let loading = $state(false);
 
@@ -101,40 +118,172 @@
 	let trainingHours = $state<number>(0);
 	let setTrainingFile = $state<File | null>(null);
 
-	// Certificates
-	let sample = $state({
-		certificates: [
-			{
-				id: 101,
-				name: 'Certificato Corso BASE',
-				issueDate: '2023-11-20',
-				imageUrl: '/uploads/layout/XW7LYV2LG2BU/Corso-Base-Dien-Chan-Riflessologia-Facciale-vietnamita.png', // Replace with a real path if you have one
-				fileUrl: '/certificates/svelte_certificate.pdf' // Replace with a real path if you have one
+	let pdfLayout: any = $state();
+
+	const pdfBase = {
+		layoutId: 'XW7LYV2LG2BU',
+		background: `${PUBLIC_BASE_URL}/training/base.jpg`,
+		pageMargins: [20, 80, 20, 0], // [left, top, right, bottom]
+		separatorMargin1: [0, 385, 0, 0], // [left, top, right, bottom]
+		separatorMargin2: [0, 0, 0, 0], // [left, top, right, bottom]
+		placeCenterWidth: 370,
+		formatoreWidth: 540,
+		centerWidth: 0,
+		dateWidth: 200
+	};
+	const pdfAvanzato = {
+		layoutId: '794792843',
+		background: `${PUBLIC_BASE_URL}/training/avanzato.jpg`,
+		pageMargins: [20, 240, 20, 0], // [left, top, right, bottom]
+		separatorMargin1: [0, 235, 0, 0], // [left, top, right, bottom]
+		separatorMargin2: [0, 0, 0, 0], // [left, top, right, bottom]
+		placeCenterWidth: 365,
+		formatoreWidth: 540,
+		centerWidth: 0,
+		dateWidth: 200
+	};
+	const pdfSoccorso = {
+		layoutId: '3GLAAQRJF2A9',
+		background: `${PUBLIC_BASE_URL}/training/Pronto_Soccorso.jpg`,
+		pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
+		separatorMargin1: [0, 95, 0, 0],
+		separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+		placeCenterWidth: 260,
+		formatoreWidth: 390,
+		centerWidth: 0,
+		dateWidth: 320
+	};
+
+	const layoutArray = {
+		base: 'XW7LYV2LG2BU',
+		avanzato: '794792843',
+		soccorso: '3GLAAQRJF2A9'
+	};
+
+	const createPDFcert = (item, user) => {
+		if (!item?.layoutView?.layoutId || !user?.name || !user?.surname || !user?.certificationDate) {
+			notification.error('Dati mancanti per generare il certificato');
+			return;
+		}
+		//console.log('item', item);
+		const layoutId = item.layoutView.layoutId;
+		// if (layoutId === 'XW7LYV2LG2BU') pdfLayout = pdfBase;
+		// if (layoutId === '794792843') pdfLayout = pdfAvanzato;
+		// if (layoutId === '3GLAAQRJF2A9') pdfLayout = pdfSoccorso;
+		switch (layoutId) {
+			case layoutArray.base:
+				pdfLayout = pdfBase;
+				break;
+			case layoutArray.avanzato:
+				pdfLayout = pdfAvanzato;
+				break;
+			case layoutArray.soccorso:
+				pdfLayout = pdfSoccorso;
+				break;
+			default:
+				notification.error('Layout certificato non riconosciuto');
+				return;
+		}
+
+		const dateObject = new Date(user.certificationDate);
+		const year = dateObject.getFullYear();
+		const month = dateObject.getMonth() + 1; // getMonth() returns 0-11, so add 1 for 1-12
+		const day = dateObject.getDate();
+		const doc = {
+			compress: true,
+			pageSize: 'A4',
+			pageOrientation: 'landscape', // portrait or landscape
+			pageMargins: pdfLayout.pageMargins, // [left, top, right, bottom]
+			background: {
+				image: 'background',
+				width: 841.89, // A4 landscape width in points
+				height: 595.28, // A4 landscape height in points
+				absolutePosition: { x: 0, y: 0 }
 			},
-			{
-				id: 102,
-				name: 'Attestato di Partecipazione Bellezza Viso',
-				issueDate: '2024-02-10',
-				imageUrl: '/uploads/layout/71XA84LX1AJ6/Bellezza-Viso-Dien-Chan-Riflessologia-Facciale-vietnamita.png', // Replace with a real path if you have one
-				fileUrl: '/certificates/tailwind_certificate.pdf' // Replace with a real path if you have one
-			},
-			{
-				id: 103,
-				name: 'Certificato Corso AVANZATO',
-				issueDate: '2023-09-05',
-				imageUrl: '/uploads/layout/794792843/corso_dienchan_avanzato.jpg', // Replace with a real path if you have one
-				fileUrl: '/certificates/mongodb_certificate.pdf' // Replace with a real path if you have one
-			},
-			{
-				id: 104,
-				name: 'Certificato ACCADEMIA',
-				issueDate: '2024-04-22',
-				imageUrl: '/uploads/layout/PYSYPA4QCTH1/12-Massaggi-mattutini-Dien-Chan-Riflessologia-Facciale-vietnamita.png', // Replace with a real path if you have one
-				fileUrl: '/certificates/security_certificate.pdf' // Replace with a real path if you have one
+			// header: {
+			// 	width: 200,
+			// 	image: '/images/cert-header.png',
+			// 	margin: [10, 10]
+			// },
+			content: [
+				{
+					text: `${user.name} ${user.surname}`,
+					font: 'Albatros',
+					style: ['header', { color: '#333333' }, { fontSize: 42 }, { alignment: 'center' }]
+				},
+				{
+					text: '',
+					margin: pdfLayout.separatorMargin1 // [left, top, right, bottom]
+				},
+				{
+					alignment: 'center',
+					columns: [
+						{ width: 200, text: '' },
+						{ width: pdfLayout.placeCenterWidth, text: '' },
+						{ width: 200, text: user.certificationPlace, style: [{ color: '#333333' }, { fontSize: 20 }, { alignment: 'left' }] }
+					]
+				},
+				{
+					text: '',
+					margin: pdfLayout.separatorMargin2 // [left, top, right, bottom]
+				},
+				{
+					alignment: 'center',
+					columns: [
+						{
+							width: pdfLayout.formatoreWidth,
+							text: `${item.name} ${item.surname}`,
+							font: 'Albatros',
+							style: [{ color: '#333333' }, { fontSize: 34 }, { alignment: 'left' }]
+						},
+						{ width: pdfLayout.centerWidth, text: '' },
+						{ width: pdfLayout.dateWidth, text: `${day} / ${month} / ${year}`, style: [{ color: '#333333' }, { fontSize: 24 }] }
+					]
+				}
+			],
+
+			images: {
+				// in browser is supported loading images via url (https or http protocol) (minimal version: 0.1.67)
+				background: pdfLayout.background
 			}
-		]
-		// ... potentially more user data
-	});
+			//images: ['/training/base.jpg'] // DEPRECATED
+		};
+		// DEPRECATED
+		// const fetchImage = (url) => {
+		// 	return fetch(url)
+		// 		.then((response) => response.blob())
+		// 		.then(
+		// 			(blob) =>
+		// 				new Promise((resolve, reject) => {
+		// 					const reader = new FileReader();
+		// 					reader.onloadend = () => resolve(reader.result);
+		// 					reader.onerror = reject;
+		// 					reader.readAsDataURL(blob);
+		// 				})
+		// 		);
+		// };
+
+		// const fetches = [];
+		// doc.images.forEach((src) => {
+		// 	fetches.push(
+		// 		fetchImage(src).then((data) => {
+		// 			doc.images[src] = data;
+		// 		})
+		// 	);
+		// });
+
+		// Promise.all(fetches).then(() => {
+		// 	pdfMake.createPdf(doc, null, pdfFonts).download(`${item.shortDescription}-attestato.pdf`);
+		// });
+
+		try {
+			pdfMake.createPdf(doc, null, pdfFonts).download(`Attestato_${item.layoutView.title}_${user.name}_${user.surname}.pdf`);
+		} catch (error) {
+			console.error('PDF generation failed:', error);
+			notification.error('Errore nella generazione del certificato');
+		}
+	};
+
 	const [send, receive] = crossfade({
 		duration: 300, // Adjust duration as needed
 		easing: quintOut,
@@ -173,15 +322,6 @@
 			expandedOrderId = orderId;
 		}
 	};
-
-	// const formatDate = (dateString: string) => {
-	// 	const date = new Date(dateString);
-	// 	return new Intl.DateTimeFormat('it-IT', {
-	// 		day: '2-digit',
-	// 		month: '2-digit',
-	// 		year: 'numeric'
-	// 	}).format(date);
-	// };
 
 	const resetFields = () => {
 		closedInput = true;
@@ -1333,6 +1473,7 @@
 										{#each [...(userData?.trainingHistory || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) as entry (entry.date)}
 											<tr class="hover" in:receive={{ key: entry.date }} out:send={{ key: entry.date }} animate:flip={{ duration: 300 }}>
 												<td>{formatDate(entry.date)}</td>
+												<!-- <td>{new Date(entry.date).toLocaleDateString()}</td> -->
 												<td>{entry.description}</td>
 												<td>{entry.hours}</td>
 												<td>
@@ -1365,24 +1506,30 @@
 				{:else if activeTab === 'certificates'}
 					<div class="card bg-base-200 shadow-xl p-6">
 						<h2 class="text-2xl font-bold mb-4">I Miei Certificati</h2>
-						{#if sample.certificates && sample.certificates.length > 0}
+						{#if courseData.length > 0}
 							<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-								{#each sample.certificates as certificate (certificate.id)}
+								{#each courseData as certificate (certificate.prodId)}
 									<div class="card card-compact bg-base-200 shadow-xl image-full">
 										<figure>
 											<Image
-												src={certificate.imageUrl || '/images/placeholder.jpg'}
-												alt={certificate.name}
+												src={certificate.layoutView.urlPic || '/images/placeholder.jpg'}
+												alt={certificate.layoutView.title}
 												class="w-full h-48 object-cover"
 												width={250}
 												height={250}
 											/>
 										</figure>
 										<div class="card-body justify-end">
-											<h3 class="card-title text-white">{certificate.name}</h3>
-											<p class="text-gray-200 text-sm">Rilasciato il: {new Date(certificate.issueDate).toLocaleDateString()}</p>
+											<h3 class="card-title text-white">{certificate.layoutView.title}</h3>
+											<p class="text-gray-200 text-sm">
+												Rilasciato il: {new Date(certificate.listSubscribers[0].certificationDate).toLocaleDateString()}
+											</p>
 											<div class="card-actions justify-end">
-												<button type="button" class="btn btn-primary btn-sm flex items-center gap-1">
+												<button
+													type="button"
+													class="btn btn-primary btn-sm flex items-center gap-1"
+													onclick={() => createPDFcert(certificate, certificate.listSubscribers[0])}
+												>
 													<FileText size={16} /> Scarica
 												</button>
 											</div>

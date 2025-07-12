@@ -48,10 +48,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 						certificationStatus: true
 					}
 				},
-				_id: 0,
-				prodId: 1,
-				layoutId: 1,
-				layoutView: 1
+				_id: 0, prodId: 1, layoutId: 1, layoutView: 1, name: 1, surname: 1
 			}, // 0: exclude | 1: include
 			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
 			limit: 1000,

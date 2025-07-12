@@ -40,11 +40,15 @@ export const imgCheck = {
 // RETURN FILENAME
 // imgCheck.fileName(row.uploadfiles, 'product-primary'
 
-export const formatDate = (dateString: string) => {
+export const formatDate = (dateString: string | Date) => {
+    // 1 liner 	<td>{new Date(dateString).toLocaleDateString()}</td>
+    /////
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('it-IT', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    }).format(date);
+    return date.toLocaleDateString()
+    //// OLD
+    // return new Intl.DateTimeFormat('it-IT', {
+    //     day: '2-digit',
+    //     month: '2-digit',
+    //     year: 'numeric'
+    // }).format(date);
 };
