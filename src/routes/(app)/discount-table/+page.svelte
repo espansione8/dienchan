@@ -112,6 +112,7 @@
 		refDiscount = 0;
 		refPoints = 0;
 		user = '';
+		selectedId = '';
 		// prodId = '';
 		// layoutId = '';
 		// membershipLevel = '';
@@ -225,17 +226,11 @@
 						<XCircle class="mt-1" /> Reset Filtro
 					</button>
 				{:else}
-					<button
-						class="btn btn-info rounded-md text-white"
-						onclick={() => onClickModal('filter', null)}
-					>
+					<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('filter', null)}>
 						<Funnel class="mt-1" /> Filtra
 					</button>
 				{/if}
-				<button
-					class="btn btn-info rounded-md text-white"
-					onclick={() => onClickModal('new', null)}
-				>
+				<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('new', null)}>
 					<CopyPlus /> Nuovo
 				</button>
 				<button class="btn btn-info text-white w-full sm:w-auto" onclick={csvCreate}>
@@ -269,13 +264,9 @@
 								<input type="hidden" name="status" value={row.status} />
 								<span class="flex items-center">
 									{#if row.status == 'enabled'}
-										<button type="submit" class="btn btn-ghost btn-sm font-semibold"
-											><ToggleRight color="darkgreen" />
-										</button>
+										<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleRight color="darkgreen" /> </button>
 									{:else}
-										<button type="submit" class="btn btn-ghost btn-sm font-semibold"
-											><ToggleLeft color="darkred" /></button
-										>
+										<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleLeft color="darkred" /></button>
 									{/if}
 								</span>
 							</form>
@@ -295,9 +286,7 @@
 								class="btn btn-sm bg-gray-200 btn-neutral rounded-md text-gray-700 hover:bg-gray-300 hover:text-gray-800"
 								><Settings />
 							</button>
-							<button class="btn btn-error btn-sm" onclick={() => onClickModal('delete', row)}
-								><Trash2 /></button
-							>
+							<button class="btn btn-error btn-sm" onclick={() => onClickModal('delete', row)}><Trash2 /></button>
 						</td>
 					</tr>
 				{/each}
@@ -309,20 +298,13 @@
 {#if currentModal == 'new'}
 	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-2xl">
 		<!-- <Modal isOpen={openModal} header={modalTitle} cssClass="max-w-4xl"> -->
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		<div class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative">
 			{#if loading}
 				<Loader />
 			{/if}
 			{#if typeDiscount === 'percent' || typeDiscount === 'amount'}
-				<form
-					method="POST"
-					action={postAction}
-					use:enhance={formSubmit}
-					class="grid grid-cols-2 bg-base-100 grid-rows-[min-content] gap-x-4 gap-y-4"
-				>
+				<form method="POST" action={postAction} use:enhance={formSubmit} class="grid grid-cols-2 bg-base-100 grid-rows-[min-content] gap-x-4 gap-y-4">
 					<!-- 
 				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 			 -->
@@ -332,35 +314,15 @@
 						</label>
 						<div class="flex flex-wrap gap-4">
 							<label class="flex items-center cursor-pointer">
-								<input
-									type="radio"
-									name="type"
-									value="percent"
-									class="radio radio-primary mr-2"
-									bind:group={typeDiscount}
-									checked
-								/>
+								<input type="radio" name="type" value="percent" class="radio radio-primary mr-2" bind:group={typeDiscount} checked />
 								<span>Sconto in Percentuale</span>
 							</label>
 							<label class="flex items-center cursor-pointer">
-								<input
-									type="radio"
-									name="type"
-									value="amount"
-									class="radio radio-primary mr-2"
-									bind:group={typeDiscount}
-									checked
-								/>
+								<input type="radio" name="type" value="amount" class="radio radio-primary mr-2" bind:group={typeDiscount} checked />
 								<span>Sconto valore fisso</span>
 							</label>
 							<label class="flex items-center cursor-pointer">
-								<input
-									type="radio"
-									name="type"
-									value="refPoints"
-									class="radio radio-primary mr-2"
-									bind:group={typeDiscount}
-								/>
+								<input type="radio" name="type" value="refPoints" class="radio radio-primary mr-2" bind:group={typeDiscount} />
 								<span>Sconto + Punti</span>
 							</label>
 						</div>
@@ -416,18 +378,8 @@
 							<p class="font-bold mb-2 label">Valore</p>
 						</label>
 						<div class="join join-horizontal rounded-md w-full">
-							<button type="button" class="join-item bg-primary/20 px-3"
-								><Calculator class="text-emerald-500" /></button
-							>
-							<input
-								class="input join-item w-full"
-								id="value"
-								type="number"
-								name="value"
-								aria-label="value"
-								aria-describedby="value"
-								required
-							/>
+							<button type="button" class="join-item bg-primary/20 px-3"><Calculator class="text-emerald-500" /></button>
+							<input class="input join-item w-full" id="value" type="number" name="value" aria-label="value" aria-describedby="value" required />
 						</div>
 					</section>
 
@@ -441,67 +393,42 @@
 							</button>
 							<select
 								name="applicability"
-								bind:value={selectedApplicability}
 								class="select select-bordered w-full max-w-xs"
+								bind:value={selectedApplicability}
+								onchange={() => (selectedId = '')}
 							>
 								<option value="" disabled selected>Seleziona una categoria</option>
-								<option value="email">Email utente</option>
-								<option value="refDiscount">Ref sconto</option>
-								<option value="membershipLevel">Membership</option>
-								<option value="prodId">Prodotto</option>
-								<option value="layoutId">Tipo Corso</option>
+								<option value="email">Sconto Esclusivo Personale</option>
+								<!-- <option value="cart">Sconto totale Carrello</option> -->
+								<option value="membershipLevel">Sconto per Membership</option>
+								<option value="prodId"> Sconto Prodotto specifico</option>
+								<option value="layoutId">Sconto per Tipo Corso</option>
 							</select>
 						</div>
 						<div class="mt-2">
 							{#if selectedApplicability === 'email'}
-								<input
-									type="text"
-									name="selectId"
-									class="input w-full input-bordered"
-									placeholder="Inserisci EMAIL utente"
-									bind:value={selectedId}
-								/>
-							{:else if selectedApplicability === 'refDiscount'}
-								<input
-									type="text"
-									name="selectId"
-									class="input w-full input-bordered"
-									placeholder="Inserisci EMAIL utente"
-									bind:value={selectedId}
-								/>
+								<input type="text" name="selectId" class="input w-full input-bordered" placeholder="Inserisci EMAIL utente" bind:value={selectedId} />
+								<!-- {:else if selectedApplicability === 'cart'}
+								<input type="text" name="selectId" class="input w-full input-bordered" placeholder="Inserisci EMAIL utente" bind:value={selectedId} /> -->
 							{:else if selectedApplicability === 'membershipLevel'}
-								<select
-									name="selectId"
-									bind:value={selectedId}
-									class="select w-full select-bordered"
-								>
+								<select name="selectId" bind:value={selectedId} class="select w-full select-bordered">
 									<option value="">Seleziona il livello associato</option>
 									<option value="Socio inattivo">Socio inattivo</option>
 									<option value="Socio ordinario">Socio ordinario</option>
-									<option value="Socio sostenitore">Socio sostenitore</option>
+									<!-- <option value="Socio sostenitore">Socio sostenitore</option> -->
 									<option value="Socio vitalizio">Socio vitalizio</option>
-									<option value="Socio contributore">Socio contributore</option>
+									<!-- <option value="Socio contributore">Socio contributore</option> -->
 									<option value="Master Dien Chan">Master Dien Chan</option>
 								</select>
 							{:else if selectedApplicability === 'prodId'}
-								<select
-									id="selectId"
-									name="selectId"
-									bind:value={selectedId}
-									class="select w-full select-bordered"
-								>
+								<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full select-bordered">
 									<option value="">Scegli prodotto</option>
 									{#each getProduct as option}
 										<option value={option.prodId}>{option.title}</option>
 									{/each}
 								</select>
 							{:else if selectedApplicability === 'layoutId'}
-								<select
-									id="selectId"
-									name="selectId"
-									bind:value={selectedId}
-									class="select w-full select-bordered"
-								>
+								<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full select-bordered">
 									<option value="">Scegli un tipo</option>
 									{#each getLayout as option}
 										<option value={option.layoutId}>{option.title}</option>
@@ -535,19 +462,12 @@
 						<div class="bg-gray-50 flex justify-center">
 							<button class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
 
-							<button type="submit" class="btn btn-success btn-sm mx-2 text-white">
-								Registra
-							</button>
+							<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
 						</div>
 					</div>
 				</form>
 			{:else if typeDiscount === 'refPoints'}
-				<form
-					method="POST"
-					action={postAction}
-					use:enhance={formSubmit}
-					class="grid grid-cols-2 bg-base-100 grid-rows-[min-content] gap-x-4 gap-y-4"
-				>
+				<form method="POST" action={postAction} use:enhance={formSubmit} class="grid grid-cols-2 bg-base-100 grid-rows-[min-content] gap-x-4 gap-y-4">
 					<!-- 
 				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 			 -->
@@ -557,24 +477,11 @@
 						</label>
 						<div class="flex flex-wrap gap-4">
 							<label class="flex items-center cursor-pointer">
-								<input
-									type="radio"
-									name="type"
-									value="percent"
-									class="radio radio-primary mr-2"
-									bind:group={typeDiscount}
-									checked
-								/>
+								<input type="radio" name="type" value="percent" class="radio radio-primary mr-2" bind:group={typeDiscount} checked />
 								<span>Sconto Normale</span>
 							</label>
 							<label class="flex items-center cursor-pointer">
-								<input
-									type="radio"
-									name="type"
-									value="refPoints"
-									class="radio radio-primary mr-2"
-									bind:group={typeDiscount}
-								/>
+								<input type="radio" name="type" value="refPoints" class="radio radio-primary mr-2" bind:group={typeDiscount} />
 								<span>Sconto + Punti</span>
 							</label>
 						</div>
@@ -606,9 +513,7 @@
 							<p class="font-bold mb-2 label">Percentuale % sconto</p>
 						</label>
 						<div class="join join-horizontal rounded-md w-full">
-							<button type="button" class="join-item bg-primary/20 px-3"
-								><Calculator class="text-emerald-500" /></button
-							>
+							<button type="button" class="join-item bg-primary/20 px-3"><Calculator class="text-emerald-500" /></button>
 							<input
 								class="input join-item w-full"
 								id="refDiscount"
@@ -626,9 +531,7 @@
 							<p class="font-bold mb-2 label">Percentuale % punti</p>
 						</label>
 						<div class="join join-horizontal rounded-md w-full">
-							<button type="button" class="join-item bg-primary/20 px-3"
-								><Calculator class="text-emerald-500" /></button
-							>
+							<button type="button" class="join-item bg-primary/20 px-3"><Calculator class="text-emerald-500" /></button>
 							<input
 								class="input join-item w-full"
 								id="refPoints"
@@ -683,11 +586,9 @@
 
 					<div class="col-span-4 mt-5 flex justify-center">
 						<div class="bg-gray-50 flex justify-center">
-							<button class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
+							<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
 
-							<button type="submit" class="btn btn-success btn-sm mx-2 text-white">
-								Registra
-							</button>
+							<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
 						</div>
 					</div>
 				</form>
@@ -698,9 +599,7 @@
 
 {#if currentModal == 'modify'}
 	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-4xl">
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{/if}
@@ -791,60 +690,51 @@
 				</fieldset>
 
 				<fieldset class="fieldset col-span-4">
-					<div class="flex flex-col sm:flex-row sm:flex-wrap gap-4">
+					<!-- <div class="flex flex-col sm:flex-row sm:flex-wrap gap-4">
 						<label class="form-label">
 							<p class="font-bold mb-2"><Funnel /> Categoria</p>
 						</label>
 						<label class="flex items-center">
-							<input
-								type="radio"
-								name="applicability"
-								value="email"
-								class="radio radio-primary mr-2"
-								bind:group={selectedApplicability}
-							/>
+							<input type="radio" name="applicability" value="email" class="radio radio-primary mr-2" bind:group={selectedApplicability} />
 							<span>Email utente</span>
 						</label>
 						<label class="flex items-center">
-							<input
-								type="radio"
-								name="applicability"
-								value="membershipLevel"
-								class="radio radio-primary mr-2"
-								bind:group={selectedApplicability}
-							/>
+							<input type="radio" name="applicability" value="membershipLevel" class="radio radio-primary mr-2" bind:group={selectedApplicability} />
 							<span>Membership</span>
 						</label>
 						<label class="flex items-center">
-							<input
-								type="radio"
-								name="applicability"
-								value="prodId"
-								class="radio radio-primary mr-2"
-								bind:group={selectedApplicability}
-							/>
+							<input type="radio" name="applicability" value="prodId" class="radio radio-primary mr-2" bind:group={selectedApplicability} />
 							<span>Prodotto</span>
 						</label>
 						<label class="flex items-center">
-							<input
-								type="radio"
-								name="applicability"
-								value="layoutId"
-								class="radio radio-primary mr-2"
-								bind:group={selectedApplicability}
-							/>
+							<input type="radio" name="applicability" value="layoutId" class="radio radio-primary mr-2" bind:group={selectedApplicability} />
 							<span>Tipo Corso</span>
 						</label>
+					</div> -->
+					<label for="categoria" class="form-label">
+						<p class="font-bold mb-2 label">Categoria</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button type="button" class="join-item bg-primary/20 px-3">
+							<Tags class="text-emerald-500" />
+						</button>
+						<select
+							name="applicability"
+							class="select select-bordered w-full max-w-xs"
+							bind:value={selectedApplicability}
+							onchange={() => (selectedId = '')}
+						>
+							<option value="" disabled selected>Seleziona una categoria</option>
+							<option value="email">Sconto Esclusivo Personale</option>
+							<!-- <option value="cart">Sconto totale Carrello</option> -->
+							<option value="membershipLevel">Sconto per Membership</option>
+							<option value="prodId"> Sconto Prodotto specifico</option>
+							<option value="layoutId">Sconto per Tipo Corso</option>
+						</select>
 					</div>
 					<div class="mt-2">
-						{#if selectedApplicability == 'user'}
-							<input
-								type="text"
-								name="email"
-								class="input w-full"
-								placeholder="Inserisci EMAIL utente"
-								bind:value={selectedId}
-							/>
+						{#if selectedApplicability == 'email'}
+							<input type="text" name="email" class="input w-full" placeholder="Inserisci EMAIL utente" bind:value={selectedId} />
 							<!-- <input
 								type="text"
 								name="selectId"
@@ -901,19 +791,14 @@
 
 				<div class="col-span-4 mt-5 flex justify-center">
 					<div class="bg-gray-50 flex justify-center">
-						<button class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
+						<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
 
 						<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Modifica </button>
 					</div>
 				</div>
 			</form>
 		{:else if typeDiscount === 'refPoints'}
-			<form
-				method="POST"
-				action={postAction}
-				use:enhance={formSubmit}
-				class="grid grid-cols-4 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-			>
+			<form method="POST" action={postAction} use:enhance={formSubmit} class="grid grid-cols-4 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8">
 				<!-- 
 				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 			 -->
@@ -968,9 +853,7 @@
 						<p class="font-bold mb-2 label">Percentuale % sconto</p>
 					</label>
 					<div class="join join-horizontal rounded-md w-full">
-						<button type="button" class="join-item bg-primary/20 px-3"
-							><Calculator class="text-emerald-500" /></button
-						>
+						<button type="button" class="join-item bg-primary/20 px-3"><Calculator class="text-emerald-500" /></button>
 						<input
 							class="input join-item w-full"
 							id="refDiscount"
@@ -989,9 +872,7 @@
 						<p class="font-bold mb-2 label">Percentuale % punti</p>
 					</label>
 					<div class="join join-horizontal rounded-md w-full">
-						<button type="button" class="join-item bg-primary/20 px-3"
-							><Calculator class="text-emerald-500" /></button
-						>
+						<button type="button" class="join-item bg-primary/20 px-3"><Calculator class="text-emerald-500" /></button>
 						<input
 							class="input join-item w-full"
 							id="refPoints"
@@ -1007,7 +888,7 @@
 
 				<section class="col-span-4">
 					<label for="categoria" class="form-label">
-						<p class="font-bold mb-2 label">Email utente</p>
+						<p class="font-bold mb-2 label">Email riflessologo</p>
 					</label>
 					<div class="join join-horizontal rounded-md w-full">
 						<button type="button" class="join-item bg-primary/20 px-3">
@@ -1048,7 +929,7 @@
 
 				<div class="col-span-4 mt-5 flex justify-center">
 					<div class="bg-gray-50 flex justify-center">
-						<button class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
+						<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
 
 						<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
 					</div>
@@ -1060,9 +941,7 @@
 
 {#if currentModal == 'delete'}
 	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-2xl">
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{/if}
@@ -1078,31 +957,17 @@
 
 {#if currentModal == 'filter'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{/if}
-		<form
-			method="POST"
-			action={postAction}
-			use:enhance={formSubmit}
-			class="grid grid-cols-1 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-		>
+		<form method="POST" action={postAction} use:enhance={formSubmit} class="grid grid-cols-1 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8">
 			<fieldset class="fieldset col-span-1">
 				<legend class="fieldset-legend">Codice sconto</legend>
 				<!-- <span class="label">Optional</span> -->
 				<div class="join w-full">
 					<div class="join-item btn pointer-events-none"><Pen /></div>
-					<input
-						class="input join-item flex-1"
-						name="code"
-						type="text"
-						placeholder="Codice"
-						aria-label="Titolo"
-						aria-describedby="basic-titolo"
-					/>
+					<input class="input join-item flex-1" name="code" type="text" placeholder="Codice" aria-label="Titolo" aria-describedby="basic-titolo" />
 				</div>
 			</fieldset>
 
