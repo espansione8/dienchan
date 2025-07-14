@@ -694,6 +694,17 @@ export const actions: Actions = {
 	},
 
 	applyDiscount: async ({ request, fetch, locals }) => {
+		const formData = await request.formData();
+		const discountCode = formData.get('discountCode') as string;
+		const cart = formData.get('cart') as string;
+
+		const grandTotal = formData.get('grandTotal') as string;
+		const discountList = formData.get('discountList') as string;
+		const originalTotal = Number(grandTotal) || 0;
+
+		const discountArray: string[] = JSON.parse(discountList || '[]').map((item) => item.code);
+		const cartArray: CartItem[] = JSON.parse(cart || '[]');
+
 		const discountFetch = (discountCodes: string[]) =>
 			fetch(`${BASE_URL}/api/mongo/find`, {
 				method: 'POST',
@@ -712,17 +723,6 @@ export const actions: Actions = {
 			});
 
 		try {
-			const formData = await request.formData();
-			const discountCode = formData.get('discountCode') as string;
-			const cart = formData.get('cart') as string;
-
-			const grandTotal = formData.get('grandTotal') as string;
-			const discountList = formData.get('discountList') as string;
-			const originalTotal = Number(grandTotal) || 0;
-
-			const discountArray: string[] = JSON.parse(discountList || '[]').map((item) => item.code);
-			const cartArray: CartItem[] = JSON.parse(cart || '[]');
-
 			// let cartArray: CartItem[] = [];
 			// try {
 			// 	cartArray = JSON.parse(cart || '[]');
@@ -772,6 +772,14 @@ export const actions: Actions = {
 					action: 'applyDiscount',
 					success: false,
 					message: 'Sconto non attivo'
+				});
+			}
+
+			if (discountItem.selectedApplicability === 'refPoints') {
+				return fail(400, {
+					action: 'applyDiscount',
+					success: false,
+					message: 'sconto Formatore valido solo per acquisti strumenti'
 				});
 			}
 
@@ -917,5 +925,168 @@ export const actions: Actions = {
 				message: 'Errore durante la rimozione dello sconto'
 			});
 		}
-	}
+	},
+
+	applyEmailRef: async ({ request, fetch, locals }) => {
+		const formData = await request.formData();
+		const discountCode = formData.get('discountCode') as string; // email formatore
+		// const cart = formData.get('cart') as string;
+
+		// const discountList = formData.get('discountList') as string;
+
+		// const discountArray: string[] = JSON.parse(discountList || '[]').map((item) => item.code);
+		// const cartArray: CartItem[] = JSON.parse(cart || '[]');
+		return {
+			action: 'applyEmailRef',
+			success: true,
+			message: 'codice Amico applicato con successo:' + discountCode,
+		};
+
+		// TODO
+		// cercare utente email con discountCode
+		// set let userReferred in front
+		// passare input hidden userReferred su NEW
+		// su NEW action SE pagamento con carta asseganre punti
+		// Bonifico e Contanti segnalare userReferred sull'ordine? cambaire schema
+		// on tabel order modify action se pagamento DONE asseganre i punti in base al tipo corso
+
+
+
+		// const discountFetch = (discountCodes: string[]) =>
+		// 	fetch(`${BASE_URL}/api/mongo/find`, {
+		// 		method: 'POST',
+		// 		body: JSON.stringify({
+		// 			apiKey: APIKEY,
+		// 			schema: 'discount',
+		// 			query: { code: { $in: discountCodes } },
+		// 			projection: { _id: 0, password: 0 },
+		// 			sort: { createdAt: -1 },
+		// 			limit: 1000,
+		// 			skip: 0
+		// 		}),
+		// 		headers: {
+		// 			'Content-Type': 'application/json'
+		// 		}
+		// 	});
+
+		// try {
+		// 	// let cartArray: CartItem[] = [];
+		// 	// try {
+		// 	// 	cartArray = JSON.parse(cart || '[]');
+
+		// 	// } catch {
+		// 	// 	return fail(400, { action: 'applyDiscount', success: false, message: 'Cart invalido' });
+
+		// 	// }
+
+		// 	if (!discountCode?.trim()) {
+		// 		return fail(400, {
+		// 			action: 'applyDiscount',
+		// 			success: false,
+		// 			message: 'Codice sconto richiesto'
+		// 		});
+		// 	}
+
+		// 	if (discountArray.includes(discountCode)) {
+		// 		return fail(400, {
+		// 			action: 'applyDiscount',
+		// 			success: false,
+		// 			message: 'Sconto già applicato'
+		// 		});
+		// 	}
+
+		// 	// Fetch all discounts from database that match new array
+		// 	const newDiscountArray = [...discountArray, discountCode];
+		// 	const discountRes = await discountFetch(newDiscountArray);
+
+		// 	const discountGroup: DiscountItem[] = await discountRes.json();
+		// 	// console.log('newDiscountArray', newDiscountArray);
+		// 	// console.log('discountGroup', discountGroup);
+
+		// 	// Find the specific discount being applied
+		// 	const discountItem = discountGroup.find((item: DiscountItem) => item.code === discountCode);
+
+		// 	if (!discountItem) {
+		// 		return fail(400, {
+		// 			action: 'applyDiscount',
+		// 			success: false,
+		// 			message: 'Codice sconto non trovato'
+		// 		});
+		// 	}
+
+		// 	if (discountItem.status === 'disabled') {
+		// 		return fail(400, {
+		// 			action: 'applyDiscount',
+		// 			success: false,
+		// 			message: 'Sconto non attivo'
+		// 		});
+		// 	}
+
+		// 	if (discountItem.selectedApplicability === 'refPoints') {
+		// 		return fail(400, {
+		// 			action: 'applyDiscount',
+		// 			success: false,
+		// 			message: 'sconto Formatore valido solo per acquisti strumenti'
+		// 		});
+		// 	}
+
+		// 	const validateDiscountApplicability = (
+		// 		discount: DiscountItem,
+		// 		user: any,
+		// 		cartArray: CartItem[]
+		// 	): boolean => {
+		// 		const { selectedApplicability } = discount;
+
+		// 		switch (selectedApplicability) {
+		// 			case 'email':
+		// 				return discount.email === user?.email;
+
+		// 			case 'membershipLevel':
+		// 				return discount.membershipLevel === user?.membership?.membershipLevel;
+
+		// 			case 'prodId':
+		// 				return cartArray.some((item) => item.prodId === discount.prodId);
+
+		// 			case 'layoutId':
+		// 				return cartArray.some((item) => item.layoutView?.layoutId === discount.layoutId);
+
+		// 			default:
+		// 				return false;
+		// 		}
+		// 	};
+
+		// 	if (!validateDiscountApplicability(discountItem, locals.user, cartArray)) {
+		// 		return fail(400, {
+		// 			action: 'applyDiscount',
+		// 			success: false,
+		// 			message: 'Sconto non applicabile'
+		// 		});
+		// 	}
+
+		// 	// Calculate all discounts
+		// 	const discountApplied = () => {
+		// 		return discountGroup.map((discount) => ({
+		// 			code: discount.code,
+		// 			totalDiscount: calculateItemDiscount(discount, cartArray, originalTotal)
+		// 		}));
+		// 	};
+
+		// 	return {
+		// 		action: 'applyDiscount',
+		// 		success: true,
+		// 		message: 'Sconto applicato con successo',
+		// 		payload: {
+		// 			discountApplied: discountApplied()
+		// 		}
+		// 	};
+		// } catch (error) {
+		// 	console.error('Error applying discount:', error);
+
+		// 	return fail(500, {
+		// 		action: 'applyDiscount',
+		// 		success: false,
+		// 		message: "Errore durante l'applicazione dello sconto"
+		// 	});
+		// }
+	},
 };

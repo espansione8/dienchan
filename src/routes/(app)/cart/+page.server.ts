@@ -623,6 +623,35 @@ export const actions: Actions = {
 				});
 			}
 
+			// check: Prevent more than one 'refPoints' discount
+			const refPointsDiscountsCount = discountGroup.filter(d => d.selectedApplicability === 'refPoints').length;
+			if (discountItem.selectedApplicability === 'refPoints' && refPointsDiscountsCount > 1) {
+				return fail(400, {
+					action: 'applyDiscount',
+					success: false,
+					message: 'È possibile applicare un solo sconto Formatore.'
+				});
+			}
+
+			// check for "refPoints" and "membershipLevel" (Master Dien Chan) conflict
+			const hasRefPointsDiscount = discountGroup.some(d => d.selectedApplicability === 'refPoints' && d.code !== discountCode);
+			const isMasterDienChanMembershipDiscount = discountItem.selectedApplicability === 'membershipLevel' && discountItem.membershipLevel === 'Socio formatore';
+
+			if (hasRefPointsDiscount && isMasterDienChanMembershipDiscount) {
+				return fail(400, {
+					action: 'applyDiscount',
+					success: false,
+					message: 'È possibile applicare un solo sconto Formatore.'
+				});
+			}
+			if (discountItem.selectedApplicability === 'refPoints' && discountGroup.some(d => d.selectedApplicability === 'membershipLevel' && d.membershipLevel === 'Socio formatore' && d.code !== discountCode)) {
+				return fail(400, {
+					action: 'applyDiscount',
+					success: false,
+					message: 'È possibile applicare un solo sconto Formatore.'
+				});
+			}
+
 			const validateDiscountApplicability = (
 				discount: DiscountItem,
 				user: any,

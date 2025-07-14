@@ -25,7 +25,9 @@ const UserSchema = new mongoose.Schema(
 			type: String,
 			enum: [
 				'user',
-				'formatore',
+				'formatore base',
+				'formatore avanzato',
+				'master',
 				'admin',
 				'superadmin'
 			],
@@ -39,11 +41,11 @@ const UserSchema = new mongoose.Schema(
 				enum: [
 					'Socio inattivo', // Membership Type: Life Time || Billing Type: Free
 					'Socio ordinario', // Membership Type: Regular Period || Billing Type: Payment|| Price 25 EUR
-					'Socio praticante', // Membership Type: Regular Period || Billing Type: Payment|| Price 25 EUR
+					'Socio formatore', // Membership Type: Regular Period || Billing Type: Payment|| Price 25 EUR
 					//'Socio sostenitore', // Membership Type: Regular Period || Billing Type: Payment || Price 150 EUR
 					'Socio vitalizio', // Membership Type: Life Time || Billing Type: Payment|| Price 380 EUR
 					//'Socio contributore', // Membership Type: Life Time || Billing Type: Payment|| Price 1900 EUR
-					'Master Dien Chan', // Membership Type: Life Time || Billing Type: Free
+					//'Master Dien Chan', // Membership Type: Life Time || Billing Type: Free
 				],
 				default: 'Socio ordinario'
 			},

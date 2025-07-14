@@ -25,6 +25,8 @@
 	// discount
 	let discountCode = $state('');
 	let discountList = $state([]);
+	let discountRadio = $state('discountCode');
+	let userReferred = $state('tonno@mail'); // email from referal link
 
 	// cart
 	let cart = $derived([getCourse]);
@@ -159,6 +161,7 @@
 			stripeError = null;
 			paymentMethodId = null;
 		}
+		discountRadio = 'discountCode';
 	};
 
 	const checkPasswordsMatch = () => {
@@ -440,6 +443,7 @@
 							<button class="btn btn-primary gap-2" onclick={() => onClickModal('new', null)}>
 								<CreditCard class="w-5 h-5" /> Acquista Ora
 							</button>
+
 							<!-- </div> -->
 							{#if discountList.length > 0}
 								<div>
@@ -449,16 +453,36 @@
 									</p>
 								</div>
 							{/if}
+							{#if userReferred}
+								<div>
+									<!-- <p class="text-accent">Codice amico</p> -->
+									<p class="font-medium text-xl text-blue-900">
+										Codice amico: {userReferred}
+									</p>
+								</div>
+							{/if}
 							<!-- Discount Code -->
 							<div class="pb-6">
 								{#if loading}
 									<Loader />
 								{:else}
-									<form method="POST" action="?/applyDiscount" use:enhance={formSubmit}>
+									<form method="POST" action={discountRadio === 'discountCode' ? '?/applyDiscount' : '?/applyEmailRef'} use:enhance={formSubmit}>
 										<label class="form-control">
-											<div class="label">
-												<span class="label-text font-medium">Codice sconto / Email amico</span>
+											<div class="label mb-4">
+												<span class="label-text font-medium">Codice sconto</span>
+												<input type="radio" name="radio-discount" class="radio radio-primary" bind:group={discountRadio} value={'discountCode'} />
+
+												<span class="label-text font-medium"> Email amico</span>
+												<input
+													type="radio"
+													name="radio-discount"
+													class="radio radio-primary"
+													bind:group={discountRadio}
+													value={'emailRef'}
+													disabled={userReferred ? true : false}
+												/>
 											</div>
+
 											<div class="flex gap-2">
 												<input
 													type="text"
@@ -470,7 +494,6 @@
 													disabled={loading || cart.length < 1}
 												/>
 												<input type="hidden" name="cart" value={JSON.stringify(cart)} />
-												<input type="hidden" name="grandTotal" value={grandTotal()} />
 												<input type="hidden" name="discountList" value={JSON.stringify(discountList)} />
 												<button type="submit" class="btn btn-primary" disabled={!discountCode || loading}>
 													{#if loading}
