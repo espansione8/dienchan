@@ -191,10 +191,7 @@ export const actions: Actions = {
 		const cartItem = JSON.parse(String(cart)) || null;
 		const totalDiscount = formData.get('totalDiscount') || 0;
 		const paymentMethodId = formData.get('paymentMethodId') as string | null;
-
-		//Corso Base DIEN CHAN®
-		//Corso Avanzato DIEN CHAN®
-		//Accademia DIEN CHAN®
+		const userReferred = formData.get('userReferred') as string | null;
 
 		const bundle = formData.get('bundleProducts');
 
@@ -260,6 +257,7 @@ export const actions: Actions = {
 				'Content-Type': 'application/json'
 			}
 		});
+
 		const updateUserFetch = fetch(`${BASE_URL}/api/mongo/update`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -343,26 +341,6 @@ export const actions: Actions = {
 				});
 			}
 		}
-
-		// try {
-		// 	const membershipRes = await membershipFetch;
-		// 	if (!membershipRes.ok) {
-		// 		return fail(400, {
-		// 			action: 'new',
-		// 			success: false,
-		// 			message: await membershipRes.text()
-		// 		});
-		// 	}
-
-		// 	membership = await membershipRes.json();
-
-		// 	if (membership.length < 1) {
-		// 		return fail(400, { action: 'new', success: false, message: 'Missing membership' });
-		// 	}
-
-		// } catch (error) {
-		// 	console.log('membership fetch error:', error);
-		// }
 
 		if (!locals.auth) {
 			try {
@@ -540,7 +518,6 @@ export const actions: Actions = {
 			}
 
 			let cart = [];
-			console.log('soccorso:', !userExist, !locals.user?.membership.membershipStatus);
 
 			if (!userExist || !locals.user?.membership.membershipStatus) {
 				cart = [...bundleProducts, cartItem, membership[0]];
@@ -627,9 +604,7 @@ export const actions: Actions = {
 				});
 			}
 
-			const updateUserRes = await updateUserFetch(orderId);
-			console.log('updateUserRes', updateUserRes);
-			console.log('Res', await updateUserRes.json());
+			const updateUserRes = await updateUserFetch;
 
 			if (!updateUserRes.ok) {
 				return fail(400, {
@@ -668,6 +643,53 @@ export const actions: Actions = {
 			});
 
 			await Promise.all(updateQty);
+
+			if (payment === 'Carta di credito' && userReferred) {
+				const id = cartItem.layoutId
+				let points = 0;
+				let pointsBase = 0;
+				let pointsAvanzato = 0;
+				if (id === 'XW7LYV2LG2BU') points = 10; // base
+				if (id === '794792843') points = 40; // avanzato
+				if (id === 'accademia') { // accademia
+					pointsBase = 50;
+					pointsAvanzato = 100;
+				}
+
+				//course type
+				const userPointsFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'user', //product | order | user | layout | discount
+						query: { email: userReferred }, // 'course', 'product', 'membership', 'event',
+						update: {
+							$inc: {
+								pointsBalance: points
+							},
+							$push: {
+								pointsHistory: {
+									points: points,
+									note: `Commissione ${cartItem.layoutView.title} - Ordine ${orderId}`,
+								}
+							}
+						},
+						options: { upsert: false },
+						multi: false
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+
+				if (!userPointsFetch.ok) {
+					return fail(400, {
+						action: 'new',
+						success: false,
+						message: `userPointsFetch: ${await userPointsFetch.text()}`
+					});
+				}
+			}
 
 			if (locals.auth) {
 				return {
@@ -930,163 +952,57 @@ export const actions: Actions = {
 	applyEmailRef: async ({ request, fetch, locals }) => {
 		const formData = await request.formData();
 		const discountCode = formData.get('discountCode') as string; // email formatore
-		// const cart = formData.get('cart') as string;
 
-		// const discountList = formData.get('discountList') as string;
+		try {
+			const userFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user', //product | order | user | layout | discount
+					query: { email: discountCode.trim() }, //IF USE Products.model -> types: course / product / membership / event
+					projection: { _id: 0, email: 1 }, // 0: exclude | 1: include
+					sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+					limit: 1,
+					skip: 0
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
 
-		// const discountArray: string[] = JSON.parse(discountList || '[]').map((item) => item.code);
-		// const cartArray: CartItem[] = JSON.parse(cart || '[]');
-		return {
-			action: 'applyEmailRef',
-			success: true,
-			message: 'codice Amico applicato con successo:' + discountCode,
-		};
+			if (!userFetch.ok) {
+				return fail(400, {
+					action: 'applyEmailRef',
+					success: false,
+					message: 'Utente non trovato'
+				});
+			}
 
-		// TODO
-		// cercare utente email con discountCode
-		// set let userReferred in front
-		// passare input hidden userReferred su NEW
-		// su NEW action SE pagamento con carta asseganre punti
-		// Bonifico e Contanti segnalare userReferred sull'ordine? cambaire schema
-		// on tabel order modify action se pagamento DONE asseganre i punti in base al tipo corso
+			const user = await userFetch.json();
 
+			if (user.length === 0) {
+				return fail(400, {
+					action: 'applyEmailRef',
+					success: false,
+					message: 'Utente non trovato'
+				});
+			}
 
+			return {
+				action: 'applyEmailRef',
+				success: true,
+				message: 'Codice amico applicato con successo',
+				payload: discountCode.trim()
+			};
 
-		// const discountFetch = (discountCodes: string[]) =>
-		// 	fetch(`${BASE_URL}/api/mongo/find`, {
-		// 		method: 'POST',
-		// 		body: JSON.stringify({
-		// 			apiKey: APIKEY,
-		// 			schema: 'discount',
-		// 			query: { code: { $in: discountCodes } },
-		// 			projection: { _id: 0, password: 0 },
-		// 			sort: { createdAt: -1 },
-		// 			limit: 1000,
-		// 			skip: 0
-		// 		}),
-		// 		headers: {
-		// 			'Content-Type': 'application/json'
-		// 		}
-		// 	});
+		} catch (error) {
+			console.error('Error applying applyEmailRef:', error);
 
-		// try {
-		// 	// let cartArray: CartItem[] = [];
-		// 	// try {
-		// 	// 	cartArray = JSON.parse(cart || '[]');
-
-		// 	// } catch {
-		// 	// 	return fail(400, { action: 'applyDiscount', success: false, message: 'Cart invalido' });
-
-		// 	// }
-
-		// 	if (!discountCode?.trim()) {
-		// 		return fail(400, {
-		// 			action: 'applyDiscount',
-		// 			success: false,
-		// 			message: 'Codice sconto richiesto'
-		// 		});
-		// 	}
-
-		// 	if (discountArray.includes(discountCode)) {
-		// 		return fail(400, {
-		// 			action: 'applyDiscount',
-		// 			success: false,
-		// 			message: 'Sconto già applicato'
-		// 		});
-		// 	}
-
-		// 	// Fetch all discounts from database that match new array
-		// 	const newDiscountArray = [...discountArray, discountCode];
-		// 	const discountRes = await discountFetch(newDiscountArray);
-
-		// 	const discountGroup: DiscountItem[] = await discountRes.json();
-		// 	// console.log('newDiscountArray', newDiscountArray);
-		// 	// console.log('discountGroup', discountGroup);
-
-		// 	// Find the specific discount being applied
-		// 	const discountItem = discountGroup.find((item: DiscountItem) => item.code === discountCode);
-
-		// 	if (!discountItem) {
-		// 		return fail(400, {
-		// 			action: 'applyDiscount',
-		// 			success: false,
-		// 			message: 'Codice sconto non trovato'
-		// 		});
-		// 	}
-
-		// 	if (discountItem.status === 'disabled') {
-		// 		return fail(400, {
-		// 			action: 'applyDiscount',
-		// 			success: false,
-		// 			message: 'Sconto non attivo'
-		// 		});
-		// 	}
-
-		// 	if (discountItem.selectedApplicability === 'refPoints') {
-		// 		return fail(400, {
-		// 			action: 'applyDiscount',
-		// 			success: false,
-		// 			message: 'sconto Formatore valido solo per acquisti strumenti'
-		// 		});
-		// 	}
-
-		// 	const validateDiscountApplicability = (
-		// 		discount: DiscountItem,
-		// 		user: any,
-		// 		cartArray: CartItem[]
-		// 	): boolean => {
-		// 		const { selectedApplicability } = discount;
-
-		// 		switch (selectedApplicability) {
-		// 			case 'email':
-		// 				return discount.email === user?.email;
-
-		// 			case 'membershipLevel':
-		// 				return discount.membershipLevel === user?.membership?.membershipLevel;
-
-		// 			case 'prodId':
-		// 				return cartArray.some((item) => item.prodId === discount.prodId);
-
-		// 			case 'layoutId':
-		// 				return cartArray.some((item) => item.layoutView?.layoutId === discount.layoutId);
-
-		// 			default:
-		// 				return false;
-		// 		}
-		// 	};
-
-		// 	if (!validateDiscountApplicability(discountItem, locals.user, cartArray)) {
-		// 		return fail(400, {
-		// 			action: 'applyDiscount',
-		// 			success: false,
-		// 			message: 'Sconto non applicabile'
-		// 		});
-		// 	}
-
-		// 	// Calculate all discounts
-		// 	const discountApplied = () => {
-		// 		return discountGroup.map((discount) => ({
-		// 			code: discount.code,
-		// 			totalDiscount: calculateItemDiscount(discount, cartArray, originalTotal)
-		// 		}));
-		// 	};
-
-		// 	return {
-		// 		action: 'applyDiscount',
-		// 		success: true,
-		// 		message: 'Sconto applicato con successo',
-		// 		payload: {
-		// 			discountApplied: discountApplied()
-		// 		}
-		// 	};
-		// } catch (error) {
-		// 	console.error('Error applying discount:', error);
-
-		// 	return fail(500, {
-		// 		action: 'applyDiscount',
-		// 		success: false,
-		// 		message: "Errore durante l'applicazione dello sconto"
-		// 	});
-		// }
+			return fail(500, {
+				action: 'applyEmailRef',
+				success: false,
+				message: "Errore durante l'applicazione dello sconto"
+			});
+		}
 	},
 };

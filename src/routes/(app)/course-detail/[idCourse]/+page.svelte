@@ -26,7 +26,7 @@
 	let discountCode = $state('');
 	let discountList = $state([]);
 	let discountRadio = $state('discountCode');
-	let userReferred = $state('tonno@mail'); // email from referal link
+	let userReferred = $state(''); // email from referal link
 
 	// cart
 	let cart = $derived([getCourse]);
@@ -321,6 +321,11 @@
 
 				if (action === 'applyDiscount' || action === 'removeDiscount') {
 					discountList = payload?.discountApplied || [];
+					discountCode = '';
+				}
+
+				if (action === 'applyEmailRef') {
+					userReferred = payload || '';
 					discountCode = '';
 				}
 
@@ -1107,6 +1112,10 @@
 
 				{#if paymentMethodId}
 					<input type="hidden" name="paymentMethodId" value={paymentMethodId} />
+				{/if}
+
+				{#if userReferred}
+					<input type="hidden" name="userReferred" value={userReferred} />
 				{/if}
 			</div>
 
