@@ -26,7 +26,8 @@
 		RefreshCcw,
 		FileDown,
 		ShieldAlert,
-		UserRoundCheck
+		UserRoundCheck,
+		HandCoins
 	} from 'lucide-svelte';
 
 	// PDF maker
@@ -1159,28 +1160,6 @@
 		{#if loading}
 			<Loader />
 		{/if}
-		<!-- <div class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8">
-			{#each subscribers || [] as item}
-				<div
-					class="col-span-4
-                           p-4
-                           rounded-box
-                           shadow-md
-                           bg-base-200
-                           flex flex-wrap
-                           gap-x-6 gap-y-2
-                           items-center
-                           justify-between
-                           "
-				>
-					<span class="font-bold text-lg text-primary">{item.name} {item.surname}</span>
-					<span class="text-info-content break-words">{item.email}</span>
-					<span class="text-sm text-base-content">{item.phone}</span>
-					<span class="text-sm text-base-content">{item.mobilePhone}</span>
-					<span class="text-sm text-base-content">{item.city}</span>
-				</div>
-			{/each}
-		</div> -->
 		<div class="p-4 lg:p-8">
 			{#if showCheckboxes}
 				<form method="POST" action={postAction} use:enhance={formSubmit} class="mb-8 p-6 rounded-box shadow-lg bg-base-100">
@@ -1202,7 +1181,6 @@
 
 					<input type="hidden" name="selectedSubscriber" value={JSON.stringify(selectedSubscriber)} />
 					<input type="hidden" name="prodId" value={currentObj.prodId} />
-					<!-- <input type="hidden" name="layoutId" value={currentObj?.layoutView?.layoutId} /> -->
 
 					<button type="submit" class="btn btn-success" disabled={selectedSubscriber.length === 0}> Crea Attestati </button>
 					{#if selectedSubscriber.length === 0}
@@ -1249,20 +1227,17 @@
 							<div class="flex flex-wrap items-center gap-x-6 gap-y-2">
 								<span class="text-sm text-base-content">{item.phone}</span>
 								<span class="text-sm text-base-content">{item.mobilePhone}</span>
-								<span class="text-sm text-base-content">{item.city}</span>
 							</div>
 
 							{#if item.certificationStatus}
 								<button type="button" class="btn btn-sm btn-outline btn-info shrink-0" onclick={() => createPDFcert(currentObj, item)}>
 									Download Attestato
 								</button>
-								<!-- <button
-									class="btn btn-sm btn-outline btn-info shrink-0"
-									onclick={() => createPDFcert(item)}
-									disabled={!item.certificateUrl}
-								>
-									Download Attestato
-								</button> -->
+							{/if}
+						</div>
+						<div class="flex flex-wrap gap-x-6">
+							{#if item.promoterId}
+								<span class="text-info-content break-words"><HandCoins />: {item.promoterId}</span>
 							{/if}
 						</div>
 					</div>

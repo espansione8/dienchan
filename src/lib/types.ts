@@ -248,6 +248,7 @@ export type DiscountItem = {
 export interface Order {
     orderDate: string;
     orderId: string;
+    promoterId: string;
     title: string;
     item: string;
     userView?: {
@@ -264,6 +265,7 @@ export interface Order {
         county: string;
     };
     cart: {
+        prodId: string;
         title: string;
         type: string;
         layoutView: {

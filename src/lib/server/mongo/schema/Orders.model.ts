@@ -29,7 +29,7 @@ const orderSchema = new Schema(
 		orderConfirmDate: { type: Date, default: Date.now },
 		promotionId: { type: String, default: '' },
 		promotionName: { type: String, default: '' },
-		promoterId: { type: String, default: '' },
+		promoterId: { type: String, default: null },
 		agencyId: { type: String, default: '' },
 		orderConfirmed: { type: Boolean, default: false },
 		totalPoints: { type: Number, default: 0 },

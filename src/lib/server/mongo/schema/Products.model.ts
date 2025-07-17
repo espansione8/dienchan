@@ -64,6 +64,7 @@ const productSchema = new Schema(
                 mobilePhone: { type: String, default: '' },
                 paymentMethod: { type: String, default: '' },
                 paymentStatus: { type: String, default: '' },
+                promoterId: { type: String, default: null },
                 certificationStatus: { type: Boolean, default: false },
                 certificationDate: { type: Date, default: null },
                 certificationPlace: { type: String, default: '' }

@@ -8,15 +8,7 @@
 	import Modal from '$lib/components/Modal.svelte';
 	import { enhance } from '$app/forms';
 	import Loader from '$lib/components/Loader.svelte';
-	import {
-		Funnel,
-		XCircle,
-		ShieldAlert,
-		RefreshCcw,
-		FileDown,
-		Trash2,
-		FileCog
-	} from 'lucide-svelte';
+	import { Funnel, XCircle, ShieldAlert, RefreshCcw, FileDown, Trash2, FileCog, HandCoins } from 'lucide-svelte';
 	import type { Order, TableNames, Product } from '$lib/types';
 
 	let { data } = $props();
@@ -211,10 +203,7 @@
 					<XCircle class="mt-1" /> Reset Filtro
 				</button>
 			{:else}
-				<button
-					class="btn btn-info rounded-md text-white"
-					onclick={() => onClickModal('filter', null)}
-				>
+				<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('filter', null)}>
 					<Funnel class="mt-1" /> Filtra
 				</button>
 			{/if}
@@ -230,13 +219,12 @@
 				<th>Data</th>
 				<th>ID ordine</th>
 				<th>Email</th>
-				<th>Associato</th>
+				<th>Utente</th>
 				<th>Carrello</th>
 				<th>Totale</th>
 				<th>Tipo pagamento</th>
 				<th>Stato Ordine</th>
 				<th>Azione</th>
-				<th>Elimina</th>
 			</tr>
 		</thead>
 		<!-- body -->
@@ -258,7 +246,7 @@
 					<td>{row.shipping?.email}</td>
 					<!-- Nome-->
 					<td>{row.shipping?.name} {row.shipping?.surname}</td>
-					<!-- Ordine -->
+					<!-- cart -->
 					<td>
 						<div class="flex flex-col space-y-1">
 							<div
@@ -271,7 +259,7 @@
 							</div>
 							{#each row.cart as item}
 								{#if item.type == 'course'}
-									<span>{item.layoutView.title}</span>
+									<span class="font-semibold">{item.layoutView.title}: {item.prodId}</span>
 								{:else if item.type == 'membership'}
 									<span>{item.title}</span>
 								{:else}
@@ -284,14 +272,23 @@
 					<td>€ {row.totalValue.toFixed(2)}</td>
 					<!-- Tipo pagamento -->
 					<td>
-						{row.payment.method} /
-						{#if row.payment.statusPayment === 'pending'}
-							<span class="badge badge-warning">{row.payment.statusPayment}</span>
-						{:else if row.payment.statusPayment === 'done'}
-							<span class="badge badge-success">{row.payment.statusPayment}</span>
-						{:else}
-							<span class="badge badge-error">{row.payment.statusPayment}</span>
-						{/if}
+						<div class="flex flex-col space-y-1">
+							<div>
+								{row.payment.method} /
+								{#if row.payment.statusPayment === 'pending'}
+									<span class="badge badge-warning">{row.payment.statusPayment}</span>
+								{:else if row.payment.statusPayment === 'done'}
+									<span class="badge badge-success">{row.payment.statusPayment}</span>
+								{:else}
+									<span class="badge badge-error">{row.payment.statusPayment}</span>
+								{/if}
+							</div>
+							{#if row.promoterId}
+								<div>
+									<span class="badge badge-info font-semibold"><HandCoins size={20} />: {row.promoterId}</span>
+								</div>
+							{/if}
+						</div>
 					</td>
 					<!-- Status -->
 					<td>
@@ -320,15 +317,11 @@
 		</tbody>
 	</table>
 	{#if tableList.length == 0}
-		<div
-			class="alert alert-warning shadow-lg flex item-center text-center justify-center rounded-md mt-3 mx-auto w-full max-w-lg"
-		>
+		<div class="alert alert-warning shadow-lg flex item-center text-center justify-center rounded-md mt-3 mx-auto w-full max-w-lg">
 			<div>
 				<ShieldAlert />
 				<br />
-				<span class="mt-2 text-semibold">
-					Nessun record trovato. Cambia parametri o resetta il filtro.
-				</span>
+				<span class="mt-2 text-semibold"> Nessun record trovato. Cambia parametri o resetta il filtro. </span>
 			</div>
 		</div>
 	{/if}
@@ -339,16 +332,12 @@
 		<Loader />
 	{:else}
 		<Modal isOpen={openModal} header={modalTitle}>
-			<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-				>✕</button
-			>
+			<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 			<form method="POST" action={postAction} use:enhance={formSubmit} class="p-6 space-y-6">
 				<div class="flex flex-wrap -mx-2">
 					<div class="w-full md:w-full px-2 mb-4 font-bold">Dati utente</div>
 					<div class="w-full md:w-1/2 px-2 mb-4">
-						<label for="orderId" class="block text-sm font-medium text-gray-700 mb-1"
-							>ID ordine</label
-						>
+						<label for="orderId" class="block text-sm font-medium text-gray-700 mb-1">ID ordine</label>
 						<input
 							type="text"
 							id="orderId"
@@ -379,8 +368,7 @@
 						/>
 					</div>
 					<div class="w-full md:w-1/2 px-2 mb-4">
-						<label for="surname" class="block text-sm font-medium text-gray-700 mb-1">Cognome</label
-						>
+						<label for="surname" class="block text-sm font-medium text-gray-700 mb-1">Cognome</label>
 						<input
 							type="text"
 							id="surname"
@@ -402,9 +390,7 @@
 						/>
 					</div>
 					<div class="w-full md:w-1/2 px-2 mb-4">
-						<label for="address" class="block text-sm font-medium text-gray-700 mb-1"
-							>Indirizzo</label
-						>
+						<label for="address" class="block text-sm font-medium text-gray-700 mb-1">Indirizzo</label>
 						<input
 							type="text"
 							id="address"
@@ -414,9 +400,7 @@
 						/>
 					</div>
 					<div class="w-full md:w-1/2 px-2 mb-4">
-						<label for="postalCode" class="block text-sm font-medium text-gray-700 mb-1"
-							>Codice Postale</label
-						>
+						<label for="postalCode" class="block text-sm font-medium text-gray-700 mb-1">Codice Postale</label>
 						<input
 							type="text"
 							id="postalCode"
@@ -426,9 +410,7 @@
 						/>
 					</div>
 					<div class="w-full md:w-1/2 px-2 mb-4">
-						<label for="county" class="block text-sm font-medium text-gray-700 mb-1"
-							>Provincia</label
-						>
+						<label for="county" class="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
 						<select
 							id="county"
 							name="county"
@@ -462,9 +444,7 @@
 						/>
 					</div>
 					<div class="w-full md:w-1/2 px-2 mb-4">
-						<label for="mobile" class="block text-sm font-medium text-gray-700 mb-1"
-							>Cellulare</label
-						>
+						<label for="mobile" class="block text-sm font-medium text-gray-700 mb-1">Cellulare</label>
 						<input
 							type="text"
 							id="mobile"
@@ -474,9 +454,7 @@
 						/>
 					</div>
 					<div class="w-full md:w-1/2 px-2 mb-4">
-						<label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-1"
-							>Metodo di pagamento</label
-						>
+						<label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-1">Metodo di pagamento</label>
 						<select
 							id="paymentMethod"
 							name="paymentMethod"
@@ -490,9 +468,7 @@
 						</select>
 					</div>
 					<div class="w-full md:w-1/2 px-2 mb-4">
-						<label for="status" class="block text-sm font-medium text-gray-700 mb-1"
-							>Stato ordine</label
-						>
+						<label for="status" class="block text-sm font-medium text-gray-700 mb-1">Stato ordine</label>
 						<select
 							id="status"
 							name="status"
@@ -507,9 +483,7 @@
 						</select>
 					</div>
 					<div class="w-full md:w-1/2 px-2 mb-4">
-						<label for="statusPayment" class="block text-sm font-medium text-gray-700 mb-1"
-							>Stato pagamento</label
-						>
+						<label for="statusPayment" class="block text-sm font-medium text-gray-700 mb-1">Stato pagamento</label>
 						<select
 							id="statusPayment"
 							name="statusPayment"
@@ -526,9 +500,7 @@
 
 				<div class="col-span-2 flex flex-wrap justify-center w-full gap-3 my-4">
 					{#each orderDetail?.cart as item}
-						<div
-							class="flex items-center w-full max-w-96 bg-indigo-100 rounded-lg shadow-md overflow-hidden"
-						>
+						<div class="flex items-center w-full max-w-96 bg-indigo-100 rounded-lg shadow-md overflow-hidden">
 							<div class="w-1/3 p-3">
 								<!-- <Image
 	layout="constrained"
@@ -557,16 +529,8 @@
 					<p class="text-xl font-semibold text-black-800">{orderDetail.totalValue} €</p>
 				</div>
 				<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
-					<button
-						class="btn btn-error btn-sm rounded-md hover:bg-red-300"
-						type="button"
-						onclick={onCloseModal}
-					>
-						Annulla
-					</button>
-					<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit">
-						Modifica
-					</button>
+					<button class="btn btn-error btn-sm rounded-md hover:bg-red-300" type="button" onclick={onCloseModal}> Annulla </button>
+					<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit"> Modifica </button>
 				</div>
 			</form>
 		</Modal>
@@ -578,9 +542,7 @@
 		<Loader />
 	{:else}
 		<Modal isOpen={openModal} header={modalTitle}>
-			<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-				>✕</button
-			>
+			<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 			<form
 				method="POST"
 				action={postAction}
@@ -588,9 +550,7 @@
 				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 			>
 				<input type="hidden" name="orderId" value={orderId} />
-				<header class="col-span-4 text-center text-2xl font-bold text-green-800">
-					Conferma rimozione
-				</header>
+				<header class="col-span-4 text-center text-2xl font-bold text-green-800">Conferma rimozione</header>
 				<div class="col-span-4 mt-5 flex justify-center">
 					<div class="bg-gray-50 flex justify-center">
 						<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
@@ -607,15 +567,11 @@
 		<Loader />
 	{:else}
 		<Modal isOpen={openModal} header={modalTitle}>
-			<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-				>✕</button
-			>
+			<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 			<form method="POST" action={postAction} use:enhance={formSubmit} class="p-6 space-y-6">
 				<div class="flex flex-wrap -mx-2">
 					<div class="w-full md:w-1/2 px-2 mb-4">
-						<label for="orderId" class="block text-sm font-medium text-gray-700 mb-1"
-							>ID ordine</label
-						>
+						<label for="orderId" class="block text-sm font-medium text-gray-700 mb-1">ID ordine</label>
 						<input
 							type="text"
 							id="orderId"
@@ -626,9 +582,7 @@
 						/>
 					</div>
 					<div class="w-full md:w-1/2 px-2 mb-4">
-						<label for="userId" class="block text-sm font-medium text-gray-700 mb-1"
-							>Associato</label
-						>
+						<label for="userId" class="block text-sm font-medium text-gray-700 mb-1">Associato</label>
 						<select
 							id="userId"
 							name="userId"
@@ -664,9 +618,7 @@
 						/>
 					</div>
 					<div class="w-full md:w-1/2 px-2 mb-4">
-						<label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-1"
-							>Metodo di pagamento</label
-						>
+						<label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-1">Metodo di pagamento</label>
 						<select
 							id="paymentMethod"
 							name="paymentMethod"
@@ -680,9 +632,7 @@
 						</select>
 					</div>
 					<div class="w-full md:w-1/2 px-2 mb-4">
-						<label for="status" class="block text-sm font-medium text-gray-700 mb-1"
-							>Stato ordine</label
-						>
+						<label for="status" class="block text-sm font-medium text-gray-700 mb-1">Stato ordine</label>
 						<select
 							id="status"
 							name="status"
@@ -697,9 +647,7 @@
 						</select>
 					</div>
 					<div class="w-full md:w-1/2 px-2 mb-4">
-						<label for="statusPayment" class="block text-sm font-medium text-gray-700 mb-1"
-							>Stato pagamento</label
-						>
+						<label for="statusPayment" class="block text-sm font-medium text-gray-700 mb-1">Stato pagamento</label>
 						<select
 							id="statusPayment"
 							name="statusPayment"
@@ -714,16 +662,8 @@
 					</div>
 				</div>
 				<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
-					<button
-						class="btn btn-error btn-sm rounded-md hover:bg-red-300"
-						type="button"
-						onclick={onCloseModal}
-					>
-						Annulla
-					</button>
-					<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit">
-						Applica Filtri
-					</button>
+					<button class="btn btn-error btn-sm rounded-md hover:bg-red-300" type="button" onclick={onCloseModal}> Annulla </button>
+					<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit"> Applica Filtri </button>
 				</div>
 			</form>
 		</Modal>

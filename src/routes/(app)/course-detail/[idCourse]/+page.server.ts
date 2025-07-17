@@ -191,7 +191,7 @@ export const actions: Actions = {
 		const cartItem = JSON.parse(String(cart)) || null;
 		const totalDiscount = formData.get('totalDiscount') || 0;
 		const paymentMethodId = formData.get('paymentMethodId') as string | null;
-		const userReferred = formData.get('userReferred') as string | null;
+		const promoterId = formData.get('promoterId') as string | null;
 
 		const bundle = formData.get('bundleProducts');
 
@@ -443,7 +443,7 @@ export const actions: Actions = {
 				orderConfirmDate: null,
 				promotionId: '',
 				promotionName: '',
-				promoterId: '',
+				promoterId: promoterId ? promoterId.trim() : null,
 				agencyId: '',
 				orderConfirmed: false,
 				totalPoints: 0,
@@ -644,7 +644,7 @@ export const actions: Actions = {
 
 			await Promise.all(updateQty);
 
-			if (payment === 'Carta di credito' && userReferred) {
+			if (payment === 'Carta di credito' && promoterId) {
 				const id = cartItem.layoutId
 				let points = 0;
 				let pointsBase = 0;
@@ -662,7 +662,7 @@ export const actions: Actions = {
 					body: JSON.stringify({
 						apiKey: APIKEY,
 						schema: 'user', //product | order | user | layout | discount
-						query: { email: userReferred }, // 'course', 'product', 'membership', 'event',
+						query: { email: promoterId }, // 'course', 'product', 'membership', 'event',
 						update: {
 							$inc: {
 								pointsBalance: points
