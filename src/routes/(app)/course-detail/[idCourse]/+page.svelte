@@ -613,6 +613,9 @@
 									<div>
 										<p class="text-sm text-gray-500">Luogo</p>
 										<p class="font-medium">{getCourse.county}</p>
+										{#if getCourse.location != 'Online'}
+											<p class="font-medium">{getCourse.location}</p>
+										{/if}
 									</div>
 								</div>
 

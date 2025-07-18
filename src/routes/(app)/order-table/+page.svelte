@@ -6,9 +6,10 @@
 	import { orderKeysToDelete, province } from '$lib/stores/arrays';
 	import { notification } from '$lib/stores/notifications';
 	import Modal from '$lib/components/Modal.svelte';
+	import { imgCheck } from '$lib/tools/tools.js';
 	import { enhance } from '$app/forms';
 	import Loader from '$lib/components/Loader.svelte';
-	import { Funnel, XCircle, ShieldAlert, RefreshCcw, FileDown, Trash2, FileCog, HandCoins } from 'lucide-svelte';
+	import { Funnel, XCircle, ShieldAlert, RefreshCcw, FileDown, Trash2, FileCog, Handshake, BanknoteArrowUp, BanknoteX } from 'lucide-svelte';
 	import type { Order, TableNames, Product } from '$lib/types';
 
 	let { data } = $props();
@@ -222,8 +223,8 @@
 				<th>Utente</th>
 				<th>Carrello</th>
 				<th>Totale</th>
-				<th>Tipo pagamento</th>
-				<th>Stato Ordine</th>
+				<th>Pagamento</th>
+				<!-- <th>Stato Ordine</th> -->
 				<th>Azione</th>
 			</tr>
 		</thead>
@@ -269,7 +270,24 @@
 						</div>
 					</td>
 					<!-- Totale -->
-					<td>€ {row.totalValue.toFixed(2)}</td>
+					<td>
+						<div class="flex flex-col space-y-1">
+							<div class="flex items-center justify-center space-x-4">
+								<span class="font-bold">€ {row.totalValue.toFixed(2)}</span>
+							</div>
+							{#if row.payment.statusPayment === 'pending'}
+								<!-- <div class="divider">pagamento</div> -->
+								<div class="flex items-center space-x-4">
+									<button class="btn btn-success btn-sm">
+										<BanknoteArrowUp />
+									</button>
+									<button class="btn btn-error btn-sm">
+										<BanknoteX />
+									</button>
+								</div>
+							{/if}
+						</div>
+					</td>
 					<!-- Tipo pagamento -->
 					<td>
 						<div class="flex flex-col space-y-1">
@@ -285,13 +303,13 @@
 							</div>
 							{#if row.promoterId}
 								<div>
-									<span class="badge badge-info font-semibold"><HandCoins size={20} />: {row.promoterId}</span>
+									<span class="badge badge-info font-semibold"><Handshake size={20} />: {row.promoterId}</span>
 								</div>
 							{/if}
 						</div>
 					</td>
 					<!-- Status -->
-					<td>
+					<!-- <td>
 						{#if row.status === 'requested'}
 							<span class="badge badge-warning">{row.status}</span>
 						{:else if row.status === 'confirmed'}
@@ -299,18 +317,28 @@
 						{:else}
 							<span class="badge badge-error">{row.status}</span>
 						{/if}
-					</td>
+					</td> -->
 					<!-- Azione -->
-					<td class="flex items-center space-x-4">
-						<button onclick={() => onClickModal('modify', row)} class="btn btn-sm">
-							<FileCog />
-						</button>
-						<button onclick={() => onClickModal('delete', row)} class="btn btn-error btn-sm">
-							<Trash2 />
-						</button>
-						<!-- <button onclick={() => onClickModal('detail', row)} class="btn btn-success btn-sm">
-							<FileCog />
-						</button> -->
+					<td class="flex flex-col space-y-2 py-2 px-4">
+						<div class="flex items-center space-x-4">
+							<button onclick={() => onClickModal('modify', row)} class="btn btn-sm">
+								<FileCog />
+							</button>
+							<button onclick={() => onClickModal('delete', row)} class="btn btn-error btn-sm">
+								<Trash2 />
+							</button>
+						</div>
+						<!-- {#if row.payment.statusPayment === 'pending'}
+							<div class="divider">pagamento</div>
+							<div class="flex items-center space-x-4">
+								<button onclick={() => onClickModal('modify', row)} class="btn btn-success btn-sm">
+									<BanknoteArrowUp />
+								</button>
+								<button onclick={() => onClickModal('modify', row)} class="btn btn-error btn-sm">
+									<BanknoteX />
+								</button>
+							</div>
+						{/if} -->
 					</td>
 				</tr>
 			{/each}
@@ -417,7 +445,7 @@
 							value={orderDetail.shipping?.county}
 							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 						>
-							<option value="">Scegli una Provincia {orderDetail.shipping.county}</option>
+							<option disabled value="">Scegli una Provincia {orderDetail.shipping.county}</option>
 							{#each $province as provincia}
 								<option value={provincia.title}>{provincia.title}</option>
 							{/each}
@@ -461,13 +489,13 @@
 							value={orderDetail.payment.method}
 							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 						>
-							<option value="">Scegli un metodo</option>
+							<option disabled value="">Scegli un metodo</option>
 							<option value="Bonifico bancario">Bonifico</option>
 							<option value="Carta di credito">Carta di credito</option>
 							<option value="Contanti">Contanti</option>
 						</select>
 					</div>
-					<div class="w-full md:w-1/2 px-2 mb-4">
+					<!-- <div class="w-full md:w-1/2 px-2 mb-4">
 						<label for="status" class="block text-sm font-medium text-gray-700 mb-1">Stato ordine</label>
 						<select
 							id="status"
@@ -479,9 +507,9 @@
 							<option value="requested">Richiesta in corso</option>
 							<option value="confirmed">Confermato</option>
 							<option value="cancelled">Cancellato</option>
-							<!-- <option value="exported">Esportato</option> -->
+							<option value="exported">Esportato</option>
 						</select>
-					</div>
+					</div> -->
 					<div class="w-full md:w-1/2 px-2 mb-4">
 						<label for="statusPayment" class="block text-sm font-medium text-gray-700 mb-1">Stato pagamento</label>
 						<select
@@ -490,7 +518,7 @@
 							value={orderDetail.payment.statusPayment}
 							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 						>
-							<option value="">Scegli uno status</option>
+							<option disabled value="">Scegli uno status</option>
 							<option value="pending">Pending</option>
 							<option value="done">Confermato</option>
 							<option value="canceled">Cancellato</option>
@@ -498,39 +526,59 @@
 					</div>
 				</div>
 
-				<div class="col-span-2 flex flex-wrap justify-center w-full gap-3 my-4">
-					{#each orderDetail?.cart as item}
-						<div class="flex items-center w-full max-w-96 bg-indigo-100 rounded-lg shadow-md overflow-hidden">
-							<div class="w-1/3 p-3">
-								<!-- <Image
-	layout="constrained"
-	aspectRatio={1}
-									src={item.layoutView.urlPic || '/images/placeholder.jpg'}
-									alt="Immagine corso"
-									class="w-full h-full object-cover"
-								/> -->
-							</div>
-							<div class="w-2/3 p-4">
-								<p class="text-center text-sm font-semibold">
-									<!-- {item.layoutView.title} -->
-								</p>
-								<p class="text-center text-sm font-semibold">
-									<!-- {item.layoutView.price}€ -->
-								</p>
-								<p class="text-center text-sm font-semibold">
-									<!-- quantita': {item.orderQuantity} -->
-								</p>
-							</div>
-						</div>
-					{/each}
-				</div>
 				<div class="col-span-2 text-center mt-3">
 					<h2 class="text-lg font-bold">Totale Carrello:</h2>
 					<p class="text-xl font-semibold text-black-800">{orderDetail.totalValue} €</p>
 				</div>
+
+				<input type="hidden" name="cart" value={JSON.stringify(orderDetail.cart)} class="hidden" />
+				<input type="hidden" name="type" value={orderDetail.type} class="hidden" />
+
+				{#if orderDetail.promoterId}
+					<input type="hidden" name="promoterId" value={orderDetail.promoterId} />
+				{/if}
 				<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
 					<button class="btn btn-error btn-sm rounded-md hover:bg-red-300" type="button" onclick={onCloseModal}> Annulla </button>
 					<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit"> Modifica </button>
+				</div>
+				<div class="col-span-2 flex flex-wrap justify-center w-full gap-3 my-4">
+					{#each orderDetail?.cart as item}
+						<div class="flex items-center w-full max-w-96 bg-indigo-100 rounded-lg shadow-md overflow-hidden">
+							<div class="w-1/3 p-3">
+								{#if item.type === 'course'}
+									<Image
+										layout="constrained"
+										aspectRatio={1}
+										src={item.layoutView.urlPic || '/images/placeholder.jpg'}
+										alt="Immagine corso"
+										class="w-full h-full object-cover"
+									/>
+								{:else if item.type === 'product'}
+									<Image
+										layout="constrained"
+										aspectRatio={1}
+										src={imgCheck.single(item.uploadfiles, 'product-primary')}
+										alt="Immagine corso"
+										class="w-full h-full object-cover"
+									/>
+								{/if}
+							</div>
+							<div class="w-2/3 p-4">
+								<p class="text-center text-sm font-semibold">
+									{item.type === 'course' ? item.layoutView.title : item.title}
+								</p>
+								{#if orderDetail.type === 'product'}
+									<p class="text-center text-sm font-semibold">
+										{item.type === 'course' ? item.layoutView.price : item.price}€
+									</p>
+
+									<p class="text-center text-sm font-semibold">
+										quantita': {item.orderQuantity}
+									</p>
+								{/if}
+							</div>
+						</div>
+					{/each}
 				</div>
 			</form>
 		</Modal>
@@ -669,156 +717,3 @@
 		</Modal>
 	{/if}
 {/if}
-
-<!-- {#if currentModal == 'detail'}
-	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
-		<form class="p-6 space-y-6">
-			<div class="flex flex-wrap -mx-2">
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nome Cognome</label
-					>
-					<input
-						type="text"
-						id="name"
-						name="name"
-						value={`${orderDetail.userView?.name} ${orderDetail.userView?.surname}`}
-						readonly
-						class="input input-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-					<input
-						type="email"
-						id="email"
-						name="email"
-						value={orderDetail.userView?.email}
-						readonly
-						class="input input-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="city" class="block text-sm font-medium text-gray-700 mb-1">Città</label>
-					<input
-						type="text"
-						id="city"
-						name="city"
-						value={orderDetail.userView?.city}
-						readonly
-						class="input input-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="address" class="block text-sm font-medium text-gray-700 mb-1">Indirizzo</label
-					>
-					<input
-						type="text"
-						id="address"
-						name="address"
-						value={orderDetail.userView?.address}
-						readonly
-						class="input input-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="postalCode" class="block text-sm font-medium text-gray-700 mb-1"
-						>Codice Postale - Provincia</label
-					>
-					<input
-						type="text"
-						id="postalCode"
-						name="postalCode"
-						value={`${orderDetail.userView?.postalCode} - ${orderDetail.userView?.county}`}
-						readonly
-						class="input input-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="country" class="block text-sm font-medium text-gray-700 mb-1">Paese</label>
-					<input
-						type="text"
-						id="country"
-						name="country"
-						value={orderDetail.userView?.country}
-						readonly
-						class="input input-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
-					<input
-						type="text"
-						id="phone"
-						name="phone"
-						value={orderDetail.userView?.phone}
-						readonly
-						class="input input-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-				<div class="w-full md:w-1/2 px-2 mb-4">
-					<label for="mobile" class="block text-sm font-medium text-gray-700 mb-1">Cellulare</label>
-					<input
-						type="text"
-						id="mobile"
-						name="mobile"
-						value={orderDetail.userView?.mobile}
-						readonly
-						class="input input-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					/>
-				</div>
-			</div>
-		</form>
-		<div class="col-span-2 flex flex-col items-center w-full gap-3 my-4">
-			{#each orderDetail?.cart as item}
-				<div
-					class="flex items-center w-full max-w-96 bg-indigo-100 rounded-lg shadow-md overflow-hidden"
-				>
-					<div class="w-1/3 p-3">
-						<Image
-	layout="constrained"
-	aspectRatio={1}
-							src={imgSrc(item.category[0])}
-							alt="Immagine corso"
-							class="w-full h-full object-cover"
-						/>
-					</div>
-					<div class="w-2/3 p-4 flex items-center justify-center">
-						<h2 class="text-center text-md font-semibold">
-							{item.title} <br /><br />
-							{item.price}€
-						</h2>
-					</div>
-				</div>
-			{/each}
-		</div>
-		<div class="col-span-2 text-center mt-3">
-			<h2 class="text-lg font-bold">Totale Carrello:</h2>
-			<p class="text-xl font-semibold text-black-800">{orderDetail.totalValue} €</p>
-			{#if auth}
-				<p class="text-gray-800 font-semibold">-25 € sconto tesserati</p>
-			{/if}
-		</div>
-		<div class="col-span-2 text-center mt-5">
-			<div class="flex justify-center space-x-8">
-				<div>
-					<h2 class="text-md font-bold">Metodo pagamento:</h2>
-					<p class="text-md font-semibold text-black-800">{orderDetail.payment.method}</p>
-				</div>
-				<div>
-					<h2 class="text-md font-bold">Status pagamento:</h2>
-					<p class="text-md font-semibold text-black-800">{orderDetail.payment.statusPayment}</p>
-				</div>
-			</div>
-		</div>
-
-		<div class="modal-action col-span-2">
-			<button
-				class="btn btn-sm btn-error w-24 hover:bg-white hover:text-error rounded-lg mr-4"
-				onclick={onCloseModal}>Chiudi</button
-			>
-		</div>
-	</Modal>
-{/if} -->

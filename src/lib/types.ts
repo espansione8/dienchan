@@ -268,12 +268,20 @@ export interface Order {
         prodId: string;
         title: string;
         type: string;
+        orderQuantity: number;
+        price: number;
         layoutView: {
             title: string;
             urlPic: string;
             price: number;
         };
-        orderQuantity: number;
+
+        uploadfiles: Array<{
+            type: 'product-primary' | 'product-gallery' | 'membership' | 'course' | 'none';
+            filetype: string;
+            filename: string;
+            fileUrl: string;
+        }>;
     }[];
     totalCart: number;
     totalValue: number;

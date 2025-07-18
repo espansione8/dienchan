@@ -27,7 +27,7 @@
 		FileDown,
 		ShieldAlert,
 		UserRoundCheck,
-		HandCoins
+		Handshake
 	} from 'lucide-svelte';
 
 	// PDF maker
@@ -520,7 +520,6 @@
 					tableList = getTable;
 				}
 				notification.info(message);
-				openModal = false;
 			}
 			if (result.type === 'failure') {
 				notification.error(result.data.message);
@@ -530,6 +529,7 @@
 			}
 			// 'update()' is called by default by use:enhance
 			// call 'await update()' if you need to ensure it completes before further client logic.
+			openModal = false;
 			resetFields();
 			loading = false;
 		};
@@ -883,7 +883,13 @@
 					<div class="join join-horizontal rounded-md w-full mb-2">
 						<button class="join-item bg-gray-300 px-3"><Building2 /></button>
 						<input type="hidden" name="provinceArray" bind:value={provinceArray} />
-						<select class="select select-bordered w-full rounded-md rounded-l-none" id="county" name="county" bind:value={county}>
+						<select
+							class="select select-bordered w-full rounded-md rounded-l-none"
+							id="county"
+							name="county"
+							bind:value={county}
+							onchange={() => addItem(county, 'province')}
+						>
 							<option disabled value="">Scegli</option>
 							{#each $province as provincia}
 								<option value={provincia.title}>
@@ -891,7 +897,7 @@
 								</option>
 							{/each}
 						</select>
-						<button type="button" class="join-item btn btn-primary" onclick={() => addItem(county, 'province')}> Aggiungi </button>
+						<!-- <button type="button" class="join-item btn btn-primary" onclick={() => addItem(county, 'province')}> Aggiungi </button> -->
 					</div>
 
 					{#if provinceArray.length > 0}
@@ -1237,7 +1243,7 @@
 						</div>
 						<div class="flex flex-wrap gap-x-6">
 							{#if item.promoterId}
-								<span class="text-info-content break-words"><HandCoins />: {item.promoterId}</span>
+								<span class="text-info-content break-words"><Handshake />: {item.promoterId}</span>
 							{/if}
 						</div>
 					</div>

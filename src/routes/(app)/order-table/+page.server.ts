@@ -99,54 +99,136 @@ export const actions: Actions = {
 		const paymentMethod = formData.get('paymentMethod');
 		const status = formData.get('status');
 		const statusPayment = formData.get('statusPayment');
-		console.log('status', status);
+		const promoterId = formData.get('promoterId') as string | null;
+		const cart = formData.get('cart') as string;
+		const cartItem = JSON.parse(String(cart)) || null;
+		const type = formData.get('type') as string;
+		//console.log(orderId);
 
 		if (!orderId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
-		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'order',
-				query: { orderId: orderId },
-				update: {
-					$set: {
-						...(email && { 'shipping.email': email }),
-						...(name && { 'shipping.name': name }),
-						...(surname && { 'shipping.surname': surname }),
-						...(city && { 'shipping.city': city }),
-						...(address && { 'shipping.address': address }),
-						...(postalCode && { 'shipping.postalCode': postalCode }),
-						...(county && { 'shipping.county': county }),
-						...(country && { 'shipping.country': country }),
-						...(phone && { 'shipping.phone': phone }),
-						...(mobile && { 'shipping.mobile': mobile }),
-						...(status && { status }),
-						...(paymentMethod && { 'payment.method': paymentMethod }),
-						...(statusPayment && { 'payment.statusPayment': statusPayment }),
-					}
-				},
-				options: { upsert: false },
-				multi: false
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
 		try {
-			const res = await resFetch;
-			console.log('res', res);
+			const resFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'order', //product | order | user | layout | discount
+					query: { orderId },
+					projection: { _id: 0 }, // 0: exclude | 1: include
+					sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+					limit: 1,
+					skip: 0
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
 
-			if (!res.ok) {
-				const errorText = await res.text();
-				console.error('order update failed', res.status, errorText);
+			if (!resFetch.ok) {
+				const errorText = await resFetch.text();
+				console.error('order find failed', resFetch.status, errorText);
 				return fail(400, { action: 'modify', success: false, message: errorText });
 			}
-			const result = await res.json();
-			console.log('result', result);
+
+			const oldOrder = await resFetch.json();
+			let oldStatusPayment = '';
+			if (oldOrder.length > 0) {
+				oldStatusPayment = oldOrder[0].payment.statusPayment;
+			}
+
+			const resUpdate = await fetch(`${BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'order',
+					query: { orderId: orderId },
+					update: {
+						$set: {
+							...(email && { 'shipping.email': email }),
+							...(name && { 'shipping.name': name }),
+							...(surname && { 'shipping.surname': surname }),
+							...(city && { 'shipping.city': city }),
+							...(address && { 'shipping.address': address }),
+							...(postalCode && { 'shipping.postalCode': postalCode }),
+							...(county && { 'shipping.county': county }),
+							...(country && { 'shipping.country': country }),
+							...(phone && { 'shipping.phone': phone }),
+							...(mobile && { 'shipping.mobile': mobile }),
+							...(status && { status }),
+							...(promoterId && { promoterId: promoterId.trim() }),
+							...(paymentMethod && { 'payment.method': paymentMethod }),
+							...(statusPayment && { 'payment.statusPayment': statusPayment }),
+						}
+					},
+					options: { upsert: false },
+					multi: false
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			//const res = await resFetch;
+			//console.log('res', res);
+
+			if (!resUpdate.ok) {
+				const errorText = await resUpdate.text();
+				console.error('order update failed', resUpdate.status, errorText);
+				return fail(400, { action: 'modify', success: false, message: errorText });
+			}
+			const result = await resUpdate.json();
+			//console.log('result', result);
+
+			if (statusPayment === 'done' && oldStatusPayment !== 'done' && promoterId && type === 'course') {
+				const courseItem = cartItem.find((item: any) => item.type === 'course');
+				if (courseItem) {
+					const id = courseItem.layoutId;
+					let points = 0;
+					let pointsBase = 0;
+					let pointsAvanzato = 0;
+					if (id === 'XW7LYV2LG2BU') points = 10; // base
+					if (id === '794792843') points = 40; // avanzato
+					if (id === 'accademia') { // accademia
+						pointsBase = 50;
+						pointsAvanzato = 100;
+					}
+
+					//course type
+					const userPointsFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
+						method: 'POST',
+						body: JSON.stringify({
+							apiKey: APIKEY,
+							schema: 'user', //product | order | user | layout | discount
+							query: { email: promoterId }, // 'course', 'product', 'membership', 'event',
+							update: {
+								$inc: {
+									pointsBalance: points
+								},
+								$push: {
+									pointsHistory: {
+										points: points,
+										note: `Commissione ${courseItem.layoutView.title} - Ordine ${orderId}`,
+									}
+								}
+							},
+							options: { upsert: false },
+							multi: false
+						}),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					});
+
+					if (!userPointsFetch.ok) {
+						return fail(400, {
+							action: 'new',
+							success: false,
+							message: `userPointsFetch: ${await userPointsFetch.text()}`
+						});
+					}
+				}
+			}
 
 			return { action: 'modify', success: true, message: result.message };
 

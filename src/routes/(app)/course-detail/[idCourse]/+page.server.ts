@@ -247,7 +247,7 @@ export const actions: Actions = {
 				query: { type: 'course', prodId: cartItem.prodId }, // 'course', 'product', 'membership', 'event',
 				update: {
 					$push: {
-						listSubscribers: { userId: currentUserId, email, name, surname, phone, mobilePhone }
+						listSubscribers: { userId: currentUserId, email, name, surname, phone, mobilePhone, promoterId: promoterId.trim() }
 					}
 				},
 				options: { upsert: false },

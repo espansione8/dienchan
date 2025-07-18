@@ -1,0 +1,662 @@
+<SYSTEM>This is the code for the mongo API calls of the apps</SYSTEM>
+
+# /api/mongo/find
+// `${BASE_URL}/api/mongo/find`
+import { APIKEY } from '$env/static/private';
+import { json } from '@sveltejs/kit';
+import { Product } from '$lib/server/mongo/schema/Products.model';
+import { Order } from '$lib/server/mongo/schema/Orders.model';
+import { User } from '$lib/server/mongo/schema/Users.model';
+import { Layout } from '$lib/server/mongo/schema/ProductLayouts.model';
+import { Discount } from '$lib/server/mongo/schema/Discounts.model';
+import { timingSafeEqual } from 'crypto';
+import dbConnect from '$lib/server/mongo/database';
+import type { RequestHandler } from '@sveltejs/kit';
+
+// const email = emailToCheck.replace(/\s+/g, '').toLowerCase();
+// INSTRUCTION
+// import { APIKEY, BASE_URL } from '$env/static/private';
+
+// const resFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+// 	method: 'POST',
+// 	body: JSON.stringify({
+// 		 apiKey: APIKEY,
+// 		schema: 'product', //product | order | user | layout | discount
+// 		query: { type: 'product', price: { $gt: 50 } },
+// 		projection: { _id: 0, password: 0 }, // 0: exclude | 1: include
+// 		sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+// 		limit: 1000,
+// 		skip: 0
+// 	}),
+// 	headers: {
+// 		'Content-Type': 'application/json'
+// 	}
+// });
+// const res = await resFetch;
+// if (!res.ok) {
+//     return fail(400, { action: 'renew', success: false, message: `res: ${await res.text()}` });
+// }
+// const response = await res.json()
+
+export const POST: RequestHandler = async ({ request }) => {
+	const body = await request.json();
+	const {
+		apiKey,
+		schema,
+		query,
+		projection,
+		sort,
+		limit,
+		skip
+	} = body;
+
+	//if (apiKey !== APIKEY) {
+	const apiKeyBuffer = Buffer.from(apiKey || '');
+	const expectedBuffer = Buffer.from(APIKEY);
+	if (apiKeyBuffer.length !== expectedBuffer.length || !timingSafeEqual(apiKeyBuffer, expectedBuffer)) {
+		return json({ message: 'api error' }, { status: 401 });
+	}
+
+	let model: any;
+	if (schema == 'product') model = Product;
+	else if (schema == 'order') model = Order;
+	else if (schema == 'user') model = User;
+	else if (schema == 'layout') model = Layout;
+	else if (schema == 'discount') model = Discount;
+	else {
+		return json({ message: 'Schema not found' }, { status: 400 });
+	}
+
+	try {
+		await dbConnect();
+
+		// const find = await model.find(query, projection)
+		// 	.sort(sort)
+		// 	.limit(limit)
+		// 	.skip(skip)
+		// 	.populate({
+		// 		path: 'userView',
+		// 		options: { strictPopulate: false }
+		// 	})
+		// 	.populate({
+		// 		path: 'layoutView',
+		// 		options: { strictPopulate: false }
+		// 	})
+		// 	.lean().exec();
+
+		let mongooseQuery = model.find(query, projection)
+			.sort(sort)
+			.limit(limit)
+			.skip(skip);
+
+		if (!projection || projection.userView !== 0) {
+			mongooseQuery = mongooseQuery.populate({
+				path: 'userView',
+				options: { strictPopulate: false }
+				// select: '-password'
+			});
+		}
+
+		if (!projection || projection.layoutView !== 0) {
+			mongooseQuery = mongooseQuery.populate({
+				path: 'layoutView',
+				options: { strictPopulate: false }
+				//select: '-version'
+			});
+		}
+
+		const find = await mongooseQuery.lean().exec();
+		//console.log('find', find);
+
+		if (find) return json(find, { status: 200 });
+		return json({ message: 'search error' }, { status: 400 });
+
+	} catch (err) {
+		console.log('search ERROR:', err);
+		return json({ message: `search ERROR: ${err}` }, { status: 500 });
+	}
+};
+
+# /api/mongo/create
+// `${BASE_URL}/api/mongo/create`
+import { APIKEY } from '$env/static/private';
+import { json } from '@sveltejs/kit';
+import dbConnect from '$lib/server/mongo/database';
+import { Product } from '$lib/server/mongo/schema/Products.model';
+import { Order } from '$lib/server/mongo/schema/Orders.model';
+import { User } from '$lib/server/mongo/schema/Users.model';
+import { Layout } from '$lib/server/mongo/schema/ProductLayouts.model';
+import { Discount } from '$lib/server/mongo/schema/Discounts.model';
+import { timingSafeEqual } from 'crypto';
+import type { RequestHandler } from '@sveltejs/kit';
+
+// const email = emailToCheck.replace(/\s+/g, '').toLowerCase();
+// INSTRUCTION
+// import { APIKEY, BASE_URL } from '$env/static/private';
+// import { customAlphabet } from 'nanoid'
+// const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
+// const newId = nanoid();
+
+// const resFetch = fetch(`${BASE_URL}/api/mongo/create`, {
+// 	method: 'POST',
+// 	body: JSON.stringify({
+// 		 apiKey: APIKEY,
+// 		schema: 'product', //product | order | user | layout | discount
+// 		newDoc: {
+// 			docId: newId,
+// 			title: 'product',
+// 			price: { $gt: 50 }
+// 		},
+// 		returnObj: false
+// 	}),
+// 	headers: {
+// 		'Content-Type': 'application/json'
+// 	}
+// });
+// const res = await resFetch;
+// if (!res.ok) {
+//     return fail(400, { action: 'renew', success: false, message: `res: ${await res.text()}` });
+// }
+// const response = await res.json()
+
+export const POST: RequestHandler = async ({ request }) => {
+	const body = await request.json();
+	const {
+		apiKey,
+		schema,
+		newDoc,
+		returnObj
+	} = body;
+
+	//if (apiKey !== APIKEY) {
+	const apiKeyBuffer = Buffer.from(apiKey || '');
+	const expectedBuffer = Buffer.from(APIKEY);
+	if (apiKeyBuffer.length !== expectedBuffer.length || !timingSafeEqual(apiKeyBuffer, expectedBuffer)) {
+		return json({ message: 'api error' }, { status: 401 });
+	}
+
+	let model: any;
+	if (schema == 'product') model = Product;
+	else if (schema == 'order') model = Order;
+	else if (schema == 'user') model = User;
+	else if (schema == 'layout') model = Layout;
+	else if (schema == 'discount') model = Discount;
+	else {
+		return json({ message: 'Schema not found' }, { status: 400 });
+	}
+
+	try {
+		await dbConnect();
+		const insert = await model.create(newDoc);
+		//console.log('insert API', insert._id);
+
+		if (insert._id) {
+			if (returnObj) { return json(insert, { status: 200 }); }
+			else { return json({ message: 'insert ok', status: 200 }); }
+		}
+
+		return json({ message: 'insert error', status: 400 });
+
+	} catch (err) {
+		console.log('insert ERROR:', err);
+		return json({ message: 'insert ERROR' }, { status: 500 });
+	}
+};
+
+# /api/mongo/remove
+// `${BASE_URL}/api/mongo/remove`
+import { APIKEY } from '$env/static/private';
+import { json } from '@sveltejs/kit';
+import { Product } from '$lib/server/mongo/schema/Products.model';
+import { Order } from '$lib/server/mongo/schema/Orders.model';
+import { User } from '$lib/server/mongo/schema/Users.model';
+import { Layout } from '$lib/server/mongo/schema/ProductLayouts.model';
+import { Discount } from '$lib/server/mongo/schema/Discounts.model';
+import { timingSafeEqual } from 'crypto';
+import dbConnect from '$lib/server/mongo/database';
+import type { RequestHandler } from '@sveltejs/kit';
+
+// const email = emailToCheck.replace(/\s+/g, '').toLowerCase();
+// INSTRUCTION
+// import { APIKEY, BASE_URL } from '$env/static/private';
+
+// const resFetch = fetch(`${BASE_URL}/api/mongo/remove`, {
+//     method: 'POST',
+//     body: JSON.stringify({
+//         apiKey: APIKEY,
+//         schema: 'product', //product | order | user | layout | discount
+//         query: { type: 'product', price: 0 },
+//         multi: false ,
+//     }),
+//     headers: {
+//         'Content-Type': 'application/json'
+//     }
+// });
+// const res = await resFetch;
+// if (!res.ok) {
+//     return fail(400, { action: 'renew', success: false, message: `res: ${await res.text()}` });
+// }
+// const response = await res.json()
+
+export const POST: RequestHandler = async ({ request }) => {
+    const body = await request.json();
+    const {
+        apiKey,
+        schema,
+        query,
+        multi,
+    } = body;
+
+    //if (apiKey !== APIKEY) {
+    const apiKeyBuffer = Buffer.from(apiKey || '');
+    const expectedBuffer = Buffer.from(APIKEY);
+    if (apiKeyBuffer.length !== expectedBuffer.length || !timingSafeEqual(apiKeyBuffer, expectedBuffer)) {
+        return json({ message: 'api error' }, { status: 401 });
+    }
+
+    let model: any;
+    if (schema == 'product') model = Product;
+    else if (schema == 'order') model = Order;
+    else if (schema == 'user') model = User;
+    else if (schema == 'layout') model = Layout;
+    else if (schema == 'discount') model = Discount;
+    else {
+        return json({ message: 'Schema not found' }, { status: 400 });
+    }
+
+    try {
+        await dbConnect();
+        //const result = await model.remove(query, options).lean().exec();
+        let result
+        if (multi) {
+            result = await model.deleteMany(query).exec();
+        } else {
+            result = await model.deleteOne(query).exec();
+        }
+
+        if (result.deletedCount > 0) return json({ message: 'delete ok' }, { status: 200 });
+        return json({ message: 'delete error' }, { status: 400 });
+
+    } catch (err) {
+        console.error('delete error server', err);
+        return json({ error: `delete error server: ${err.message}` }, { status: 500 });
+    }
+};
+
+# /api/mongo/update
+// `${BASE_URL}/api/mongo/update`
+import { APIKEY } from '$env/static/private';
+import { json } from '@sveltejs/kit';
+import { Product } from '$lib/server/mongo/schema/Products.model';
+import { Order } from '$lib/server/mongo/schema/Orders.model';
+import { User } from '$lib/server/mongo/schema/Users.model';
+import { Layout } from '$lib/server/mongo/schema/ProductLayouts.model';
+import { Discount } from '$lib/server/mongo/schema/Discounts.model';
+import { timingSafeEqual } from 'crypto';
+import dbConnect from '$lib/server/mongo/database';
+import type { RequestHandler } from '@sveltejs/kit';
+
+// const email = emailToCheck.replace(/\s+/g, '').toLowerCase(); | string.toLowerCase().trim()
+// INSTRUCTION
+// import { APIKEY, BASE_URL } from '$env/static/private';
+
+// const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+//     method: 'POST',
+//     body: JSON.stringify({
+//         apiKey: APIKEY,
+//         schema: 'user', //product | order | user | layout | discount
+//         query: { type: 'agent', userId: '5f8d9f4d0a1f2c1c6e1b3d' },
+//         update: {
+//             $set: {
+//                 name: 'jake',
+//                 age: 30
+//             }
+//         },
+//         options: { upsert: false },
+//         multi: false
+//     }),
+//     headers: {
+//         'Content-Type': 'application/json'
+//     }
+// });
+// const res = await resFetch;
+// if (!res.ok) {
+//     return fail(400, { action: 'renew', success: false, message: `res: ${await res.text()}` });
+// }
+// const response = await res.json()
+
+export const POST: RequestHandler = async ({ request }) => {
+    const body = await request.json();
+    const {
+        apiKey,
+        schema,
+        query,
+        update,
+        options,
+        multi
+    } = body;
+
+    //if (apiKey !== APIKEY) {
+    const apiKeyBuffer = Buffer.from(apiKey || '');
+    const expectedBuffer = Buffer.from(APIKEY);
+    if (apiKeyBuffer.length !== expectedBuffer.length || !timingSafeEqual(apiKeyBuffer, expectedBuffer)) {
+        return json({ message: 'api error' }, { status: 401 });
+    }
+
+    let model: any;
+    if (schema == 'product') model = Product;
+    else if (schema == 'order') model = Order;
+    else if (schema == 'user') model = User;
+    else if (schema == 'layout') model = Layout;
+    else if (schema == 'discount') model = Discount;
+    else {
+        return json({ message: 'Schema not found' }, { status: 400 });
+    }
+
+    try {
+        await dbConnect();
+        //const result = await model.update(query, update, options).lean().exec();
+        let result
+        if (multi) {
+            result = await model.updateMany(query, update, options).lean().exec();
+        } else {
+            result = await model.updateOne(query, update, options).lean().exec();
+        }
+
+        if (result.matchedCount > 0) return json({ message: 'update ok' }, { status: 200 });
+        return json({ message: 'update error' }, { status: 400 });
+
+    } catch (err) {
+        console.error('update error server', err);
+        return json({ error: `update error server: ${err.message}` }, { status: 500 });
+    }
+};
+
+# /api/mongo/update-bulk
+// `${BASE_URL}/api/mongo/update-bulk`
+import { APIKEY } from '$env/static/private';
+import { json } from '@sveltejs/kit';
+import { Product } from '$lib/server/mongo/schema/Products.model';
+import { Order } from '$lib/server/mongo/schema/Orders.model';
+import { User } from '$lib/server/mongo/schema/Users.model';
+import { Layout } from '$lib/server/mongo/schema/ProductLayouts.model';
+import { Discount } from '$lib/server/mongo/schema/Discounts.model';
+import { timingSafeEqual } from 'crypto';
+import dbConnect from '$lib/server/mongo/database';
+import type { RequestHandler } from '@sveltejs/kit';
+
+export const POST: RequestHandler = async ({ request }) => {
+    const body = await request.json();
+    const {
+        apiKey,
+        schema,
+        update
+    } = body;
+    const options = { ordered: false }
+
+    //if (apiKey !== APIKEY) {
+    const apiKeyBuffer = Buffer.from(apiKey || '');
+    const expectedBuffer = Buffer.from(APIKEY);
+    if (apiKeyBuffer.length !== expectedBuffer.length || !timingSafeEqual(apiKeyBuffer, expectedBuffer)) {
+        return json({ message: 'api error' }, { status: 401 });
+    }
+
+    let model: any;
+    if (schema == 'product') model = Product;
+    else if (schema == 'order') model = Order;
+    else if (schema == 'user') model = User;
+    else if (schema == 'layout') model = Layout;
+    else if (schema == 'discount') model = Discount;
+    else {
+        return json({ message: 'Schema not found' }, { status: 400 });
+    }
+
+
+
+    if (!update || !Array.isArray(update) || update.length === 0) {
+        return json({ message: 'update missing' }, { status: 400 });
+    }
+
+    if (!model) {
+        return json({ message: `Schema "${schema}" error` }, { status: 400 });
+    }
+
+    try {
+        await dbConnect();
+        const result = await model.bulkWrite(update, options);
+        //console.log('result Bulk update', result);
+
+        return json({ message: 'Bulk update ok', result }, { status: 200 });
+
+    } catch (err) {
+        console.error('Server error bulk update:', err);
+        return json({ error: `Server error: ${err.message}` }, { status: 500 });
+    }
+};
+// FORM ACTION SAMPLE CODE
+// uploadCsv: async ({ request, fetch }) => {
+//         const formData = await request.formData();
+//         const file = formData.get('fileUpload');
+
+//         if (!file || typeof file === 'string' || !(file instanceof Blob)) {
+//             return fail(400, { action: 'uploadCsv', success: false, message: 'File CSV mancante o non valido' });
+//         }
+
+//         try {
+//             const fileContent = await file.text();
+//             const csvData = await new Promise((resolve, reject) => {
+//                 Papa.parse(fileContent, {
+//                     header: true,
+//                     dynamicTyping: true,
+//                     complete: (results) => {
+//                         resolve(results.data);
+//                     },
+//                     error: (error) => {
+//                         reject(error);
+//                     },
+//                 });
+//             });
+
+//             const bulkOperations = csvData.map(row => {
+//                 if (!row.prodId) { // IMPORTANT: prodId , userId
+//                     console.warn('CSV row skipped', row);
+//                     return null; // null skip the row
+//                 }
+
+//                 return {
+//                     updateOne: {
+//                         filter: { prodId: row.prodId },
+//                         update: { $set: row },
+//                         upsert: true
+//                     }
+//                 };
+//             }).filter(op => op !== null); // remove (null) rows
+
+//             if (bulkOperations.length === 0) {
+//                 return { action: 'uploadCsv', success: false, message: 'Nessun dato valido da processare nel CSV.' };
+//             }
+
+//             const resFetch = await fetch(`${BASE_URL}/api/mongo/update-bulk`, {
+//                 method: 'POST',
+//                 body: JSON.stringify({
+//                     apiKey: APIKEY,
+//                     schema: 'product', // 'user' FOR userId
+//                     update: bulkOperations,
+//                 }),
+//                 headers: {
+//                     'Content-Type': 'application/json',
+//                 },
+//             });
+//             const res = await resFetch;
+
+//             if (!res.ok) {
+//                 return { action: 'uploadCsv', success: false, message: `res: ${await res.text()}` };
+//             }
+
+//             return { action: 'uploadCsv', success: true, message: 'CSV uploaded successfully' };
+//         } catch (err) {
+//             console.error('Error uploadCsv:', err);
+//             return { action: 'uploadCsv', success: false, message: 'Errore server upload' };
+//         }
+//     },
+
+# /api/mongo/count
+// `${BASE_URL}/api/mongo/count`
+import { APIKEY } from '$env/static/private';
+import { json } from '@sveltejs/kit';
+import { Product } from '$lib/server/mongo/schema/Products.model';
+import { Order } from '$lib/server/mongo/schema/Orders.model';
+import { User } from '$lib/server/mongo/schema/Users.model';
+import { Layout } from '$lib/server/mongo/schema/ProductLayouts.model';
+import { Discount } from '$lib/server/mongo/schema/Discounts.model';
+import { timingSafeEqual } from 'crypto';
+import dbConnect from '$lib/server/mongo/database';
+import type { RequestHandler } from '@sveltejs/kit';
+
+// const email = emailToCheck.replace(/\s+/g, '').toLowerCase();
+// INSTRUCTION
+// import { APIKEY, BASE_URL } from '$env/static/private';
+
+// const resFetch = fetch(`${BASE_URL}/api/mongo/count`, {
+// 	method: 'POST',
+// 	body: JSON.stringify({
+// 		 apiKey: APIKEY,
+// 		schema: 'product', //product | order | user | layout | discount
+// 		query: { type: 'product', price: { $gt: 50 } },
+// 		option: { hint: { prodId: 1 }},// optional:use index            
+// 	}),
+// 	headers: {
+// 		'Content-Type': 'application/json'
+// 	}
+// });
+// const res = await resFetch;
+// if (!res.ok) {
+//    // return fail(400, { action: 'renew', success: false, message: `res: ${await res.text()}` });
+//    throw error(400, 'count fetch failed');
+// }
+// const response = await res.json()
+
+export const POST: RequestHandler = async ({ request }) => {
+	const body = await request.json();
+	const {
+		apiKey,
+		schema,
+		query,
+		option
+	} = body;
+
+	//if (apiKey !== APIKEY) {
+	const apiKeyBuffer = Buffer.from(apiKey || '');
+	const expectedBuffer = Buffer.from(APIKEY);
+	if (apiKeyBuffer.length !== expectedBuffer.length || !timingSafeEqual(apiKeyBuffer, expectedBuffer)) {
+		return json({ message: 'api error' }, { status: 401 });
+	}
+
+	let model: any;
+	if (schema == 'product') model = Product;
+	else if (schema == 'order') model = Order;
+	else if (schema == 'user') model = User;
+	else if (schema == 'layout') model = Layout;
+	else if (schema == 'discount') model = Discount;
+	else {
+		return json({ message: 'Schema not found' }, { status: 400 });
+	}
+
+	try {
+		await dbConnect();
+		const count = await model.countDocuments(query, option)//.exec();
+
+		if (typeof count === 'number') return json(count, { status: 200 });
+		return json({ message: 'count error' }, { status: 400 });
+
+	} catch (err) {
+		console.log('count ERROR:', err);
+		return json({ message: `count ERROR: ${err}` }, { status: 500 });
+	}
+};
+
+# /api/mongo/aggregate
+// `${BASE_URL}/api/mongo/aggregate`
+import { APIKEY } from '$env/static/private';
+import { json } from '@sveltejs/kit';
+import { Product } from '$lib/server/mongo/schema/Products.model';
+import { Order } from '$lib/server/mongo/schema/Orders.model';
+import { User } from '$lib/server/mongo/schema/Users.model';
+import { Layout } from '$lib/server/mongo/schema/ProductLayouts.model';
+import { Discount } from '$lib/server/mongo/schema/Discounts.model';
+import { timingSafeEqual } from 'crypto';
+import dbConnect from '$lib/server/mongo/database';
+import type { RequestHandler } from '@sveltejs/kit';
+
+// INSTRUCTION
+// import { APIKEY, BASE_URL } from '$env/static/private';
+
+// const resFetch = fetch(`${BASE_URL}/api/mongo/aggregate`, {
+//   method: 'POST',
+//   body: JSON.stringify({
+//       apiKey: APIKEY,
+//       schema: 'user', //product | order | user | layout | discount 
+//       // pipeline aggregate -> array of steps.
+//       // Example count user in county:
+//       pipeline: [
+//           { $match: { 'membership.membershipStatus': true, 'county': { $exists: true, $ne: null } } }, // Filter members
+//           { $group: { _id: '$county', count: { $sum: 1 } } }, // regroup by county and count
+//           { $sort: { _id: 1 } } // sorting
+//       ]
+//   }),
+//   headers: {
+//       'Content-Type': 'application/json'
+//   }
+// });
+// const res = await resFetch;
+// if (!res.ok) {
+//     return fail(400, { action: 'renew', success: false, message: `res: ${await res.text()}` });
+// }
+// const response = await res.json()
+
+export const POST: RequestHandler = async ({ request }) => {
+	const body = await request.json();
+	const {
+		apiKey,
+		schema,
+		pipeline  // array of operations
+	} = body;
+
+	// TODO add pipeline validation to prevent arbitrary operations
+
+
+	//if (apiKey !== APIKEY) {
+	const apiKeyBuffer = Buffer.from(apiKey || '');
+	const expectedBuffer = Buffer.from(APIKEY);
+	if (apiKeyBuffer.length !== expectedBuffer.length || !timingSafeEqual(apiKeyBuffer, expectedBuffer)) {
+		return json({ message: 'api error' }, { status: 401 });
+	}
+
+	let model: any;
+	if (schema == 'product') model = Product;
+	else if (schema == 'order') model = Order;
+	else if (schema == 'user') model = User;
+	else if (schema == 'layout') model = Layout;
+	else if (schema == 'discount') model = Discount;
+	else {
+		return json({ message: 'Schema not found' }, { status: 400 });
+	}
+
+	if (!Array.isArray(pipeline)) {
+		return json({ message: '"pipeline" must be array' }, { status: 400 });
+	}
+
+	try {
+		await dbConnect();
+
+		const aggregateResult = await model.aggregate(pipeline).exec();
+
+		if (aggregateResult) return json(aggregateResult, { status: 200 });
+		return json({ message: 'Aggregation Error' }, { status: 400 });
+
+	} catch (err) {
+		// Gestione degli errori durante l'aggregazione
+		console.error('Aggregation server Error:', err);
+		return json({ message: `Aggregation server Error` }, { status: 500 });
+	}
+};

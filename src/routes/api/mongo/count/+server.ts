@@ -1,4 +1,4 @@
-// `${BASE_URL}/api/mongo/find`
+// `${BASE_URL}/api/mongo/count`
 import { APIKEY } from '$env/static/private';
 import { json } from '@sveltejs/kit';
 import { Product } from '$lib/server/mongo/schema/Products.model';
