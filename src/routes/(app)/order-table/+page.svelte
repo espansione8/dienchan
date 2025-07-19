@@ -149,9 +149,10 @@
 	};
 
 	const formSubmit = () => {
+		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
 			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
-			loading = true;
+
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
 				const { action, message, payload } = result.data; // { action, success, message, payload }
@@ -191,6 +192,10 @@
 		}
 	</style>
 </noscript>
+
+{#if loading}
+	<Loader />
+{/if}
 
 <div class="overflow-x-auto mt-5 px-4 mb-5">
 	<div class="flex flex-col gap-4 mb-4">
@@ -278,12 +283,31 @@
 							{#if row.payment.statusPayment === 'pending'}
 								<!-- <div class="divider">pagamento</div> -->
 								<div class="flex items-center space-x-4">
-									<button class="btn btn-success btn-sm">
-										<BanknoteArrowUp />
-									</button>
-									<button class="btn btn-error btn-sm">
-										<BanknoteX />
-									</button>
+									<form method="POST" action={`?/modify`} use:enhance={formSubmit}>
+										<input type="hidden" name="orderId" value={row.orderId} />
+										<input type="hidden" name="statusPayment" value="done" />
+										{#if row.promoterId && row.type === 'course'}
+											<input type="hidden" name="promoterId" value={row.promoterId} />
+											<input type="hidden" name="type" value={row.type} />
+											<input type="hidden" name="cart" value={JSON.stringify(row.cart)} class="hidden" />
+										{/if}
+										<button type="submit" class="btn btn-success btn-sm">
+											<BanknoteArrowUp />
+										</button>
+									</form>
+
+									<form method="POST" action={`?/modify`} use:enhance={formSubmit}>
+										<input type="hidden" name="orderId" value={row.orderId} />
+										<input type="hidden" name="statusPayment" value="canceled" />
+										{#if row.promoterId && row.type === 'course'}
+											<input type="hidden" name="promoterId" value={row.promoterId} />
+											<input type="hidden" name="type" value={row.type} />
+											<input type="hidden" name="cart" value={JSON.stringify(row.cart)} class="hidden" />
+										{/if}
+										<button type="submit" class="btn btn-error btn-sm">
+											<BanknoteX />
+										</button>
+									</form>
 								</div>
 							{/if}
 						</div>

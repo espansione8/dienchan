@@ -103,7 +103,8 @@ export const actions: Actions = {
 		const cart = formData.get('cart') as string;
 		const cartItem = JSON.parse(String(cart)) || null;
 		const type = formData.get('type') as string;
-		//console.log(orderId);
+		// console.log(orderId);
+		// return
 
 		if (!orderId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
@@ -180,7 +181,8 @@ export const actions: Actions = {
 			const result = await resUpdate.json();
 			//console.log('result', result);
 
-			if (statusPayment === 'done' && oldStatusPayment !== 'done' && promoterId && type === 'course') {
+			if (statusPayment === 'done' && oldStatusPayment === 'pending' && promoterId && type === 'course') {
+
 				const courseItem = cartItem.find((item: any) => item.type === 'course');
 				if (courseItem) {
 					const id = courseItem.layoutId;
