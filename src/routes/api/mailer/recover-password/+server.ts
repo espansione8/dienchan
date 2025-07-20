@@ -401,8 +401,12 @@ export const POST: RequestHandler = async ({ request }) => {
 															<h4>abbiamo ricevuto la sua richiesta di reset password.</h4>
 															<h4>La preghiamo di utilizzare:<br>${password}</h4>
 															<h4>per effettuare il login e cambiare la password con una nuova nel suo profilo</h4>
-															<p>Cordiali saluti</p>
-															<p>Riflessologiadienchan.it</p>
+
+															<p>Per procedere alla piattaforma, clicca sul link <a href="https://associazione.riflessologiadienchan.it/login">https://associazione.riflessologiadienchan.it/login</a> </p>
+															
+															<h4 class="subtitle">A presto,</h4>
+									                        <p class="paragraph">Il team di Riflessologia Dienchan</p>
+                        									<p class="paragraph"><a href="https://riflessologiadienchan.it/">https://riflessologiadienchan.it/</a></p>
 														</div>
 													</td>
 												</tr>
@@ -416,16 +420,7 @@ export const POST: RequestHandler = async ({ request }) => {
 						</center>
 					</body>
 				</html>
-				` // html body
-				// html: `<p>Dear user ${body.email},</p>
-				// <p>we received your password reset request</p>
-				// <p>please use: ${body.password} to login </p>
-				// <p>and change the password with a new one in your profile</p>
-				// </ hr>
-				// <p>This is an automated message DO NOT REPLY to this communication, for questions and assistance please write to support@fast-track-ip.com.</p>
-				// <p>Best regards</p>
-				// <p>Fast Track IP</p>`
-				// html body
+				`
 			});
 
 			console.log('Message sent: %s', info.messageId);

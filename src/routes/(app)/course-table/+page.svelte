@@ -954,7 +954,7 @@
 			{/if}
 
 			<!-- Tag -->
-			<section class="col-span-4 md:col-span-2">
+			<!-- <section class="col-span-4 md:col-span-2">
 				<label for="tag" class="form-label">
 					<p class="font-bold mb-2">Tag</p>
 				</label>
@@ -975,7 +975,7 @@
 						</div>
 					{/each}
 				{/if}
-			</section>
+			</section> -->
 			<!-- Notifica email -->
 			<section class="col-span-4 md:col-span-2">
 				<label for="notificationEmail" class="form-label">

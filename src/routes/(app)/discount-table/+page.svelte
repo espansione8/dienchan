@@ -244,11 +244,11 @@
 				<tr>
 					<th>Status</th>
 					<th>Data inserimento</th>
-					<th>ID Sconto</th>
+					<th>ID</th>
 					<th>Codice</th>
 					<th>Tipologia</th>
 					<th>Valore</th>
-					<th>Tipo sconto</th>
+					<th>Categoria</th>
 					<th>ID tipo</th>
 					<th>Azione</th>
 				</tr>
@@ -415,10 +415,11 @@
 									<option value="">Seleziona il livello associato</option>
 									<option value="Socio inattivo">Socio inattivo</option>
 									<option value="Socio ordinario">Socio ordinario</option>
-									<!-- <option value="Socio sostenitore">Socio sostenitore</option> -->
+									<option value="Socio formatore">Socio formatore</option>
 									<option value="Socio vitalizio">Socio vitalizio</option>
+									<option value="Socio vitalizio formatore">Socio vitalizio formatore</option>
+									<!-- <option value="Socio sostenitore">Socio sostenitore</option> -->
 									<!-- <option value="Socio contributore">Socio contributore</option> -->
-									<option value="Master Dien Chan">Master Dien Chan</option>
 								</select>
 							{:else if selectedApplicability === 'prodId'}
 								<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full select-bordered">

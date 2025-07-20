@@ -115,7 +115,7 @@ const productSchema = new Schema(
         },
         stockQty: { type: Number, index: true, default: 0 },
         surname: { type: String, default: '' },
-        tag: [{ type: String, default: '' }],
+        tag: [{ type: String }],
         title: { type: String, default: '' },
         type: {
             type: String,

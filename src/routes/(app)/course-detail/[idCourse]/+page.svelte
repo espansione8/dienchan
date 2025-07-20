@@ -570,7 +570,7 @@
 							</div>
 						</div>
 
-						{#if getCourse.tag.length > 0}
+						<!-- {#if getCourse.tag.length > 0}
 							<div class="mt-8">
 								<h3 class="text-xl font-semibold text-gray-800 mb-4">Tag del corso:</h3>
 								<div class="flex flex-wrap gap-3">
@@ -581,7 +581,7 @@
 									{/each}
 								</div>
 							</div>
-						{/if}
+						{/if} -->
 					</div>
 
 					<!-- Course Info and Extra Info -->

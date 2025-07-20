@@ -197,8 +197,8 @@ export const actions: Actions = {
 
 		const bundleProducts = JSON.parse(String(bundle)) || [];
 
-		// console.log('bundleProducts', bundleProducts);
-		// return { action: 'new', success: cartItem, message: JSON.stringify(cartItem), payload: { redirect: false } };
+		// console.log('cartItem.notificationEmail', cartItem.notificationEmail);
+		// return
 
 		//const file = formData.get('image') || '';
 		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
@@ -247,7 +247,10 @@ export const actions: Actions = {
 				query: { type: 'course', prodId: cartItem.prodId }, // 'course', 'product', 'membership', 'event',
 				update: {
 					$push: {
-						listSubscribers: { userId: currentUserId, email, name, surname, phone, mobilePhone, promoterId: promoterId.trim() }
+						listSubscribers: {
+							userId: currentUserId, email, name, surname, phone, mobilePhone,
+							...promoterId ? { promoterId: promoterId.trim() } : { promoterId: null }
+						}
 					}
 				},
 				options: { upsert: false },
