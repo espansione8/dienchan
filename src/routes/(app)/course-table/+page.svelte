@@ -587,12 +587,12 @@
 			<!-- body -->
 			<tbody>
 				<!-- row -->
-				{#if tableList.length == 0}
+				{#if !tableList || tableList.length == 0}
 					<tr class="hover:bg-gray-300">
 						<td> </td>
 					</tr>
 				{:else}
-					{#each tableList as row}
+					{#each tableList ?? [] as row}
 						<tr class="hover:bg-gray-300">
 							<td>{row.prodId}</td>
 
@@ -646,7 +646,7 @@
 				{/if}
 			</tbody>
 		</table>
-		{#if tableList.length == 0}
+		{#if !tableList || tableList.length == 0}
 			<div class="alert alert-warning shadow-lg flex item-center text-center justify-center rounded-md mt-3 mx-auto w-full max-w-lg">
 				<div>
 					<ShieldAlert />
@@ -657,7 +657,6 @@
 		{/if}
 	</div>
 {/if}
-
 {#if currentModal == 'modify' || currentModal == 'new'}
 	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-4xl">
 		{#if currentModal == 'modify'}

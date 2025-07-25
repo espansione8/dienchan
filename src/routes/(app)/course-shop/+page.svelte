@@ -34,8 +34,14 @@
 	let resetActive = $state(false);
 	let currentSort = $state('dal più recente');
 
+	// TODO TESTING:  toLocaleDateString for consistent localization
+	const nomiMesi = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+	const currentMonthIndex = new Date().getMonth();
+
+	const currentMonthName = nomiMesi[currentMonthIndex];
+
 	let filtriAttivi = $state({
-		mese: '',
+		mese: currentMonthName,
 		provincia: '',
 		evento: '',
 		riflessologo: ''
@@ -72,8 +78,6 @@
 
 	numCoursesInProvince = sortedNumCoursesInProvince;
 
-	const nomiMesi = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
-
 	const capitalizzaPrimaLettera = (stringa) => {
 		return stringa.replace(/\b\w/g, (l) => l.toUpperCase());
 	};
@@ -106,7 +110,7 @@
 		coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
 		filtriAttivi = {
-			mese: '',
+			mese: currentMonthName,
 			provincia: '',
 			evento: '',
 			riflessologo: ''
@@ -117,6 +121,7 @@
 		const accordionList = ['accordion1', 'accordion2', 'accordion3', 'accordion4'];
 		accordionList.forEach((item) => (document.getElementById(item).checked = false));
 		// document.getElementById('accordion1').checked = false;
+		updateFilter();
 	};
 
 	const updateFilter = () => {
@@ -127,10 +132,10 @@
 		}
 		// mese
 		if (filtriAttivi.mese) {
-			const monthNumber = nomiMesi.indexOf(filtriAttivi.mese) + 1;
+			const monthIndex = nomiMesi.indexOf(filtriAttivi.mese);
 			coursesList = coursesList.filter((item) => {
-				const eventMonth = new Date(item.eventStartDate).getMonth() + 1;
-				return eventMonth == monthNumber;
+				const eventMonth = new Date(item.eventStartDate).getMonth();
+				return eventMonth === monthIndex;
 			});
 		}
 		// provincia
@@ -143,6 +148,7 @@
 			coursesList = coursesList.filter((item) => item.userId == filtriAttivi.riflessologo);
 		}
 	};
+	updateFilter();
 
 	const onClickFilterEvent = async (eventSelected) => {
 		resetActive = true;
