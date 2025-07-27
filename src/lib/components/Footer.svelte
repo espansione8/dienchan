@@ -9,11 +9,7 @@
 			<!-- Logo and About -->
 			<div class="space-y-4">
 				<div class="flex items-center">
-					<img
-						alt="Logo Diện Chẩn"
-						src="/images/logo-dien-chan-new.png"
-						class="h-16 bg-white p-1 rounded-md"
-					/>
+					<img alt="Logo Diện Chẩn" src="/images/logo-dien-chan-new.png" class="h-16 bg-white p-1 rounded-md" />
 				</div>
 				<p class="text-sm text-blue-100">
 					Associazione DIEN CHAN - BQC - ITALIA<br />
@@ -31,18 +27,11 @@
 					</li>
 					<li class="flex items-center gap-2">
 						<Phone size={18} class="text-blue-300 flex-shrink-0" />
-						<a href="tel:+393929301751" class="text-sm hover:text-blue-300 transition-colors">
-							+39 392 9301751
-						</a>
+						<a href="tel:+393929301751" class="text-sm hover:text-blue-300 transition-colors"> +39 392 9301751 </a>
 					</li>
 					<li class="flex items-center gap-2">
 						<Mail size={18} class="text-blue-300 flex-shrink-0" />
-						<a
-							href="mailto:info@riflessologiadienchan.it"
-							class="text-sm hover:text-blue-300 transition-colors"
-						>
-							info@riflessologiadienchan.it
-						</a>
+						<a href="mailto:info@riflessologiadienchan.it" class="text-sm hover:text-blue-300 transition-colors"> info@riflessologiadienchan.it </a>
 					</li>
 				</ul>
 			</div>
@@ -52,22 +41,16 @@
 				<h3 class="text-lg font-semibold border-b border-blue-700 pb-2">Collegamenti</h3>
 				<ul class="grid grid-cols-2 gap-2">
 					<li>
-						<a href="/membership-new" class="text-sm hover:text-blue-300 transition-colors"
-							>Tesseramento</a
-						>
+						<a href="/membership-new" class="text-sm hover:text-blue-300 transition-colors">Tesseramento</a>
 					</li>
 					<li>
 						<a href="/course-shop" class="text-sm hover:text-blue-300 transition-colors">Corsi</a>
 					</li>
 					<li>
-						<a href="/product-shop" class="text-sm hover:text-blue-300 transition-colors"
-							>Prodotti</a
-						>
+						<a href="/product-shop" class="text-sm hover:text-blue-300 transition-colors">Prodotti</a>
 					</li>
 					<li>
-						<a href="/profile-modify" class="text-sm hover:text-blue-300 transition-colors"
-							>Area Personale</a
-						>
+						<a href="/profile-area" class="text-sm hover:text-blue-300 transition-colors">Area Personale</a>
 					</li>
 					<li>
 						<a href="/cart" class="text-sm hover:text-blue-300 transition-colors">Carrello</a>
@@ -126,15 +109,9 @@
 				© {new Date().getFullYear()} Associazione DIEN CHAN - BQC - ITALIA. Tutti i diritti riservati.
 			</p>
 			<div class="flex gap-4 mt-2 sm:mt-0">
-				<a href="/" class="text-xs text-blue-200 hover:text-white transition-colors"
-					>Privacy Policy</a
-				>
-				<a href="/" class="text-xs text-blue-200 hover:text-white transition-colors"
-					>Termini e Condizioni</a
-				>
-				<a href="/" class="text-xs text-blue-200 hover:text-white transition-colors"
-					>Cookie Policy</a
-				>
+				<a href="/" class="text-xs text-blue-200 hover:text-white transition-colors">Privacy Policy</a>
+				<a href="/" class="text-xs text-blue-200 hover:text-white transition-colors">Termini e Condizioni</a>
+				<a href="/" class="text-xs text-blue-200 hover:text-white transition-colors">Cookie Policy</a>
 			</div>
 		</div>
 	</div>

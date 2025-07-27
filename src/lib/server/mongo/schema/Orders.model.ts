@@ -82,6 +82,8 @@ const orderSchema = new Schema(
 			}
 		},
 
+		storePickUp: { type: Boolean, default: false },
+
 		payment: {
 			method: { type: String, default: null }, // 'Bonifico bancario' 'Contanti' 'Carta di credito'
 			statusPayment: {

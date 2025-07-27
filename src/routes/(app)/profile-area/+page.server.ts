@@ -71,7 +71,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10),
 			orderDate: obj.orderDate.substring(0, 10),
-			totalCart: obj.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(2)
+			totalCart: obj.cart.reduce((total: any, item: any) => total + item.price, 0)
 		}));
 
 		const courseRes = await courseFetch;
@@ -129,11 +129,11 @@ export const actions: Actions = {
 		const phonePublic = !!(formData.get('phonePublic') || '');
 		const mobilePhonePublic = !!(formData.get('mobilePhonePublic') || '');
 
-		if (!name || !surname || !email || !address || !postalCode || !city || !county || !country || !phone || !mobilePhone) {
+		if (!name || !surname || !email || !address || !postalCode || !city || !county || !country || (!phone || !mobilePhone)) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
-		const updateFecth = fetch(`${BASE_URL}/api/mongo/update`, {
+		const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
@@ -173,7 +173,7 @@ export const actions: Actions = {
 		});
 
 		try {
-			const updateRes = await updateFecth;
+			const updateRes = await updateFetch;
 			if (!updateRes.ok) {
 				return fail(400, { action: 'modify', success: false, message: await updateRes.text() });
 			}
@@ -194,7 +194,7 @@ export const actions: Actions = {
 		}
 		const newStatus = status == 'enabled' ? 'disabled' : 'enabled';
 		// console.log({ code, type, value, userId, membershipLevel, prodId, layoutId, notes });
-		const updateFecth = fetch(`${BASE_URL}/api/mongo/update`, {
+		const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
@@ -213,7 +213,7 @@ export const actions: Actions = {
 			}
 		});
 		try {
-			const updateRes = await updateFecth;
+			const updateRes = await updateFetch;
 			if (!updateRes.ok) {
 				return fail(400, { action: 'changeStatus', success: false, message: await updateRes.text() });
 			}
@@ -235,6 +235,15 @@ export const actions: Actions = {
 			return fail(400, { action: 'setProfilePic', success: false, message: 'File mancante' });
 		}
 
+		const maxSize = 10 * 1024 * 1024;
+		if (file.size > maxSize) {
+			return fail(400, { action: 'setProfilePic', success: false, message: 'File troppo grande (max 10MB)' });
+		}
+
+		const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/JPG', 'image/JPEG'];
+		if (!allowedTypes.includes(file.type)) {
+			return fail(400, { action: 'setProfilePic', success: false, message: 'Tipo di file non supportato (solo JPEG, PNG, WebP)' });
+		}
 		try {
 			const uploadImg = await fetch(`${BASE_URL}/api/uploads/files`, {
 				method: 'POST',
@@ -291,18 +300,6 @@ export const actions: Actions = {
 		}
 
 		try {
-			const responseDelete = await fetch(`${BASE_URL}/api/uploads/files`, {
-				method: 'DELETE',
-				body: JSON.stringify({
-					dir: `user/${userId}`,
-					fileName
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			if (!responseDelete.ok) return fail(400, { action: 'delProfilePic', success: false, message: await responseDelete.text() });
-
 			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
@@ -327,6 +324,18 @@ export const actions: Actions = {
 			});
 			if (!res.ok) return fail(400, { action: 'delProfilePic', success: false, message: await res.text() });
 			const response = await res.json();
+
+			const responseDelete = await fetch(`${BASE_URL}/api/uploads/files`, {
+				method: 'DELETE',
+				body: JSON.stringify({
+					dir: `user/${userId}`,
+					fileName
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (!responseDelete.ok) return fail(400, { action: 'delProfilePic', success: false, message: await responseDelete.text() });
 
 			return { action: 'delProfilePic', success: true, message: response.message };
 
@@ -361,7 +370,7 @@ export const actions: Actions = {
 			},
 		});
 
-		const updateFecth = fetch(`${BASE_URL}/api/mongo/update`, {
+		const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
@@ -389,7 +398,7 @@ export const actions: Actions = {
 				return fail(400, { action: 'changePassword', success: false, message: 'Password errata' })
 			}
 
-			const updateRes = await updateFecth;
+			const updateRes = await updateFetch;
 			if (!updateRes.ok) {
 				return fail(400, { action: 'changePassword', success: false, message: await updateRes.text() });
 			}
@@ -423,8 +432,7 @@ export const actions: Actions = {
 			return fail(400, { action: 'setTraining', success: false, message: 'File troppo grande (max 10MB)' });
 		}
 
-		// Validate file type
-		const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'application/msword', 'application/vnd.oasis.opendocument.spreadsheet', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/msexcel'];
+		const allowedTypes = ['application/pdf', 'image/jpeg', 'image/JPEG', 'image/png', 'image/jpg', 'image/JPG', 'application/msword', 'application/vnd.oasis.opendocument.spreadsheet', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/msexcel'];
 		if (!allowedTypes.includes(file.type)) {
 			return fail(400, { action: 'setTraining', success: false, message: 'Tipo di file non supportato' });
 		}
@@ -486,18 +494,6 @@ export const actions: Actions = {
 		}
 
 		try {
-			const responseDelete = await fetch(`${BASE_URL}/api/uploads/files`, {
-				method: 'DELETE',
-				body: JSON.stringify({
-					dir: `user/${userId}`,
-					fileName
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			if (!responseDelete.ok) return fail(400, { action: 'delTraining', success: false, message: await responseDelete.text() });
-
 			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
 				method: 'POST',
 				body: JSON.stringify({
@@ -521,6 +517,18 @@ export const actions: Actions = {
 			});
 			if (!res.ok) return fail(400, { action: 'delTraining', success: false, message: await res.text() });
 			const response = await res.json();
+
+			const responseDelete = await fetch(`${BASE_URL}/api/uploads/files`, {
+				method: 'DELETE',
+				body: JSON.stringify({
+					dir: `user/${userId}`,
+					fileName
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (!responseDelete.ok) return fail(400, { action: 'delTraining', success: false, message: await responseDelete.text() });
 
 			return { action: 'delTraining', success: true, message: response.message };
 

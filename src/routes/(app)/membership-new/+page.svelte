@@ -329,7 +329,7 @@
 				if (action === 'new') {
 					if (payload.redirect) {
 						setTimeout(() => {
-							goto('/profile-modify');
+							goto('/profile-area');
 						}, 4000);
 					}
 				}
@@ -738,7 +738,7 @@
 						{#if auth}
 							<div class="flex justify-between items-center w-full">
 								<span>Dati Personali</span>
-								<a href="/profile-modify" class="btn btn-sm btn-outline">Modifica profilo</a>
+								<a href="/profile-area" class="btn btn-sm btn-outline">Modifica profilo</a>
 							</div>
 						{:else}
 							<span>Registrazione</span>
@@ -892,7 +892,7 @@
 						{#if auth}
 							<div class="flex justify-between items-center w-full">
 								<span>Indirizzo di Fatturazione/Spedizione</span>
-								<a href="/profile-modify" class="btn btn-sm btn-outline">Modifica profilo</a>
+								<a href="/profile-area" class="btn btn-sm btn-outline">Modifica profilo</a>
 							</div>
 						{:else}
 							<span>Indirizzo di Fatturazione/Spedizione</span>
@@ -1130,7 +1130,7 @@
 						{#if auth}
 							<div class="flex justify-between items-center w-full">
 								<span>Dati Personali</span>
-								<a href="/profile-modify" class="btn btn-sm btn-outline">Modifica profilo</a>
+								<a href="/profile-area" class="btn btn-sm btn-outline">Modifica profilo</a>
 							</div>
 						{:else}
 							<span>Registrazione</span>
@@ -1233,7 +1233,7 @@
 						{#if auth}
 							<div class="flex justify-between items-center w-full">
 								<span>Indirizzo di Fatturazione/Spedizione</span>
-								<a href="/profile-modify" class="btn btn-sm btn-outline">Modifica profilo</a>
+								<a href="/profile-area" class="btn btn-sm btn-outline">Modifica profilo</a>
 							</div>
 						{:else}
 							<span>Indirizzo di Fatturazione/Spedizione</span>

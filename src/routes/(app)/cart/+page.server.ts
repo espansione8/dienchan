@@ -99,7 +99,7 @@ export const actions: Actions = {
 		const totalValue = Number(formData.get('totalValue'));
 		const cart = formData.get('cart');
 		//const discountList = formData.get('discountList')
-		const discountList = formData.get('discountList') as string;;
+		const discountList = formData.get('discountList') as string;
 		const cartItem = JSON.parse(String(cart)) || null;
 		const discountItem = JSON.parse(String(discountList)) || null;
 		const discountArray: string[] = JSON.parse(discountList || '[]').map(item => item.code);
@@ -107,6 +107,8 @@ export const actions: Actions = {
 		const usedPoints = Number(formData.get('usedPoints')) || 0;
 		const usePoint = formData.get('usePoint') === 'true' // 'true' make it boolean
 		const paymentMethodId = formData.get('paymentMethodId') as string | null;
+		const storePickUp = formData.get('storePickUp') === 'true' // 'true' make it boolean
+		const orderNotes = formData.get('orderNotes') as string | null;
 
 		if (usePoint && newPointsBalance < 0) {
 			return fail(400, { action: 'new', success: false, message: 'Saldo punti insufficiente' });
@@ -138,7 +140,7 @@ export const actions: Actions = {
 		//let recalculatedTotal = cartRecalculated() - totalDiscount;
 		const recalculatedTotal = () => {
 			let total = cartRecalculated() - totalDiscount;
-			if (total < 100) {
+			if (total < 100 && !storePickUp) {
 				total += 9; // Add delivery fee if total is above 100
 			}
 			// if (usePoint) {
@@ -342,7 +344,7 @@ export const actions: Actions = {
 				totalVAT: 0,
 				browser: '',
 				orderIp: '',
-				orderNotes: '',
+				orderNotes,
 				type: 'product',
 				invoicing: {
 					name,
@@ -383,6 +385,7 @@ export const actions: Actions = {
 					// 	estimatedDelivery: new Date()
 					// }
 				},
+				storePickUp,
 				payment: {
 					method: payment,
 					statusPayment: paymentIntentId ? 'done' : 'pending',

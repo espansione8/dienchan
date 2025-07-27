@@ -94,7 +94,7 @@
 				if (payload) {
 					notification.success(message);
 					try {
-						await goto('/profile-modify');
+						await goto('/profile-area');
 					} catch (err) {
 						notification.error('Errore durante la navigazione');
 					}
@@ -107,9 +107,7 @@
 				notification.error(result.data.message);
 			}
 			if (result.type === 'error') {
-				notification.error(
-					result.error?.message || String(result.error) || 'Si è verificato un errore'
-				);
+				notification.error(result.error?.message || String(result.error) || 'Si è verificato un errore');
 			}
 			// 'update()' is called by default by use:enhance
 			// call 'await update()' if you need to ensure it completes before further client logic.
@@ -121,9 +119,7 @@
 
 <div class="min-h-screen relative overflow-hidden bg-gradient-to-br from-teal-50 to-emerald-300">
 	<div class="absolute inset-0">
-		<div
-			class="absolute top-0 left-0 w-96 h-96 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-full blur-3xl animate-pulse"
-		></div>
+		<div class="absolute top-0 left-0 w-96 h-96 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-full blur-3xl animate-pulse"></div>
 		<div
 			class="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-r from-teal-500/20 to-cyan-500/20 rounded-full blur-3xl animate-pulse"
 			style="animation-delay: 2s;"
@@ -143,10 +139,7 @@
 	<div class="relative z-10 min-h-screen flex items-center justify-center p-4">
 		<div class="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
 			{#if heroVisible}
-				<div
-					class="text-center lg:text-left space-y-8"
-					in:fly|local={{ y: 30, duration: 800, easing: quintOut }}
-				>
+				<div class="text-center lg:text-left space-y-8" in:fly|local={{ y: 30, duration: 800, easing: quintOut }}>
 					<div class="relative">
 						<Image
 							layout="constrained"
@@ -155,22 +148,15 @@
 							alt="Storia Dien Chan"
 							class="w-full max-w-lg mx-auto lg:mx-0 rounded-2xl shadow-2xl"
 						/>
-						<div
-							class="absolute inset-0 bg-gradient-to-t from-emerald-900/20 to-transparent rounded-2xl"
-						></div>
+						<div class="absolute inset-0 bg-gradient-to-t from-emerald-900/20 to-transparent rounded-2xl"></div>
 					</div>
 				</div>
 			{/if}
 
 			<div class="flex justify-center lg:justify-end">
 				{#if cardWrapperVisible}
-					<div
-						class="w-full max-w-md"
-						in:fly|local={{ x: 30, duration: 600, delay: 100, easing: quintOut }}
-					>
-						<div
-							class="card bg-base-100/90 backdrop-blur-xl shadow-2xl border border-base-content/10"
-						>
+					<div class="w-full max-w-md" in:fly|local={{ x: 30, duration: 600, delay: 100, easing: quintOut }}>
+						<div class="card bg-base-100/90 backdrop-blur-xl shadow-2xl border border-base-content/10">
 							<div class="card-body p-6 md:p-8">
 								<div class="text-center mb-6">
 									<h3 class="text-2xl font-bold mb-2 card-title justify-center">
@@ -184,9 +170,7 @@
 								<div role="tablist" class="tabs tabs-boxed tabs-lg bg-base-200 p-1 mb-6">
 									<button
 										role="tab"
-										class="tab flex-1 {isLogin
-											? 'tab-active !bg-base-100 !text-primary font-semibold shadow-md'
-											: 'hover:!bg-base-300/50'}"
+										class="tab flex-1 {isLogin ? 'tab-active !bg-base-100 !text-primary font-semibold shadow-md' : 'hover:!bg-base-300/50'}"
 										onclick={switchForm}
 										disabled={isLogin}
 									>
@@ -194,9 +178,7 @@
 									</button>
 									<a
 										role="tab"
-										class="tab flex-1 {!isLogin
-											? 'tab-active !bg-base-100 !text-primary font-semibold shadow-md'
-											: 'hover:!bg-base-300/50'}"
+										class="tab flex-1 {!isLogin ? 'tab-active !bg-base-100 !text-primary font-semibold shadow-md' : 'hover:!bg-base-300/50'}"
 										href="/membership-new"
 									>
 										Registrati
@@ -217,24 +199,13 @@
 									<div in:fade|local={{ duration: 300, delay: 50 }} class="space-y-6">
 										{#if isLogin}
 											<!-- Login form -->
-											<form
-												method="POST"
-												action="?/login"
-												use:enhance={formSubmit}
-												class="space-y-6"
-											>
+											<form method="POST" action="?/login" use:enhance={formSubmit} class="space-y-6">
 												<!-- Email field -->
 												<div class="space-y-2">
-													<label for="login-email" class="block text-sm font-medium text-gray-700">
-														Email
-													</label>
+													<label for="login-email" class="block text-sm font-medium text-gray-700"> Email </label>
 													<div class="relative group">
-														<div
-															class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
-														>
-															<Mail
-																class="w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors"
-															/>
+														<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+															<Mail class="w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
 														</div>
 														<input
 															id="login-email"
@@ -250,19 +221,10 @@
 
 												<!-- Password field -->
 												<div class="space-y-2">
-													<label
-														for="login-password"
-														class="block text-sm font-medium text-gray-700"
-													>
-														Password
-													</label>
+													<label for="login-password" class="block text-sm font-medium text-gray-700"> Password </label>
 													<div class="relative group">
-														<div
-															class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
-														>
-															<KeyRound
-																class="w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors"
-															/>
+														<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+															<KeyRound class="w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
 														</div>
 														<input
 															id="login-password"
@@ -295,10 +257,7 @@
 															class="w-4 h-4 rounded border-white/20 bg-white/10 text-violet-500 focus:ring-violet-500 focus:ring-offset-0"
 															bind:checked={rememberMe}
 														/>
-														<span
-															class="text-sm text-gray-600 group-hover:text-gray-800 transition-colors"
-															>Ricordami</span
-														>
+														<span class="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">Ricordami</span>
 													</label>
 
 													<button
@@ -312,9 +271,7 @@
 
 												<!-- Error message -->
 												{#if error}
-													<div
-														class="bg-red-500/20 border border-red-500/30 text-red-200 px-4 py-3 rounded-xl text-sm"
-													>
+													<div class="bg-red-500/20 border border-red-500/30 text-red-200 px-4 py-3 rounded-xl text-sm">
 														{error}
 													</div>
 												{/if}
@@ -326,9 +283,7 @@
 													disabled={loading}
 												>
 													{#if loading}
-														<div
-															class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"
-														></div>
+														<div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
 														Accesso in corso...
 													{:else}
 														Accedi
@@ -337,27 +292,13 @@
 												</button>
 											</form>
 										{:else}
-											<form
-												method="POST"
-												action="?/register"
-												use:enhance={formSubmit}
-												class="space-y-6"
-											>
+											<form method="POST" action="?/register" use:enhance={formSubmit} class="space-y-6">
 												<!-- Email field -->
 												<div class="space-y-2">
-													<label
-														for="register-email"
-														class="block text-sm font-medium text-gray-700"
-													>
-														Email
-													</label>
+													<label for="register-email" class="block text-sm font-medium text-gray-700"> Email </label>
 													<div class="relative group">
-														<div
-															class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
-														>
-															<Mail
-																class="w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors"
-															/>
+														<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+															<Mail class="w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
 														</div>
 														<input
 															id="register-email"
@@ -372,19 +313,10 @@
 
 												<!-- Password field -->
 												<div class="space-y-2">
-													<label
-														for="register-password"
-														class="block text-sm font-medium text-gray-700"
-													>
-														Password
-													</label>
+													<label for="register-password" class="block text-sm font-medium text-gray-700"> Password </label>
 													<div class="relative group">
-														<div
-															class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
-														>
-															<Lock
-																class="w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors"
-															/>
+														<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+															<Lock class="w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
 														</div>
 														<input
 															id="register-password"
@@ -406,26 +338,15 @@
 															{/if}
 														</button>
 													</div>
-													<p class="text-xs text-purple-300">
-														Almeno 8 caratteri con numeri e lettere
-													</p>
+													<p class="text-xs text-purple-300">Almeno 8 caratteri con numeri e lettere</p>
 												</div>
 
 												<!-- Confirm Password field -->
 												<div class="space-y-2">
-													<label
-														for="confirm-password"
-														class="block text-sm font-medium text-gray-700"
-													>
-														Conferma Password
-													</label>
+													<label for="confirm-password" class="block text-sm font-medium text-gray-700"> Conferma Password </label>
 													<div class="relative group">
-														<div
-															class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
-														>
-															<Lock
-																class="w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors"
-															/>
+														<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+															<Lock class="w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
 														</div>
 														<input
 															id="confirm-password"
@@ -440,9 +361,7 @@
 
 												<!-- Error message -->
 												{#if error}
-													<div
-														class="bg-red-500/20 border border-red-500/30 text-red-200 px-4 py-3 rounded-xl text-sm"
-													>
+													<div class="bg-red-500/20 border border-red-500/30 text-red-200 px-4 py-3 rounded-xl text-sm">
 														{error}
 													</div>
 												{/if}
@@ -454,9 +373,7 @@
 													disabled={loading}
 												>
 													{#if loading}
-														<div
-															class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"
-														></div>
+														<div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
 														Registrazione in corso...
 													{:else}
 														Crea Account
@@ -477,30 +394,18 @@
 </div>
 
 <Modal isOpen={openModal} header={modalTitle}>
-	<button
-		class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content"
-		onclick={onCloseModal}>✕</button
-	>
+	<button class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content" onclick={onCloseModal}>✕</button>
 	<div class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative">
 		<!-- <h3 class="font-bold text-xl mb-4">{modalTitle}</h3> -->
-		<p class="text-base-content/70 mb-6">
-			Inserisci il tuo indirizzo email e ti invieremo un link per reimpostare la password.
-		</p>
+		<p class="text-base-content/70 mb-6">Inserisci il tuo indirizzo email e ti invieremo un link per reimpostare la password.</p>
 
-		<form
-			method="POST"
-			action={postAction}
-			use:enhance={formSubmit}
-			class="grid grid-cols-2 bg-base-100 grid-rows-[min-content]"
-		>
+		<form method="POST" action={postAction} use:enhance={formSubmit} class="grid grid-cols-2 bg-base-100 grid-rows-[min-content]">
 			<section class="col-span-2">
 				<label for="price" class="form-label">
 					<p class="font-bold mb-2 label">Email</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
-					<button type="button" class="join-item bg-primary/20 px-3"
-						><Mail class="text-emerald-500" /></button
-					>
+					<button type="button" class="join-item bg-primary/20 px-3"><Mail class="text-emerald-500" /></button>
 					<input
 						name="resetEmail"
 						type="email"

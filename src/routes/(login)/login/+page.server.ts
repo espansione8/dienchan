@@ -121,7 +121,7 @@ export const actions: Actions = {
 
 			if (res.ok) {
 				// const responseData = await res.json(); // If API sends data on success
-				throw redirect(303, '/profile-modify'); // [cite: 17]
+				throw redirect(303, '/profile-area'); // [cite: 17]
 			} else {
 				const responseData = await res.json();
 				return fail(res.status, { registerEmail, error: responseData.message || 'Registrazione fallita.', form: 'register' }); // [cite: 17]

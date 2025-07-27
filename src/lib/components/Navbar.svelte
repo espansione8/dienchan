@@ -85,7 +85,7 @@
 					</a>
 
 					{#if auth}
-						<a href="/profile-modify" class={`btn btn-sm ${isActive('/profile-modify') ? 'btn-primary' : 'btn-ghost'}`}>
+						<a href="/profile-area" class={`btn btn-sm ${isActive('/profile-area') ? 'btn-primary' : 'btn-ghost'}`}>
 							<User size={16} />
 							<span>Area personale</span>
 						</a>
@@ -255,7 +255,7 @@
 
 					{#if auth}
 						<li>
-							<a href="/profile-modify" class={`btn btn-sm ${isActive('/profile-modify') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
+							<a href="/profile-area" class={`btn btn-sm ${isActive('/profile-area') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
 								<User size={18} />
 								Area personale
 							</a>

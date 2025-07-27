@@ -8,9 +8,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	if (!locals?.auth) {
 		throw redirect(302, '/membership-new');
-	} else {
-		throw redirect(302, '/profile-modify');
 	}
+	throw redirect(302, '/profile-area');
+
 	// if (session?.auth) {
 	// 	throw redirect(302, '/profile');
 	// }

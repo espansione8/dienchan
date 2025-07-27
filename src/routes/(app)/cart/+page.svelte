@@ -67,7 +67,8 @@
 		orderNotes: '',
 		usePoint: false,
 		pointsBalance: userData?.pointsBalance || 0,
-		newBalance: 0
+		newBalance: 0,
+		storePickUp: false
 	});
 
 	let closedInput = $state(true);
@@ -98,7 +99,8 @@
 	});
 
 	const calculateDeliveryFee = (subtotal: number) => {
-		return subtotal < 100 ? 9 : 0;
+		// return subtotal < 100 ? 9 : 0;
+		return formData.storePickUp ? 0 : subtotal < 100 ? 9 : 0;
 	};
 
 	let couponDiscount = $derived(() => discountList.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0));
@@ -106,11 +108,6 @@
 	let pointsDiscount = $derived(() => {
 		if (formData.usePoint) {
 			let total = subTotal() + calculateDeliveryFee(subTotal());
-			// let total = subTotal();
-			// if (total < 100) {
-			// 	total += 9; // Add delivery fee if total is below  100
-			// }
-			//const totalAfterOtherDiscounts = subTotal() - couponDiscount();
 			const totalAfterOtherDiscounts = total - couponDiscount();
 			// Math.min: The points used as discount cannot exceed the available points
 			// Math.max: cannot make the total negative. always minimum 0
@@ -331,6 +328,7 @@
 		modalTitle = '';
 		postAction = '?/';
 		loading = false;
+		formData.storePickUp = false;
 	};
 
 	const refresh = () => {
@@ -361,7 +359,7 @@
 
 	const onCloseModal = () => {
 		openModal = false;
-		resetFields();
+		//resetFields();
 		currentModal = '';
 	};
 
@@ -547,7 +545,7 @@
 					</h2>
 
 					{#if auth}
-						<a href="/profile-modify" class="btn btn-sm btn-outline">
+						<a href="/profile-area" class="btn btn-sm btn-outline">
 							<Settings size={16} /> Modifica
 						</a>
 					{/if}
@@ -818,6 +816,13 @@
 									{/if}
 								</div>
 							</div>
+							<!-- Pick up -->
+							<div class="form-control">
+								<label class="label cursor-pointer justify-start gap-2">
+									<input type="checkbox" class="checkbox checkbox-primary" bind:checked={formData.storePickUp} />
+									<span class="label-text text-base font-medium">Ritiro in sede (Spedizione gratuita)</span>
+								</label>
+							</div>
 							<div class="divider my-2 font-medium text-primary">Metodo di Pagamento</div>
 							<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<!-- <div class="grid grid-cols-1 md:grid-cols-3 gap-4"> -->
@@ -899,11 +904,13 @@
 					{#if $cartProducts.length > 0}
 						<div class="flex justify-between text-success">
 							<span>Spedizione</span>
-							<span>{subTotal() < 100 ? '€ 9' : 'gratuita'}</span>
+							<!-- <span>{subTotal() < 100 ? '€ 9' : 'gratuita'}</span> -->
+							<span>{formData.storePickUp ? 'gratuita (ritiro in sede)' : subTotal() < 100 ? '€ 9' : 'gratuita'}</span>
 						</div>
 					{/if}
 
-					{#if discountList.length > 0 || formData.usePoint}
+					<!-- {#if discountList.length > 0 || formData.usePoint} -->
+					{#if totalDiscount() > 0}
 						<div class="flex justify-between text-success">
 							<span>Sconto</span>
 							<span>- € {totalDiscount().toFixed(2)}</span>
@@ -1058,7 +1065,8 @@
 			</div>
 
 			<div class="space-y-4 mb-6">
-				<h4 class="font-medium text-primary">Prodotti</h4>
+				<h4 class="font-medium text-primary">Dettagli Pagamento:</h4>
+				<p class="font-medium">{formData.paymentType}</p>
 
 				<div class="overflow-x-auto">
 					<table class="table table-zebra w-full">
@@ -1081,14 +1089,21 @@
 							<tr class="text-info">
 								<td colspan="2">Spedizione</td>
 								<td class="text-right">
-									<span> {subTotal() - totalDiscount() < 100 ? '€ 9' : 'gratuita'} </span>
+									<span> {formData.storePickUp ? '€ 0.00 Ritiro in sede' : subTotal() < 100 ? '€ 9.00' : '€ 0.00'}</span>
 								</td>
 							</tr>
 
-							{#if discountList.length > 0 || formData.usePoint}
+							<!-- {#if discountList.length > 0 || formData.usePoint}
 								<tr class="text-success">
 									<td colspan="2">Sconto</td>
 									<td class="text-right">- € {totalDiscount().toFixed(2)}</td>
+								</tr>
+							{/if} -->
+
+							{#if totalDiscount() > 0}
+								<tr>
+									<td colspan="2" class="font-bold text-right text-success">Sconto:</td>
+									<td class="font-bold text-right text-success">- € {totalDiscount().toFixed(2)}</td>
 								</tr>
 							{/if}
 						</tbody>
@@ -1124,13 +1139,19 @@
 				{#if formData.paymentType === 'Carta di credito'}
 					<div class="card bg-base-100 shadow-xl p-6">
 						<h3 class="text-xl font-semibold mb-4">Pagamento:</h3>
-						<p>
-							{#if paymentMethodId}
-								<Check /> Addebito su carta
-							{:else}
-								<CircleX /> Carta non verificata
-							{/if}
-						</p>
+
+						{#if paymentMethodId}
+							<div class="alert alert-success">
+								<Check size={20} />
+								<span>Carta verificata</span>
+							</div>
+						{:else}
+							<div class="alert alert-warning">
+								<CircleX size={20} />
+								<span>Devi verificare la carta per procedere con l'ordine.</span>
+							</div>
+							<!-- <CircleX /> Carta non verificata -->
+						{/if}
 					</div>
 				{/if}
 			</div>
@@ -1192,10 +1213,10 @@
 				<input type="hidden" name="name" value={formData.name} />
 				<input type="hidden" name="surname" value={formData.surname} />
 				<input type="hidden" name="email" value={formData.email} />
-				{#if !auth}
+				<!-- {#if !auth}
 					<input type="hidden" name="password1" value={password1} />
 					<input type="hidden" name="password2" value={password2} />
-				{/if}
+				{/if} -->
 				<input type="hidden" name="address" value={formData.address} />
 				<input type="hidden" name="city" value={formData.city} />
 				<input type="hidden" name="county" value={formData.county} />
@@ -1210,16 +1231,30 @@
 				<input type="hidden" name="newPointsBalance" value={newPointsBalance()} />
 				<input type="hidden" name="usedPoints" value={pointsDiscount()} />
 				<input type="hidden" name="usePoint" value={formData.usePoint} />
-				{#if paymentMethodId}
-					<input type="hidden" name="paymentMethodId" value={paymentMethodId} />
-				{/if}
+				<input type="hidden" name="storePickUp" value={formData.storePickUp} />
+				<input type="hidden" name="paymentMethodId" value={paymentMethodId || null} />
+
+				<label for="orderNotes" class="label">
+					<span class="label-text font-medium">Note per l'ordine (opzionale)</span>
+				</label>
+				<textarea
+					id="orderNotes"
+					name="orderNotes"
+					class="textarea textarea-bordered h-24 w-full"
+					placeholder="Aggiungi qui eventuali note o istruzioni speciali per il tuo ordine..."
+					bind:value={formData.orderNotes}
+				></textarea>
+
 				<div class="modal-action">
-					<button class="btn btn-outline btn-error" onclick={onCloseModal}> Annulla </button>
-					<!-- {#if (formData.paymentType === 'Carta di credito' && paymentMethodId) || formData.paymentType !== 'Carta di credito'}
-						<button type="submit" class="btn btn-primary"> Conferma Acquisto </button>
-					{/if} -->
-					<button type="submit" class="btn btn-primary" disabled={!paymentMethodId && formData.paymentType === 'Carta di credito'}>
-						Conferma Acquisto
+					<button type="button" class="btn btn-outline btn-error" onclick={onCloseModal}> Annulla </button>
+
+					<button type="submit" class="btn btn-primary" disabled={loading || (formData.paymentType === 'Carta di credito' && !paymentMethodId)}>
+						{#if loading}
+							<span class="loading loading-spinner"></span>
+							Elaborazione...
+						{:else}
+							Conferma Acquisto
+						{/if}
 					</button>
 				</div>
 			</form>

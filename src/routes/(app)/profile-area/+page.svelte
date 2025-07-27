@@ -166,6 +166,10 @@
 		}
 
 		const dateObject = new Date(user.certificationDate);
+		if (isNaN(dateObject.getTime())) {
+			notification.error('Data di certificazione non valida');
+			return;
+		}
 		const year = dateObject.getFullYear();
 		const month = dateObject.getMonth() + 1; // getMonth() returns 0-11, so add 1 for 1-12
 		const day = dateObject.getDate();
@@ -228,33 +232,6 @@
 			}
 			//images: ['/training/base.jpg'] // DEPRECATED
 		};
-		// DEPRECATED
-		// const fetchImage = (url) => {
-		// 	return fetch(url)
-		// 		.then((response) => response.blob())
-		// 		.then(
-		// 			(blob) =>
-		// 				new Promise((resolve, reject) => {
-		// 					const reader = new FileReader();
-		// 					reader.onloadend = () => resolve(reader.result);
-		// 					reader.onerror = reject;
-		// 					reader.readAsDataURL(blob);
-		// 				})
-		// 		);
-		// };
-
-		// const fetches = [];
-		// doc.images.forEach((src) => {
-		// 	fetches.push(
-		// 		fetchImage(src).then((data) => {
-		// 			doc.images[src] = data;
-		// 		})
-		// 	);
-		// });
-
-		// Promise.all(fetches).then(() => {
-		// 	pdfMake.createPdf(doc, null, pdfFonts).download(`${item.shortDescription}-attestato.pdf`);
-		// });
 
 		try {
 			pdfMake.createPdf(doc, null, pdfFonts).download(`Attestato_${item.layoutView.title}_${user.name}_${user.surname}.pdf`);
@@ -1204,14 +1181,20 @@
 												>
 													<span class="capitalize font-semibold">{order.type}</span>
 												</div>
-												<div
-													class="badge"
-													class:badge-warning={order.payment.statusPayment === 'pending'}
-													class:badge-success={order.payment.statusPayment === 'done'}
-													class:badge-error={order.payment.statusPayment === 'canceled'}
-												>
-													{order.payment.method}
-												</div>
+												{#if order.totalValue > 0}
+													<div
+														class="badge"
+														class:badge-warning={order.payment.statusPayment === 'pending'}
+														class:badge-success={order.payment.statusPayment === 'done'}
+														class:badge-error={order.payment.statusPayment === 'canceled'}
+													>
+														{order.payment.method}
+													</div>
+												{:else}
+													<div>
+														<span class="badge badge-success">Punti / Sconti</span>
+													</div>
+												{/if}
 
 												<div class="flex items-center gap-3">
 													<div class="badge badge-primary">
@@ -1571,7 +1554,7 @@
 						</label>
 						<div class="join join-horizontal rounded-md w-full">
 							<button type="button" class="join-item bg-primary/20 px-3">
-								<Mail class="text-emerald-500" />
+								<Shield class="text-emerald-500" />
 							</button>
 							<input name="passwordOld" type="text" placeholder="inserisci password" class="input input-bordered w-full" required />
 						</div>
@@ -1581,7 +1564,7 @@
 							<p class="font-bold mb-2 label">Nuova Password</p>
 						</label>
 						<div class="join join-horizontal rounded-md w-full">
-							<button type="button" class="join-item bg-primary/20 px-3"><Mail class="text-emerald-500" /></button>
+							<button type="button" class="join-item bg-primary/20 px-3"><Shield class="text-emerald-500" /></button>
 							<input name="passwordNew" type="text" placeholder="inserisci password" class="input input-bordered w-full" required />
 						</div>
 					</section>

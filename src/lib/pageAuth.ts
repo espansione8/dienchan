@@ -24,10 +24,16 @@ const protectedPages = [
     '/membership-table',
     '/order-table',
     '/product-table',
-    '/profile-modify',
+    '/profile-area',
     '/user-table',
     // page dir
 ]
+// CodeRabbit
+// Consider normalising trailing-slash and casing when matching page paths
+// if (mode === 'page') {
+// const normalised = url.replace(/\/+$/, '').toLowerCase();
+// checkPath = protectedPages.some(route => normalised === route.toLowerCase());
+// }
 
 export const pageAuth = (url: string, auth: boolean | null, mode: string) => {
     let checkPath = false;
