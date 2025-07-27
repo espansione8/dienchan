@@ -14,7 +14,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 // INSTRUCTION
 // import { APIKEY, BASE_URL } from '$env/static/private';
 // import { customAlphabet } from 'nanoid'
-// const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
+// const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9)
 // const newId = nanoid();
 
 // const resFetch = fetch(`${BASE_URL}/api/mongo/create`, {

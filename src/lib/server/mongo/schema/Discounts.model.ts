@@ -5,18 +5,18 @@ const discountSchema = new Schema(
 	{
 		discountId: {
 			type: String,
-			default: '',
+			default: null,
 			index: true,
 			unique: true,
 		},
 		code: {
 			type: String,
-			default: '',
+			default: null,
 			unique: true,
 		},
 		type: {
 			type: String,
-			enum: ['percent', 'amount', 'refPoints'],
+			enum: ['percent', 'amount', 'referral'],
 			default: 'percent'
 		},
 		value: {
@@ -33,14 +33,15 @@ const discountSchema = new Schema(
 		},
 		selectedApplicability: {
 			type: String,
-			enum: ['email', 'membershipLevel', 'prodId', 'layoutId', 'refPoints'],
+			enum: ['email', 'membershipLevel', 'prodId', 'layoutId', 'referral'],
 			default: 'email'
 		},
-		email: { type: String, default: '' },
-		prodId: { type: String, default: '' },
-		layoutId: { type: String, default: '' },
-		membershipLevel: { type: String, default: '' },
-		notes: { type: String, default: '' },
+		email: { type: String, default: null },
+		prodId: { type: String, default: null },
+		layoutId: { type: String, default: null },
+		membershipLevel: { type: String, default: null },
+		referral: { type: String, default: null }, // email
+		notes: { type: String, default: null },
 		status: {
 			type: String,
 			enum: ['enabled', 'disabled'],

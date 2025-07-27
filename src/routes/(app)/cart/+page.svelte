@@ -299,6 +299,15 @@
 		discountList = [];
 		discountCode = '';
 		cart = $cartProducts;
+		if (cardElement) {
+			cardElement.destroy();
+			cardElement = null;
+			elements = null;
+			stripe = null;
+			stripeError = null;
+			paymentMethodId = null;
+		}
+		initializeStripe();
 	};
 
 	const resetFields = () => {
@@ -322,14 +331,6 @@
 		modalTitle = '';
 		postAction = '?/';
 		loading = false;
-		if (cardElement) {
-			cardElement.destroy();
-			cardElement = null;
-			elements = null;
-			stripe = null;
-			stripeError = null;
-			paymentMethodId = null;
-		}
 	};
 
 	const refresh = () => {
@@ -611,9 +612,9 @@
 								</div>
 							</div>
 
-							{#if !auth}
+							<!-- Password & Confirm -->
+							<!-- {#if !auth}
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-									<!-- Password -->
 									<div class="form-control w-full">
 										<label for="password" class="label">
 											<span class="label-text font-medium">
@@ -637,7 +638,6 @@
 										</div>
 									</div>
 
-									<!-- Confirm Password -->
 									<div class="form-control w-full">
 										<label for="password2" class="label">
 											<span class="label-text font-medium">
@@ -658,12 +658,11 @@
 												minlength="8"
 												required={!auth}
 												oninput={testSecondPass}
-												bind:this={inputRef}
 											/>
 										</div>
 									</div>
 								</div>
-							{/if}
+							{/if} -->
 
 							<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<!-- Telefono -->

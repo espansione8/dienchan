@@ -3,7 +3,7 @@ import { BASE_URL, APIKEY } from '$env/static/private';
 import { fail, error } from '@sveltejs/kit';
 import { pageAuth } from '$lib/pageAuth';
 import { customAlphabet } from 'nanoid'
-const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
+const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9)
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');

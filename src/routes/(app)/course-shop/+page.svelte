@@ -35,10 +35,14 @@
 	let currentSort = $state('dal più recente');
 
 	// TODO TESTING:  toLocaleDateString for consistent localization
+	//const currentMonthName = new Date().toLocaleDateString('it-IT', { month: 'long' });
 	const nomiMesi = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
 	const currentMonthIndex = new Date().getMonth();
-
 	const currentMonthName = nomiMesi[currentMonthIndex];
+
+	const capitalizzaPrimaLettera = (stringa) => {
+		return stringa.replace(/\b\w/g, (l) => l.toUpperCase());
+	};
 
 	let filtriAttivi = $state({
 		mese: currentMonthName,
@@ -78,20 +82,25 @@
 
 	numCoursesInProvince = sortedNumCoursesInProvince;
 
-	const capitalizzaPrimaLettera = (stringa) => {
-		return stringa.replace(/\b\w/g, (l) => l.toUpperCase());
-	};
-
 	// Creare un oggetto per tenere traccia del conteggio per ogni mese
 	let conteggioMesi = $state({});
+
+	// Populate conteggioMesi with all 12 months, initialized to 0
+	// for (let i = 0; i < 12; i++) {
+	// 	const monthName = new Date(2000, i, 1).toLocaleDateString('it-IT', { month: 'long' }); // Use a fixed date to get month names
+	// 	conteggioMesi[capitalizzaPrimaLettera(monthName)] = 0;
+	// }
 
 	// Inizializza il conteggio per ogni mese a 0
 	nomiMesi.forEach((mese) => (conteggioMesi[mese] = 0));
 
 	// Contare le occorrenze per ogni mese
 	getTable.forEach((item) => {
-		const meseTesto = new Date(item.eventStartDate).toLocaleString('it-IT', { month: 'long' });
-		const mese = capitalizzaPrimaLettera(meseTesto);
+		// const meseTesto = new Date(item.eventStartDate).toLocaleString('it-IT', { month: 'long' });
+		// const mese = capitalizzaPrimaLettera(meseTesto);
+		const dataEvento = new Date(item.eventStartDate);
+		const meseIndex = dataEvento.getMonth(); // Get the month index of the event
+		const mese = nomiMesi[meseIndex];
 		conteggioMesi[mese]++;
 	});
 
@@ -132,7 +141,12 @@
 		}
 		// mese
 		if (filtriAttivi.mese) {
+			console.log('filtriAttivi.mese', filtriAttivi.mese.toLowerCase());
+
 			const monthIndex = nomiMesi.indexOf(filtriAttivi.mese);
+			//const monthIndex = new Date(Date.parse(`${filtriAttivi.mese.toLowerCase()} 1, 2000`)).getMonth(); // Using a dummy date to parse month name
+			//console.log('monthIndex', monthIndex);
+
 			coursesList = coursesList.filter((item) => {
 				const eventMonth = new Date(item.eventStartDate).getMonth();
 				return eventMonth === monthIndex;
@@ -166,7 +180,7 @@
 		filtriAttivi.provincia = provinciaSelected;
 		updateFilter();
 	};
-	const onClickFilterRiflessologo = async (id, name, surname) => {
+	const onClickFilterRiflessologo = async (id) => {
 		resetActive = true;
 		filtriAttivi.riflessologo = id;
 		//filtriAttivi.riflessologo = name + ' ' + surname;
@@ -357,13 +371,11 @@
 									<button
 										type="button"
 										class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
-                {filtriAttivi.riflessologo == `${item.name} ${item.surname}`
-											? 'bg-orange-200 text-red-900 font-bold'
-											: 'hover:bg-blue-200 hover:text-blue-900'}"
-										onclick={() => onClickFilterRiflessologo(item.userId, item.name, item.surname)}
+                {filtriAttivi.riflessologo === item.userId ? 'bg-orange-200 text-red-900 font-bold' : 'hover:bg-blue-200 hover:text-blue-900'}"
+										onclick={() => onClickFilterRiflessologo(item.userId)}
 									>
-										<span>{item.name} {item.surname}</span>
-										{#if filtriAttivi.riflessologo == `${item.name} ${item.surname}`}
+										<span>{item.surname} {item.name}</span>
+										{#if filtriAttivi.riflessologo === item.userId}
 											<Check size={18} class="flex-shrink-0 text-green-600" />
 										{/if}
 									</button>

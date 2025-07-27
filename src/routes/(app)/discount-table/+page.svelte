@@ -249,7 +249,7 @@
 					<th>Tipologia</th>
 					<th>Valore</th>
 					<th>Categoria</th>
-					<th>ID tipo</th>
+					<th>Destinatario</th>
 					<th>Azione</th>
 				</tr>
 			</thead>
@@ -275,7 +275,7 @@
 						<td>{row.discountId}</td>
 						<td>{row.code}</td>
 						<td>{row.type}</td>
-						<td>{row.type == 'refPoints' ? `${row.refDiscount}/${row.refPoints}` : row.value}</td>
+						<td>{row.type == 'referral' ? `${row.refDiscount}/${row.refPoints}` : row.value}</td>
 						<td> {row.selectedApplicability}</td>
 						<!-- <td> {row[selectedApplicability]}</td> -->
 						<td> {row[row.selectedApplicability]}</td>
@@ -322,7 +322,7 @@
 								<span>Sconto valore fisso</span>
 							</label>
 							<label class="flex items-center cursor-pointer">
-								<input type="radio" name="type" value="refPoints" class="radio radio-primary mr-2" bind:group={typeDiscount} />
+								<input type="radio" name="type" value="referral" class="radio radio-primary mr-2" bind:group={typeDiscount} />
 								<span>Sconto + Punti</span>
 							</label>
 						</div>
@@ -412,7 +412,7 @@
 								<input type="text" name="selectId" class="input w-full input-bordered" placeholder="Inserisci EMAIL utente" bind:value={selectedId} /> -->
 							{:else if selectedApplicability === 'membershipLevel'}
 								<select name="selectId" bind:value={selectedId} class="select w-full select-bordered">
-									<option value="">Seleziona il livello associato</option>
+									<option disabled value="">Seleziona il livello associato</option>
 									<option value="Socio inattivo">Socio inattivo</option>
 									<option value="Socio ordinario">Socio ordinario</option>
 									<option value="Socio formatore">Socio formatore</option>
@@ -467,7 +467,7 @@
 						</div>
 					</div>
 				</form>
-			{:else if typeDiscount === 'refPoints'}
+			{:else if typeDiscount === 'referral'}
 				<form method="POST" action={postAction} use:enhance={formSubmit} class="grid grid-cols-2 bg-base-100 grid-rows-[min-content] gap-x-4 gap-y-4">
 					<!-- 
 				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
@@ -482,7 +482,7 @@
 								<span>Sconto Normale</span>
 							</label>
 							<label class="flex items-center cursor-pointer">
-								<input type="radio" name="type" value="refPoints" class="radio radio-primary mr-2" bind:group={typeDiscount} />
+								<input type="radio" name="type" value="referral" class="radio radio-primary mr-2" bind:group={typeDiscount} />
 								<span>Sconto + Punti</span>
 							</label>
 						</div>
@@ -583,7 +583,7 @@
 							></textarea>
 						</div>
 					</section>
-					<input type="hidden" name="applicability" value="refPoints" />
+					<input type="hidden" name="applicability" value="referral" />
 
 					<div class="col-span-4 mt-5 flex justify-center">
 						<div class="bg-gray-50 flex justify-center">
@@ -745,13 +745,12 @@
 							/> -->
 						{:else if selectedApplicability == 'membershipLevel'}
 							<select name="selectId" bind:value={selectedId} class="select w-full">
-								<option value="">Seleziona il livello associato</option>
+								<option disabled value="">Seleziona il livello associato</option>
 								<option value="Socio inattivo">Socio inattivo</option>
 								<option value="Socio ordinario">Socio ordinario</option>
-								<option value="Socio sostenitore">Socio sostenitore</option>
+								<option value="Socio formatore">Socio formatore</option>
 								<option value="Socio vitalizio">Socio vitalizio</option>
-								<option value="Socio contributore">Socio contributore</option>
-								<option value="Master Dien Chan">Master Dien Chan</option>
+								<option value="Socio vitalizio formatore">Socio vitalizio formatore</option>
 							</select>
 						{:else if selectedApplicability == 'prodId'}
 							<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full">
@@ -798,7 +797,7 @@
 					</div>
 				</div>
 			</form>
-		{:else if typeDiscount === 'refPoints'}
+		{:else if typeDiscount === 'referral'}
 			<form method="POST" action={postAction} use:enhance={formSubmit} class="grid grid-cols-4 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8">
 				<!-- 
 				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"

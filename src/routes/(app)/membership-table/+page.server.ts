@@ -5,7 +5,7 @@ import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
 const apiKey = APIKEY;
 const baseURL = BASE_URL;
-const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
+const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9)
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');

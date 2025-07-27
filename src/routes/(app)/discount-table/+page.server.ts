@@ -3,7 +3,7 @@ import { BASE_URL, APIKEY } from '$env/static/private';
 import { fail, error } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
-const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
+const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9)
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
@@ -124,16 +124,19 @@ export const actions: Actions = {
 		const type = formData.get('type');
 		const selectedApplicability = formData.get('applicability') as string;
 		const selectId = formData.get('selectId')
-		const code = formData.get('code');
+		const code = formData.get('code') as string || '';
 		const notes = formData.get('notes') || '';
-		let value, refDiscount, refPoints;
+		const value = formData.get('value');
+		const refDiscount = formData.get('refDiscount');
+		const refPoints = formData.get('refPoints');
 
-		if (type == 'percent' || type == 'amount') {
-			value = formData.get('value');
-		} else if (type === 'refPoints') {
-			refDiscount = formData.get('refDiscount');
-			refPoints = formData.get('refPoints');
-		}
+		// let value, refDiscount, refPoints;
+		// if (type == 'percent' || type == 'amount') {
+		// 	value = formData.get('value');
+		// } else if (type === 'referral') {
+		// 	refDiscount = formData.get('refDiscount');
+		// 	refPoints = formData.get('refPoints');
+		// }
 
 		if (!code || !type || !selectedApplicability || !selectId) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
@@ -151,7 +154,7 @@ export const actions: Actions = {
 				[selectedApplicability]: selectId,
 				notes
 			}
-		} else if (type == 'refPoints') {
+		} else if (type == 'referral') {
 			newDoc = {
 				discountId: nanoid(),
 				code,
@@ -159,9 +162,11 @@ export const actions: Actions = {
 				refDiscount,
 				refPoints,
 				selectedApplicability,
-				email: selectId,
+				referral: selectId,
 				notes
 			}
+		} else {
+			return fail(400, { action: 'new', success: false, message: 'no TYPE' });
 		}
 
 		const resFetch = fetch(`${BASE_URL}/api/mongo/create`, {
@@ -202,14 +207,17 @@ export const actions: Actions = {
 		const selectedApplicability = formData.get('applicability') as string;
 		const selectId = formData.get('selectId');
 		const notes = formData.get('notes') || '';
-		let value, refDiscount, refPoints;
+		const value = formData.get('value');
+		const refDiscount = formData.get('refDiscount');
+		const refPoints = formData.get('refPoints');
 
-		if (type == 'percent' || type == 'amount') {
-			value = formData.get('value');
-		} else if (type === 'refPoints') {
-			refDiscount = formData.get('refDiscount');
-			refPoints = formData.get('refPoints');
-		}
+		// let value, refDiscount, refPoints;
+		// if (type == 'percent' || type == 'amount') {
+		// 	value = formData.get('value');
+		// } else if (type === 'referral') {
+		// 	refDiscount = formData.get('refDiscount');
+		// 	refPoints = formData.get('refPoints');
+		// }
 
 		if (!discountId || !code || !type || !selectedApplicability || !selectId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
@@ -224,11 +232,11 @@ export const actions: Actions = {
 					type: type,
 					value: value,
 					selectedApplicability: selectedApplicability,
-					[selectedApplicability]: selectId, // 'email', 'membershipLevel', 'prodId', 'layoutId', 'refPoints'
+					[selectedApplicability]: selectId, // 'email', 'membershipLevel', 'prodId', 'layoutId', 'referral'
 					notes: notes,
 				}
 			}
-		} else if (type == 'refPoints') {
+		} else if (type == 'referral') {
 			update = {
 				$set: {
 					code: code,
@@ -236,10 +244,12 @@ export const actions: Actions = {
 					refDiscount,
 					refPoints,
 					selectedApplicability: selectedApplicability,
-					[selectedApplicability]: selectId, // 'email', 'membershipLevel', 'prodId', 'layoutId', 'refPoints'
+					[selectedApplicability]: selectId, // 'email', 'membershipLevel', 'prodId', 'layoutId', 'referral'
 					notes: notes,
 				}
 			}
+		} else {
+			return fail(400, { action: 'modify', success: false, message: 'no TYPE' });
 		}
 
 		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {

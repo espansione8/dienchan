@@ -17,6 +17,7 @@ const protectedRoutes = [
 ]
 
 const protectedPages = [
+    '/cart',
     '/course-table',
     '/discount-table',
     '/layout-table',

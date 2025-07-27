@@ -5,93 +5,93 @@ const orderSchema = new Schema(
 	{
 		orderId: {
 			type: String,
-			default: '',
+			default: null,
 			index: true,
 			unique: true,
 			dropDups: true
 		},
 		orderCode: {
 			type: String,
-			default: '',
+			default: null,
 			unique: true,
 			dropDups: true
 		},
-		userId: { type: String, default: '', index: true }, // add virtual
-		cardId: { type: String, default: '' },
+		userId: { type: String, default: null, index: true }, // add virtual
+		cardId: { type: String, default: null },
 		status: {
 			type: String,
 			enum: ['requested', 'confirmed', 'cancelled', 'exported', 'processed'],
 			default: 'confirmed'
 		},
-		type: { type: String, default: '' }, // 'course' 'product' 'membership'
-		//tk: { type: String, default: '' },
+		type: { type: String, default: null }, // 'course' 'product' 'membership'
+		//tk: { type: String, default: null },
 		orderDate: { type: Date, default: Date.now },
 		orderConfirmDate: { type: Date, default: Date.now },
-		promotionId: { type: String, default: '' },
-		promotionName: { type: String, default: '' },
+		promotionId: { type: String, default: null },
+		promotionName: { type: String, default: null },
 		promoterId: { type: String, default: null },
-		agencyId: { type: String, default: '' },
+		agencyId: { type: String, default: null },
 		orderConfirmed: { type: Boolean, default: false },
 		totalPoints: { type: Number, default: 0 },
 		totalValue: { type: Number, default: 0 },
 		totalDiscount: { type: Number, default: 0 },
 		totalVAT: { type: Number, default: 0 },
-		browser: { type: String, default: '' },
-		orderIp: { type: String, default: '' },
-		orderNotes: { type: String, default: '' },
+		browser: { type: String, default: null },
+		orderIp: { type: String, default: null },
+		orderNotes: { type: String, default: null },
 
 		invoicing: {
-			name: { type: String, default: '' },
-			surname: { type: String, default: '' },
-			businessName: { type: String, default: '' },
-			vatNumber: { type: String, default: '' },
-			address: { type: String, default: '' },
-			city: { type: String, default: '' },
-			county: { type: String, default: '' },
-			postalCode: { type: String, default: '' },
-			state: { type: String, default: '' },
-			region: { type: String, default: '' },
-			country: { type: String, default: '' },
-			invoiceNotes: { type: String, default: '' },
-			email: { type: String, default: '' },
-			phone: { type: String, default: '' },
-			mobilePhone: { type: String, default: '' }
+			name: { type: String, default: null },
+			surname: { type: String, default: null },
+			businessName: { type: String, default: null },
+			vatNumber: { type: String, default: null },
+			address: { type: String, default: null },
+			city: { type: String, default: null },
+			county: { type: String, default: null },
+			postalCode: { type: String, default: null },
+			state: { type: String, default: null },
+			region: { type: String, default: null },
+			country: { type: String, default: null },
+			invoiceNotes: { type: String, default: null },
+			email: { type: String, default: null },
+			phone: { type: String, default: null },
+			mobilePhone: { type: String, default: null }
 		},
 
 		shipping: {
-			name: { type: String, default: '' },
-			surname: { type: String, default: '' },
-			address: { type: String, default: '' },
-			city: { type: String, default: '' },
-			county: { type: String, default: '' },
-			postalCode: { type: String, default: '' },
-			state: { type: String, default: '' },
-			region: { type: String, default: '' },
-			country: { type: String, default: '' },
-			deliveryNotes: { type: String, default: '' },
-			email: { type: String, default: '' },
-			phone: { type: String, default: '' },
-			mobilePhone: { type: String, default: '' },
+			name: { type: String, default: null },
+			surname: { type: String, default: null },
+			address: { type: String, default: null },
+			city: { type: String, default: null },
+			county: { type: String, default: null },
+			postalCode: { type: String, default: null },
+			state: { type: String, default: null },
+			region: { type: String, default: null },
+			country: { type: String, default: null },
+			deliveryNotes: { type: String, default: null },
+			email: { type: String, default: null },
+			phone: { type: String, default: null },
+			mobilePhone: { type: String, default: null },
 
 			tracking: {
-				company: { type: String, default: '' },
-				trackingNumber: { type: String, default: '' },
-				trackingLink: { type: String, default: '' },
-				status: { type: String, default: '' },
-				estimatedDelivery: { type: Date, default: '' }
+				company: { type: String, default: null },
+				trackingNumber: { type: String, default: null },
+				trackingLink: { type: String, default: null },
+				status: { type: String, default: null },
+				estimatedDelivery: { type: Date, default: null }
 			}
 		},
 
 		payment: {
-			method: { type: String, default: '' }, // 'Bonifico bancario' 'Contanti' 'Carta di credito'
+			method: { type: String, default: null }, // 'Bonifico bancario' 'Contanti' 'Carta di credito'
 			statusPayment: {
 				type: String,
 				enum: ['pending', 'done', 'canceled'],
 				default: 'pending'
 			},
-			transactionId: { type: String, default: '' },
-			points: { type: String, default: '' },
-			value: { type: String, default: '' }
+			transactionId: { type: String, default: null },
+			points: { type: Number, default: null },
+			value: { type: Number, default: null }
 		},
 
 		cart: []

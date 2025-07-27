@@ -2,15 +2,18 @@ import type { PageServerLoad, Actions } from './$types'
 import type { CartItem, DiscountItem } from '$lib/types';
 import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK } from '$env/static/private';
 import { fail, error } from '@sveltejs/kit';
+import { pageAuth } from '$lib/pageAuth';
 import { hash } from '$lib/tools/hash';
 import { customAlphabet } from 'nanoid'
 import Stripe from 'stripe';
-const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
+const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9)
 const stripe = new Stripe(STRIPE_KEY_BACK, {
 	apiVersion: '2025-06-30.basil' // Use a stable API version
 });
 
-export const load: PageServerLoad = async ({ locals, fetch }) => {
+export const load: PageServerLoad = async ({ locals, fetch, url }) => {
+	pageAuth(url.pathname, locals.auth, 'page');
+
 	return {
 		userData: locals.user || null,
 		auth: locals.auth,
@@ -61,7 +64,7 @@ const calculateItemDiscount = (
 			totalDiscount = (originalTotal * value) / 100;
 		}
 	}
-	else if (selectedApplicability === 'refPoints') {
+	else if (selectedApplicability === 'referral') {
 		// Ref-level discounts
 		totalDiscount = (originalTotal * discount.refDiscount) / 100;
 
@@ -101,9 +104,13 @@ export const actions: Actions = {
 		const discountItem = JSON.parse(String(discountList)) || null;
 		const discountArray: string[] = JSON.parse(discountList || '[]').map(item => item.code);
 		const newPointsBalance = Number(formData.get('newPointsBalance'));
-		const usedPoints = Number(formData.get('usedPoints'));
+		const usedPoints = Number(formData.get('usedPoints')) || 0;
 		const usePoint = formData.get('usePoint') === 'true' // 'true' make it boolean
 		const paymentMethodId = formData.get('paymentMethodId') as string | null;
+
+		if (usePoint && newPointsBalance < 0) {
+			return fail(400, { action: 'new', success: false, message: 'Saldo punti insufficiente' });
+		}
 
 		// Calculate total cart on server anche for security
 		const cartRecalculated = () => {
@@ -329,7 +336,7 @@ export const actions: Actions = {
 				promoterId: '',
 				agencyId: '',
 				orderConfirmed: false,
-				totalPoints: 0,
+				totalPoints: usedPoints,
 				totalValue: totalValue,
 				totalDiscount: Number(totalDiscount),
 				totalVAT: 0,
@@ -447,7 +454,7 @@ export const actions: Actions = {
 					body: JSON.stringify({
 						apiKey: APIKEY,
 						schema: 'discount',
-						query: { code: { $in: discountArray }, type: 'refPoints' },
+						query: { code: { $in: discountArray }, type: 'referral' },
 						projection: { _id: 0 },
 						sort: { createdAt: -1 },
 						limit: 1,
@@ -462,48 +469,63 @@ export const actions: Actions = {
 					return fail(400, { action: 'new', success: false, message: await discountRes.text() });
 				}
 				const discount = await discountRes.json();
-				console.log('discount', discount);
+				//console.log('discount', discount);
 
-				if (!discount[0].email) {
-					console.error('no refPoint email found');
-				}
-				const calcPoint = Math.round(totalValue * discount[0].refPoints / 100);
+				if (discount.length > 0 && discount[0].referral) {
+					// if (!discount[0].email) {
+					// 	console.error('no refPoint email found');
+					// 	return fail(400, { action: 'new', success: false, message: 'no refPoint email found' });
+					// }
+					const calcPoint = Math.round(totalValue * discount[0].refPoints / 100);
 
-				const updateRes = await fetch(`${BASE_URL}/api/mongo/update`, {
-					method: 'POST',
-					body: JSON.stringify({
-						apiKey: APIKEY,
-						schema: 'user', //product | order | user | layout | discount
-						query: { email: discount[0].email },
-						update: {
-							$inc: {
-								pointsBalance: calcPoint
-							},
-							$push: {
-								pointsHistory: {
-									points: calcPoint,
-									note: `punti per ordine: ${orderId}`
+					const updateRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+						method: 'POST',
+						body: JSON.stringify({
+							apiKey: APIKEY,
+							schema: 'user', //product | order | user | layout | discount
+							query: { email: discount[0].referral },
+							update: {
+								$inc: {
+									pointsBalance: calcPoint
+								},
+								$push: {
+									pointsHistory: {
+										points: calcPoint,
+										note: `punti per ordine: ${orderId}`
+									}
 								}
-							}
-						},
-						options: { upsert: false },
-						multi: false
-					}),
-					headers: {
-						'Content-Type': 'application/json'
+							},
+							options: { upsert: false },
+							multi: false
+						}),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					});
+					if (!updateRes.ok) {
+						const errorText = await updateRes.text();
+						console.error('user update failed', updateRes.status, errorText);
+						return fail(400, { action: 'modifyPoints', success: false, message: errorText });
 					}
-				});
-				if (!updateRes.ok) {
-					const errorText = await updateRes.text();
-					console.error('user update failed', updateRes.status, errorText);
-					return fail(400, { action: 'modifyPoints', success: false, message: errorText });
+
+					const mailFetch = await fetch(`${BASE_URL}/api/mailer/default`, {
+						method: 'POST',
+						body: JSON.stringify({
+							apiKey: APIKEY,
+							email: discount[0].referral,
+							content: `Hai ricevuto punti dal tuo codice formatore: ${discount[0].code} per l'ordine: ${orderId}`
+						}),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					});
+					if (!mailFetch.ok) {
+						console.error('Referral Mail sending failed:', await mailFetch.text());
+					}
 				}
 			}
 
 			if (usePoint) {
-				if (newPointsBalance < 0) {
-					return fail(400, { action: 'new', success: false, message: 'Saldo punti insufficiente' });
-				}
 				const updatePoint = await fetch(`${BASE_URL}/api/mongo/update`, {
 					method: 'POST',
 					body: JSON.stringify({
@@ -623,9 +645,9 @@ export const actions: Actions = {
 				});
 			}
 
-			// check: Prevent more than one 'refPoints' discount
-			const refPointsDiscountsCount = discountGroup.filter(d => d.selectedApplicability === 'refPoints').length;
-			if (discountItem.selectedApplicability === 'refPoints' && refPointsDiscountsCount > 1) {
+			// check: Prevent more than one 'referral' discount
+			const countReferral = discountGroup.filter(d => d.selectedApplicability === 'referral').length;
+			if (discountItem.selectedApplicability === 'referral' && countReferral > 1) {
 				return fail(400, {
 					action: 'applyDiscount',
 					success: false,
@@ -633,18 +655,23 @@ export const actions: Actions = {
 				});
 			}
 
-			// check for "refPoints" and "membershipLevel" (Master Dien Chan) conflict
-			const hasRefPointsDiscount = discountGroup.some(d => d.selectedApplicability === 'refPoints' && d.code !== discountCode);
-			const isMasterDienChanMembershipDiscount = discountItem.selectedApplicability === 'membershipLevel' && discountItem.membershipLevel === 'Socio formatore';
+			// check for "referral" and "formatore" conflict
+			const existReferral = discountGroup.some(d => d.selectedApplicability === 'referral' && d.code !== discountCode);
+			const existFormatore = discountGroup.some(d => d.selectedApplicability === 'membershipLevel' && d.membershipLevel.includes('formatore') && d.code !== discountCode);
+			// const formatorelevels = ['formatore base', 'formatore avanzato']; // Define allowed levels
+			// const existFormatore = discountGroup.some(d => d.selectedApplicability === 'membershipLevel' && formatorelevels.includes(d.membershipLevel) && d.code !== discountCode);
 
-			if (hasRefPointsDiscount && isMasterDienChanMembershipDiscount) {
+			const isReferral = discountItem.selectedApplicability === 'referral';
+			const isFormatore = discountItem.selectedApplicability === 'membershipLevel' && discountItem.membershipLevel.includes('formatore');
+
+			if (isFormatore && existReferral) {
 				return fail(400, {
 					action: 'applyDiscount',
 					success: false,
 					message: 'È possibile applicare un solo sconto Formatore.'
 				});
 			}
-			if (discountItem.selectedApplicability === 'refPoints' && discountGroup.some(d => d.selectedApplicability === 'membershipLevel' && d.membershipLevel === 'Socio formatore' && d.code !== discountCode)) {
+			if (isReferral && existFormatore) {
 				return fail(400, {
 					action: 'applyDiscount',
 					success: false,
@@ -672,7 +699,7 @@ export const actions: Actions = {
 					case 'layoutId':
 						return cartArray.some(item => item.layoutView?.layoutId === discount.layoutId);
 
-					case 'refPoints':
+					case 'referral':
 						return true;
 
 					default:

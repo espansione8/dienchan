@@ -280,7 +280,7 @@
 							<div class="flex items-center justify-center space-x-4">
 								<span class="font-bold">€ {row.totalValue.toFixed(2)}</span>
 							</div>
-							{#if row.payment.statusPayment === 'pending'}
+							{#if row.payment.statusPayment === 'pending' && row.totalValue > 0}
 								<!-- <div class="divider">pagamento</div> -->
 								<div class="flex items-center space-x-4">
 									<form method="POST" action={`?/modify`} use:enhance={formSubmit}>
@@ -312,19 +312,26 @@
 							{/if}
 						</div>
 					</td>
-					<!-- Tipo pagamento -->
+					<!-- Payment -->
 					<td>
 						<div class="flex flex-col space-y-1">
-							<div>
-								{row.payment.method} /
-								{#if row.payment.statusPayment === 'pending'}
-									<span class="badge badge-warning">{row.payment.statusPayment}</span>
-								{:else if row.payment.statusPayment === 'done'}
-									<span class="badge badge-success">{row.payment.statusPayment}</span>
-								{:else}
-									<span class="badge badge-error">{row.payment.statusPayment}</span>
-								{/if}
-							</div>
+							{#if row.totalValue > 0}
+								<div>
+									{row.payment.method} /
+									{#if row.payment.statusPayment === 'pending'}
+										<span class="badge badge-warning">{row.payment.statusPayment}</span>
+									{:else if row.payment.statusPayment === 'done'}
+										<span class="badge badge-success">{row.payment.statusPayment}</span>
+									{:else}
+										<span class="badge badge-error">{row.payment.statusPayment}</span>
+									{/if}
+								</div>
+							{:else}
+								<div>
+									<span class="badge badge-success">Punti / Sconti</span>
+								</div>
+							{/if}
+
 							{#if row.promoterId}
 								<div>
 									<span class="badge badge-info font-semibold"><Handshake size={20} />: {row.promoterId}</span>
@@ -342,7 +349,7 @@
 							<span class="badge badge-error">{row.status}</span>
 						{/if}
 					</td> -->
-					<!-- Azione -->
+					<!-- Action -->
 					<td class="flex flex-col space-y-2 py-2 px-4">
 						<div class="flex items-center space-x-4">
 							<button onclick={() => onClickModal('modify', row)} class="btn btn-sm">

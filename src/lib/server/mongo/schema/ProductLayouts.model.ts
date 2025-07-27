@@ -9,18 +9,18 @@ const LayoutSchema = new Schema(
             dropDups: true
         },
 
-        title: { type: String, default: '' },
-        descr: { type: String, default: '' },
-        urlPic: { type: String, default: '' },
-        bgColor: { type: String, default: '' },
+        title: { type: String, default: null },
+        descr: { type: String, default: null },
+        urlPic: { type: String, default: null },
+        bgColor: { type: String, default: null },
         price: { type: Number, default: 0 },
 
         bundleProducts: [],
 
         // bundleProducts: [{
         //     _id: false,  // This prevents MongoDB from adding _id to array elements
-        //     prodId: { type: String, default: '' },
-        //     title: { type: String, default: '' },
+        //     prodId: { type: String, default: null },
+        //     title: { type: String, default: null },
         //     price: { type: Number, default: 0 }
         //     // add product category
         // }],
@@ -35,9 +35,9 @@ const LayoutSchema = new Schema(
             {
                 _id: false,  // This prevents MongoDB from adding _id to array elements
                 type: { type: String, enum: ['product-primary', 'product-gallery', 'membership', 'course'], default: 'none' },
-                fileType: { type: String, default: '' },
-                fileName: { type: String, default: '' },
-                fileUrl: { type: String, default: '' }
+                fileType: { type: String, default: null },
+                fileName: { type: String, default: null },
+                fileUrl: { type: String, default: null }
             }
         ],
     },

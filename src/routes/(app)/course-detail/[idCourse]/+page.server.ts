@@ -5,7 +5,7 @@ import { error, fail } from '@sveltejs/kit';
 import { hash } from '$lib/tools/hash';
 import { customAlphabet } from 'nanoid';
 import Stripe from 'stripe';
-const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12);
+const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9);
 const stripe = new Stripe(STRIPE_KEY_BACK, {
 	apiVersion: '2025-06-30.basil' // Use a stable API version
 });

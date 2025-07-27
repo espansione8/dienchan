@@ -5,7 +5,7 @@ import { fail, error } from '@sveltejs/kit';
 import { customAlphabet } from 'nanoid'
 import { pageAuth } from '$lib/pageAuth';
 import Papa from 'papaparse';
-const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12)
+const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9)
 
 export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	pageAuth(url.pathname, locals.auth, 'page');
