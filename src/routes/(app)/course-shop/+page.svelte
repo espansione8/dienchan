@@ -224,7 +224,7 @@
 	<title>Lista corsi</title>
 </svelte:head>
 
-<div id="top" class="bg-base-200 grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-8 lg:p-8">
+<div class="bg-base-200 grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-8 lg:p-8">
 	<!-- Filter column -->
 	<section class="col-span-12 xl:col-span-2 bg-base-100 rounded-lg shadow-md border border-base-200 overflow-hidden">
 		<div class="flex flex-col w-auto">

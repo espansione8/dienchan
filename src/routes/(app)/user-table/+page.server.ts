@@ -423,7 +423,7 @@ export const actions: Actions = {
 
 		try {
 			const fileContent = await file.text();
-			const csvData = await new Promise((resolve, reject) => {
+			const csvData: any = await new Promise((resolve, reject) => {
 				Papa.parse(fileContent, {
 					header: true,
 					dynamicTyping: true,
@@ -478,7 +478,7 @@ export const actions: Actions = {
 					processedRow.cod = '';
 				}
 
-				const finalUpdateDocument = unflattenObject(processedRow);
+				const finalUpdateDocument: any = unflattenObject(processedRow);
 
 				//START MEMBERSHIP
 				if (!finalUpdateDocument.membership || typeof finalUpdateDocument.membership !== 'object') {
@@ -589,7 +589,7 @@ export const actions: Actions = {
 				return fail(400, { action: 'downloadCsv', success: false, message: `resFetch: ${await resFetch.text()}` });
 			}
 			const content = await resFetch.json();
-			console.log('content', content.length);
+			//console.log('content', content.length);
 
 			return { action: 'downloadCsv', success: true, message: 'Download report', payload: content };
 

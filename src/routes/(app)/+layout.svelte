@@ -25,7 +25,7 @@
 	></div>
 {/if} -->
 
-<div data-theme="dienchan" class="flex-col flex min-h-screen">
+<div id="top" data-theme="dienchan" class="flex-col flex min-h-screen">
 	<Navbar {user} {auth} />
 
 	<main class="grow">

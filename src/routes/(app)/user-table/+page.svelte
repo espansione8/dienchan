@@ -340,7 +340,7 @@
 {#if !getTable}
 	<Loader />
 {:else}
-	<div id="top" class="overflow-x-auto mt-5 px-4 mb-5">
+	<div class="overflow-x-auto mt-5 px-4 mb-5">
 		<div class="flex flex-col gap-4 mb-4">
 			<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Lista utenti</h1>
 			<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
@@ -359,20 +359,16 @@
 				<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('new', null)}>
 					<CopyPlus /> Nuovo
 				</button>
-				<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate(tableList)}>
-					<FileDown />CSV
-				</button>
 				<form method="POST" action={`?/downloadCsv`} use:enhance={formSubmit}>
 					<button type="submit" class="btn btn-info text-white w-full sm:w-auto">
-						<FileDown />Total CSV
+						<FileDown />CSV Report
 						{#if loading}
 							<Loader />
 						{/if}
 					</button>
 				</form>
-
-				<button aria-label="uploadCSV image" class="btn btn-info text-white w-full sm:w-auto" onclick={() => onClickModal('uploadCsv', null)}>
-					<FileUp />CSV
+				<button aria-label="uploadCSV" class="btn btn-info text-white w-full sm:w-auto" onclick={() => onClickModal('uploadCsv', null)}>
+					<FileUp />CSV Update
 				</button>
 			</div>
 		</div>

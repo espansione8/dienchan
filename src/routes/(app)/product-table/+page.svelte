@@ -75,9 +75,34 @@
 	};
 	goToPage(currentPage);
 
-	const csvCreate = () => {
-		let csv = $state('');
-		let newList: any = $state();
+	const csvCreate = (content) => {
+		// let csv = $state('');
+		// let newList: any = $state();
+
+		// const flattenObject = (obj: any, prefix = '') => {
+		// 	return Object.keys(obj).reduce((acc, k) => {
+		// 		const pre = prefix.length ? prefix + '_' : '';
+		// 		if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
+		// 			Object.assign(acc, flattenObject(obj[k], pre + k));
+		// 		} else {
+		// 			acc[pre + k] = obj[k];
+		// 		}
+		// 		return acc;
+		// 	}, {});
+		// };
+
+		// const flattenedArray = content.map((obj: any) => {
+		// 	return flattenObject(obj);
+		// });
+
+		// newList = flattenedArray.map((obj: any) => ({
+		// 	...obj,
+		// 	createdAt: obj.createdAt?.substring(0, 10)
+		// }));
+
+		// newList.forEach((obj: any) => {
+		// 	$courseKeysToDelete.forEach((key: string) => delete (obj as any)[key]);
+		// });
 
 		const flattenObject = (obj: any, prefix = '') => {
 			return Object.keys(obj).reduce((acc, k) => {
@@ -85,28 +110,27 @@
 				if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
 					Object.assign(acc, flattenObject(obj[k], pre + k));
 				} else {
-					acc[pre + k] = obj[k];
+					// Only include non-array, non-object values in the final flat object
+					if (!Array.isArray(obj[k])) {
+						acc[pre + k] = obj[k];
+					}
 				}
 				return acc;
 			}, {});
 		};
 
-		const flattenedArray = tableList.map((obj: any) => {
-			return flattenObject(obj);
-		});
+		const dataToExport = content.map((order) => {
+			const flatOrder: any = flattenObject(order);
 
-		newList = flattenedArray.map((obj: any) => ({
-			...obj,
-			createdAt: obj.createdAt?.substring(0, 10)
-		}));
+			if (flatOrder.createdAt) flatOrder.createdAt = (flatOrder.createdAt as string).substring(0, 10);
+			// if (flatOrder.birthdate) flatOrder.birthdate = (flatOrder.birthdate as string).substring(0, 10);
 
-		newList.forEach((obj: any) => {
-			$courseKeysToDelete.forEach((key: string) => delete (obj as any)[key]);
+			$courseKeysToDelete.forEach((key: string) => delete (flatOrder as any)[key]);
+			return flatOrder;
 		});
-		//console.log('newList check', newList);
 
 		//CSV UNPARSE
-		csv = Papa.unparse(newList, {
+		const csv = Papa.unparse(dataToExport, {
 			quotes: false, //or array of booleans
 			quoteChar: '"',
 			escapeChar: '"',
@@ -119,15 +143,15 @@
 
 		//DOWNLOAD file
 		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-		// create a link element to download the zip archive
+
 		const link = document.createElement('a'); //
 		link.href = URL.createObjectURL(blob);
 		link.download = `Export_products_${new Date().toLocaleDateString()}.csv`;
 		document.body.appendChild(link);
 		link.click();
-		document.body.removeChild(link);
 
 		// Release the URL object
+		document.body.removeChild(link);
 		URL.revokeObjectURL(link.href);
 	};
 
@@ -195,15 +219,19 @@
 	};
 
 	const formSubmit = () => {
+		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
 			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
-			loading = true;
+
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
 				const { action, success, message, payload } = result.data; // { action, success, message, payload }
 				if (action == 'filter') {
 					resetActive = true;
 					tableList = payload;
+				} else if (action == 'downloadCsv') {
+					csvCreate(payload);
+					notification.success(message);
 				} else {
 					resetActive = false;
 					tableList = getTable;
@@ -255,7 +283,10 @@
 	</style>
 </noscript>
 
-<div id="top" class="overflow-x-auto mt-5 px-4 mb-5">
+{#if loading}
+	<Loader />
+{/if}
+<div class="overflow-x-auto mt-5 px-4 mb-5">
 	<div class="flex flex-col gap-4 mb-4">
 		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Lista prodotti</h1>
 		<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
@@ -274,11 +305,16 @@
 			<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('new', null)}>
 				<CopyPlus /> Nuovo
 			</button>
-			<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate()}>
-				<FileDown />CSV
-			</button>
-			<button aria-label="uploadCSV image" class="btn btn-info text-white w-full sm:w-auto" onclick={() => onClickModal('uploadCsv', null)}>
-				<FileUp />CSV
+			<form method="POST" action={`?/downloadCsv`} use:enhance={formSubmit}>
+				<button type="submit" class="btn btn-info text-white w-full sm:w-auto">
+					<FileDown />CSV Report
+					{#if loading}
+						<Loader />
+					{/if}
+				</button>
+			</form>
+			<button aria-label="uploadCSV" class="btn btn-info text-white w-full sm:w-auto" onclick={() => onClickModal('uploadCsv', null)}>
+				<FileUp />CSV Update
 			</button>
 		</div>
 	</div>
