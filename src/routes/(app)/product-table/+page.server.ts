@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 				schema: 'product', //product | order | user | layout | discount
 				query: { type: 'product' },//types: course / product / membership / event
 				projection: { _id: 0 }, // 0: exclude | 1: include
-				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				sort: { title: 1 }, // 1:Sort ascending | -1:Sort descending
 				limit: 10000,
 				skip: 0
 			}),
@@ -224,8 +224,8 @@ export const actions: Actions = {
 					...(status && { status }),
 				},
 				projection: { _id: 0 },
-				sort: { createdAt: -1 },
-				limit: 1000,
+				sort: { title: 1 },
+				limit: 10000,
 				skip: 0
 			}),
 			headers: {

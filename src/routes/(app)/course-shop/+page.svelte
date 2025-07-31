@@ -141,7 +141,7 @@
 		}
 		// mese
 		if (filtriAttivi.mese) {
-			console.log('filtriAttivi.mese', filtriAttivi.mese.toLowerCase());
+			// console.log('filtriAttivi.mese', filtriAttivi.mese.toLowerCase());
 
 			const monthIndex = nomiMesi.indexOf(filtriAttivi.mese);
 			//const monthIndex = new Date(Date.parse(`${filtriAttivi.mese.toLowerCase()} 1, 2000`)).getMonth(); // Using a dummy date to parse month name

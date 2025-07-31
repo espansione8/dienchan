@@ -71,9 +71,15 @@
 
 		// Pagination
 		const skipItems = (currentPage - 1) * itemsPerPage;
-		tableList = getTable.slice(skipItems, skipItems + itemsPerPage);
+		tableList = tableList.slice(skipItems, skipItems + itemsPerPage);
 	};
-	goToPage(currentPage);
+
+	// goToPage(currentPage);
+
+	// const paginatedList = $derived(() => {
+	// 	const skipItems = (currentPage - 1) * itemsPerPage;
+	// 	return tableList.slice(skipItems, skipItems + itemsPerPage);
+	// });
 
 	const csvCreate = (content) => {
 		// let csv = $state('');
@@ -162,6 +168,9 @@
 		stockQty = 0;
 		category = '';
 		price = 0;
+		prodId = '';
+		status = '';
+		currentPage = 1;
 	};
 
 	const refresh = () => {
@@ -339,7 +348,7 @@
 			{#if tableList.length == 0}
 				<tr class="hover:bg-gray-300"><td> no data</td></tr>
 			{/if}
-			{#each tableList as row}
+			{#each tableList as row (row.prodId)}
 				<tr class="hover:bg-gray-100">
 					<td>{row.prodId} <br /> {row.createdAt?.substring(0, 10) || ''}</td>
 					<td>
