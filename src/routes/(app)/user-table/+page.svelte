@@ -180,6 +180,8 @@
 		resetActive = false;
 		tableList = getTable;
 		notification.info('Pagina ricaricata');
+		level = '';
+		membershipLevel = '';
 	};
 
 	const resetFields = () => {
@@ -195,7 +197,8 @@
 		mobilePhone = '';
 		password1 = '';
 		password2 = '';
-		level = '';
+		// level = '';
+		// membershipLevel = '';
 		namePublic = false;
 		surnamePublic = false;
 		emailPublic = false;
@@ -342,7 +345,7 @@
 {:else}
 	<div class="overflow-x-auto mt-5 px-4 mb-5">
 		<div class="flex flex-col gap-4 mb-4">
-			<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Lista utenti</h1>
+			<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Lista utenti ({itemCount})</h1>
 			<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
 				<button class="btn btn-info text-white w-full sm:w-auto" onclick={refresh}>
 					<RefreshCcw />
@@ -507,7 +510,7 @@
 				<div>
 					<ShieldAlert />
 					<br />
-					<span class="mt-2 text-semibold"> Nessun corso trovato. Cambia parametri o resetta il filtro. </span>
+					<span class="mt-2 text-semibold"> Nessun Utente trovato. Cambia parametri o resetta il filtro. </span>
 				</div>
 			</div>
 		{/if}
@@ -521,16 +524,11 @@
 
 				<button type="submit" id="prev" class="join-item btn" name="navigation" value="prev" disabled={currentPage <= 1}> « </button>
 				<button type="button" class="join-item btn">Pagina {currentPage}</button>
-				<button
-					type="submit"
-					id="next"
-					class="join-item btn"
-					name="navigation"
-					value="next"
-					disabled={currentPage >= Math.max(1, Math.ceil(itemCount / itemsPerPage))}>»</button
-				>
+				<button type="submit" id="next" class="join-item btn" name="navigation" value="next" disabled={tableList.length < itemsPerPage}>» </button>
 				<input type="hidden" name="itemsPerPage" value={itemsPerPage} />
 				<input type="hidden" name="currentPage" value={currentPage} />
+				<input type="hidden" name="level" value={level} />
+				<input type="hidden" name="membershipLevel" value={membershipLevel} />
 			</form>
 		</div>
 	</div>
@@ -1037,10 +1035,9 @@
 						<option value="">Seleziona il livello associato</option>
 						<option value="Socio inattivo">Socio inattivo</option>
 						<option value="Socio ordinario">Socio ordinario</option>
-						<option value="Socio sostenitore">Socio sostenitore</option>
+						<option value="Socio formatore">Socio formatore</option>
 						<option value="Socio vitalizio">Socio vitalizio</option>
-						<option value="Socio contributore">Socio contributore</option>
-						<option value="Master Dien Chan">Master Dien Chan</option>
+						<option value="Socio vitalizio formatore">Socio vitalizio formatore</option>
 					</select>
 				</div>
 

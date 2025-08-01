@@ -218,15 +218,9 @@
 		};
 	};
 
-	//let hasInitialized = $state(false);
 	$effect(() => {
-		// if (tableList && tableList.length > 0 && !hasInitialized) {
-		// 	alert('trigered');
-		// 	goToPage(currentPage);
-		// 	hasInitialized = true; // Stop Effect
-		// }
-
-		if (currentPage || tableList) {
+		// if (currentPage || tableList ) { // old, no animation on filter
+		if (tableList) {
 			tick().then(() => {
 				const element = document.getElementById('top');
 				if (element) {
@@ -242,14 +236,9 @@
 	<meta name="description" content="Trova un riflessologo Diện Chẩn nella tua zona" />
 </svelte:head>
 
-<div
-	id="top"
-	class="bg-base-200 grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-8 lg:p-8"
->
+<div id="top" class="bg-base-200 grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-8 lg:p-8">
 	<!-- Filter column -->
-	<section
-		class="col-span-12 xl:col-span-2 bg-base-100 rounded-lg shadow-md border border-base-200 overflow-hidden"
-	>
+	<section class="col-span-12 xl:col-span-2 bg-base-100 rounded-lg shadow-md border border-base-200 overflow-hidden">
 		<div class="flex flex-col w-auto">
 			<!-- Filter Header -->
 			<div class="bg-primary text-primary-content p-4 relative overflow-hidden">
@@ -264,13 +253,9 @@
 			<div class="p-4 space-y-4">
 				<form id="filterForm" method="POST" action="?/filter" use:enhance={formSubmit}>
 					<!-- Province Filter -->
-					<div
-						class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200"
-					>
+					<div class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200">
 						<input id="accordion1" type="checkbox" class="peer" />
-						<div
-							class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
-						>
+						<div class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold">
 							<span class="inline-flex items-center">
 								<b><MapPinned class="-mt-1 mr-2" /> Provincia</b>
 								{#if activeFilter.county.length > 0}
@@ -278,9 +263,7 @@
 								{/if}
 							</span>
 						</div>
-						<div
-							class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto"
-						>
+						<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto">
 							<ul class="list-none -mx-4 divide-y divide-base-200/70">
 								{#each Object.entries(countyObj) as [key, count]}
 									<li>
@@ -289,9 +272,7 @@
 											name="county"
 											value={key}
 											class="p-3 w-full transition-all duration-300 flex items-center justify-between
-                  {activeFilter.county === key
-												? 'bg-orange-200 text-red-900 font-bold'
-												: 'hover:bg-blue-200 hover:text-blue-900'}"
+                  {activeFilter.county === key ? 'bg-orange-200 text-red-900 font-bold' : 'hover:bg-blue-200 hover:text-blue-900'}"
 										>
 											<span>{key}</span>
 											<div class="flex items-center gap-2">
@@ -366,11 +347,7 @@
 	{:else}
 		<section class="col-span-12 xl:col-span-10 bg-base-100 rounded-lg">
 			<div class="flex items-center p-4">
-				<div
-					class="btn btn-sm rounded-md cursor-default {count > 0
-						? 'bg-green-300 hover:bg-green-300'
-						: 'bg-red-300 hover:bg-red-300'}"
-				>
+				<div class="btn btn-sm rounded-md cursor-default {count > 0 ? 'bg-green-300 hover:bg-green-300' : 'bg-red-300 hover:bg-red-300'}">
 					Utenti trovati:
 					<div class="badge rounded-md flex justify-center">
 						<strong class="">{count}</strong>
@@ -432,14 +409,10 @@
 			<!-- Reflexologist Cards -->
 			<div class="flex flex-wrap justify-center gap-6 p-4">
 				{#if tableList.length === 0}
-					<div
-						class="alert alert-warning shadow-lg text-center rounded-md mt-6 mx-auto w-full max-w-md"
-					>
+					<div class="alert alert-warning shadow-lg text-center rounded-md mt-6 mx-auto w-full max-w-md">
 						<div>
 							<UserSearch size={24} />
-							<span class="mt-2 text-semibold">
-								Nessun riflessologo trovato. Cambia parametri o resetta il filtro.
-							</span>
+							<span class="mt-2 text-semibold"> Nessun riflessologo trovato. Cambia parametri o resetta il filtro. </span>
 						</div>
 					</div>
 				{:else}
@@ -452,14 +425,11 @@
 									<Image
 										layout="constrained"
 										aspectRatio={1}
-										src={imgCheck.single(reflexologist.uploadfiles, 'profile') ||
-											'/images/avatar.png'}
+										src={imgCheck.single(reflexologist.uploadfiles, 'profile') || '/images/avatar.png'}
 										alt={`${reflexologist.name} ${reflexologist.surname}`}
 										class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
 									/>
-									<div
-										class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-emerald-800/80 to-transparent p-4"
-									>
+									<div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-emerald-800/80 to-transparent p-4">
 										<h2 class="text-white text-xl font-bold">
 											{reflexologist.namePublic ? reflexologist.name : ''}
 											{reflexologist.surnamePublic ? reflexologist.surname : ''}
@@ -512,12 +482,7 @@
 
 								<!-- <div class="absolute bottom-4 right-4"> -->
 								<div class="card-actions mt-auto justify-end">
-									<a
-										href={`/profile-public/${reflexologist.userId}`}
-										class="btn btn-primary rounded-md"
-									>
-										Visualizza Profilo
-									</a>
+									<a href={`/profile-public/${reflexologist.userId}`} class="btn btn-primary rounded-md"> Visualizza Profilo </a>
 								</div>
 							</div>
 						</div>
@@ -532,25 +497,17 @@
 						</button>
 					{/if}
 
-					<button
-						type="submit"
-						id="prev"
-						class="join-item btn"
-						name="navigation"
-						value="prev"
-						disabled={currentPage <= 1}
-					>
-						«
-					</button>
+					<button type="submit" id="prev" class="join-item btn" name="navigation" value="prev" disabled={currentPage <= 1}> « </button>
 					<button type="button" class="join-item btn">Pagina {currentPage}</button>
-					<button
+					<button type="submit" id="next" class="join-item btn" name="navigation" value="next" disabled={tableList.length < itemsPerPage}>»</button>
+					<!-- <button
 						type="submit"
 						id="next"
 						class="join-item btn"
 						name="navigation"
 						value="next"
 						disabled={currentPage >= Math.max(1, Math.ceil(count / itemsPerPage))}>»</button
-					>
+					> -->
 					<input type="hidden" name="itemsPerPage" value={itemsPerPage} />
 					<input type="hidden" name="currentPage" value={currentPage} />
 					<input type="hidden" name="county" value={activeFilter.county} />

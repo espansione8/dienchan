@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			body: JSON.stringify({
 				apiKey: APIKEY,
 				schema: 'user', //product | order | user | layout | discount
-				query: { 'membership.membershipStatus': true },
+				query: { 'membership.membershipStatus': true, level: 'formatore' },
 				option: { hint: { userId: 1 } },// optional: define index to use
 			}),
 			headers: {
@@ -33,7 +33,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			body: JSON.stringify({
 				apiKey,
 				schema: 'user', //product | order | user | layout | discount
-				query: { 'membership.membershipStatus': true },
+				query: { 'membership.membershipStatus': true, level: 'formatore' },
 				sort: { surname: 1 }, // 1:Sort ascending | -1:Sort descending
 				projection: { _id: 0, password: 0 }, // 0: exclude | 1: include
 				limit: 40,
@@ -51,7 +51,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 				apiKey: APIKEY,
 				schema: 'user',
 				pipeline: [
-					{ "$match": { "membership.membershipStatus": true, "county": { "$exists": true, "$ne": null } } }, // filter active members with a county
+					{ "$match": { "membership.membershipStatus": true, level: 'formatore', "county": { "$exists": true, "$ne": null } } }, // filter active members with a county
 					{ "$group": { "_id": "$county", "count": { "$sum": 1 } } }, // group by county and count
 					{ "$sort": { "_id": 1 } } // sort by county name alphabetically
 				]
@@ -124,7 +124,7 @@ export const actions: Actions = {
 				body: JSON.stringify({
 					apiKey: APIKEY,
 					schema: 'user',
-					query: { 'membership.membershipStatus': true, county: county },
+					query: { 'membership.membershipStatus': true, level: 'formatore', county: county },
 					option: { hint: { userId: 1 } },
 				}),
 				headers: { 'Content-Type': 'application/json' }
@@ -136,7 +136,7 @@ export const actions: Actions = {
 				body: JSON.stringify({
 					apiKey: APIKEY,
 					schema: 'user',
-					query: { 'membership.membershipStatus': true, county: county },
+					query: { 'membership.membershipStatus': true, level: 'formatore', county: county },
 					sort: { surname: 1 },
 					projection: { _id: 0, password: 0 },
 					limit: 40,
@@ -189,7 +189,7 @@ export const actions: Actions = {
 				body: JSON.stringify({
 					apiKey: APIKEY,
 					schema: 'user', //product | order | user | layout | discount
-					query: { 'membership.membershipStatus': true, ...(county && { county }) },
+					query: { 'membership.membershipStatus': true, level: 'formatore', ...(county && { county }) },
 					sort: { surname: 1 },
 					projection: { _id: 0, password: 0 },
 					limit: itemsPerPage,

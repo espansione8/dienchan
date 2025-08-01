@@ -81,9 +81,7 @@
 		resetActive = false;
 		//prodList = getTable || [];
 		//prodList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
-		prodList = prodList
-			.slice()
-			.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+		prodList = prodList.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
 		activeFilter = {
 			category: ''
@@ -110,9 +108,7 @@
 		if (activeFilter.category) {
 			// prodList = prodList.filter((item) => item.county == activeFilter.provincia);
 			//prodList = prodList.filter((item) =>
-			prodList = getTable.filter((item) =>
-				item.category.some((category) => category === activeFilter.category)
-			);
+			prodList = getTable.filter((item) => item.category.some((category) => category === activeFilter.category));
 			//console.log('prodList cat', prodList.length);
 			count = prodList.length;
 		}
@@ -218,10 +214,7 @@
 	<title>Lista Prodotti</title>
 </svelte:head>
 
-<div
-	id="top"
-	class="bg-base-200 grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-8 lg:p-8"
->
+<div id="top" class="bg-base-200 grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-8 lg:p-8">
 	<!-- Filter column -->
 	<section class="col-span-12 xl:col-span-2">
 		<div class="sticky top-4">
@@ -229,12 +222,7 @@
 				<!-- Filter Header -->
 				<div class="bg-primary text-primary-content p-4 relative overflow-hidden">
 					<div class="absolute inset-0 opacity-20">
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 24 24"
-							fill="currentColor"
-							class="w-32 h-32 -rotate-12 absolute -right-8 -bottom-8"
-						>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-32 h-32 -rotate-12 absolute -right-8 -bottom-8">
 							<path
 								d="M18.75 12.75h1.5a.75.75 0 000-1.5h-1.5a.75.75 0 000 1.5zM12 6a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 0112 6zM12 18a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 0112 18zM3.75 6.75h1.5a.75.75 0 100-1.5h-1.5a.75.75 0 000 1.5zM5.25 18.75h-1.5a.75.75 0 010-1.5h1.5a.75.75 0 010 1.5zM3 12a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 013 12zM9 3.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5zM12.75 12a2.25 2.25 0 114.5 0 2.25 2.25 0 01-4.5 0zM9 15.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z"
 							/>
@@ -266,9 +254,7 @@
 										name="category"
 										value={key}
 										class="group relative flex items-center justify-between py-2.5 px-3 rounded-lg transition-all duration-300 overflow-hidden
-                {activeFilter.category === key
-											? 'bg-primary text-primary-content font-medium'
-											: 'hover:bg-base-200'}"
+                {activeFilter.category === key ? 'bg-primary text-primary-content font-medium' : 'hover:bg-base-200'}"
 									>
 										<!-- Background animation on hover -->
 										<div
@@ -279,10 +265,8 @@
 										></div>
 
 										<span class="relative z-10">{key}</span>
-										<span
-											class="badge {activeFilter.category === key
-												? 'bg-primary-content/20 text-primary-content'
-												: 'bg-base-200'} relative z-10">{value}</span
+										<span class="badge {activeFilter.category === key ? 'bg-primary-content/20 text-primary-content' : 'bg-base-200'} relative z-10"
+											>{value}</span
 										>
 									</button>
 								{/each}
@@ -292,10 +276,7 @@
 					<!-- Reset Button -->
 					{#if resetActive}
 						<div class="pt-3 border-t border-base-200">
-							<button
-								class="btn btn-error btn-outline w-full gap-2 group relative overflow-hidden"
-								onclick={onFilterReset}
-							>
+							<button class="btn btn-error btn-outline w-full gap-2 group relative overflow-hidden" onclick={onFilterReset}>
 								<span
 									class="absolute inset-0 bg-error/10 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"
 								></span>
@@ -314,11 +295,7 @@
 	{:else}
 		<section class="col-span-12 xl:col-span-10 bg-base-100 rounded-lg">
 			<div class="flex items-center p-4">
-				<div
-					class="btn btn-sm rounded-md cursor-default {count > 0
-						? 'bg-green-300 hover:bg-green-300'
-						: 'bg-red-300 hover:bg-red-300'}"
-				>
+				<div class="btn btn-sm rounded-md cursor-default {count > 0 ? 'bg-green-300 hover:bg-green-300' : 'bg-red-300 hover:bg-red-300'}">
 					Prodotti disponibili: {activeFilter.category}
 					<div class="badge rounded-md flex justify-center">
 						<!-- {#if activeFilter.category}
@@ -411,15 +388,11 @@
 			<!-- CARD -->
 			<div class="flex flex-wrap justify-center gap-3 pl-3 pb-4">
 				{#if prodList.length == 0}
-					<div
-						class="alert alert-warning shadow-lg text-center rounded-md mt-6 mx-auto w-full max-w-md"
-					>
+					<div class="alert alert-warning shadow-lg text-center rounded-md mt-6 mx-auto w-full max-w-md">
 						<div>
 							<ShieldAlert />
 							<br />
-							<span class="mt-2 text-semibold">
-								Nessun prodotto trovato. Cambia parametri o resetta il filtro.
-							</span>
+							<span class="mt-2 text-semibold"> Nessun prodotto trovato. Cambia parametri o resetta il filtro. </span>
 						</div>
 					</div>
 				{/if}
@@ -432,9 +405,7 @@
 							<a href="/product-detail/{productData.prodId}">
 								<div class="absolute -top-1 -right-1 z-10 opacity-70">
 									<div class="relative">
-										<div
-											class="bg-gradient-to-r from-primary to-primary/80 text-primary-content px-4 py-2 rounded-bl-lg rounded-tr-lg shadow-md"
-										>
+										<div class="bg-gradient-to-r from-primary to-primary/80 text-primary-content px-4 py-2 rounded-bl-lg rounded-tr-lg shadow-md">
 											<span class="text-xs font-semibold">PREZZO</span>
 											<div class="flex items-baseline">
 												<span class="text-2xl font-bold">€ {productData.price.toFixed(2)}</span>
@@ -473,9 +444,7 @@
 									{#if productData.stockQty < 1}
 										<Boxes size={16} color="red" /> Out of stock
 									{:else}
-										<Boxes size={16} color="green" /><span class="text-success">
-											&nbsp;{productData.stockQty} in magazzino</span
-										>
+										<Boxes size={16} color="green" /><span class="text-success"> &nbsp;{productData.stockQty} in magazzino</span>
 									{/if}
 								</span>
 							</div>
@@ -491,10 +460,7 @@
 						<div class="px-5 pb-4 pt-0">
 							<div class="divider my-1"></div>
 							<div class="card-actions flex justify-between items-center w-full gap-2">
-								<a
-									class="btn btn-outline rounded-md flex items-center gap-1"
-									href="/product-detail/{productData.prodId}"
-								>
+								<a class="btn btn-outline rounded-md flex items-center gap-1" href="/product-detail/{productData.prodId}">
 									<Info size={16} />
 									Dettagli
 								</a>
@@ -502,23 +468,18 @@
 									{#if productData.stockQty > 0}
 										{#if checkCart(productData.prodId)}
 											<div class="join join-vertical flex-1">
-												<button
-													class="btn join-item"
-													onclick={() => removeFromCart($cartProducts, productData)}
+												<button class="btn join-item" onclick={() => removeFromCart($cartProducts, productData)}
 													><b>-</b> <ShoppingCart /> rimuovi</button
 												>
 
 												<input
 													type="text"
-													value={$cartProducts.find((item) => item.prodId === productData.prodId)
-														?.orderQuantity}
+													value={$cartProducts.find((item) => item.prodId === productData.prodId)?.orderQuantity}
 													class="input join-item text-center w-full"
 													readonly
 												/>
 												{#if $cartProducts.find((item) => item.prodId === productData.prodId)?.orderQuantity < productData.stockQty}
-													<button
-														class="btn btn-primary join-item"
-														onclick={() => addToCart($cartProducts, productData, false)}
+													<button class="btn btn-primary join-item" onclick={() => addToCart($cartProducts, productData, false)}
 														><b>+</b> <ShoppingCart /> aggiungi</button
 													>
 												{:else}
@@ -528,21 +489,14 @@
 										{:else}
 											<button
 												class="btn btn-primary rounded-md flex-1 rounded-md flex items-center gap-1"
-												onclick={() => addToCart($cartProducts, productData, false)}
-												><ShoppingCart /> Aggiungi</button
+												onclick={() => addToCart($cartProducts, productData, false)}><ShoppingCart /> Aggiungi</button
 											>
 										{/if}
 									{:else}
-										<button
-											class="btn btn-sm rounded-md inline-flex items-center justify-center space-x-2"
-											disabled>Out of Stock</button
-										>
+										<button class="btn btn-sm rounded-md inline-flex items-center justify-center space-x-2" disabled>Out of Stock</button>
 									{/if}
 								{:else}
-									<button
-										class="btn btn-sm btn-error rounded-md inline-flex items-center justify-center space-x-2"
-										>Riservato agli associati</button
-									>
+									<button class="btn btn-sm btn-error rounded-md inline-flex items-center justify-center space-x-2">Riservato agli associati</button>
 								{/if}
 							</div>
 						</div>
@@ -558,25 +512,17 @@
 						</button>
 					{/if}
 
-					<button
-						type="submit"
-						id="prev"
-						class="join-item btn"
-						name="navigation"
-						value="prev"
-						disabled={currentPage <= 1}
-					>
-						«
-					</button>
+					<button type="submit" id="prev" class="join-item btn" name="navigation" value="prev" disabled={currentPage <= 1}> « </button>
 					<button type="button" class="join-item btn">Pagina {currentPage}</button>
-					<button
+					<button type="submit" id="next" class="join-item btn" name="navigation" value="next" disabled={prodList.length < itemsPerPage}>»</button>
+					<!-- <button
 						type="submit"
 						id="next"
 						class="join-item btn"
 						name="navigation"
 						value="next"
 						disabled={currentPage >= Math.max(1, Math.ceil(count / itemsPerPage))}>»</button
-					>
+					> -->
 					<input type="hidden" name="itemsPerPage" value={itemsPerPage} />
 					<input type="hidden" name="currentPage" value={currentPage} />
 					<input type="hidden" name="category" value={activeFilter.category} />

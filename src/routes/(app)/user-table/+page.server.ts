@@ -284,7 +284,7 @@ export const actions: Actions = {
 					...(email && { email })
 				},
 				projection: { _id: 0 }, // 0: exclude | 1: include,
-				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending,
+				//sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending,
 				limit: 1000,
 				skip: 0
 			}),
@@ -604,6 +604,8 @@ export const actions: Actions = {
 		const navigation = formData.get('navigation');
 		const itemsPerPage = Number(formData.get('itemsPerPage'));
 		let currentPage = Number(formData.get('currentPage'));
+		const level = formData.get('level');
+		const membershipLevel = formData.get('membershipLevel');
 		//console.log('changePage', navigation, itemsPerPage, currentPage);
 
 		if (navigation === 'prev') {
@@ -621,7 +623,10 @@ export const actions: Actions = {
 				body: JSON.stringify({
 					apiKey: APIKEY,
 					schema: 'user', //product | order | user | layout | discount
-					query: {},
+					query: {
+						...(level && { level }),
+						...(membershipLevel && { ['membership.membershipLevel']: membershipLevel })
+					},
 					projection: { _id: 0 },
 					//sort: { createdAt: -1 },
 					limit: itemsPerPage,
