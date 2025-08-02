@@ -240,6 +240,88 @@
 			notification.error('Errore nella generazione del certificato');
 		}
 	};
+	const createPDFmembership = (user) => {
+		if (!user?.name || !user?.surname || !user?.userId || !user?.membership?.membershipExpiry) {
+			notification.error('Dati utente incompleti per generare la tessera');
+			return;
+		}
+		// const dateObject = new Date(user.membership.membershipExpiry);
+		// if (isNaN(dateObject.getTime())) {
+		// 	notification.error('Data tessera non valida');
+		// 	return;
+		// }
+		// const year = dateObject.getFullYear();
+		// const month = dateObject.getMonth() + 1; // getMonth() returns 0-11, so add 1 for 1-12
+		// const day = dateObject.getDate();
+		const currentYear = new Date().getFullYear();
+		// const layout = {
+		// 	line1: [115, 68, 0, 0],
+		// 	line2: [115, 4, 0, 0],
+		// 	line3: [95, 3, 0, 0],
+		// 	line4: [300, 15, 0, 0]
+		// };
+		const doc = {
+			compress: true,
+			pageSize: {
+				width: 481.89,
+				height: 155.91
+			},
+			pageOrientation: 'landscape', // portrait or landscape
+			pageMargins: [0, 0, 0, 0], // [left, top, right, bottom]
+			background: {
+				image: 'background',
+				width: 481.89, // your 17cm converted to points
+				height: 155.91, // your 5.5cm converted to point
+				absolutePosition: { x: 0, y: 0 }
+			},
+			// header: {
+			// 	width: 200,
+			// 	image: '/images/cert-header.png',
+			// 	margin: [10, 10]
+			// },
+			content: [
+				// line 1
+				{
+					text: `${user.name}`,
+					margin: [115, 68, 0, 0], //[left, top, right, bottom]
+					style: [{ color: '#000000' }, { fontSize: 10 }, 'bold', { alignment: 'left' }]
+				},
+				// line 2
+				{
+					text: `${user.surname}`,
+					margin: [115, 4, 0, 0], //[left, top, right, bottom]
+					style: [{ color: '#000000' }, { fontSize: 10 }, { alignment: 'left' }]
+				},
+				// line 3
+				{
+					text: `${user.userId} - Anno: ${currentYear}`,
+					margin: [95, 3, 0, 0], //[left, top, right, bottom]
+					style: [{ color: '#000000' }, { fontSize: 10 }, { alignment: 'left' }]
+				},
+				// line 4
+				{
+					text: `TESSERA SOCIO ${currentYear}`,
+					margin: [300, 15, 0, 0], //[left, top, right, bottom]
+					font: 'Roboto',
+					bold: true,
+					style: [{ color: '#000000' }, { fontSize: 13 }, 'bold', { alignment: 'left' }]
+				}
+			],
+
+			images: {
+				// in browser is supported loading images via url (https or http protocol) (minimal version: 0.1.67)
+				background: `${PUBLIC_BASE_URL}/images/membership_base.jpg`
+			}
+			//images: ['/training/base.jpg'] // DEPRECATED
+		};
+
+		try {
+			pdfMake.createPdf(doc, null, pdfFonts).download(`Tessera_Dienchan_${user.name}_${user.surname}.pdf`);
+		} catch (error) {
+			console.error('PDF generation failed:', error);
+			notification.error('Errore nella generazione tessera');
+		}
+	};
 
 	const [send, receive] = crossfade({
 		duration: 300, // Adjust duration as needed
@@ -528,15 +610,15 @@
 							<div class="flex items-center gap-3 mb-2">
 								<IdCard size={24} class="text-primary" />
 								<span class="font-semibold text-lg">Stato Tessera</span>
+								{#if userData.membership.membershipStatus}
+									<span class="badge badge-success">Attiva</span>
+								{:else}
+									<span class="badge badge-error">Scaduta</span>
+								{/if}
 							</div>
 							<div class="mb-2">
 								<div class="flex items-center gap-2">
-									{#if userData.membership.membershipStatus}
-										<span class="badge badge-success">Attiva</span>
-									{:else}
-										<span class="badge badge-error">Scaduta</span>
-									{/if}
-									<span class="text-base-content/80 text-sm">Livello: <span class="font-bold">{membershipLevel || 'Base'}</span></span>
+									<span class="text-base-content/80 text-sm">Tipo: <span class="font-bold">{membershipLevel || 'Base'}</span></span>
 								</div>
 								{#if membershipExpiry}
 									<div class="text-base-content/80 text-sm mt-1">
@@ -544,7 +626,7 @@
 									</div>
 								{/if}
 							</div>
-							<!-- <button type="button" class="btn btn-sm btn-primary mt-2" onclick={() => (activeTab = 'membership')}>Vedi tessera</button> -->
+							<button type="button" class="btn btn-sm btn-primary mt-2" onclick={() => createPDFmembership(userData)}> Stampa Tessera </button>
 						</div>
 
 						<!-- Card: Punti e Attività -->
