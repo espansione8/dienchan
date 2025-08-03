@@ -11,7 +11,7 @@
 	import { imgCheck } from '$lib/tools/tools.js';
 	import {
 		ListPlus,
-		XCircle,
+		CircleX,
 		Settings,
 		Funnel,
 		Pen,
@@ -48,6 +48,9 @@
 
 	// CSV download
 	const csvCreate = () => {
+		// content.forEach((item) => {
+		// 	delete item.userView;
+		// });
 		let csv = $state('');
 		let newList: any = $state();
 
@@ -72,7 +75,9 @@
 			createdAt: obj.createdAt?.substring(0, 10),
 			birthdate: obj.birthdate?.substring(0, 10)
 		}));
+
 		newList.forEach((obj: any) => {
+			delete obj.userView;
 			$membershipKeysToDelete.forEach((key: string) => delete (obj as any)[key]);
 		});
 		//console.log('newList check', newList);
@@ -208,25 +213,19 @@
 			</button>
 			{#if resetActive}
 				<button class="btn btn-error text-white w-full sm:w-auto" onclick={refresh}>
-					<XCircle /> Reset Filtro
+					<CircleX /> Reset Filtro
 				</button>
 			{:else}
-				<button
-					class="btn btn-info text-white w-full sm:w-auto"
-					onclick={() => onClickModal('filter', null)}
-				>
+				<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => onClickModal('filter', null)}>
 					<Funnel /> Filtra
 				</button>
 			{/if}
-			<button
-				class="btn btn-info text-white w-full sm:w-auto"
-				onclick={() => onClickModal('new', null)}
-			>
+			<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => onClickModal('new', null)}>
 				<ListPlus />Nuovo
 			</button>
-			<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate()}>
+			<!-- <button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate()}>
 				<FileDown />CSV
-			</button>
+			</button> -->
 		</div>
 	</div>
 
@@ -267,41 +266,20 @@
 											class="object-cover rounded-md max-w-28 max-h-28 h-auto"
 										/>
 									</figure>
-									<form
-										method="POST"
-										action={`?/delProdPic`}
-										use:enhance={formSubmit}
-										class="ml-4 flex-shrink-0"
-									>
+									<form method="POST" action={`?/delProdPic`} use:enhance={formSubmit} class="ml-4 flex-shrink-0">
 										<input type="hidden" name="prodId" value={row.prodId} />
-										<input
-											type="hidden"
-											name="fileName"
-											value={imgCheck.fileName(row.uploadfiles, 'product-primary')}
-										/>
-										<button
-											class="btn btn-sm btn-error rounded-lg border-2"
-											type="submit"
-											aria-label="Delete image"
-										>
+										<input type="hidden" name="fileName" value={imgCheck.fileName(row.uploadfiles, 'product-primary')} />
+										<button class="btn btn-sm btn-error rounded-lg border-2" type="submit" aria-label="Delete image">
 											<Trash2 size="24" />
 										</button>
 									</form>
 								</div>
 							</div>
 						{:else}
-							<form
-								action={`?/setProdPic`}
-								method="POST"
-								enctype="multipart/form-data"
-								use:enhance={formSubmit}
-								class="card-body"
-							>
+							<form action={`?/setProdPic`} method="POST" enctype="multipart/form-data" use:enhance={formSubmit} class="card-body">
 								<input type="hidden" name="prodId" value={row.prodId} />
 								<DragDrop />
-								<button class="btn btn-sm btn-info rounded-lg border-2" type="submit">
-									Aggiungi foto
-								</button>
+								<button class="btn btn-sm btn-info rounded-lg border-2" type="submit"> Aggiungi foto </button>
 							</form>
 						{/if}
 						<!-- img end -->
@@ -313,13 +291,9 @@
 								<input type="hidden" name="status" value={row.status} />
 								<span class="flex items-center">
 									{#if row.status == 'enabled'}
-										<button type="submit" class="btn btn-ghost btn-sm font-semibold"
-											><ToggleRight color="darkgreen" /></button
-										>
+										<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleRight color="darkgreen" /></button>
 									{:else}
-										<button type="submit" class="btn btn-ghost btn-sm font-semibold"
-											><ToggleLeft color="darkred" /></button
-										>
+										<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleLeft color="darkred" /></button>
 									{/if}
 								</span>
 								<!-- <input
@@ -349,15 +323,11 @@
 		</tbody>
 	</table>
 	{#if tableList.length == 0}
-		<div
-			class="alert alert-warning shadow-lg flex item-center text-center justify-center rounded-md mt-3 mx-auto w-full max-w-lg"
-		>
+		<div class="alert alert-warning shadow-lg flex item-center text-center justify-center rounded-md mt-3 mx-auto w-full max-w-lg" role="alert">
 			<div>
 				<ShieldAlert />
 				<br />
-				<span class="mt-2 text-semibold">
-					Nessun record trovato. Cambia parametri o resetta il filtro.
-				</span>
+				<span class="mt-2 text-semibold"> Nessun record trovato. Cambia parametri o resetta il filtro. </span>
 			</div>
 		</div>
 	{/if}
@@ -365,18 +335,14 @@
 
 {#if currentModal == 'new'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal} aria-label="Chiudi finestra">✕</button>
 		<form
 			method="POST"
 			action={postAction}
 			use:enhance={formSubmit}
 			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 		>
-			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
-				Nuovo membership
-			</header>
+			<header class="col-span-4 text-center text-2xl font-bold text-green-800">Nuovo membership</header>
 
 			<section class="col-span-4">
 				<label for="titolo" class="form-label">
@@ -464,9 +430,7 @@
 
 			<div class="col-span-4 mt-5 flex justify-center">
 				<div class="bg-gray-50 flex justify-center">
-					<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}
-						>Annulla</button
-					>
+					<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
 					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">Registra</button>
 				</div>
 			</div>
@@ -476,9 +440,7 @@
 
 {#if currentModal == 'modify'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		<form
 			method="POST"
 			action={postAction}
@@ -486,9 +448,7 @@
 			class=" grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 		>
 			<input type="hidden" name="prodId" value={prodId} />
-			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
-				Modifica membership
-			</header>
+			<header class="col-span-4 text-center text-2xl font-bold text-green-800">Modifica membership</header>
 
 			<section class="col-span-4">
 				<label for="titolo" class="form-label">
@@ -576,9 +536,7 @@
 
 			<div class="col-span-4 mt-5 flex justify-center">
 				<div class="bg-gray-50 flex justify-center">
-					<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}>
-						Annulla
-					</button>
+					<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
 					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">Modifica</button>
 				</div>
 			</div>
@@ -588,9 +546,7 @@
 
 {#if currentModal == 'delete'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		<form
 			method="POST"
 			action={postAction}
@@ -598,9 +554,7 @@
 			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 		>
 			<input type="hidden" name="prodId" value={prodId} />
-			<header class="col-span-4 text-center text-2xl font-bold text-green-800">
-				Conferma rimozione
-			</header>
+			<header class="col-span-4 text-center text-2xl font-bold text-green-800">Conferma rimozione</header>
 			<div class="col-span-4 mt-5 flex justify-center">
 				<div class="bg-gray-50 flex justify-center">
 					<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
@@ -613,9 +567,7 @@
 
 {#if currentModal == 'filter'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}
-			>✕</button
-		>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		<form method="POST" action={postAction} use:enhance={formSubmit} class="p-6 space-y-6">
 			<!-- <input type="hidden" name="prodId" value={prodId} /> -->
 			<div class="space-y-4">
@@ -646,9 +598,7 @@
 			</div>
 
 			<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
-				<button type="button" class="btn btn-error btn-sm hover:bg-red-300" onclick={onCloseModal}>
-					Annulla
-				</button>
+				<button type="button" class="btn btn-error btn-sm hover:bg-red-300" onclick={onCloseModal}> Annulla </button>
 				<button type="submit" class="btn btn-success btn-sm hover:bg-green-400"> Filtra </button>
 			</div>
 		</form>

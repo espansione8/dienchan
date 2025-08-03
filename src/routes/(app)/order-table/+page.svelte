@@ -9,7 +9,7 @@
 	import { imgCheck } from '$lib/tools/tools.js';
 	import { enhance } from '$app/forms';
 	import Loader from '$lib/components/Loader.svelte';
-	import { Funnel, XCircle, ShieldAlert, RefreshCcw, FileDown, Trash2, FileCog, Handshake, BanknoteArrowUp, BanknoteX } from 'lucide-svelte';
+	import { Funnel, CircleX, ShieldAlert, RefreshCcw, FileDown, Trash2, FileCog, Handshake, BanknoteArrowUp, BanknoteX } from 'lucide-svelte';
 	import type { Order, TableNames, Product } from '$lib/types';
 
 	let { data } = $props();
@@ -36,40 +36,74 @@
 	//modal detail
 	let orderDetail = $state(tableList[0]);
 
-	const csvCreate = () => {
-		let csv = $state('');
-		let newList: any = $state<any>([]);
+	const csvCreate = (content: Order[]) => {
+		content.forEach((item) => {
+			delete item.userView;
+		});
+		console.log('content', content);
 
-		const flattenObject = (obj: any, prefix = '') => {
-			return Object.keys(obj).reduce((acc, k) => {
-				const pre = prefix.length ? prefix + '_' : '';
-				if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
-					Object.assign(acc, flattenObject(obj[k], pre + k));
-				} else {
-					acc[pre + k] = obj[k];
+		const flattenObject = (obj, prefix = '') => {
+			let result = {};
+			// Determine the type of the main object from the content array
+			const orderType = obj.type;
+
+			for (const key in obj) {
+				if (Object.prototype.hasOwnProperty.call(obj, key)) {
+					const value = obj[key];
+					const newPrefix = prefix ? `${prefix}.${key}` : key;
+
+					// Special handling for the 'cart' array
+					if (newPrefix === 'cart' && Array.isArray(value)) {
+						const cartString = value
+							.map((cartItem) => {
+								if (orderType === 'product') {
+									return `(${cartItem.title}: ${cartItem.orderQuantity})`;
+								} else if (orderType === 'course') {
+									if (cartItem.type === 'product') {
+										return `(${cartItem.title}: 1)`;
+									} else if (cartItem.type === 'course') {
+										return `(${cartItem.layoutView.title}: 1)`;
+									}
+								} else if (orderType === 'membership') {
+									return `(${cartItem.title}: 1)`;
+								}
+
+								return '';
+							})
+							.filter(Boolean) // Remove any empty strings
+							.join(', ');
+						result[newPrefix] = cartString;
+					} else if (Array.isArray(value)) {
+						// Existing logic for other arrays
+						value.forEach((item, index) => {
+							if (typeof item === 'object' && item !== null) {
+								Object.assign(result, flattenObject(item, `${newPrefix}.${index}`));
+							} else {
+								result[`${newPrefix}.${index}`] = item;
+							}
+						});
+					} else if (typeof value === 'object' && value !== null) {
+						Object.assign(result, flattenObject(value, newPrefix));
+					} else {
+						result[newPrefix] = value;
+					}
 				}
-				return acc;
-			}, {});
+			}
+			return result;
 		};
 
-		const flattenedArray = tableList.map((obj: any) => {
-			return flattenObject(obj);
-		});
+		const dataToExport = content.map((order) => {
+			const flatOrder: any = flattenObject(order);
 
-		newList = flattenedArray.map((obj: any) => ({
-			...obj,
-			createdAt: obj.createdAt?.substring(0, 10),
-			birthdate: obj.birthdate?.substring(0, 10)
-		}));
-		//console.log('flattenedArray', flattenedArray);
-		//console.log('newList', newList);
+			if (flatOrder.createdAt) flatOrder.createdAt = (flatOrder.createdAt as string).substring(0, 10);
+			// if (flatOrder.birthdate) flatOrder.birthdate = (flatOrder.birthdate as string).substring(0, 10);
 
-		newList.forEach((obj: any) => {
-			$orderKeysToDelete.forEach((key: string) => delete (obj as any)[key]);
+			$orderKeysToDelete.forEach((key: string) => delete (flatOrder as any)[key]);
+			return flatOrder;
 		});
 
 		//CSV UNPARSE
-		csv = Papa.unparse(newList, {
+		const csv = Papa.unparse(dataToExport, {
 			quotes: false, //or array of booleans
 			quoteChar: '"',
 			escapeChar: '"',
@@ -82,15 +116,15 @@
 
 		//DOWNLOAD file
 		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-		// create a link element to download the zip archive
-		const link = document.createElement('a');
+
+		const link = document.createElement('a'); //
 		link.href = URL.createObjectURL(blob);
-		link.download = `Export_Orders_${new Date().toLocaleDateString()}.csv`;
+		link.download = `Export_orders_${new Date().toLocaleDateString()}.csv`;
 		document.body.appendChild(link);
 		link.click();
-		document.body.removeChild(link);
 
 		// Release the URL object
+		document.body.removeChild(link);
 		URL.revokeObjectURL(link.href);
 	};
 
@@ -206,14 +240,14 @@
 			</button>
 			{#if resetActive == true}
 				<button class="btn btn-error rounded-md text-white" onclick={refresh}>
-					<XCircle class="mt-1" /> Reset Filtro
+					<CircleX class="mt-1" /> Reset Filtro
 				</button>
 			{:else}
 				<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('filter', null)}>
 					<Funnel class="mt-1" /> Filtra
 				</button>
 			{/if}
-			<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate()}>
+			<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate(tableList)}>
 				<FileDown />CSV
 			</button>
 		</div>
@@ -660,7 +694,7 @@
 							class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 						/>
 					</div>
-					<div class="w-full md:w-1/2 px-2 mb-4">
+					<!-- <div class="w-full md:w-1/2 px-2 mb-4">
 						<label for="userId" class="block text-sm font-medium text-gray-700 mb-1">Associato</label>
 						<select
 							id="userId"
@@ -673,7 +707,7 @@
 								<option value={item.userId}>{item.surname} {item.name}</option>
 							{/each}
 						</select>
-					</div>
+					</div> -->
 					<div class="w-full md:w-1/2 px-2 mb-4">
 						<label for="name" class="block text-sm font-medium text-gray-700 mb-1">Cognome</label>
 						<input
@@ -710,7 +744,7 @@
 							<option value="contanti">Contanti</option>
 						</select>
 					</div>
-					<div class="w-full md:w-1/2 px-2 mb-4">
+					<!-- <div class="w-full md:w-1/2 px-2 mb-4">
 						<label for="status" class="block text-sm font-medium text-gray-700 mb-1">Stato ordine</label>
 						<select
 							id="status"
@@ -724,7 +758,7 @@
 							<option value="cancelled">Cancellato</option>
 							<option value="exported">Processato</option>
 						</select>
-					</div>
+					</div> -->
 					<div class="w-full md:w-1/2 px-2 mb-4">
 						<label for="statusPayment" class="block text-sm font-medium text-gray-700 mb-1">Stato pagamento</label>
 						<select

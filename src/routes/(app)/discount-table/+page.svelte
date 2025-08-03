@@ -18,7 +18,7 @@
 		ToggleLeft,
 		ToggleRight,
 		RefreshCcw,
-		XCircle,
+		CircleX,
 		Tags
 	} from 'lucide-svelte';
 
@@ -223,7 +223,7 @@
 				</button>
 				{#if resetActive}
 					<button class="btn btn-error rounded-md text-white" onclick={refresh}>
-						<XCircle class="mt-1" /> Reset Filtro
+						<CircleX class="mt-1" /> Reset Filtro
 					</button>
 				{:else}
 					<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('filter', null)}>

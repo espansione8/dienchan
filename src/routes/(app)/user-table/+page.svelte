@@ -16,7 +16,7 @@
 		Settings,
 		UserRoundSearch,
 		Eye,
-		XCircle,
+		CircleX,
 		ToggleLeft,
 		ToggleRight,
 		EyeOff,
@@ -352,7 +352,7 @@
 				</button>
 				{#if resetActive == true}
 					<button class="btn btn-error rounded-md text-white" onclick={refresh}>
-						<XCircle class="mt-1" /> Reset Filtro
+						<CircleX class="mt-1" /> Reset Filtro
 					</button>
 				{:else}
 					<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('filter', null)}>

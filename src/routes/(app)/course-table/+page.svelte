@@ -12,7 +12,7 @@
 	import { Image } from '@unpic/svelte';
 	import {
 		Funnel,
-		XCircle,
+		CircleX,
 		Trash2,
 		Calendar,
 		Pen,
@@ -66,7 +66,7 @@
 		if (isChecked) {
 			selectedSubscriber = [...selectedSubscriber, item];
 		} else {
-			selectedSubscriber = selectedSubscriber.filter((user) => user.userId !== item.userId);
+			selectedSubscriber = selectedSubscriber.filter((user: any) => user.userId !== item.userId);
 		}
 	};
 
@@ -266,61 +266,41 @@
 	// };
 
 	//CSV file
-	const csvCreate = () => {
-		let csv = $state('');
-		let newList: any = $state();
-
-		// const flattenObject = (obj: any, prefix = '') => {
-		// 	return Object.keys(obj).reduce((acc, k) => {
-		// 		const pre = prefix.length ? prefix + '_' : '';
-		// 		if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
-		// 			Object.assign(acc, flattenObject(obj[k], pre + k));
-		// 		} else {
-		// 			acc[pre + k] = obj[k];
-		// 		}
-		// 		return acc;
-		// 	}, {});
-		// };
+	const csvCreate = (content: any[]) => {
+		content.forEach((item) => {
+			delete item.userView;
+		});
 
 		const flattenObject = (obj: any, prefix = '') => {
 			return Object.keys(obj).reduce((acc, k) => {
-				const pre = prefix.length ? prefix + '_' : '';
+				const pre = prefix.length ? prefix + '.' : '';
 				if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
 					Object.assign(acc, flattenObject(obj[k], pre + k));
-				} else if (Array.isArray(obj[k])) {
-					acc[pre + k] = obj[k]
-						.map((item: any) => {
-							if (typeof item === 'object') {
-								return Object.values(item).join(', ');
-							} else {
-								return item;
-							}
-						})
-						.join(', ');
 				} else {
 					acc[pre + k] = obj[k];
 				}
+				// } else {
+				// 	// Only include non-array, non-object values in the final flat object
+				// 	if (!Array.isArray(obj[k])) {
+				// 		acc[pre + k] = obj[k];
+				// 	}
+				// }
 				return acc;
 			}, {});
 		};
 
-		const flattenedArray = tableList.map((obj: any) => {
-			return flattenObject(obj);
-		});
+		const dataToExport = content.map((order) => {
+			const flatOrder: any = flattenObject(order);
 
-		newList = flattenedArray.map((obj: any) => ({
-			...obj,
-			createdAt: obj.createdAt?.substring(0, 10),
-			birthdate: obj.birthdate?.substring(0, 10)
-		}));
+			if (flatOrder.createdAt) flatOrder.createdAt = (flatOrder.createdAt as string).substring(0, 10);
+			// if (flatOrder.birthdate) flatOrder.birthdate = (flatOrder.birthdate as string).substring(0, 10);
 
-		newList.forEach((obj: any) => {
-			$courseKeysToDelete.forEach((key: string) => delete (obj as any)[key]);
+			$courseKeysToDelete.forEach((key: string) => delete (flatOrder as any)[key]);
+			return flatOrder;
 		});
-		//console.log('newList check', newList);
 
 		//CSV UNPARSE
-		csv = Papa.unparse(newList, {
+		const csv = Papa.unparse(dataToExport, {
 			quotes: false, //or array of booleans
 			quoteChar: '"',
 			escapeChar: '"',
@@ -552,7 +532,7 @@
 				</button>
 				{#if resetActive == true}
 					<button class="btn btn-error rounded-md text-white" onclick={refresh}>
-						<XCircle class="mt-1" /> Reset Filtro
+						<CircleX class="mt-1" /> Reset Filtro
 					</button>
 				{:else}
 					<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('filter', null)}>
@@ -562,7 +542,7 @@
 				<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('new', null)}>
 					<CopyPlus /> Nuovo
 				</button>
-				<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate()}>
+				<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate(tableList)}>
 					<FileDown />CSV
 				</button>
 			</div>
