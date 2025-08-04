@@ -44,7 +44,6 @@
 
 		const flattenObject = (obj, prefix = '') => {
 			let result = {};
-			// Determine the type of the main object from the content array
 			const orderType = obj.type;
 
 			for (const key in obj) {

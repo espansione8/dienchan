@@ -271,22 +271,40 @@
 			delete item.userView;
 		});
 
-		const flattenObject = (obj: any, prefix = '') => {
-			return Object.keys(obj).reduce((acc, k) => {
-				const pre = prefix.length ? prefix + '.' : '';
-				if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
-					Object.assign(acc, flattenObject(obj[k], pre + k));
-				} else {
-					acc[pre + k] = obj[k];
+		const flattenObject = (obj, prefix = '') => {
+			let result = {};
+
+			for (const key in obj) {
+				if (Object.prototype.hasOwnProperty.call(obj, key)) {
+					const value = obj[key];
+					const newPrefix = prefix ? `${prefix}.${key}` : key;
+
+					// Special handling for the 'listSubscribers' array
+					if (newPrefix === 'listSubscribers' && Array.isArray(value)) {
+						const cartString = value
+							.map((cartItem) => {
+								return cartItem?.name && cartItem?.surname ? `(${cartItem.name} ${cartItem.surname})` : '(not found)';
+							})
+							.filter(Boolean) // Remove any empty strings
+							.join(', ');
+						result[newPrefix] = cartString;
+					} else if (Array.isArray(value)) {
+						// Existing logic for other arrays
+						value.forEach((item, index) => {
+							if (typeof item === 'object' && item !== null) {
+								Object.assign(result, flattenObject(item, `${newPrefix}.${index}`));
+							} else {
+								result[`${newPrefix}.${index}`] = item;
+							}
+						});
+					} else if (typeof value === 'object' && value !== null) {
+						Object.assign(result, flattenObject(value, newPrefix));
+					} else {
+						result[newPrefix] = value;
+					}
 				}
-				// } else {
-				// 	// Only include non-array, non-object values in the final flat object
-				// 	if (!Array.isArray(obj[k])) {
-				// 		acc[pre + k] = obj[k];
-				// 	}
-				// }
-				return acc;
-			}, {});
+			}
+			return result;
 		};
 
 		const dataToExport = content.map((order) => {
@@ -1114,21 +1132,22 @@
 						{/each}
 					</select>
 				</div>
-
-				<div>
-					<label for="userId" class="block text-sm font-medium text-gray-700 mb-1">Riflessologo</label>
-					<select
-						id="userId"
-						name="userId"
-						bind:value={userId}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					>
-						<option value="">Scegli un riflessologo</option>
-						{#each getTableNames as item}
-							<option value={item.userId}>{item.name} {item.surname}</option>
-						{/each}
-					</select>
-				</div>
+				{#if userData.level === 'admin' || userData.level === 'superadmin'}
+					<div>
+						<label for="userId" class="block text-sm font-medium text-gray-700 mb-1">Riflessologo</label>
+						<select
+							id="userId"
+							name="userId"
+							bind:value={userId}
+							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						>
+							<option value="">Scegli un riflessologo</option>
+							{#each getTableNames as item}
+								<option value={item.userId}>{item.surname} {item.name}</option>
+							{/each}
+						</select>
+					</div>
+				{/if}
 			</div>
 
 			<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">

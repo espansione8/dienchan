@@ -11,16 +11,20 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	let getTable = [];
 	let getTableNames = [];
 	let getLayout = [];
-	// const userId = locals.user.userId || ''
+	let setQuery: { type: string; userId?: string } = { type: 'course', userId: locals.user.userId };
 	const user: any = locals.user
+	// const userId = locals.user.userId || ''
 
+	if (user.level === 'admin' || user.level === 'superadmin') {
+		setQuery = { type: 'course' }
+	}
 
 	const courseFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 		method: 'POST',
 		body: JSON.stringify({
 			apiKey: APIKEY,
 			schema: 'product', // product | order | user | layout | discount
-			query: { type: 'course' }, //IF USE Products.model -> types: course / product / membership / event
+			query: setQuery, //IF USE Products.model -> types: course / product / membership / event
 			projection: { _id: 0, password: 0 }, // 0: exclude | 1: include
 			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
 			limit: 1000,
@@ -42,10 +46,10 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 					{ level: 'superadmin' },
 					{ level: 'admin' }
 				],
-				status: "enabled" //IF USE Products.model -> types: course / product / membership / event
+				status: "enabled" //IF USE Products.model -> types: course / product / membership / event
 			},
 			projection: { _id: 0, password: 0 },
-			sort: { createdAt: -1 },
+			sort: { surname: 1 },
 			limit: 1000,
 			skip: 0
 		}),
@@ -93,10 +97,6 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 					eventStartDate: obj.eventStartDate ? obj.eventStartDate.substring(0, 10) : undefined,
 					timeStartDate: obj.eventStartDate ? obj.eventStartDate.substring(11, 16) : undefined,
 				}));
-
-			if (user.level == 'formatore') {
-				getTable = getTable.filter((obj: any) => obj.userId == user.userId);
-			}
 		}
 
 		getTableNames = await riflessologyRes.json();
@@ -113,116 +113,6 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		getTableNames,
 		userData: user
 	};
-
-	// GET COURSES
-	// try {
-	// 	let query = {}; //IF USE Products.model -> types: course / product / membership / event
-	// 	const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
-	// 	const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
-	// 	const limit = 1000;
-	// 	const skip = 0;
-
-	// 	if (locals.user.level == 'formatore') {
-	// 		query = { type: 'course', userId };
-	// 	} else {
-	// 		query = { type: 'course' };
-	// 	}
-
-	// 	const res = await fetch(`${BASE_URL}/api/mongo/find`, {
-	// 		method: 'POST',
-	// 		body: JSON.stringify({
-	// 			apiKey: APIKEY,
-	// 			schema: 'product', //product | order | user | layout | discount
-	// 			query,
-	// 			projection,
-	// 			sort,
-	// 			limit,
-	// 			skip
-	// 		}),
-	// 		headers: {
-	// 			'Content-Type': 'application/json'
-	// 		}
-	// 	});
-	// 	const response = await res.json();
-
-	// 	getTable = response.map((obj: any) => ({
-	// 		...obj,
-	// 		createdAt: obj.createdAt.substring(0, 10),
-	// 		eventStartDate: obj.eventStartDate,
-	// 		timeStartDate: obj.eventStartDate.substring(11, 16),
-	// 		//timeEndDate: obj.eventEndDate.substring(11, 16),
-	// 	}));
-	// } catch (error) {
-	// 	console.log('course getTable fetch error:', error);
-	// }
-
-	// GET RIFLESSOLOGI
-	// try {
-	// 	const query = { status: "enabled", level: "formatore" }; //IF USE Products.model -> types: course / product / membership / event
-	// 	const projection = { _id: 0, password: 0 } // 0: exclude | 1: include
-	// 	const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
-	// 	const limit = 1000;
-	// 	const skip = 0;
-	// 	const res = await fetch(`${BASE_URL}/api/mongo/find`, {
-	// 		method: 'POST',
-	// 		body: JSON.stringify({
-	// 			apiKey: APIKEY,
-	// 			schema: 'user', //product | order | user | layout | discount
-	// 			query,
-	// 			projection,
-	// 			sort,
-	// 			limit,
-	// 			skip
-	// 		}),
-	// 		headers: {
-	// 			'Content-Type': 'application/json'
-	// 		}
-	// 	});
-	// 	getTableNames = await res.json();
-	// } catch (error) {
-	// 	console.log('course getTableNames fetch error:', error);
-	// }
-
-	// GET MODELS
-	// try {
-	// 	const query = { status: "enabled" }; //IF USE Products.model -> types: course / product / membership / event
-	// 	const projection = { _id: 0 } // 0: exclude | 1: include
-	// 	const sort = { createdAt: -1 } // 1:Sort ascending | -1:Sort descending
-	// 	const limit = 1000;
-	// 	const skip = 0;
-	// 	const res = await fetch(`${BASE_URL}/api/mongo/find`, {
-	// 		method: 'POST',
-	// 		body: JSON.stringify({
-	// 			apiKey: APIKEY,
-	// 			schema: 'layout', //product | order | user | layout | discount
-	// 			query,
-	// 			projection,
-	// 			sort,
-	// 			limit,
-	// 			skip
-	// 		}),
-	// 		headers: {
-	// 			'Content-Type': 'application/json'
-	// 		}
-	// 	});
-	// 	getLayout = await res.json();
-	// } catch (error) {
-	// 	console.log('course getLayout fetch error:', error);
-	// }
-
-
-	// if (locals.auth) {
-	// 	user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
-	// 	user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
-	// 	user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
-	// }
-	// return {
-	// 	getLayout,
-	// 	getTable,
-	// 	getTableNames,
-	// 	auth: locals.auth,
-	// 	userData: user,
-	// };
 }
 
 export const actions: Actions = {
@@ -395,11 +285,12 @@ export const actions: Actions = {
 		}
 	},
 
-	filter: async ({ request, fetch }) => {
+	filter: async ({ request, fetch, locals }) => {
 		const formData = await request.formData();
 		const county = formData.get('county');
 		const layoutId = formData.get('layoutId');
 		const userId = formData.get('userId');
+		const localUserId = locals.user.userId
 
 		const query = {
 			type: 'course',
@@ -407,6 +298,7 @@ export const actions: Actions = {
 			...(county && { county: { $in: [county] } }),
 			...(layoutId && { layoutId }),
 			...(userId && { userId }),
+			...(locals.user.level === 'formatore' && { userId: localUserId }),
 			//...(title && { title: { $regex: `.*${title}.*`, $options: 'i' } }),
 		};
 
@@ -434,7 +326,8 @@ export const actions: Actions = {
 				console.error('discount filter failed', res.status, errorText);
 				return fail(400, { action: 'filter', success: false, message: errorText });
 			}
-			const payload = await res.json();
+			const resData = await res.json();
+			const payload = resData.filter(item => item.layoutView !== null);
 
 			return { action: 'filter', success: true, message: 'Filtro attivato', payload };
 

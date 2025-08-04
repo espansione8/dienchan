@@ -41,7 +41,6 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		}
 	});
 
-
 	try {
 
 		const [userRes, orderRes] = await Promise.all([
@@ -56,7 +55,6 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			throw error(400, errorText);
 		}
 
-
 		const resGetOrder = await orderRes.json();
 		if (resGetOrder.length > 0) {
 			getTable = resGetOrder.map((obj: any) => ({
@@ -66,7 +64,6 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 				totalCart: obj.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(2)
 			}));
 		}
-
 
 		getTableNames = await userRes.json();
 
