@@ -7,7 +7,7 @@ import { customAlphabet } from 'nanoid';
 import Stripe from 'stripe';
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9);
 const stripe = new Stripe(STRIPE_KEY_BACK, {
-	apiVersion: '2025-06-30.basil' // Use a stable API version
+	apiVersion: '2025-07-30.basil' // Use a stable API version
 });
 
 export const load: PageServerLoad = async ({ fetch, locals, params }) => {

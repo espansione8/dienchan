@@ -545,22 +545,22 @@
 		<div class="flex flex-col gap-4 mb-4">
 			<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Lista corsi</h1>
 			<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
-				<button class="btn btn-info text-white w-full sm:w-auto" onclick={refresh}>
+				<button type="button" class="btn btn-info text-white w-full sm:w-auto" onclick={refresh} aria-label="Ricarica">
 					<RefreshCcw />
 				</button>
 				{#if resetActive == true}
-					<button class="btn btn-error rounded-md text-white" onclick={refresh}>
+					<button type="button" class="btn btn-error rounded-md text-white" onclick={refresh}>
 						<CircleX class="mt-1" /> Reset Filtro
 					</button>
 				{:else}
-					<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('filter', null)}>
+					<button type="button" class="btn btn-info rounded-md text-white" onclick={() => onClickModal('filter', null)}>
 						<Funnel class="mt-1" /> Filtra
 					</button>
 				{/if}
-				<button class="btn btn-info rounded-md text-white" onclick={() => onClickModal('new', null)}>
+				<button type="button" class="btn btn-info rounded-md text-white" onclick={() => onClickModal('new', null)}>
 					<CopyPlus /> Nuovo
 				</button>
-				<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate(tableList)}>
+				<button type="button" class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate(tableList)}>
 					<FileDown />CSV
 				</button>
 			</div>
@@ -629,15 +629,23 @@
 							<td>{row.layoutView.price} €</td>
 
 							<td>
-								<button class="btn" onclick={() => onClickModal('subscribers', row)} disabled={row.listSubscribers.length == 0}>
+								<button
+									type="button"
+									class="btn"
+									onclick={() => onClickModal('subscribers', row)}
+									aria-label={`Iscritti: ${row.listSubscribers.length}`}
+									disabled={row.listSubscribers.length == 0}
+								>
 									<UserRoundCheck />
 									{row.listSubscribers.length}
 								</button>
 							</td>
 
 							<td class="flex items-center space-x-4">
-								<button class="btn btn-sm" onclick={() => onClickModal('modify', row)}><Settings /> </button>
-								<button class="btn btn-error btn-sm" onclick={() => onClickModal('delete', row)}><Trash2 /> </button>
+								<button type="button" class="btn btn-sm" aria-label="Modifica" onclick={() => onClickModal('modify', row)}><Settings /> </button>
+								<button type="button" class="btn btn-error btn-sm" aria-label="Elimina" onclick={() => onClickModal('delete', row)}
+									><Trash2 />
+								</button>
 							</td>
 						</tr>
 					{/each}
@@ -658,9 +666,10 @@
 {#if currentModal == 'modify' || currentModal == 'new'}
 	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-4xl">
 		{#if currentModal == 'modify'}
-			<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModify}>✕</button>
+			<button type="button" class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModify}>✕</button>
 		{:else}
-			<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
+			<button type="button" class="btn btn-sm btn-circle btn-error absolute right-2 top-2" aria-label="Chiudi modale" onclick={onCloseModal}>✕</button
+			>
 		{/if}
 
 		{#if loading}
@@ -679,7 +688,7 @@
 					</label>
 
 					<div class="join join-horizontal w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
+						<button type="button" class="join-item bg-gray-300 px-3"><Pen /></button>
 						<input
 							class="input input-bordered join-item w-full"
 							id="prodId"
@@ -696,10 +705,10 @@
 			<!-- Categoria  -->
 			<section class="col-span-4 md:col-span-2">
 				<label for="layoutId" class="form-label">
-					<p class="font-bold">Tipo corso</p>
+					<p class="font-bold mb-2">Tipo corso</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<button type="button" class="join-item bg-gray-300 px-3"><Pen /></button>
 					<select
 						class="select select-bordered w-full rounded-md rounded-l-none"
 						id="layoutId"
@@ -724,7 +733,7 @@
 					<p class="font-bold mb-2">Prezzo corso</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"><Calculator /></button>
+					<button type="button" class="join-item bg-gray-300 px-3"><Calculator /></button>
 					<input
 						class="input input-bordered join-item w-full"
 						id="price"
@@ -743,7 +752,7 @@
 					<p class="font-bold mb-2">Data inizio</p>
 				</label>
 				<div class=" join join-horizontal rounded-md">
-					<button class="join-item bg-gray-300 px-3"><Calendar /></button>
+					<button type="button" class="join-item bg-gray-300 px-3"><Calendar /></button>
 					<!-- Giorno Dropdown -->
 					<select
 						id="productCorsoDataInizioGiorno"
@@ -758,7 +767,7 @@
 							<option value={day}>{day}</option>
 						{/each}
 					</select>
-					<button class="join-item bg-gray-300 px-3"> - </button>
+					<button type="button" class="join-item bg-gray-300 px-3"> - </button>
 					<!-- Mese Dropdown -->
 					<select
 						id="productCorsoDataInizioMese"
@@ -773,7 +782,7 @@
 							<option value={month.value}>{month.title}</option>
 						{/each}
 					</select>
-					<button class="join-item bg-gray-300 px-3"> - </button>
+					<button type="button" class="join-item bg-gray-300 px-3"> - </button>
 					<!-- Anno Dropdown -->
 					<select
 						id="productCorsoDataInizioAnno"
@@ -815,7 +824,7 @@
 							<option value={hour}>{hour}</option>
 						{/each}
 					</select>
-					<button class="join-item bg-gray-300 px-3"> : </button>
+					<button type="button" class="join-item bg-gray-300 px-3"> : </button>
 					<!-- Minuti Dropdown -->
 					<select
 						id="productCorsoDataInizioMinuto"
@@ -841,7 +850,7 @@
 					<p class="font-bold mb-2">Numero partecipanti</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"><Users /></button>
+					<button type="button" class="join-item bg-gray-300 px-3"><Users /></button>
 					<input
 						class="input input-bordered join-item w-full"
 						id="stockQty"
@@ -878,7 +887,7 @@
 						<p class="font-bold mb-2">Provincia</p>
 					</label>
 					<div class="join join-horizontal rounded-md w-full mb-2">
-						<button class="join-item bg-gray-300 px-3"><Building2 /></button>
+						<button type="button" class="join-item bg-gray-300 px-3"><Building2 /></button>
 						<input type="hidden" name="provinceArray" bind:value={provinceArray} />
 						<select
 							class="select select-bordered w-full rounded-md rounded-l-none"
@@ -913,7 +922,7 @@
 						<p class="font-bold mb-2">Luogo (indirizzo, città, CAP)</p>
 					</label>
 					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
+						<button type="button" class="join-item bg-gray-300 px-3"><Pen /></button>
 						<input
 							class="input input-bordered join-item w-full"
 							id="location"
@@ -936,7 +945,7 @@
 						<p class="font-bold mb-2">Luogo</p>
 					</label>
 					<div class="join join-horizontal rounded-md w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
+						<button type="button" class="join-item bg-gray-300 px-3"><Pen /></button>
 						<input
 							class="input input-bordered join-item w-full"
 							id="location"
@@ -956,7 +965,7 @@
 					<p class="font-bold mb-2">Tag</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full mb-2">
-					<button class="join-item bg-gray-300 px-3"><List /></button>
+					<button type="button" class="join-item bg-gray-300 px-3"><List /></button>
 					<input type="hidden" name="tagArray" bind:value={tagArray} />
 					<input class="input input-bordered join-item w-full" id="tag" name="tag" type="text" placeholder="Aggiungi Tag" bind:value={tag} />
 					<button type="button" class="join-item btn btn-primary disabled:blue-500 disabled:cursor-not-allowed" onclick={() => addItem(tag, 'tag')}>
@@ -974,7 +983,7 @@
 				{/if}
 			</section> -->
 			<!-- Notifica email -->
-			<section class="col-span-4 md:col-span-2">
+			<!-- <section class="col-span-4 md:col-span-2">
 				<label for="notificationEmail" class="form-label">
 					<p class="font-bold mb-2">Notifica Email</p>
 				</label>
@@ -1001,6 +1010,24 @@
 						</div>
 					{/each}
 				{/if}
+			</section> -->
+			<!-- Notifica email -->
+			<section class="col-span-4 md:col-span-2">
+				<label for="notificationEmail" class="form-label">
+					<p class="font-bold mb-2">Notifica email</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button type="button" class="join-item bg-gray-300 px-3"><Pen /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="notificationEmail"
+						name="notificationEmail"
+						type="text"
+						placeholder="Email notifica"
+						bind:value={notificationEmail}
+						readonly
+					/>
+				</div>
 			</section>
 			<!-- Titolo -->
 			<section class="col-span-4 md:col-span-2">
@@ -1008,7 +1035,7 @@
 					<p class="font-bold mb-2">Titolo</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<button type="button" class="join-item bg-gray-300 px-3"><Pen /></button>
 					<input class="input input-bordered join-item w-full" id="title" name="title" type="text" placeholder="Titolo" bind:value={title} readonly />
 				</div>
 			</section>
@@ -1019,7 +1046,7 @@
 					<p class="font-bold mb-2">Descrizione</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<button type="button" class="join-item bg-gray-300 px-3"><Pen /></button>
 					<textarea
 						class="textarea textarea-bordered h-24 join-item w-full"
 						id="descrLong"
@@ -1036,7 +1063,7 @@
 					<p class="font-bold mb-2">Altre informazioni</p>
 				</label>
 				<div class="join join-horizontal rounded-md w-full">
-					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<button type="button" class="join-item bg-gray-300 px-3"><Pen /></button>
 					<textarea
 						class="textarea textarea-bordered join-item w-full"
 						id="infoExtra"
@@ -1052,9 +1079,9 @@
 			<div class="col-span-4 mt-5 flex justify-center">
 				<div class="bg-gray-50 flex justify-center">
 					{#if currentModal == 'modify'}
-						<button class="btn btn-error btn-sm mx-2" onclick={onCloseModify}> Annulla </button>
+						<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModify}> Annulla </button>
 					{:else}
-						<button class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
+						<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
 					{/if}
 
 					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">
@@ -1073,7 +1100,7 @@
 
 {#if currentModal == 'delete'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
+		<button type="button" class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{/if}
@@ -1097,7 +1124,7 @@
 
 {#if currentModal == 'filter'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
+		<button type="button" class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{/if}
@@ -1151,8 +1178,8 @@
 			</div>
 
 			<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
-				<button class="btn btn-error btn-sm rounded-md hover:bg-red-300" type="button" onclick={onCloseModal}> Annulla </button>
-				<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit"> Applica Filtri </button>
+				<button type="button" class="btn btn-error btn-sm rounded-md hover:bg-red-300" onclick={onCloseModal}> Annulla </button>
+				<button type="submit" class="btn btn-success btn-sm rounded-md hover:bg-green-400"> Applica Filtri </button>
 			</div>
 		</form>
 	</Modal>
@@ -1160,7 +1187,7 @@
 
 {#if currentModal == 'subscribers'}
 	<Modal isOpen={openModal} header={modalTitle}>
-		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
+		<button type="button" class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{/if}
@@ -1195,7 +1222,14 @@
 				</form>
 			{/if}
 			<div class="mb-6">
-				<button class="btn" class:btn-error={showCheckboxes} onclick={toggleCheckboxes} type="button" disabled={certificationStatus}>
+				<button
+					type="button"
+					class="btn"
+					class:btn-error={showCheckboxes}
+					aria-pressed={showCheckboxes}
+					onclick={toggleCheckboxes}
+					disabled={certificationStatus}
+				>
 					{showCheckboxes ? 'Annulla' : 'Genera Attestati'}
 				</button>
 			</div>

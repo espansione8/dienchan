@@ -37,6 +37,9 @@ export const actions: Actions = {
             //const dateRegex = /\b\d{2}([\/-])\d{2}\1\d{4}\b/; // regex to find date format
             const dateRegex = /\d{2}([-/])\d{2}\1(\d{4}|\d{2})/;
 
+            // documento numer0 "0000-0000" 4 numebri con trattino
+            // P.IVA 11 cifre
+
             let receiptDate: string | null = null;
             const match = ocrText.match(dateRegex);
             if (match) {

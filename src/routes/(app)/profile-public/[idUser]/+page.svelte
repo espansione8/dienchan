@@ -127,26 +127,29 @@
 								</div>
 							{/if}
 
-							{#if getUser.addressPublic === true && getUser.cityPublic === true}
+							{#if getUser.addressPublic === true || getUser.cityPublic === true}
 								<div class="flex items-center">
 									<div class="bg-teal-100 p-2 rounded-full mr-3">
 										<MapPin size={16} class="text-teal-600" />
 									</div>
 									<div>
 										<div class="text-gray-500 text-xs">Indirizzo</div>
-										<div class="text-gray-700">{getUser.address}, {getUser.city}</div>
+										<div class="text-gray-700">{getUser.addressPublic ? `${getUser.address},` : ''} {getUser.cityPublic ? getUser.city : ''}</div>
 									</div>
 								</div>
 							{/if}
 
-							{#if getUser.postalCodePublic === true && getUser.countyPublic === true}
+							{#if getUser.postalCodePublic === true || getUser.countyPublic === true}
 								<div class="flex items-center">
 									<div class="bg-teal-100 p-2 rounded-full mr-3">
 										<MapPinned size={16} class="text-teal-600" />
 									</div>
 									<div>
 										<div class="text-gray-500 text-xs">CAP / Provincia</div>
-										<div class="text-gray-700">{getUser.postalCode}, {getUser.county}</div>
+										<div class="text-gray-700">
+											{getUser.postalCodePublic ? `${getUser.postalCode},` : ''}
+											{getUser.countyPublic ? getUser.county : ''}
+										</div>
 									</div>
 								</div>
 							{/if}

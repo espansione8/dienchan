@@ -33,7 +33,7 @@ const discountSchema = new Schema(
 		},
 		selectedApplicability: {
 			type: String,
-			enum: ['email', 'membershipLevel', 'prodId', 'layoutId', 'referral'],
+			enum: ['email', 'membershipLevel', 'prodId', 'layoutId', 'referral', 'level'],
 			default: 'email'
 		},
 		email: { type: String, default: null },
@@ -41,6 +41,7 @@ const discountSchema = new Schema(
 		layoutId: { type: String, default: null },
 		membershipLevel: { type: String, default: null },
 		referral: { type: String, default: null }, // email
+		level: { type: [String], default: [] },
 		notes: { type: String, default: null },
 		status: {
 			type: String,

@@ -660,12 +660,12 @@ export const actions: Actions = {
 
 			// check for "referral" and "formatore" conflict
 			const existReferral = discountGroup.some(d => d.selectedApplicability === 'referral' && d.code !== discountCode);
-			const existFormatore = discountGroup.some(d => d.selectedApplicability === 'membershipLevel' && d.membershipLevel.includes('formatore') && d.code !== discountCode);
+			const existFormatore = discountGroup.some(d => d.selectedApplicability === 'membershipLevel' && d.membershipLevel.includes('riflessogo') && d.code !== discountCode);
 			// const formatorelevels = ['formatore base', 'formatore avanzato']; // Define allowed levels
 			// const existFormatore = discountGroup.some(d => d.selectedApplicability === 'membershipLevel' && formatorelevels.includes(d.membershipLevel) && d.code !== discountCode);
 
 			const isReferral = discountItem.selectedApplicability === 'referral';
-			const isFormatore = discountItem.selectedApplicability === 'membershipLevel' && discountItem.membershipLevel.includes('formatore');
+			const isFormatore = discountItem.selectedApplicability === 'membershipLevel' && discountItem.membershipLevel.includes('riflessogo');
 
 			if (isFormatore && existReferral) {
 				return fail(400, {
