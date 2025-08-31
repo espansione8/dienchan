@@ -127,8 +127,8 @@ export const actions: Actions = {
 		const province = provinceArray.split(",");
 		const location = formData.get('location');
 		const layoutId = formData.get('layoutId');
-		const tagArray = formData.get('tagArray') as string;
-		const tag = tagArray.split(",");
+		// const tagArray = formData.get('tagArray') as string || '[]';
+		// const tag = tagArray.split(",");
 		const arrayEmail = formData.get('notificationEmail') as string;
 		const notificationEmail = arrayEmail.split(",");
 		const infoExtra = formData.get('infoExtra');
@@ -153,7 +153,7 @@ export const actions: Actions = {
 					county: province,
 					location,
 					notificationEmail,
-					tag,
+					//tag,
 					infoExtra,
 					type: 'course',
 				},
@@ -189,16 +189,16 @@ export const actions: Actions = {
 		const province = provinceArray.split(",");
 		const location = formData.get('location');
 		const layoutId = formData.get('layoutId');
-		const tagArray = formData.get('tagArray');
+		///const tagArray = formData.get('tagArray');
 		const emailArray = formData.get('notificationEmail');
 		const infoExtra = formData.get('infoExtra');
 		const prodId = formData.get('prodId');
-		let tag: string[] = [];
+		//let tag: string[] = [];
 		let notificationEmail: string[] = [];
 
-		if (typeof tagArray === 'string' && tagArray.trim().length) {
-			tag = tagArray.split(',').map((t) => t.trim());
-		}
+		// if (typeof tagArray === 'string' && tagArray.trim().length) {
+		// 	tag = tagArray.split(',').map((t) => t.trim());
+		// }
 
 		if (typeof emailArray === 'string' && emailArray.trim().length) {
 			notificationEmail = emailArray.split(',').map((t) => t.trim());
@@ -223,7 +223,7 @@ export const actions: Actions = {
 						location,
 						layoutId,
 						notificationEmail,
-						...(tag.length ? { tag } : {}),
+						//...(tag.length ? { tag } : {}),
 						infoExtra
 					}
 				},

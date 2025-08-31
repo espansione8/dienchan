@@ -31,7 +31,7 @@
 		User,
 		MapPin,
 		ArrowLeft,
-		CheckCircle,
+		CircleCheckBig,
 		Tag,
 		HandCoins,
 		Car
@@ -820,9 +820,10 @@
 							<div class="form-control">
 								<label class="label cursor-pointer justify-start gap-2">
 									<input type="checkbox" class="checkbox checkbox-primary" bind:checked={formData.storePickUp} />
-									<span class="label-text text-base font-medium">Ritiro in sede (Spedizione gratuita)</span>
+									<span class="label-text text-base font-medium">Ritiro in sede (Spedizione gratuita) {formData.usePoint} {newPointsBalance()}</span>
 								</label>
 							</div>
+							<!-- {#if !formData.usePoint && formData.pointsBalance >= grandTotal() && $cartProducts.length > 0} -->
 							<div class="divider my-2 font-medium text-primary">Metodo di Pagamento</div>
 							<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<!-- <div class="grid grid-cols-1 md:grid-cols-3 gap-4"> -->
@@ -850,6 +851,7 @@
 									</label>
 								</div>
 							</div>
+							<!-- {/if} -->
 							<div class="card bg-base-100 shadow-xl p-6 w-full" class:hidden={formData.paymentType !== 'Carta di credito'}>
 								<h3 class="text-xl font-semibold mb-4">Informazioni sulla carta di credito</h3>
 								<div class="form-control">
@@ -864,7 +866,7 @@
 								{#if !paymentMethodId}
 									<button type="button" class="btn btn-info mt-4" onclick={getStripeId}>VERIFICA CARTA </button>
 								{:else}
-									<div class="btn btn-primary mt-4">CARTA OK <CheckCircle /></div>
+									<div class="btn btn-primary mt-4">CARTA OK <CircleCheckBig /></div>
 								{/if}
 							</div>
 							{#if formData.paymentType === 'Bonifico bancario' && grandTotal() > 0}
@@ -1266,7 +1268,7 @@
 	<dialog id="success-modal" class="modal modal-open">
 		<div class="modal-box text-center">
 			<div class="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-4">
-				<CheckCircle size={40} class="text-success" />
+				<CircleCheckBig size={40} class="text-success" />
 			</div>
 			<h3 class="font-bold text-xl mb-2">Ordine Confermato</h3>
 			<p class="py-2">Puoi vedere lo storico ordini nell'AREA PERSONALE.</p>
@@ -1284,7 +1286,7 @@
 	<dialog id="success-login-modal" class="modal modal-open">
 		<div class="modal-box text-center">
 			<div class="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-4">
-				<CheckCircle size={40} class="text-success" />
+				<CircleCheckBig size={40} class="text-success" />
 			</div>
 			<h3 class="font-bold text-xl mb-2">Ordine Confermato</h3>
 			<p class="py-2 font-medium">Ora puoi fare LOGIN con EMAIL e PASSWORD</p>

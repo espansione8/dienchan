@@ -8,7 +8,7 @@ import { customAlphabet } from 'nanoid'
 import Stripe from 'stripe';
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9)
 const stripe = new Stripe(STRIPE_KEY_BACK, {
-	apiVersion: '2025-06-30.basil' // Use a stable API version
+	apiVersion: '2025-08-27.basil' // Use a stable API version
 });
 
 export const load: PageServerLoad = async ({ locals, fetch, url }) => {
@@ -140,14 +140,16 @@ export const actions: Actions = {
 		//let recalculatedTotal = cartRecalculated() - totalDiscount;
 		const recalculatedTotal = () => {
 			let total = cartRecalculated() - totalDiscount;
-			if (total < 100 && !storePickUp) {
-				total += 9; // Add delivery fee if total is above 100
+			// console.log('cartRecalculated()', cartRecalculated())
+			// console.log('totalDiscount', totalDiscount)
+			if (cartRecalculated() < 100 && !storePickUp) {
+				total += 9; // Add delivery fee if total is below 100
 			}
-			// if (usePoint) {
-			// 	total -= usedPoints;
-			// }
 			return total;
 		};
+		// console.log('totalValue', Number(totalValue));
+		// console.log('recalculatedTotal', recalculatedTotal());
+		// return
 
 		if (Number(totalValue) !== recalculatedTotal()) {
 			return fail(400, { action: 'new', success: false, message: 'Totale non valido' });
