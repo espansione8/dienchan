@@ -278,7 +278,9 @@
 						<td>{row.type == 'referral' ? `${row.refDiscount}/${row.refPoints}` : row.value}</td>
 						<td> {row.selectedApplicability}</td>
 						<!-- <td> {row[selectedApplicability]}</td> -->
-						<td> {row[row.selectedApplicability]}</td>
+						<td>
+							{row.selectedApplicability === 'riflessologo' ? 'Tutti i Riflessologi' : row[row.selectedApplicability]}
+						</td>
 						<!-- Azione -->
 						<td class="flex items-center space-x-4">
 							<button
@@ -401,6 +403,7 @@
 								<option value="email">Sconto Esclusivo Personale</option>
 								<!-- <option value="cart">Sconto totale Carrello</option> -->
 								<option value="membershipLevel">Sconto per Membership</option>
+								<option value="riflessologo">Sconto tutti Riflessologi</option>
 								<option value="prodId"> Sconto Prodotto specifico</option>
 								<option value="layoutId">Sconto per Tipo Corso</option>
 							</select>
@@ -415,12 +418,10 @@
 									<option disabled value="">Seleziona il livello associato</option>
 									<option value="Socio inattivo">Socio inattivo</option>
 									<option value="Socio ordinario">Socio ordinario</option>
-									<option value="Socio formatore">Socio formatore</option>
 									<option value="Socio vitalizio">Socio vitalizio</option>
-									<option value="Socio vitalizio formatore">Socio vitalizio formatore</option>
-									<!-- <option value="Socio sostenitore">Socio sostenitore</option> -->
-									<!-- <option value="Socio contributore">Socio contributore</option> -->
 								</select>
+							{:else if selectedApplicability === 'riflessologo'}
+								<input type="hidden" id="selectId" name="selectId" value="true" />
 							{:else if selectedApplicability === 'prodId'}
 								<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full select-bordered">
 									<option value="">Scegli prodotto</option>
@@ -729,6 +730,7 @@
 							<option value="email">Sconto Esclusivo Personale</option>
 							<!-- <option value="cart">Sconto totale Carrello</option> -->
 							<option value="membershipLevel">Sconto per Membership</option>
+							<option value="riflessologo">Sconto tutti Riflessologi</option>
 							<option value="prodId"> Sconto Prodotto specifico</option>
 							<option value="layoutId">Sconto per Tipo Corso</option>
 						</select>
@@ -748,10 +750,10 @@
 								<option disabled value="">Seleziona il livello associato</option>
 								<option value="Socio inattivo">Socio inattivo</option>
 								<option value="Socio ordinario">Socio ordinario</option>
-								<option value="Socio formatore">Socio formatore</option>
 								<option value="Socio vitalizio">Socio vitalizio</option>
-								<option value="Socio vitalizio formatore">Socio vitalizio formatore</option>
 							</select>
+						{:else if selectedApplicability === 'riflessologo'}
+							<input type="hidden" id="selectId" name="selectId" value="true" />
 						{:else if selectedApplicability == 'prodId'}
 							<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full">
 								<option value="">Scegli prodotto</option>

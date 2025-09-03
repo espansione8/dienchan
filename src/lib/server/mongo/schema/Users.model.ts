@@ -18,9 +18,10 @@ const UserSchema = new mongoose.Schema(
 			enum: ['enabled', 'disabled'],
 			default: 'enabled'
 		},
-		token: { type: String, default: null },
+		token: { type: String, default: null, select: false },
 		cookieId: { type: String, default: null },
 		promotions: [], // virtual {}
+		isRiflessologo: { type: Boolean, default: false },
 		level: {
 			type: String,
 			enum: [

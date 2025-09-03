@@ -56,7 +56,7 @@ const calculateItemDiscount = (
 				totalDiscount += itemDiscount;
 			}
 		});
-	} else if (selectedApplicability === 'email' || selectedApplicability === 'membershipLevel') {
+	} else if (selectedApplicability === 'email' || selectedApplicability === 'membershipLevel' || selectedApplicability === 'riflessologo') {
 		// User-level discounts
 		if (type === 'amount') {
 			totalDiscount = value;
@@ -659,24 +659,23 @@ export const actions: Actions = {
 					message: 'È possibile applicare un solo sconto Formatore.'
 				});
 			}
-
-			// check for "referral" and "formatore" conflict
-			const existReferral = discountGroup.some(d => d.selectedApplicability === 'referral' && d.code !== discountCode);
-			const existFormatore = discountGroup.some(d => d.selectedApplicability === 'membershipLevel' && d.membershipLevel.includes('riflessogo') && d.code !== discountCode);
-			// const formatorelevels = ['formatore base', 'formatore avanzato']; // Define allowed levels
-			// const existFormatore = discountGroup.some(d => d.selectedApplicability === 'membershipLevel' && formatorelevels.includes(d.membershipLevel) && d.code !== discountCode);
-
-			const isReferral = discountItem.selectedApplicability === 'referral';
-			const isFormatore = discountItem.selectedApplicability === 'membershipLevel' && discountItem.membershipLevel.includes('riflessogo');
-
-			if (isFormatore && existReferral) {
+			const countRiflessologo = discountGroup.filter(d => d.selectedApplicability === 'riflessologo').length;
+			if (discountItem.selectedApplicability === 'riflessologo' && countRiflessologo > 1) {
 				return fail(400, {
 					action: 'applyDiscount',
 					success: false,
-					message: 'È possibile applicare un solo sconto Formatore.'
+					message: 'È possibile applicare un solo sconto Riflessologo.'
 				});
 			}
-			if (isReferral && existFormatore) {
+
+			// check for "referral" and "riflessologo" conflict
+			const isReferralDiscount = discountItem.selectedApplicability === 'referral';
+			const isRiflessologoDiscount = discountItem.selectedApplicability === 'riflessologo';
+
+			const existReferralDiscountInGroup = discountGroup.some(d => d.selectedApplicability === 'referral');
+			const existRiflessologoDiscountInGroup = discountGroup.some(d => d.selectedApplicability === 'riflessologo');
+
+			if (existReferralDiscountInGroup && existRiflessologoDiscountInGroup) {
 				return fail(400, {
 					action: 'applyDiscount',
 					success: false,
@@ -706,6 +705,10 @@ export const actions: Actions = {
 
 					case 'referral':
 						return true;
+
+					case 'riflessologo':
+						//console.log('isRiflessologo:', user.isRiflessologo);
+						return user?.isRiflessologo === true;
 
 					default:
 						return false;

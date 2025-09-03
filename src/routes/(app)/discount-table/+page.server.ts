@@ -129,6 +129,7 @@ export const actions: Actions = {
 		const value = formData.get('value');
 		const refDiscount = formData.get('refDiscount');
 		const refPoints = formData.get('refPoints');
+		//console.log('new discount', type, selectedApplicability, selectId, code, notes, value, refDiscount, refPoints);
 
 		// let value, refDiscount, refPoints;
 		// if (type == 'percent' || type == 'amount') {
@@ -144,6 +145,13 @@ export const actions: Actions = {
 
 		let newDoc = {}
 
+		let selectIdToUse: string | boolean;
+		if (selectedApplicability === 'riflessologo') {
+			selectIdToUse = selectId === 'true';
+		} else {
+			selectIdToUse = selectId as string;
+		}
+
 		if (type == 'percent' || type == 'amount') {
 			newDoc = {
 				discountId: nanoid(),
@@ -151,7 +159,7 @@ export const actions: Actions = {
 				type,
 				value,
 				selectedApplicability,
-				[selectedApplicability]: selectId,
+				[selectedApplicability]: selectIdToUse,
 				notes
 			}
 		} else if (type == 'referral') {
@@ -162,7 +170,7 @@ export const actions: Actions = {
 				refDiscount,
 				refPoints,
 				selectedApplicability,
-				referral: selectId,
+				referral: selectIdToUse,
 				notes
 			}
 		} else {
@@ -184,6 +192,9 @@ export const actions: Actions = {
 
 		try {
 			const res = await resFetch;
+			// console.log('newDoc', newDoc);
+			// console.log('res', res);
+
 			if (!res.ok) {
 				const errorText = await res.text();
 				console.error('discount new failed', res.status, errorText);
@@ -225,6 +236,13 @@ export const actions: Actions = {
 
 		let update = {}
 
+		let selectIdToUse: string | boolean;
+		if (selectedApplicability === 'riflessologo') {
+			selectIdToUse = selectId === 'true';
+		} else {
+			selectIdToUse = selectId as string;
+		}
+
 		if (type == 'percent' || type == 'amount') {
 			update = {
 				$set: {
@@ -232,7 +250,7 @@ export const actions: Actions = {
 					type: type,
 					value: value,
 					selectedApplicability: selectedApplicability,
-					[selectedApplicability]: selectId, // 'email', 'membershipLevel', 'prodId', 'layoutId', 'referral'
+					[selectedApplicability]: selectIdToUse, // 'email', 'membershipLevel', 'prodId', 'layoutId', 'referral'
 					notes: notes,
 				}
 			}
