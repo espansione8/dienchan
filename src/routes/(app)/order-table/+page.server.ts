@@ -83,6 +83,7 @@ export const actions: Actions = {
 	modify: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const orderId = formData.get('orderId');
+		const userId = formData.get('userId');
 		const email = formData.get('email');
 		const name = formData.get('name');
 		const surname = formData.get('surname');
@@ -227,6 +228,61 @@ export const actions: Actions = {
 						});
 					}
 				}
+			}
+
+			if (statusPayment === 'done' && oldStatusPayment === 'pending' && (type === 'course' || type === 'membership')) {
+				const resFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'user', //product | order | user | layout | discount
+						query: { userId },
+						projection: { _id: 0, membership: 1 },
+						sort: { createdAt: -1 },
+						limit: 1,
+						skip: 0
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+
+				const userUpdateFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'user', //product | order | user | layout | discount
+						query: { userId }, // 'course', 'product', 'membership', 'event',
+						update: {
+							$set: {
+								"membership.membershipStatus": true
+							},
+						},
+						options: { upsert: false },
+						multi: false
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+				if (!resFetch.ok) {
+					const errorText = await resFetch.text();
+					console.error('user fetch failed', resFetch.status, errorText);
+					return fail(400, { action: 'modify', success: false, message: errorText });
+				}
+
+				const user = await resFetch.json();
+				console.log('user', user);
+
+				if (user[0].membership.membershipStatus === false) {
+					const res = await userUpdateFetch;
+					if (!res.ok) {
+						const errorText = await res.text();
+						console.error('user update failed', res.status, errorText);
+						return fail(400, { action: 'modify', success: false, message: errorText });
+					}
+				}
+
 			}
 
 			return { action: 'modify', success: true, message: result.message };

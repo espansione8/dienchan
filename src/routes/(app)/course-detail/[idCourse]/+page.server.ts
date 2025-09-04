@@ -1,13 +1,13 @@
 import type { PageServerLoad, Actions } from './$types';
 import type { CartItem, DiscountItem } from '$lib/types';
-import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK } from '$env/static/private';
+import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK, } from '$env/static/private';
 import { error, fail } from '@sveltejs/kit';
 import { hash } from '$lib/tools/hash';
 import { customAlphabet } from 'nanoid';
 import Stripe from 'stripe';
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9);
 const stripe = new Stripe(STRIPE_KEY_BACK, {
-	apiVersion: '2025-07-30.basil' // Use a stable API version
+	apiVersion: '2025-08-27.basil' // Use a stable API version https://docs.stripe.com/api/versioning
 });
 
 export const load: PageServerLoad = async ({ fetch, locals, params }) => {
@@ -347,19 +347,6 @@ export const actions: Actions = {
 
 		if (!locals.auth) {
 			try {
-				// const membershipRes = await membershipFetch;
-				// if (!membershipRes.ok) {
-				// 	return fail(400, {
-				// 		action: 'new',
-				// 		success: false,
-				// 		message: await membershipRes.text()
-				// 	});
-				// }
-				// membership = await membershipRes.json();
-				// if (membership.length < 1) {
-				// 	return fail(400, { action: 'new', success: false, message: 'Missing membership' });
-				// }
-
 				const userRes = await userFetch;
 				if (!userRes.ok) {
 					console.error('user fetch failed', userRes.status, await userRes.text());
@@ -399,12 +386,12 @@ export const actions: Actions = {
 								phone,
 								mobilePhone,
 								password: hash(password1, SALT),
-								cookieId
+								cookieId,
 								// "membership.membershipLevel": 'Socio ordinario',
 								// "membership.membershipSignUp": new Date(),
 								// "membership.membershipActivation": new Date(),
 								// "membership.membershipExpiry": new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-								// "membership.membershipStatus": true
+								"membership.membershipStatus": paymentIntentId ? true : false
 							},
 							returnObj: true
 						}),
@@ -573,7 +560,7 @@ export const actions: Actions = {
 							$set: {
 								'membership.membershipLevel': 'Socio ordinario',
 								'membership.membershipExpiry': newExpire,
-								'membership.membershipStatus': true,
+								'membership.membershipStatus': paymentIntentId ? true : false,
 							}
 						},
 						options: { upsert: false },

@@ -248,6 +248,7 @@ export type DiscountItem = {
 export interface Order {
     orderDate: string;
     orderId: string;
+    userId: string;
     promoterId: string;
     title: string;
     item: string;

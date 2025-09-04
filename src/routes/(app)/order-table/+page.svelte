@@ -319,9 +319,10 @@
 									<form method="POST" action={`?/modify`} use:enhance={formSubmit}>
 										<input type="hidden" name="orderId" value={row.orderId} />
 										<input type="hidden" name="statusPayment" value="done" />
+										<input type="hidden" name="userId" value={row.userId} />
+										<input type="hidden" name="type" value={row.type} />
 										{#if row.promoterId && row.type === 'course'}
 											<input type="hidden" name="promoterId" value={row.promoterId} />
-											<input type="hidden" name="type" value={row.type} />
 											<input type="hidden" name="cart" value={JSON.stringify(row.cart)} class="hidden" />
 										{/if}
 										<button type="submit" class="btn btn-success btn-sm">

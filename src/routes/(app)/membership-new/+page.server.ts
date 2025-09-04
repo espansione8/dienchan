@@ -6,7 +6,7 @@ import { customAlphabet } from 'nanoid'
 import Stripe from 'stripe';
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9)
 const stripe = new Stripe(STRIPE_KEY_BACK, {
-	apiVersion: '2025-06-30.basil' // Use a stable API version
+	apiVersion: '2025-08-27.basil' // Use a stable API version https://docs.stripe.com/api/versioning
 });
 
 export const load: PageServerLoad = async ({ fetch, locals, params }) => {
@@ -257,7 +257,7 @@ export const actions: Actions = {
 							// "membership.membershipSignUp": new Date(),
 							// "membership.membershipActivation": new Date(),
 							// "membership.membershipExpiry": new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-							// "membership.membershipStatus": true
+							"membership.membershipStatus": paymentIntentId ? true : false
 						},
 						returnObj: true
 					}),
@@ -544,7 +544,7 @@ export const actions: Actions = {
 					$set: {
 						'membership.membershipLevel': 'Socio ordinario',
 						'membership.membershipExpiry': newExpire,
-						'membership.membershipStatus': true,
+						'membership.membershipStatus': paymentIntentId ? true : false,
 					}
 				},
 				options: { upsert: false },

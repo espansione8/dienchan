@@ -18,7 +18,7 @@
 		Phone,
 		Smartphone,
 		Lock,
-		CheckCircle,
+		CircleCheckBig,
 		CreditCard,
 		ArrowLeft,
 		Calendar,
@@ -382,9 +382,9 @@
 				</p>
 				<div class="flex flex-wrap gap-4">
 					{#if !auth}
-						<button class="btn btn-primary btn-lg" onclick={() => onClickModal('new', 'Socio ordinario')}> Diventa Socio </button>
+						<a class="btn btn-primary btn-lg" href="#membership-options"> Diventa Socio </a>
 					{:else if userData?.membership?.membershipLevel != 'Socio vitalizio'}
-						<button class="btn btn-primary btn-lg" onclick={() => onClickModal('renew', null)}> Rinnova Iscrizione </button>
+						<a class="btn btn-primary btn-lg" href="#membership-options"> Rinnova Iscrizione </a>
 					{/if}
 				</div>
 			</div>
@@ -410,7 +410,7 @@
 			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
 				<div class="flex items-start gap-4">
 					<div class="bg-blue-100 p-3 rounded-full">
-						<CheckCircle class="text-blue-600 h-6 w-6" />
+						<CircleCheckBig class="text-blue-600 h-6 w-6" />
 					</div>
 					<div>
 						<h3 class="font-semibold text-lg text-blue-900 mb-2">Mappatura Punti Online</h3>
@@ -422,7 +422,7 @@
 			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
 				<div class="flex items-start gap-4">
 					<div class="bg-blue-100 p-3 rounded-full">
-						<CheckCircle class="text-blue-600 h-6 w-6" />
+						<CircleCheckBig class="text-blue-600 h-6 w-6" />
 					</div>
 					<div>
 						<h3 class="font-semibold text-lg text-blue-900 mb-2">Video Corso Base</h3>
@@ -436,7 +436,7 @@
 			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
 				<div class="flex items-start gap-4">
 					<div class="bg-blue-100 p-3 rounded-full">
-						<CheckCircle class="text-blue-600 h-6 w-6" />
+						<CircleCheckBig class="text-blue-600 h-6 w-6" />
 					</div>
 					<div>
 						<h3 class="font-semibold text-lg text-blue-900 mb-2">Sconti Esclusivi</h3>
@@ -448,7 +448,7 @@
 			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
 				<div class="flex items-start gap-4">
 					<div class="bg-blue-100 p-3 rounded-full">
-						<CheckCircle class="text-blue-600 h-6 w-6" />
+						<CircleCheckBig class="text-blue-600 h-6 w-6" />
 					</div>
 					<div>
 						<h3 class="font-semibold text-lg text-blue-900 mb-2">Incontri Online</h3>
@@ -460,7 +460,7 @@
 			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
 				<div class="flex items-start gap-4">
 					<div class="bg-blue-100 p-3 rounded-full">
-						<CheckCircle class="text-blue-600 h-6 w-6" />
+						<CircleCheckBig class="text-blue-600 h-6 w-6" />
 					</div>
 					<div>
 						<h3 class="font-semibold text-lg text-blue-900 mb-2">Pratica e Aggiornamento</h3>
@@ -474,7 +474,7 @@
 
 <!-- Membership Options -->
 <section class="py-16 px-4 bg-gradient-to-b from-teal-50 to-blue-50">
-	<div class="container mx-auto">
+	<div id="membership-options" class="container mx-auto">
 		<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-12">Scegli il Tuo Piano di Associazione</h2>
 
 		<div class="flex flex-col md:flex-row justify-center gap-8">
@@ -502,19 +502,19 @@
 
 						<ul class="mb-8 space-y-3 flex-grow">
 							<li class="flex items-center">
-								<CheckCircle class="text-blue-600 h-4 w-4 mr-2" />
+								<CircleCheckBig class="text-blue-600 h-4 w-4 mr-2" />
 								<span>Accesso a tutti i vantaggi</span>
 							</li>
 							<li class="flex items-center">
-								<CheckCircle class="text-blue-600 h-4 w-4 mr-2" />
+								<CircleCheckBig class="text-blue-600 h-4 w-4 mr-2" />
 								<span>Rinnovo annuale</span>
 							</li>
 							<li class="flex items-center invisible">
-								<CheckCircle class="text-blue-600 h-4 w-4 mr-2" />
+								<CircleCheckBig class="text-blue-600 h-4 w-4 mr-2" />
 								<span>Invisible spacer</span>
 							</li>
 							<li class="flex items-center invisible">
-								<CheckCircle class="text-blue-600 h-4 w-4 mr-2" />
+								<CircleCheckBig class="text-blue-600 h-4 w-4 mr-2" />
 								<span>Invisible spacer</span>
 							</li>
 						</ul>
@@ -557,19 +557,19 @@
 
 					<ul class="mb-8 space-y-3">
 						<li class="flex items-center">
-							<CheckCircle class="text-yellow-500 h-4 w-4 mr-2" />
+							<CircleCheckBig class="text-yellow-500 h-4 w-4 mr-2" />
 							<span>Accesso a tutti i vantaggi</span>
 						</li>
 						<li class="flex items-center">
-							<CheckCircle class="text-yellow-500 h-4 w-4 mr-2" />
+							<CircleCheckBig class="text-yellow-500 h-4 w-4 mr-2" />
 							<span>Nessun rinnovo necessario</span>
 						</li>
 						<li class="flex items-center">
-							<CheckCircle class="text-yellow-500 h-4 w-4 mr-2" />
+							<CircleCheckBig class="text-yellow-500 h-4 w-4 mr-2" />
 							<span>Supporto prioritario</span>
 						</li>
 						<li class="flex items-center">
-							<CheckCircle class="text-yellow-500 h-4 w-4 mr-2" />
+							<CircleCheckBig class="text-yellow-500 h-4 w-4 mr-2" />
 							<span>Accesso a vita</span>
 						</li>
 					</ul>
@@ -715,7 +715,7 @@
 								class={`w-10 h-10 rounded-full flex items-center justify-center ${i + 1 === currentStep ? 'bg-primary text-primary-content' : i + 1 < currentStep ? 'bg-success text-success-content' : 'bg-base-200'}`}
 							>
 								{#if i + 1 < currentStep}
-									<CheckCircle size={20} />
+									<CircleCheckBig size={20} />
 								{:else}
 									{i + 1}
 								{/if}
@@ -1030,7 +1030,7 @@
 						{#if !paymentMethodId}
 							<button type="button" class="btn btn-info mt-4" onclick={getStripeId}>VERIFICA CARTA </button>
 						{:else}
-							<div class="btn btn-primary mt-4">CARTA OK <CheckCircle /></div>
+							<div class="btn btn-primary mt-4">CARTA OK <CircleCheckBig /></div>
 						{/if}
 					</div>
 
@@ -1107,7 +1107,7 @@
 								class={`w-10 h-10 rounded-full flex items-center justify-center ${i + 1 === currentStep ? 'bg-primary text-primary-content' : i + 1 < currentStep ? 'bg-success text-success-content' : 'bg-base-200'}`}
 							>
 								{#if i + 1 < currentStep}
-									<CheckCircle size={20} />
+									<CircleCheckBig size={20} />
 								{:else}
 									{i + 1}
 								{/if}
@@ -1371,7 +1371,7 @@
 						{#if !paymentMethodId}
 							<button type="button" class="btn btn-info mt-4" onclick={getStripeId}>VERIFICA CARTA </button>
 						{:else}
-							<div class="btn btn-primary mt-4">CARTA OK <CheckCircle /></div>
+							<div class="btn btn-primary mt-4">CARTA OK <CircleCheckBig /></div>
 						{/if}
 					</div>
 

@@ -106,7 +106,8 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		getTable,
 		getCategories,
 		itemCount,
-		auth: locals.auth
+		auth: locals.auth,
+		user: locals.user
 	};
 }
 

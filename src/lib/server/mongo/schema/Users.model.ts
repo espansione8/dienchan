@@ -62,7 +62,7 @@ const UserSchema = new mongoose.Schema(
 					return date;
 				}
 			}, // quando scade
-			membershipStatus: { type: Boolean, default: true }
+			membershipStatus: { type: Boolean, default: false }
 		},
 		insurance: {
 			insuranceDate: { type: Date, default: Date.now },

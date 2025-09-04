@@ -30,7 +30,7 @@
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { getTable, getCategories, itemCount, auth } = $derived(data);
+	const { getTable, getCategories, itemCount, auth, user } = $derived(data);
 	let prodList = $state(getTable);
 	let count = $state(itemCount);
 	let loading = $state(false);
@@ -464,7 +464,7 @@
 									<Info size={16} />
 									Dettagli
 								</a>
-								{#if auth}
+								{#if auth && user.membership.membershipStatus}
 									{#if productData.stockQty > 0}
 										{#if checkCart(productData.prodId)}
 											<div class="join join-vertical flex-1">
