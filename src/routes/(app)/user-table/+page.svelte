@@ -958,7 +958,7 @@
 				<label for="level" class="form-label">
 					<p class="font-bold mb-2">Livello di permesso (solo per SuperAdmin)</p>
 				</label>
-				<select id="level" class="select select-bordered w-full rounded-md mt-2" name="level" placeholder="Scegli" required bind:value={level}>
+				<select id="level" name="level" class="select select-bordered w-full rounded-md mt-2" placeholder="Scegli" required bind:value={level}>
 					<option value="" selected disabled>Seleziona livello</option>
 					<option value="user">Utente base</option>
 					<option value="formatore">Formatore</option>

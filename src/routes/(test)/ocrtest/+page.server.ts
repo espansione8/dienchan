@@ -39,6 +39,7 @@ export const actions: Actions = {
 
             // documento numer0 "0000-0000" 4 numebri con trattino
             // P.IVA 11 cifre
+            // Given the following text extracted from a receipt, find the receipt total. Respond with JSON.{euro: number, cent: number}
 
             let receiptDate: string | null = null;
             const match = ocrText.match(dateRegex);

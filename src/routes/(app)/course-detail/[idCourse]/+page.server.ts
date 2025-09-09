@@ -293,6 +293,23 @@ export const actions: Actions = {
 				}
 			});
 
+		const notificationFetch = (email, order) => {
+			const courseItem = order.cart.find((item) => item.type === 'course');
+			const courseTitle = courseItem?.layoutView.title;
+			fetch(`${BASE_URL}/api/mailer/new-order`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					email,
+					content: `${name} ${surname}: iscrizione al corso ${courseTitle}<br>
+					email: ${email}.`
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+		}
+
 		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || !cart || !cartItem) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
@@ -583,7 +600,9 @@ export const actions: Actions = {
 				});
 			}
 
-			const mailArray = [...cartItem.notificationEmail, email];
+
+			//const mailArray = [...cartItem.notificationEmail, email]; // mail amministrazione dienchan?
+			const mailArray = [email]; // mail amministrazione dienchan?
 			const mailRes = await mailFetch(mailArray, order);
 
 			if (!mailRes.ok) {
@@ -592,6 +611,11 @@ export const actions: Actions = {
 					success: false,
 					message: `mailRes: ${await mailRes.text()}`
 				});
+			}
+
+			const notificationRes = await notificationFetch(email, order);
+			if (!mailRes.ok) {
+				console.error(`notificationRes: ${await notificationRes.text()}`);
 			}
 
 			const updateUserRes = await updateUserFetch;

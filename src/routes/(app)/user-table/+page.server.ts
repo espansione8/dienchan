@@ -171,7 +171,7 @@ export const actions: Actions = {
 		const phonePublic = !!(formData.get('phonePublic') || '');
 		const mobilePhonePublic = !!(formData.get('mobilePhonePublic') || '');
 
-		if (!name || !surname || !email || !address || !postalCode || !city || !county || !country || !phone || !mobilePhone || !level) {
+		if (!name || !surname || !email || !address || !postalCode || !city || !county || !country || !level) {
 			return fail(400, { action: 'newUser', success: false, message: 'Dati mancanti' });
 		}
 

@@ -47,7 +47,7 @@ export const POST: RequestHandler = async (event) => {
     if (!sanitizedFileName) {
         console.error(`Errore: Nome file non valido dopo sanitizzazione. fileName originale: '${fileName}'.`);
         await event.request.body.cancel();
-        return json({ message: 'Invalid fileName after sanitization.' }, { status: 400 });
+        return json({ message: `Invalid fileName: ${fileName}` }, { status: 400 });
     }
 
     // Validate filename for security
