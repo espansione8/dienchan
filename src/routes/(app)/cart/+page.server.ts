@@ -109,6 +109,18 @@ export const actions: Actions = {
 		const paymentMethodId = formData.get('paymentMethodId') as string | null;
 		const storePickUp = formData.get('storePickUp') === 'true' // 'true' make it boolean
 		const orderNotes = formData.get('orderNotes') as string | null;
+		const shippingName = formData.get('shippingName');
+		const shippingSurname = formData.get('shippingSurname');
+		const shippingEmail = formData.get('shippingEmail');
+		const shippingPhone = formData.get('shippingPhone');
+		const shippingMobilePhone = formData.get('shippingMobilePhone');
+		const shippingAddress = formData.get('shippingAddress');
+		const shippingCity = formData.get('shippingCity');
+		const shippingCounty = formData.get('shippingCounty');
+		const shippingPostalCode = formData.get('shippingPostalCode');
+		const shippingCountry = formData.get('shippingCountry');
+
+
 
 		if (usePoint && newPointsBalance < 0) {
 			return fail(400, { action: 'new', success: false, message: 'Saldo punti insufficiente' });
@@ -366,19 +378,19 @@ export const actions: Actions = {
 					mobilePhone
 				},
 				shipping: {
-					name,
-					surname,
-					address,
-					city,
-					county,
-					postalCode,
+					name: shippingName,
+					surname: shippingSurname,
+					address : shippingAddress,
+					city : shippingCity,
+					county : shippingCounty,
+					postalCode : shippingPostalCode,
 					state: '',
 					region: '',
-					country,
+					country : shippingCountry,
 					deliveryNotes: '',
-					email,
-					phone,
-					mobilePhone,
+					email 	: shippingEmail,
+					phone : shippingPhone,
+					mobilePhone : shippingMobilePhone,
 					// tracking: {
 					// 	company: '',
 					// 	trackingNumber: '',
