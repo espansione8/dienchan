@@ -69,24 +69,21 @@
 		pointsBalance: userData?.pointsBalance || 0,
 		newBalance: 0,
 		storePickUp: false,
-		differentShippingAddress : false,
-		
-		
+		differentShippingAddress: false
 	});
 
-	let shippingName = $derived(formData.differentShippingAddress == true ? '' : userData?.name)
-	let shippingSurname = $derived(formData.differentShippingAddress == true ? '' : userData?.surname)
-	let shippingPhone = $derived(formData.differentShippingAddress == true ? '' : userData?.phone)
-	let shippingMobilePhone = $derived(formData.differentShippingAddress == true ? '' : userData?.mobilePhone)
-	let shippingAddress = $derived(formData.differentShippingAddress == true ? '' : userData?.address)
-	let shippingCity = $derived(formData.differentShippingAddress == true ? '' : userData?.city)
-	let shippingCounty = $derived(formData.differentShippingAddress == true ? '' : userData?.county)
-	let shippingPostalCode = $derived(formData.differentShippingAddress == true ? '' : userData?.postalCode)
-	let shippingCountry = $derived(formData.differentShippingAddress == true ? '' : userData?.country)
+	let shippingName = $derived(formData.differentShippingAddress == true ? '' : userData?.name);
+	let shippingSurname = $derived(formData.differentShippingAddress == true ? '' : userData?.surname);
+	let shippingPhone = $derived(formData.differentShippingAddress == true ? '' : userData?.phone);
+	let shippingMobilePhone = $derived(formData.differentShippingAddress == true ? '' : userData?.mobilePhone);
+	let shippingAddress = $derived(formData.differentShippingAddress == true ? '' : userData?.address);
+	let shippingCity = $derived(formData.differentShippingAddress == true ? '' : userData?.city);
+	let shippingCounty = $derived(formData.differentShippingAddress == true ? '' : userData?.county);
+	let shippingPostalCode = $derived(formData.differentShippingAddress == true ? '' : userData?.postalCode);
+	let shippingCountry = $derived(formData.differentShippingAddress == true ? '' : userData?.country);
 	// let shippingState = $derived(formData.differentShippingAddress == true ? '' : userData?.state)
-	let shippingEmail = $derived(formData.differentShippingAddress == true ? '' : userData?.email)
+	let shippingEmail = $derived(formData.differentShippingAddress == true ? '' : userData?.email);
 	// let shippingRegion = $derived(formData.differentShippingAddress == true ? '' : userData?.region)
-
 
 	let closedInput = $state(true);
 
@@ -342,6 +339,8 @@
 		}
 		formData.usePoint = false;
 		formData.newBalance = 0;
+		formData.differentShippingAddress = false;
+
 		modalTitle = '';
 		postAction = '?/';
 		loading = false;
@@ -415,7 +414,7 @@
 			// }
 			// 'update()' is called by default by use:enhance
 			// call 'await update()' if you need to ensure it completes before further client logic.
-			
+
 			await invalidateAll();
 			resetFields();
 			loading = false;
@@ -432,7 +431,6 @@
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8">
-	
 	<div class="flex flex-col lg:flex-row gap-8">
 		<!-- Cart Items Section -->
 		<div class="w-full lg:w-3/5">
@@ -836,14 +834,10 @@
 								</div>
 							</div>
 
-<!-- Checkbox per indirizzo di spedizione diverso -->
+							<!-- Checkbox per indirizzo di spedizione diverso -->
 							<div class="form-control">
 								<label class="label cursor-pointer justify-start gap-2">
-									<input 
-										type="checkbox" 
-										class="checkbox checkbox-primary" 
-										bind:checked={formData.differentShippingAddress}
-									/>
+									<input type="checkbox" class="checkbox checkbox-primary" bind:checked={formData.differentShippingAddress} />
 									<span class="label-text text-base font-medium">L'indirizzo di spedizione è diverso da quello di fatturazione</span>
 								</label>
 							</div>
@@ -1062,68 +1056,71 @@
 								</label>
 							</div>
 							<!-- {#if !formData.usePoint && formData.pointsBalance >= grandTotal() && $cartProducts.length > 0} -->
-							<div class="divider my-2 font-medium text-primary">Metodo di Pagamento</div>
-							<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<!-- <div class="grid grid-cols-1 md:grid-cols-3 gap-4"> -->
-								<div class="form-control w-full">
-									<label
-										class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
-										class:border-primary={formData.paymentType === 'Bonifico bancario'}
-										class:bg-base-200={formData.paymentType === 'Bonifico bancario'}
-									>
-										<input type="radio" name="payment" value="Bonifico bancario" class="hidden" bind:group={formData.paymentType} />
-										<Landmark class="h-8 w-8 text-primary" />
-										<span class="text-center font-medium">Bonifico bancario</span>
-									</label>
-								</div>
 
-								<div class="form-control w-full">
-									<label
-										class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
-										class:border-primary={formData.paymentType === 'Carta di credito'}
-										class:bg-base-200={formData.paymentType === 'Carta di credito'}
-									>
-										<input type="radio" name="payment" value="Carta di credito" class="hidden" bind:group={formData.paymentType} />
-										<CreditCard class="h-8 w-8 text-primary" />
-										<span class="text-center font-medium">Carta di credito</span>
-									</label>
+						{#if !formData.usePoint || grandTotal() !== 0}
+								<div class="divider my-2 font-medium text-primary">Metodo di Pagamento</div>
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<!-- <div class="grid grid-cols-1 md:grid-cols-3 gap-4"> -->
+									<div class="form-control w-full">
+										<label
+											class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
+											class:border-primary={formData.paymentType === 'Bonifico bancario'}
+											class:bg-base-200={formData.paymentType === 'Bonifico bancario'}
+										>
+											<input type="radio" name="payment" value="Bonifico bancario" class="hidden" bind:group={formData.paymentType} />
+											<Landmark class="h-8 w-8 text-primary" />
+											<span class="text-center font-medium">Bonifico bancario</span>
+										</label>
+									</div>
+
+									<div class="form-control w-full">
+										<label
+											class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
+											class:border-primary={formData.paymentType === 'Carta di credito'}
+											class:bg-base-200={formData.paymentType === 'Carta di credito'}
+										>
+											<input type="radio" name="payment" value="Carta di credito" class="hidden" bind:group={formData.paymentType} />
+											<CreditCard class="h-8 w-8 text-primary" />
+											<span class="text-center font-medium">Carta di credito</span>
+										</label>
+									</div>
 								</div>
-							</div>
-							<!-- {/if} -->
-							<div class="card bg-base-100 shadow-xl p-6 w-full" class:hidden={formData.paymentType !== 'Carta di credito'}>
-								<h3 class="text-xl font-semibold mb-4">Informazioni sulla carta di credito</h3>
-								<div class="form-control">
-									<div id="card-element" class="border border-base-300 p-3 rounded-md"></div>
-									{#if stripeError}
-										<p class="text-error text-sm mt-2">{stripeError}</p>
+								<!-- {/if} -->
+								<div class="card bg-base-100 shadow-xl p-6 w-full" class:hidden={formData.paymentType !== 'Carta di credito'}>
+									<h3 class="text-xl font-semibold mb-4">Informazioni sulla carta di credito</h3>
+									<div class="form-control">
+										<div id="card-element" class="border border-base-300 p-3 rounded-md"></div>
+										{#if stripeError}
+											<p class="text-error text-sm mt-2">{stripeError}</p>
+										{/if}
+									</div>
+									<p class="text-sm text-gray-500 mt-2">
+										<Lock size={14} class="inline-block mr-1" /> Le tue informazioni di pagamento sono protette.
+									</p>
+									{#if !paymentMethodId}
+										<button type="button" class="btn btn-info mt-4" onclick={getStripeId}>VERIFICA CARTA </button>
+									{:else}
+										<div class="btn btn-primary mt-4">CARTA OK <CircleCheckBig /></div>
 									{/if}
 								</div>
-								<p class="text-sm text-gray-500 mt-2">
-									<Lock size={14} class="inline-block mr-1" /> Le tue informazioni di pagamento sono protette.
-								</p>
-								{#if !paymentMethodId}
-									<button type="button" class="btn btn-info mt-4" onclick={getStripeId}>VERIFICA CARTA </button>
-								{:else}
-									<div class="btn btn-primary mt-4">CARTA OK <CircleCheckBig /></div>
+								{#if formData.paymentType === 'Bonifico bancario' && grandTotal() > 0}
+									<div class="card bg-base-100 shadow-xl p-6">
+										<h3 class="text-xl font-semibold mb-4">Dettagli Bonifico Bancario</h3>
+										<p>Effettua un bonifico bancario alle seguenti coordinate:</p>
+										<p><strong>IBAN:</strong> IT93 R076 0111 5000 0102 3646 647</p>
+										<p><strong>BIC/SWIFT:</strong> BPPIITRRXXX</p>
+										<p><strong>INTESTATO A:</strong> ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia</p>
+										<p>VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA</p>
+										<br />
+										<p>
+											Si prega di includere il tuo ID ordine nella causale del bonifico. Il tuo ordine sarà elaborato dopo la conferma del pagamento.
+										</p>
+									</div>
+								{:else if formData.paymentType === 'Bonifico bancario' && grandTotal() === 0 && formData.usePoint}
+									<div class="card bg-base-100 shadow-xl p-6">
+										<h3 class="text-xl font-semibold mb-4">Pagamento con punti: {pointsDiscount()}</h3>
+									</div>
 								{/if}
-							</div>
-							{#if formData.paymentType === 'Bonifico bancario' && grandTotal() > 0}
-								<div class="card bg-base-100 shadow-xl p-6">
-									<h3 class="text-xl font-semibold mb-4">Dettagli Bonifico Bancario</h3>
-									<p>Effettua un bonifico bancario alle seguenti coordinate:</p>
-									<p><strong>IBAN:</strong> IT93 R076 0111 5000 0102 3646 647</p>
-									<p><strong>BIC/SWIFT:</strong> BPPIITRRXXX</p>
-									<p><strong>INTESTATO A:</strong> ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia</p>
-									<p>VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA</p>
-									<br />
-									<p>
-										Si prega di includere il tuo ID ordine nella causale del bonifico. Il tuo ordine sarà elaborato dopo la conferma del pagamento.
-									</p>
-								</div>
-							{:else if formData.paymentType === 'Bonifico bancario' && grandTotal() === 0 && formData.usePoint}
-								<div class="card bg-base-100 shadow-xl p-6">
-									<h3 class="text-xl font-semibold mb-4">Pagamento con punti: {pointsDiscount()}</h3>
-								</div>
 							{/if}
 						</div>
 					</form>
@@ -1250,8 +1247,11 @@
 		<div class="">
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 mt-4">
 				<div class="space-y-4">
-					<h4 class="font-medium text-primary">Informazioni Personali</h4>
-
+					{#if formData.differentShippingAddress}
+						<h4 class="font-medium text-primary">Informazioni di Fatturazione</h4>
+					{:else}
+						<h4 class="font-medium text-primary">Informazioni di Fatturazione e Spedizione</h4>
+					{/if}
 					<div class="grid grid-cols-2 gap-2">
 						<div>
 							<p class="text-sm text-base-content/70">Nome</p>
@@ -1277,8 +1277,8 @@
 				</div>
 
 				<div class="space-y-4">
-					<h4 class="font-medium text-primary">Indirizzo di Spedizione</h4>
-
+					<!-- <h4 class="font-medium text-primary">Indirizzo di Spedizione</h4> -->
+					<div class="font-medium text-primary invisible">Placeholder</div>
 					<div class="grid grid-cols-2 gap-2">
 						<div class="col-span-2">
 							<p class="text-sm text-base-content/70">Indirizzo</p>
@@ -1303,6 +1303,62 @@
 					</div>
 				</div>
 			</div>
+			{#if formData.differentShippingAddress}
+				<div class="mb-6">
+					<h4 class="font-medium text-primary mb-4">Informazioni di spedizione</h4>
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div class="space-y-4">
+							<div class="grid grid-cols-2 gap-2">
+								<div>
+									<p class="text-sm text-base-content/70">Nome</p>
+									<p class="font-medium">{shippingName}</p>
+								</div>
+								<div>
+									<p class="text-sm text-base-content/70">Cognome</p>
+									<p class="font-medium">{shippingSurname}</p>
+								</div>
+								<div class="col-span-2">
+									<p class="text-sm text-base-content/70">Email</p>
+									<p class="font-medium">{shippingEmail}</p>
+								</div>
+								<div>
+									<p class="text-sm text-base-content/70">Telefono</p>
+									<p class="font-medium">{shippingPhone || 'Non specificato'}</p>
+								</div>
+								<div>
+									<p class="text-sm text-base-content/70">Cellulare</p>
+									<p class="font-medium">{shippingMobilePhone}</p>
+								</div>
+							</div>
+						</div>
+
+						<div class="space-y-4">
+							<div class="grid grid-cols-2 gap-2">
+								<div class="col-span-2">
+									<p class="text-sm text-base-content/70">Indirizzo</p>
+									<p class="font-medium">{shippingAddress}</p>
+								</div>
+								<div>
+									<p class="text-sm text-base-content/70">Città</p>
+									<p class="font-medium">{shippingCity}</p>
+								</div>
+								<div>
+									<p class="text-sm text-base-content/70">CAP</p>
+									<p class="font-medium">{shippingPostalCode}</p>
+								</div>
+								<div>
+									<p class="text-sm text-base-content/70">Provincia</p>
+									<p class="font-medium">{shippingCounty}</p>
+								</div>
+								<div>
+									<p class="text-sm text-base-content/70">Nazione</p>
+									<p class="font-medium">{shippingCountry}</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			{/if}
 
 			<div class="space-y-4 mb-6">
 				<h4 class="font-medium text-primary">Dettagli Pagamento:</h4>
@@ -1473,6 +1529,16 @@
 				<input type="hidden" name="usePoint" value={formData.usePoint} />
 				<input type="hidden" name="storePickUp" value={formData.storePickUp} />
 				<input type="hidden" name="paymentMethodId" value={paymentMethodId || null} />
+				<input type="hidden" name="shippingName" value={shippingName} />
+				<input type="hidden" name="shippingSurname" value={shippingSurname} />
+				<input type="hidden" name="shippingEmail" value={shippingEmail} />
+				<input type="hidden" name="shippingPhone" value={shippingPhone} />
+				<input type="hidden" name="shippingMobilePhone" value={shippingMobilePhone} />
+				<input type="hidden" name="shippingAddress" value={shippingAddress} />
+				<input type="hidden" name="shippingCity" value={shippingCity} />
+				<input type="hidden" name="shippingCounty" value={shippingCounty} />
+				<input type="hidden" name="shippingPostalCode" value={shippingPostalCode} />
+				<input type="hidden" name="shippingCountry" value={shippingCountry} />
 
 				<label for="orderNotes" class="label">
 					<span class="label-text font-medium">Note per l'ordine (opzionale)</span>
