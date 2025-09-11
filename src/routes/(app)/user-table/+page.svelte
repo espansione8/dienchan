@@ -281,39 +281,48 @@
 		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
 			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
-			
-			
 			await invalidateAll();
-			if (result.type === 'success' && result.data) {
-				const { action, message, payload } = result.data; // { action, success, message, payload }
-				if (action == 'filter') {
-					resetActive = true;
-					tableList = payload;
-					notification.info(message);
-				} else if (action == 'downloadCsv') {
-					csvCreate(payload);
-					notification.success(message);
-				} else if (action == 'changePage') {
-					tableList = payload.result;
-					currentPage = payload.currentPage;
-				} else {
-					tableList = getTable;
-					resetActive = false;
-					notification.info(message);
-				}
+			try {
+				if (result.type === 'success' && result.data) {
+					const { action, message, payload } = result.data; // { action, success, message, payload }
+					if (action == 'filter') {
+						resetActive = true;
+						tableList = payload;
+						notification.info(message);
+					} else if (action == 'downloadCsv') {
+						csvCreate(payload);
+						notification.success(message);
+					} else if (action == 'changePage') {
+						tableList = payload.result;
+						currentPage = payload.currentPage;
+					} else if (action == 'changeStatus') {
+						notification.success(message);
+						if (resetActive) {
+							tableList = payload;
+							//console.log('tableList', tableList);
+						} else {
+							tableList = getTable;
+						}
+					} else {
+						tableList = getTable;
+						resetActive = false;
+						notification.info(message);
+					}
 
-				onCloseModal();
+					onCloseModal();
+				}
+				if (result.type === 'failure') {
+					notification.error(result.data.message);
+				}
+				if (result.type === 'error') {
+					notification.error(result.error.message);
+				}
+				// 'update()' is called by default by use:enhance
+				//await update(); // if you need to ensure it completes before further client logic.
+			} finally {
+				resetFields();
+				loading = false;
 			}
-			if (result.type === 'failure') {
-				notification.error(result.data.message);
-			}
-			if (result.type === 'error') {
-				notification.error(result.error.message);
-			}
-			// 'update()' is called by default by use:enhance
-			// call 'await update()' if you need to ensure it completes before further client logic.
-			resetFields();
-			loading = false;
 		};
 	};
 
@@ -1051,6 +1060,28 @@
 						name="email"
 						bind:value={email}
 						placeholder="Scrivi un email"
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div>
+					<label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+					<input
+						type="text"
+						id="name"
+						name="name"
+						bind:value={name}
+						placeholder="Scrivi un nome"
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div>
+					<label for="surname" class="block text-sm font-medium text-gray-700 mb-1">Cognome</label>
+					<input
+						type="text"
+						id="surname"
+						name="surname"
+						bind:value={surname}
+						placeholder="Scrivi un cognome"
 						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					/>
 				</div>

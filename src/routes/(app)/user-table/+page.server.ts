@@ -270,6 +270,8 @@ export const actions: Actions = {
 		const level = formData.get('level');
 		const membershipLevel = formData.get('membershipLevel');
 		const email = formData.get('email');
+		const name = formData.get('name');
+		const surname = formData.get('surname');
 		// const arrayField = ['level', 'membership.membershipLevel', 'email'];
 		// const arrayValue = [level, membershipLevel, email];
 
@@ -281,11 +283,14 @@ export const actions: Actions = {
 				query: {
 					...(level && { level }),
 					...(membershipLevel && { ['membership.membershipLevel']: membershipLevel }),
-					...(email && { email })
+					//...(email && { email })
+					...(email && { email: { $regex: email, $options: 'i' } }),
+					...(name && { name: { $regex: name, $options: 'i' } }),
+					...(surname && { surname: { $regex: surname, $options: 'i' } }),
 				},
 				projection: { _id: 0 }, // 0: exclude | 1: include,
 				//sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending,
-				limit: 1000,
+				limit: 500,
 				skip: 0
 			}),
 			headers: {
@@ -317,11 +322,12 @@ export const actions: Actions = {
 		const userId = formData.get('userId');
 		const status = formData.get('status');
 		const newStatus = status == 'enabled' ? 'disabled' : 'enabled';
+
 		if (!userId) {
 			return fail(400, { action: 'disableUser', success: false, message: 'Dati mancanti' });
 		}
 
-		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+		const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
@@ -333,6 +339,12 @@ export const actions: Actions = {
 					}
 				},
 				options: { upsert: false },
+				//TODO TEST
+				// options: {
+				// 	upsert: false,
+				// 	returnDocument: 'after',
+				// 	projection: { _id: 0, password: 0 }
+				// }
 				multi: false
 			}),
 			headers: {
@@ -340,8 +352,26 @@ export const actions: Actions = {
 			}
 		});
 
+		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { userId },
+				projection: { _id: 0, password: 0 }, // 0: exclude | 1: include
+				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				limit: 1,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
 		try {
-			const res = await resFetch;
+			const res = await updateFetch;
+			const resUser = await userFetch;
+
 			if (!res.ok) {
 				const errorText = await res.text();
 				console.error('changeStatus update failed', res.status, errorText);
@@ -349,7 +379,14 @@ export const actions: Actions = {
 			}
 			const result = await res.json();
 
-			return { action: 'changeStatus', success: true, message: result.message };
+			if (!resUser.ok) {
+				const errorText = await resUser.text();
+				console.error('user update failed', resUser.status, errorText);
+				return fail(400, { action: 'changeStatus', success: false, message: errorText });
+			}
+			const user = await resUser.json();
+
+			return { action: 'changeStatus', success: true, message: result.message, payload: user };
 
 		} catch (error) {
 			console.error('Error changeStatus:', error);
