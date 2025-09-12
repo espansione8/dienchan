@@ -190,6 +190,284 @@
 		pdfMake.createPdf(doc, null, pdfFonts).download(`Attestato_${item.layoutView.title}_${user.name}_${user.surname}.pdf`);
 	};
 
+	
+	const createPDFUserList = (courseItem, subscribers) => {
+		if (!courseItem || !subscribers || subscribers.length === 0) {
+			notification.error('Dati mancanti per generare la lista partecipanti');
+			return;
+		}
+
+		console.log('courseItem', courseItem);
+		console.log('subscribers', subscribers);
+
+		// Prepara i dati per la tabella
+		const tableBody = [
+			// Header della tabella
+			[
+				{ text: 'Nome', style: 'tableHeader' },
+				{ text: 'Cognome', style: 'tableHeader' },
+				{ text: 'Email', style: 'tableHeader' },
+				{ text: 'Telefono', style: 'tableHeader' },
+				{ text: 'Metodo Pagamento', style: 'tableHeader' },
+				{ text: 'Stato Pagamento', style: 'tableHeader' }
+			]
+		];
+
+		// Aggiungi i dati dei partecipanti
+		subscribers.forEach((subscriber, index) => {
+			tableBody.push([
+				{ text: subscriber.name || 'N/A', style: 'tableData' },
+				{ text: subscriber.surname || 'N/A', style: 'tableData' },
+				{ text: subscriber.email || 'N/A', style: 'tableData' },
+				{ text: subscriber.mobilePhone || subscriber.phone || 'N/A', style: 'tableData' },
+				{ text: subscriber.paymentMethodm || 'Non trovato', style: 'tableData' },
+				{ text: subscriber.paymentStatus || 'Non trovato', style: 'tableData' }
+			]);
+		});
+
+		// Definizione del documento PDF
+		// Definizione del documento PDF
+		const doc = {
+			compress: true,
+			pageSize: 'A4',
+			pageOrientation: 'portrait',
+			pageMargins: [40, 60, 40, 60],
+
+			content: [
+				// Intestazione
+				{
+					text: 'LISTA PARTECIPANTI',
+					style: 'mainHeader',
+					alignment: 'center',
+					margin: [0, 0, 0, 20]
+				},
+
+				// Informazioni del corso
+				{
+					columns: [
+						{
+							width: '*',
+							stack: [
+								{
+									text: [
+										{ text: 'Corso: ', style: 'labelBold' },
+										{ text: courseItem.layoutView?.title || 'N/A', style: 'valueText' }
+									]
+								},
+								{
+									text: [
+										{ text: 'Formatore: ', style: 'labelBold' },
+										{ text: `${courseItem.name} ${courseItem.surname}`, style: 'valueText' }
+									],
+									margin: [0, 5, 0, 0]
+								},
+								{
+									text: [
+										{ text: 'Data: ', style: 'labelBold' },
+										{ text: `${courseItem.eventStartDate} - ${courseItem.timeStartDate}`, style: 'valueText' }
+									],
+									margin: [0, 5, 0, 0]
+								}
+							]
+						},
+						{
+							width: '*',
+							stack: [
+								{
+									text: [
+										{ text: 'Luogo: ', style: 'labelBold' },
+										{ text: courseItem.location || 'N/A', style: 'valueText' }
+									]
+								},
+								{
+									text: [
+										{ text: 'Provincia: ', style: 'labelBold' },
+										{ text: courseItem.county?.join(', ') || 'N/A', style: 'valueText' }
+									],
+									margin: [0, 5, 0, 0]
+								},
+								{
+									text: [
+										{ text: 'Totale Partecipanti: ', style: 'labelBold' },
+										{ text: subscribers.length.toString(), style: 'valueText' }
+									],
+									margin: [0, 5, 0, 0]
+								}
+							]
+						}
+					],
+					margin: [0, 0, 0, 30]
+				},
+
+				// Tabella partecipanti con checkbox
+				{
+					table: {
+						headerRows: 1,
+						// Modificata la definizione delle larghezze per includere la colonna checkbox
+						widths: ['8%', '14%', '14%', '22%', '14%', '14%', '14%'],
+						body: [
+							// Header della tabella con la nuova colonna
+							[
+								{ text: '  ', style: 'tableHeader' },
+								{ text: 'Nome', style: 'tableHeader' },
+								{ text: 'Cognome', style: 'tableHeader' },
+								{ text: 'Email', style: 'tableHeader' },
+								{ text: 'Telefono', style: 'tableHeader' },
+								{ text: 'Metodo Pagamento', style: 'tableHeader' },
+								{ text: 'Stato Pagamento', style: 'tableHeader' }
+							],
+							// Righe dei dati - esempio di come costruire tableBody con checkbox
+							...subscribers.map((subscriber) => [
+								// Checkbox come primo elemento di ogni riga
+								{
+									text: ' ', // Carattere Unicode per checkbox vuoto
+									style: 'tableCheckbox',
+									alignment: 'center'
+								},
+								{ text: subscriber.name || 'N/A', style: 'tableData' },
+								{ text: subscriber.surname || 'N/A', style: 'tableData' },
+								{ text: subscriber.email || 'N/A', style: 'tableData' },
+								{ text: subscriber.phone || 'N/A', style: 'tableData' },
+								{ text: subscriber.paymentMethod || 'N/A', style: 'tableData' },
+								{
+									text: subscriber.isPaid ? 'Pagato' : 'In sospeso',
+									style: subscriber.isPaid ? 'tablePaid' : 'tablePending'
+								}
+							])
+						]
+					},
+					layout: {
+						fillColor: function (rowIndex, node, columnIndex) {
+							return rowIndex === 0 ? '#4472C4' : rowIndex % 2 === 0 ? '#F2F2F2' : null;
+						},
+						hLineWidth: function (i, node) {
+							return 1;
+						},
+						vLineWidth: function (i, node) {
+							return 1;
+						},
+						hLineColor: function (i, node) {
+							return '#CCCCCC';
+						},
+						vLineColor: function (i, node) {
+							return '#CCCCCC';
+						}
+					}
+				},
+
+				// Riepilogo pagamenti
+				{
+					text: 'RIEPILOGO PAGAMENTI',
+					style: 'sectionHeader',
+					margin: [0, 30, 0, 10]
+				},
+				{
+					columns: [
+						{
+							width: '*',
+							stack: [
+								{
+									text: [
+										{ text: 'Pagamenti completati: ', style: 'labelBold' },
+										{ text: getPaidCount(subscribers).toString(), style: 'valueText' }
+									]
+								},
+								{
+									text: [
+										{ text: 'Pagamenti in sospeso: ', style: 'labelBold' },
+										{ text: (subscribers.length - getPaidCount(subscribers)).toString(), style: 'valueText' }
+									],
+									margin: [0, 5, 0, 0]
+								}
+							]
+						},
+						{
+							width: '*',
+							stack: [
+								{
+									text: [
+										{ text: 'Prezzo corso: ', style: 'labelBold' },
+										{ text: `€ ${courseItem.layoutView?.price || 0}`, style: 'valueText' }
+									]
+								}
+							]
+						}
+					]
+				},
+
+				// Footer con data generazione
+				{
+					text: `Lista generata il ${new Date().toLocaleDateString('it-IT')} alle ${new Date().toLocaleTimeString('it-IT')}`,
+					style: 'footer',
+					alignment: 'right',
+					margin: [0, 20, 0, 0]
+				}
+			],
+
+			// Definizione degli stili
+			styles: {
+				mainHeader: {
+					fontSize: 18,
+					bold: true,
+					color: '#2E5BBA'
+				},
+				sectionHeader: {
+					fontSize: 14,
+					bold: true,
+					color: '#2E5BBA'
+				},
+				labelBold: {
+					fontSize: 10,
+					bold: true,
+					color: '#333333'
+				},
+				valueText: {
+					fontSize: 10,
+					color: '#555555'
+				},
+				tableHeader: {
+					fontSize: 9,
+					bold: true,
+					color: 'white',
+					alignment: 'center'
+				},
+				tableData: {
+					fontSize: 8,
+					color: '#333333'
+				},
+				tableCheckbox: {
+					fontSize: 12,
+					color: '#333333'
+				},
+				tablePaid: {
+					fontSize: 8,
+					color: '#008000',
+					bold: true
+				},
+				tablePending: {
+					fontSize: 8,
+					color: '#FF6600'
+				},
+				footer: {
+					fontSize: 8,
+					italics: true,
+					color: '#888888'
+				}
+			}
+		};
+
+		// Genera e scarica il PDF
+		pdfMake
+			.createPdf(doc, null, pdfFonts)
+			.download(`ListaPartecipanti_${courseItem.layoutView?.title}_${new Date().toISOString().split('T')[0]}.pdf`);
+	};
+
+
+
+	const getPaidCount = (subscribers) => {
+		return subscribers.filter((sub) => sub.paymentStatus === 'paid').length;
+	};
+
 	// Date & Time
 	const now = new Date();
 	let currentYear = now.getFullYear().toString();
@@ -1221,7 +1499,7 @@
 					{/if}
 				</form>
 			{/if}
-			<div class="mb-6">
+			<div class="mb-6 flex justify-between items-center">
 				<button
 					type="button"
 					class="btn"
@@ -1231,6 +1509,15 @@
 					disabled={certificationStatus}
 				>
 					{showCheckboxes ? 'Annulla' : 'Genera Attestati'}
+				</button>
+
+				<button
+					type="button"
+					class="btn btn-info text-white"
+					onclick={() => createPDFUserList(currentObj, subscribers)}
+					disabled={!subscribers || subscribers.length === 0}
+				>
+					<FileDown /> Download Lista Partecipanti
 				</button>
 			</div>
 

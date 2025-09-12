@@ -146,9 +146,14 @@
 
 	const clickPoint = () => {
 		formData.usePoint = !formData.usePoint;
-		if (grandTotal() == 0) {
-			formData.paymentType = 'Bonifico bancario';
+		if (formData.usePoint) {
+			if (grandTotal() == 0) {
+				formData.paymentType = 'Punti';
+			} else {
+				formData.paymentType = 'Carta di credito';
+			}
 		}
+
 		// let finalTotal = subTotal();
 		// console.log('before pointsBalance', formData.pointsBalance);
 		// if (formData.usePoint) {
@@ -1052,12 +1057,12 @@
 							<div class="form-control">
 								<label class="label cursor-pointer justify-start gap-2">
 									<input type="checkbox" class="checkbox checkbox-primary" bind:checked={formData.storePickUp} />
-									<span class="label-text text-base font-medium">Ritiro in sede (Spedizione gratuita) {formData.usePoint} {newPointsBalance()}</span>
+									<span class="label-text text-base font-medium">Ritiro in sede (Spedizione gratuita) </span>
 								</label>
 							</div>
 							<!-- {#if !formData.usePoint && formData.pointsBalance >= grandTotal() && $cartProducts.length > 0} -->
 
-						{#if !formData.usePoint || grandTotal() !== 0}
+							{#if grandTotal() > 0}
 								<div class="divider my-2 font-medium text-primary">Metodo di Pagamento</div>
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<!-- <div class="grid grid-cols-1 md:grid-cols-3 gap-4"> -->
