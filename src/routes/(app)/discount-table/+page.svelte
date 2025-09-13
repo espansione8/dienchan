@@ -974,16 +974,41 @@
 			</fieldset>
 
 			<fieldset class="fieldset col-span-1">
+				<legend class="fieldset-legend">ID sconto</legend>
+				<!-- <span class="label">Optional</span> -->
+				<div class="join w-full">
+					<div class="join-item btn pointer-events-none"><Pen /></div>
+					<input class="input join-item flex-1" name="discountId" type="text" placeholder="ID" aria-label="Titolo" aria-describedby="basic-titolo" />
+				</div>
+			</fieldset>
+
+			<fieldset class="fieldset col-span-1">
+				<legend class="fieldset-legend">Tipo Categoria</legend>
+				<div class="join w-full">
+					<div class="join-item btn pointer-events-none"><StretchHorizontal /></div>
+					<select name="selectedApplicability" value="" class="select join-item flex-1">
+						<option value="" disabled>Seleziona la categoria</option>
+						<option value="email">Sconto Esclusivo Personale</option>
+						<!-- <option value="cart">Sconto totale Carrello</option> -->
+						<option value="membershipLevel">Sconto per Membership</option>
+						<option value="riflessologo">Sconto tutti Riflessologi</option>
+						<option value="prodId"> Sconto Prodotto specifico</option>
+						<option value="layoutId">Sconto per Tipo Corso</option>
+					</select>
+				</div>
+			</fieldset>
+
+			<fieldset class="fieldset col-span-1">
 				<legend class="fieldset-legend">Tipo Sconto</legend>
 				<!-- <span class="label">Optional</span> -->
 				<div class="join w-full">
 					<div class="join-item btn pointer-events-none"><StretchHorizontal /></div>
-					<select name="selectedApplicability" value="" class="select join-item flex-1">
+					<select name="type" value="" class="select join-item flex-1">
 						<option value="" disabled>Seleziona il tipo di sconto</option>
-						<option value="email">Utente</option>
-						<option value="prodId">Prodotto</option>
-						<option value="layoutId">Corso</option>
-						<option value="membershipLevel">Associato</option>
+						<option value="percent">Sconto in Percentuale</option>
+						<option value="amount">Sconto valore fisso</option>
+						<option value="referral">Sconto + Punti</option>
+						<!-- <option value="membershipLevel">Associato</option> -->
 					</select>
 				</div>
 			</fieldset>

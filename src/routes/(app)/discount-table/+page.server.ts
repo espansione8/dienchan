@@ -339,7 +339,9 @@ export const actions: Actions = {
 	filter: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const code = formData.get('code');
+		const discountId = formData.get('discountId');
 		const selectedApplicability = formData.get('selectedApplicability');
+		const type = formData.get('type');
 		const status = formData.get('status');
 
 		const resFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
@@ -350,6 +352,8 @@ export const actions: Actions = {
 				query: {
 					//type: 'course', 'product', 'membership', 'event'
 					...(code && { code: { $regex: `.*${code}.*`, $options: 'i' } }),
+					...(discountId && { discountId: { $regex: `.*${discountId}.*`, $options: 'i' } }),
+					...(type && { type }),
 					...(selectedApplicability && { selectedApplicability }),
 					...(status && { status }),
 				},
