@@ -190,19 +190,18 @@
 		pdfMake.createPdf(doc, null, pdfFonts).download(`Attestato_${item.layoutView.title}_${user.name}_${user.surname}.pdf`);
 	};
 
-	
 	const createPDFUserList = (courseItem, subscribers) => {
 		if (!courseItem || !subscribers || subscribers.length === 0) {
 			notification.error('Dati mancanti per generare la lista partecipanti');
 			return;
 		}
+		// console.log('courseItem', courseItem);
+		// console.log('subscribers', subscribers);
+		const getPaidCount = (subscribers) => {
+			return subscribers.filter((sub) => sub.paymentStatus === 'done').length;
+		};
 
-		console.log('courseItem', courseItem);
-		console.log('subscribers', subscribers);
-
-		// Prepara i dati per la tabella
 		const tableBody = [
-			// Header della tabella
 			[
 				{ text: 'Nome', style: 'tableHeader' },
 				{ text: 'Cognome', style: 'tableHeader' },
@@ -213,20 +212,17 @@
 			]
 		];
 
-		// Aggiungi i dati dei partecipanti
 		subscribers.forEach((subscriber, index) => {
 			tableBody.push([
 				{ text: subscriber.name || 'N/A', style: 'tableData' },
 				{ text: subscriber.surname || 'N/A', style: 'tableData' },
 				{ text: subscriber.email || 'N/A', style: 'tableData' },
 				{ text: subscriber.mobilePhone || subscriber.phone || 'N/A', style: 'tableData' },
-				{ text: subscriber.paymentMethodm || 'Non trovato', style: 'tableData' },
+				{ text: subscriber.paymentMethod || 'Non trovato', style: 'tableData' },
 				{ text: subscriber.paymentStatus || 'Non trovato', style: 'tableData' }
 			]);
 		});
 
-		// Definizione del documento PDF
-		// Definizione del documento PDF
 		const doc = {
 			compress: true,
 			pageSize: 'A4',
@@ -234,7 +230,6 @@
 			pageMargins: [40, 60, 40, 60],
 
 			content: [
-				// Intestazione
 				{
 					text: 'LISTA PARTECIPANTI',
 					style: 'mainHeader',
@@ -242,7 +237,6 @@
 					margin: [0, 0, 0, 20]
 				},
 
-				// Informazioni del corso
 				{
 					columns: [
 						{
@@ -251,7 +245,7 @@
 								{
 									text: [
 										{ text: 'Corso: ', style: 'labelBold' },
-										{ text: courseItem.layoutView?.title || 'N/A', style: 'valueText' }
+										{ text: `${courseItem.layoutView?.title} (${courseItem.prodId})` || 'N/A', style: 'valueText' }
 									]
 								},
 								{
@@ -299,14 +293,12 @@
 					margin: [0, 0, 0, 30]
 				},
 
-				// Tabella partecipanti con checkbox
 				{
 					table: {
 						headerRows: 1,
-						// Modificata la definizione delle larghezze per includere la colonna checkbox
+						// table column width
 						widths: ['8%', '14%', '14%', '22%', '14%', '14%', '14%'],
 						body: [
-							// Header della tabella con la nuova colonna
 							[
 								{ text: '  ', style: 'tableHeader' },
 								{ text: 'Nome', style: 'tableHeader' },
@@ -316,7 +308,6 @@
 								{ text: 'Metodo Pagamento', style: 'tableHeader' },
 								{ text: 'Stato Pagamento', style: 'tableHeader' }
 							],
-							// Righe dei dati - esempio di come costruire tableBody con checkbox
 							...subscribers.map((subscriber) => [
 								// Checkbox come primo elemento di ogni riga
 								{
@@ -327,11 +318,11 @@
 								{ text: subscriber.name || 'N/A', style: 'tableData' },
 								{ text: subscriber.surname || 'N/A', style: 'tableData' },
 								{ text: subscriber.email || 'N/A', style: 'tableData' },
-								{ text: subscriber.phone || 'N/A', style: 'tableData' },
+								{ text: subscriber.mobilePhone || subscriber.phone || 'N/A', style: 'tableData' },
 								{ text: subscriber.paymentMethod || 'N/A', style: 'tableData' },
 								{
-									text: subscriber.isPaid ? 'Pagato' : 'In sospeso',
-									style: subscriber.isPaid ? 'tablePaid' : 'tablePending'
+									text: subscriber.paymentStatus === 'done' ? 'Pagato' : 'In sospeso',
+									style: subscriber.paymentStatus === 'done' ? 'tablePaid' : 'tablePending'
 								}
 							])
 						]
@@ -395,7 +386,7 @@
 					]
 				},
 
-				// Footer con data generazione
+				// Footer
 				{
 					text: `Lista generata il ${new Date().toLocaleDateString('it-IT')} alle ${new Date().toLocaleTimeString('it-IT')}`,
 					style: 'footer',
@@ -404,7 +395,6 @@
 				}
 			],
 
-			// Definizione degli stili
 			styles: {
 				mainHeader: {
 					fontSize: 18,
@@ -456,22 +446,15 @@
 			}
 		};
 
-		// Genera e scarica il PDF
 		pdfMake
 			.createPdf(doc, null, pdfFonts)
 			.download(`ListaPartecipanti_${courseItem.layoutView?.title}_${new Date().toISOString().split('T')[0]}.pdf`);
 	};
 
-
-
-	const getPaidCount = (subscribers) => {
-		return subscribers.filter((sub) => sub.paymentStatus === 'paid').length;
-	};
-
 	// Date & Time
 	const now = new Date();
 	let currentYear = now.getFullYear().toString();
-	let currentMonth = (now.getMonth() + 1).toString().padStart(2, '0'); // getMonth() restituisce 0-11, quindi aggiungiamo 1
+	let currentMonth = (now.getMonth() + 1).toString().padStart(2, '0'); // getMonth() return 0-11, need to add 1
 	let currentDay = now.getDate().toString().padStart(2, '0');
 	let currentHour = now.getHours().toString().padStart(2, '0');
 	//let currentMinute = now.getMinutes();
@@ -762,8 +745,9 @@
 		}
 		if (type == 'subscribers') {
 			modalTitle = 'Lista iscritti';
-			subscribers = currentObj.listSubscribers;
-			certificationStatus = currentObj.certificationStatus;
+			prodId = item.prodId ?? '';
+			subscribers = item.listSubscribers ?? [];
+			certificationStatus = item.certificationStatus;
 			postAction = `?/createCertification`;
 		}
 	};
@@ -788,13 +772,18 @@
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
 				const { action, message, payload } = result.data; // { action, success, message, payload }
+				//onclick={() => createPDFUserList(currentObj, subscribers)}
 				if (action == 'filter') {
 					resetActive = true;
 					tableList = payload;
+				} else if (action == 'coursePdf') {
+					//console.log('payload', payload);
+					createPDFUserList(currentObj, payload);
 				} else {
 					resetActive = false;
 					tableList = getTable;
 				}
+
 				notification.info(message);
 			}
 			if (result.type === 'failure') {
@@ -1510,15 +1499,13 @@
 				>
 					{showCheckboxes ? 'Annulla' : 'Genera Attestati'}
 				</button>
-
-				<button
-					type="button"
-					class="btn btn-info text-white"
-					onclick={() => createPDFUserList(currentObj, subscribers)}
-					disabled={!subscribers || subscribers.length === 0}
-				>
-					<FileDown /> Download Lista Partecipanti
-				</button>
+				<form method="POST" action="?/coursePdf" use:enhance={formSubmit} class="">
+					<input type="hidden" name="prodId" value={prodId} />
+					<input type="hidden" name="subscribers" value={JSON.stringify(subscribers)} />
+					<button type="submit" class="btn btn-info text-white" disabled={!subscribers || subscribers.length === 0}>
+						<FileDown /> Partecipanti
+					</button>
+				</form>
 			</div>
 
 			<div class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8">

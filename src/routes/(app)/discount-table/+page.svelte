@@ -31,6 +31,7 @@
 	let typeDiscount = $state('percent');
 	let value = $state(0);
 	let user = $state('');
+	let referralEmail = $state('');
 	// let prodId = $state('');
 	// let layoutId = $state('');
 	// let membershipLevel = $state('');
@@ -118,6 +119,7 @@
 		// membershipLevel = '';
 		notes = '';
 		selectedApplicability = 'email';
+		referralEmail = '';
 	};
 
 	const refresh = () => {
@@ -276,10 +278,10 @@
 						<td>{row.code}</td>
 						<td>{row.type}</td>
 						<td>{row.type == 'referral' ? `${row.refDiscount}/${row.refPoints}` : row.value}</td>
-						<td> {row.selectedApplicability}</td>
+						<td>"{row.selectedApplicability}"</td>
 						<!-- <td> {row[selectedApplicability]}</td> -->
 						<td>
-							{row.selectedApplicability === 'riflessologo' ? 'Tutti i Riflessologi' : row[row.selectedApplicability]}
+							{row.selectedApplicability === 'riflessologo' ? 'Tutti i Riflessologi' : `"${row[row.selectedApplicability]}"`}
 						</td>
 						<!-- Azione -->
 						<td class="flex items-center space-x-4">
@@ -983,48 +985,66 @@
 			</fieldset>
 
 			<fieldset class="fieldset col-span-1">
-				<legend class="fieldset-legend">Tipo Categoria</legend>
-				<div class="join w-full">
-					<div class="join-item btn pointer-events-none"><StretchHorizontal /></div>
-					<select name="selectedApplicability" value="" class="select join-item flex-1">
-						<option value="" disabled>Seleziona la categoria</option>
-						<option value="email">Sconto Esclusivo Personale</option>
-						<!-- <option value="cart">Sconto totale Carrello</option> -->
-						<option value="membershipLevel">Sconto per Membership</option>
-						<option value="riflessologo">Sconto tutti Riflessologi</option>
-						<option value="prodId"> Sconto Prodotto specifico</option>
-						<option value="layoutId">Sconto per Tipo Corso</option>
-					</select>
-				</div>
-			</fieldset>
-
-			<fieldset class="fieldset col-span-1">
-				<legend class="fieldset-legend">Tipo Sconto</legend>
+				<legend class="fieldset-legend">Destinatario (Sconto + Punti)</legend>
 				<!-- <span class="label">Optional</span> -->
 				<div class="join w-full">
-					<div class="join-item btn pointer-events-none"><StretchHorizontal /></div>
-					<select name="type" value="" class="select join-item flex-1">
-						<option value="" disabled>Seleziona il tipo di sconto</option>
-						<option value="percent">Sconto in Percentuale</option>
-						<option value="amount">Sconto valore fisso</option>
-						<option value="referral">Sconto + Punti</option>
-						<!-- <option value="membershipLevel">Associato</option> -->
-					</select>
+					<div class="join-item btn pointer-events-none"><Pen /></div>
+					<input
+						class="input join-item flex-1"
+						name="referralEmail"
+						type="text"
+						placeholder="Email"
+						aria-label="referralEmail"
+						aria-describedby="referralEmail"
+						bind:value={referralEmail}
+					/>
 				</div>
 			</fieldset>
+			{#if referralEmail === ''}
+				<fieldset class="fieldset col-span-1">
+					<legend class="fieldset-legend">Tipo Categoria</legend>
+					<div class="join w-full">
+						<div class="join-item btn pointer-events-none"><StretchHorizontal /></div>
+						<select name="selectedApplicability" value="" class="select join-item flex-1">
+							<option value="" disabled>Seleziona la categoria</option>
+							<option value="email">Sconto Esclusivo Personale</option>
+							<!-- <option value="cart">Sconto totale Carrello</option> -->
+							<option value="membershipLevel">Sconto per Membership</option>
+							<option value="riflessologo">Sconto tutti Riflessologi</option>
+							<option value="prodId"> Sconto Prodotto specifico</option>
+							<option value="layoutId">Sconto per Tipo Corso</option>
+						</select>
+					</div>
+				</fieldset>
 
-			<fieldset class="fieldset col-span-1">
-				<legend class="fieldset-legend">Status</legend>
-				<!-- <span class="label">Optional</span> -->
-				<div class="join w-full">
-					<div class="join-item btn pointer-events-none"><ToggleLeft /></div>
-					<select name="status" value="" class="select join-item flex-1">
-						<option value="" disabled>Seleziona lo status</option>
-						<option value="enabled">Attivo</option>
-						<option value="disabled">Inattivo</option>
-					</select>
-				</div>
-			</fieldset>
+				<fieldset class="fieldset col-span-1">
+					<legend class="fieldset-legend">Tipo Sconto</legend>
+					<!-- <span class="label">Optional</span> -->
+					<div class="join w-full">
+						<div class="join-item btn pointer-events-none"><StretchHorizontal /></div>
+						<select name="type" value="" class="select join-item flex-1">
+							<option value="" disabled>Seleziona il tipo di sconto</option>
+							<option value="percent">Sconto in Percentuale</option>
+							<option value="amount">Sconto valore fisso</option>
+							<option value="referral">Sconto + Punti</option>
+							<!-- <option value="membershipLevel">Associato</option> -->
+						</select>
+					</div>
+				</fieldset>
+
+				<fieldset class="fieldset col-span-1">
+					<legend class="fieldset-legend">Status</legend>
+					<!-- <span class="label">Optional</span> -->
+					<div class="join w-full">
+						<div class="join-item btn pointer-events-none"><ToggleLeft /></div>
+						<select name="status" value="" class="select join-item flex-1">
+							<option value="" disabled>Seleziona lo status</option>
+							<option value="enabled">Attivo</option>
+							<option value="disabled">Inattivo</option>
+						</select>
+					</div>
+				</fieldset>
+			{/if}
 
 			<div class="px-6 py-4 rounded-b-lg flex justify-end space-x-2">
 				<button class="btn btn-error btn-sm" onclick={onCloseModal} type="button"> Annulla </button>

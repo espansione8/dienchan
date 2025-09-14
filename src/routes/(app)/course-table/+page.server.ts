@@ -396,7 +396,70 @@ export const actions: Actions = {
 			console.error('Error createCertification:', error);
 			return { action: 'createCertification', success: false, message: 'Error createCertification' };
 		}
-	}
+	},
 
+	coursePdf: async ({ request, fetch, locals }) => {
+		const formData = await request.formData();
+		const prodId = formData.get('prodId');
+		const subscribers = formData.get('subscribers') as string;
+		const subscribersArray = JSON.parse(subscribers) || [];
+		// console.log('prodId', prodId);
+		// console.log('subscribersArray', subscribersArray);
+
+		if (!prodId || subscribersArray.length === 0) {
+			return fail(400, { action: 'coursePdf', success: false, message: 'Dati mancanti' });
+		}
+
+		const resFetchOrders = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'order', //product | order | user | layout | discount
+				query: {
+					userId: { $in: subscribersArray.map(sub => sub.userId) },
+					'cart': {
+						$elemMatch: { prodId: prodId }
+					}
+				},
+				projection: { _id: 0, userId: 1, 'payment.method': 1, 'payment.statusPayment': 1 },
+				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				limit: 1000,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		try {
+			const res = await resFetchOrders;
+
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('coursePdf failed', res.status, errorText);
+				return fail(400, { action: 'coursePdf', success: false, message: errorText });
+			}
+			const resData = await res.json();
+
+			const orderMap = new Map(resData.map(order => [order.userId, { method: order.payment.method, status: order.payment.statusPayment }]));
+			//console.log('orderMap', orderMap);
+
+			const payload = subscribersArray.map(user => {
+				const orderData = orderMap.get(user.userId);
+				return {
+					...user,
+					paymentMethod: orderData ? orderData.method : null,
+					paymentStatus: orderData ? orderData.status : 'not paid'
+				};
+			});
+			//console.log('payload', payload);
+
+			return { action: 'coursePdf', success: true, message: 'coursePdf attivato', payload };
+
+		} catch (error) {
+			console.error('Error coursePdf:', error);
+			return { action: 'coursePdf', success: false, message: 'Error coursePdf' };
+		}
+	},
 
 } satisfies Actions;

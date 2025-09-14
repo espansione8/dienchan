@@ -159,7 +159,7 @@ export const actions: Actions = {
 		const country = formData.get('country') || '';
 		const phone = formData.get('phone') || '';
 		const mobilePhone = formData.get('mobilePhone') || '';
-		const level = formData.get('level') || '';
+		const level = formData.get('level') as string;
 		const namePublic = !!(formData.get('namePublic'));
 		const surnamePublic = !!(formData.get('surnamePublic'));
 		const emailPublic = !!(formData.get('emailPublic') || '');
@@ -171,8 +171,11 @@ export const actions: Actions = {
 		const phonePublic = !!(formData.get('phonePublic') || '');
 		const mobilePhonePublic = !!(formData.get('mobilePhonePublic') || '');
 
+		const riflessologoLevels = new Set(['accademia', 'formatore base', 'master', 'formatore avanzato']);
+		const isRiflessologo = !!level && riflessologoLevels.has(level.toLowerCase());
+
 		if (!name || !surname || !email || !address || !postalCode || !city || !county || !country || !level) {
-			return fail(400, { action: 'newUser', success: false, message: 'Dati mancanti' });
+			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
 		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
@@ -193,6 +196,7 @@ export const actions: Actions = {
 						country,
 						phone,
 						mobilePhone,
+						isRiflessologo,
 						level,
 						namePublic,
 						surnamePublic,

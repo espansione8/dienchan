@@ -123,7 +123,7 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const type = formData.get('type');
 		const selectedApplicability = formData.get('applicability') as string;
-		const selectId = formData.get('selectId')
+		const selectId = formData.get('selectId').toString().trim()
 		const code = formData.get('code') as string || '';
 		const notes = formData.get('notes') || '';
 		const value = formData.get('value');
@@ -343,6 +343,7 @@ export const actions: Actions = {
 		const selectedApplicability = formData.get('selectedApplicability');
 		const type = formData.get('type');
 		const status = formData.get('status');
+		const referralEmail = formData.get('referralEmail').toString().trim();
 
 		const resFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
@@ -356,6 +357,7 @@ export const actions: Actions = {
 					...(type && { type }),
 					...(selectedApplicability && { selectedApplicability }),
 					...(status && { status }),
+					...(referralEmail && { referral: { $regex: `.*${referralEmail}.*`, $options: 'i' }, type: 'referral' }),
 				},
 				projection: { _id: 0 }, // 0: exclude | 1: include,
 				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending,
