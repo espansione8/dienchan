@@ -296,7 +296,7 @@ export const actions: Actions = {
 		const notificationFetch = (email, order) => {
 			const courseItem = order.cart.find((item) => item.type === 'course');
 			const courseTitle = courseItem?.layoutView.title;
-			fetch(`${BASE_URL}/api/mailer/new-order`, {
+			fetch(`${BASE_URL}/api/mailer/default`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey: APIKEY,
