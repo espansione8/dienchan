@@ -21,11 +21,15 @@
 
 	const { user, auth } = $props();
 
+	let menuActive = $state(false);
+
 	const pointsBalance = $derived(user?.pointsBalance || 0);
 	const level = $derived(user?.level || '');
 	const userName = $derived(user?.name || '');
 	const userSurname = $derived(user?.surname || '');
-	let menuActive = $state(false);
+
+	const formatoreLevels = new Set(['formatore base', 'master', 'formatore avanzato']);
+	const isFormatore = formatoreLevels.has(level.toLowerCase());
 
 	const toggleMenu = () => {
 		menuActive = !menuActive;
@@ -90,7 +94,7 @@
 							<span>Area personale</span>
 						</a>
 
-						{#if auth && (level === 'superadmin' || level === 'formatore')}
+						{#if auth && (level === 'superadmin' || isFormatore)}
 							<div class="dropdown dropdown-end">
 								<button class="btn btn-sm btn-ghost">
 									<Layers size={16} />
@@ -261,7 +265,7 @@
 							</a>
 						</li>
 
-						{#if auth && (level === 'superadmin' || level === 'formatore')}
+						{#if auth && (level === 'superadmin' || isFormatore)}
 							<li class="menu-title mt-4">
 								<span>Gestione</span>
 							</li>
