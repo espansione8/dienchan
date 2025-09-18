@@ -1088,6 +1088,28 @@
 						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 					/>
 				</div>
+				<div>
+					<label for="county" class="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
+					<input
+						type="text"
+						id="county"
+						name="county"
+						bind:value={county}
+						placeholder="Scrivi un cognome"
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
+				<div>
+					<label for="mobilePhone" class="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
+					<input
+						type="tel"
+						id="mobilePhone"
+						name="mobilePhone"
+						bind:value={mobilePhone}
+						placeholder="Scrivi un cognome"
+						class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+					/>
+				</div>
 			</div>
 
 			<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">

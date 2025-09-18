@@ -16,7 +16,6 @@
 		X,
 		Check,
 		Lock,
-		BookOpen,
 		Tags,
 		Boxes,
 		ShoppingCart,
@@ -33,7 +32,7 @@
 		ArrowLeft,
 		CircleCheckBig,
 		Tag,
-		HandCoins,
+		HandCoins   ,
 		Car
 	} from 'lucide-svelte';
 
@@ -1233,7 +1232,7 @@
 							<span class="label-text">Spendi saldo punti {formData.usePoint ? `(${Math.round(newPointsBalance())} punti rimasti)` : ''}</span>
 						</label>
 					</div>
-					<button class="btn btn-primary w-full mt-4" onclick={() => onClickModal('new', null)} disabled={$cartProducts.length === 0}>
+					<button class="btn btn-primary w-full mt-4" onclick={() => onClickModal(discountList.length === 0 ? 'rememberCoupon' : 'new', null)} disabled={$cartProducts.length === 0}>
 						Procedi al checkout
 					</button>
 				</div>
@@ -1609,3 +1608,23 @@
 		</form>
 	</dialog>
 {/if}
+
+{#if currentModal == 'rememberCoupon'}
+	<dialog id="success-modal" class="modal modal-open">
+		<div class="modal-box text-center">
+			<div class="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-4">
+				<Info  size={40} class="text-success" />
+			</div>
+			<h3 class="font-bold text-xl mb-2">Hai qualche codice sconto da usare?</h3>
+			<p class="py-2">Prima di procedere all'acquisto inserisci i codici sconti per attivarli in fase di conferma ordine.</p>
+			<div class="modal-action justify-center">
+				<button class="btn btn-primary" onclick={onCloseModal}> Chiudi </button>
+				<button class="btn btn-primary" onclick={() => onClickModal('new', null)}> Continua l'acquisto 	<HandCoins     size={20} class="text-white" /></button>
+			</div>
+		</div>
+		<form method="dialog" class="modal-backdrop">
+			<button onclick={onCloseModal}>close</button>
+		</form>
+	</dialog>
+{/if}
+

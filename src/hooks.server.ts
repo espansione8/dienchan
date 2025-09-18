@@ -49,10 +49,16 @@ export const handle: Handle = async ({ event, resolve, }) => {
 		});
 
 		const checkExpiryStatus = (user) => {
-			const now = new Date().getTime();
-			const expiry = user?.membership?.membershipExpiry || '';
+			const expiry = user?.membership?.membershipExpiry;
 			if (!expiry) return false;
-			return now > expiry
+
+			const nowDate = new Date();
+			const expiryDate = new Date(expiry);
+
+			// Normalizzo entrambe le date a mezzanotte (solo anno/mese/giorno)
+			nowDate.setHours(0, 0, 0, 0);
+			expiryDate.setHours(0, 0, 0, 0);
+			return nowDate.getTime() > expiryDate.getTime(); // true se scaduto, false se va bene
 		}
 
 		try {

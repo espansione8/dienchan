@@ -421,7 +421,7 @@ export const actions: Actions = {
 						$elemMatch: { prodId: prodId }
 					}
 				},
-				projection: { _id: 0, userId: 1, 'payment.method': 1, 'payment.statusPayment': 1 },
+				projection: { _id: 0, userId: 1, 'payment.method': 1, 'payment.statusPayment': 1, 'totalValue': 1  },
 				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
 				limit: 1000,
 				skip: 0
@@ -440,19 +440,22 @@ export const actions: Actions = {
 				return fail(400, { action: 'coursePdf', success: false, message: errorText });
 			}
 			const resData = await res.json();
+			console.log('resData', resData);
 
-			const orderMap = new Map(resData.map(order => [order.userId, { method: order.payment.method, status: order.payment.statusPayment }]));
-			//console.log('orderMap', orderMap);
+
+			const orderMap = new Map(resData.map(order => [order.userId, { method: order.payment.method, status: order.payment.statusPayment, value: order.totalValue }]));
+			console.log('orderMap', orderMap);
 
 			const payload = subscribersArray.map(user => {
 				const orderData = orderMap.get(user.userId);
 				return {
 					...user,
 					paymentMethod: orderData ? orderData.method : null,
-					paymentStatus: orderData ? orderData.status : 'not paid'
+					paymentStatus: orderData ? orderData.status : 'not paid',
+					value: orderData ? orderData.value : null
 				};
 			});
-			//console.log('payload', payload);
+			console.log('payload', payload);
 
 			return { action: 'coursePdf', success: true, message: 'coursePdf attivato', payload };
 

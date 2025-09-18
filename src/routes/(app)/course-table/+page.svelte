@@ -208,7 +208,8 @@
 				{ text: 'Email', style: 'tableHeader' },
 				{ text: 'Telefono', style: 'tableHeader' },
 				{ text: 'Metodo Pagamento', style: 'tableHeader' },
-				{ text: 'Stato Pagamento', style: 'tableHeader' }
+				{ text: 'Stato Pagamento', style: 'tableHeader' },
+				{ text: 'Importo', style: 'tableHeader' }
 			]
 		];
 
@@ -219,7 +220,8 @@
 				{ text: subscriber.email || 'N/A', style: 'tableData' },
 				{ text: subscriber.mobilePhone || subscriber.phone || 'N/A', style: 'tableData' },
 				{ text: subscriber.paymentMethod || 'Non trovato', style: 'tableData' },
-				{ text: subscriber.paymentStatus || 'Non trovato', style: 'tableData' }
+				{ text: subscriber.paymentStatus || 'Non trovato', style: 'tableData' },
+				{ text: subscriber.paidAmount ? `€ ${subscriber.paidAmount}` : 'N/A', style: 'tableData' }
 			]);
 		});
 
@@ -297,7 +299,7 @@
 					table: {
 						headerRows: 1,
 						// table column width
-						widths: ['8%', '14%', '14%', '22%', '14%', '14%', '14%'],
+						widths: ['8%', '12%', '12%', '20%', '12%', '12%', '12%', '12%'],
 						body: [
 							[
 								{ text: '  ', style: 'tableHeader' },
@@ -306,7 +308,8 @@
 								{ text: 'Email', style: 'tableHeader' },
 								{ text: 'Telefono', style: 'tableHeader' },
 								{ text: 'Metodo Pagamento', style: 'tableHeader' },
-								{ text: 'Stato Pagamento', style: 'tableHeader' }
+								{ text: 'Stato Pagamento', style: 'tableHeader' },
+								{ text: 'Importo Pagato', style: 'tableHeader' }
 							],
 							...subscribers.map((subscriber) => [
 								// Checkbox come primo elemento di ogni riga
@@ -323,6 +326,10 @@
 								{
 									text: subscriber.paymentStatus === 'done' ? 'Pagato' : 'In sospeso',
 									style: subscriber.paymentStatus === 'done' ? 'tablePaid' : 'tablePending'
+								},
+								{
+									text: subscriber.value ? `€ ${subscriber.value}` : 'N/A',
+									style: 'tableData'
 								}
 							])
 						]

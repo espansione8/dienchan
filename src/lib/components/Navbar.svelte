@@ -67,7 +67,7 @@
 
 					<a href="/course-shop" class={`btn btn-sm ${isActive('/course-shop') ? 'btn-primary' : 'btn-ghost'}`}>
 						<BookOpen size={16} />
-						<span>Corsi</span>
+						<span>Corsi ed eventi</span>
 					</a>
 
 					<a href="/product-shop" class={`btn btn-sm ${isActive('/product-shop') ? 'btn-primary' : 'btn-ghost'}`}>

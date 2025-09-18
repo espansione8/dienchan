@@ -275,6 +275,8 @@ export const actions: Actions = {
 		const email = formData.get('email')?.toString().toLowerCase().trim();
 		const name = formData.get('name');
 		const surname = formData.get('surname');
+		const county = formData.get('county');
+		const mobilePhone = formData.get('mobilePhone');
 		// const arrayField = ['level', 'membership.membershipLevel', 'email'];
 		// const arrayValue = [level, membershipLevel, email];
 
@@ -284,12 +286,14 @@ export const actions: Actions = {
 				apiKey: APIKEY,
 				schema: 'user', //product | order | user | layout | discount
 				query: {
-					...(level && { level }),
+					...(level && { level: { $regex: level, $options: 'i' } }),
 					...(membershipLevel && { ['membership.membershipLevel']: membershipLevel }),
 					//...(email && { email })
 					...(email && { email: { $regex: email, $options: 'i' } }),
 					...(name && { name: { $regex: name, $options: 'i' } }),
 					...(surname && { surname: { $regex: surname, $options: 'i' } }),
+					...(county && { county: { $regex: county, $options: 'i' } }),
+					...(mobilePhone && { mobilePhone: { $regex: mobilePhone, $options: 'i' } }),
 				},
 				projection: { _id: 0 }, // 0: exclude | 1: include,
 				//sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending,
@@ -303,13 +307,17 @@ export const actions: Actions = {
 
 		try {
 			const res = await resFetch;
-
+			let payload = [];
 			if (!res.ok) {
 				const errorText = await res.text();
 				console.error('discount filter failed', res.status, errorText);
 				return fail(400, { action: 'filter', success: false, message: errorText });
 			}
-			const payload = await res.json();
+			payload = await res.json();
+			payload = payload.map((obj: any) => ({
+				...obj,
+				createdAt: obj.createdAt.substring(0, 10)
+			}));
 
 			return { action: 'filter', success: true, message: 'Filtro attivato', payload };
 
