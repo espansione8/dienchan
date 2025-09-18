@@ -34,6 +34,7 @@ const productSchema = new Schema(
         category: [{ type: String, default: 'none', index: true }],
         categoryId: [{ type: String, default: 'none' }],
         cod: { type: String, default: null },
+        sku: { type: String, default: null },
         condition: { type: String, default: null },
         cost: { type: Number, default: 0 }, //PDV: cost
         county: [{ type: String, default: null }],// provincia

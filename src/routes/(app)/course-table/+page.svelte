@@ -309,7 +309,7 @@
 								{ text: 'Telefono', style: 'tableHeader' },
 								{ text: 'Metodo Pagamento', style: 'tableHeader' },
 								{ text: 'Stato Pagamento', style: 'tableHeader' },
-								{ text: 'Importo Pagato', style: 'tableHeader' }
+								{ text: 'Importo', style: 'tableHeader' }
 							],
 							...subscribers.map((subscriber) => [
 								// Checkbox come primo elemento di ogni riga
