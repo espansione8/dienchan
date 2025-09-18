@@ -348,6 +348,9 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const passwordOld = formData.get('passwordOld') as string;
 		const passwordNew = formData.get('passwordNew') as string;
+		// console.log('passwordNew', passwordNew);
+		// console.log('passwordOld', passwordOld);
+
 		const userId = locals.user.userId;
 
 		if (!passwordOld || !passwordNew || !userId) {
@@ -370,41 +373,39 @@ export const actions: Actions = {
 			},
 		});
 
-		const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'user', //product | order | user | layout | discount
-				query: { userId }, //IF USE Products.model -> types: course / product / membership / event,
-				update: {
-					$set: {
-						password: hash(passwordNew, SALT)
-					}
-				},
-				options: { upsert: false },
-				multi: false
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
 		try {
 			const userRes = await userFetch;
 			if (!userRes.ok) return fail(400, { action: 'changePassword', success: false, message: await userRes.text() });
-
 			const user = await userRes.json();
+
 			if (!user || user.length === 0 || user[0].password !== hash(passwordOld, SALT)) {
 				return fail(400, { action: 'changePassword', success: false, message: 'Password errata' })
+			} else {
+				const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'user', //product | order | user | layout | discount
+						query: { userId }, //IF USE Products.model -> types: course / product / membership / event,
+						update: {
+							$set: {
+								password: hash(passwordNew, SALT)
+							}
+						},
+						options: { upsert: false },
+						multi: false
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+				const updateRes = await updateFetch;
+				if (!updateRes.ok) {
+					return fail(400, { action: 'changePassword', success: false, message: await updateRes.text() });
+				}
+				const update = await updateRes.json();
+				return { action: 'changePassword', success: true, message: update.message };
 			}
-
-			const updateRes = await updateFetch;
-			if (!updateRes.ok) {
-				return fail(400, { action: 'changePassword', success: false, message: await updateRes.text() });
-			}
-			const update = await updateRes.json();
-
-			return { action: 'changePassword', success: true, message: update.message };
 
 		} catch (error) {
 			console.error('Error changePassword:', error);

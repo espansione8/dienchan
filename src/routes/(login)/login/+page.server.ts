@@ -9,8 +9,8 @@ const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 6)
 export const actions: Actions = {
 	login: async ({ request, cookies }) => {
 		const data = await request.formData();
-		const loginEmail = data.get('loginEmail') as string;
-		const loginPassword = data.get('loginPassword') as string;
+		const loginEmail = data.get('loginEmail').toString().toLowerCase().trim();
+		const loginPassword = data.get('loginPassword')?.toString() || '';
 		const rememberMe = data.get('rememberMe') === 'on'; // Checkbox value is 'on' or null
 		const cookieId = crypto.randomUUID()
 
@@ -75,7 +75,7 @@ export const actions: Actions = {
 
 			if (!updateRes.ok) {
 				const errorText = await updateRes.text();
-				console.error('product update failed', updateRes.status, errorText);
+				console.error('user update failed', updateRes.status, errorText);
 				return fail(400, { action: 'modify', success: false, message: errorText });
 			}
 
@@ -100,8 +100,7 @@ export const actions: Actions = {
 		// TODO
 		return { action: 'register', success: true, message: "test ok" };
 		const data = await request.formData();
-		const registerEmail = data.get('registerEmail') as string;
-		const password = data.get('password') as string;
+		const registerEmail = data.get('registerEmail')?.toString().toLowerCase().trim() || ''
 		const passwordConfirm = data.get('passwordConfirm') as string;
 
 		if (!registerEmail || !password || !passwordConfirm) {
@@ -135,7 +134,7 @@ export const actions: Actions = {
 
 	resetPassword: async ({ request }) => {
 		const data = await request.formData();
-		const resetEmail = data.get('resetEmail') as string;
+		const resetEmail = data.get('resetEmail')?.toString().toLowerCase().trim() || '';
 		const newPass = nanoid();
 		const hashed = hash(newPass, SALT);
 

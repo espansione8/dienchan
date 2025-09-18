@@ -175,7 +175,7 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const name = formData.get('name') as string;
 		const surname = formData.get('surname') as string;
-		const email = formData.get('email') as string;
+		const email = formData.get('email').toString().toLowerCase().trim();
 		const address = formData.get('address') as string;
 		const city = formData.get('city') as string;
 		const county = formData.get('county') as string;
@@ -296,7 +296,7 @@ export const actions: Actions = {
 		const notificationFetch = (email, order) => {
 			const courseItem = order.cart.find((item) => item.type === 'course');
 			const courseTitle = courseItem?.layoutView.title;
-			fetch(`${BASE_URL}/api/mailer/default`, {
+			const send = fetch(`${BASE_URL}/api/mailer/default`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey: APIKEY,
@@ -308,6 +308,7 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				}
 			});
+			return send
 		}
 
 		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || !cart || !cartItem) {
@@ -606,15 +607,16 @@ export const actions: Actions = {
 			const mailRes = await mailFetch(mailArray, order);
 
 			if (!mailRes.ok) {
-				return fail(400, {
-					action: 'new',
-					success: false,
-					message: `mailRes: ${await mailRes.text()}`
-				});
+				// return fail(400, {
+				// 	action: 'new',
+				// 	success: false,
+				// 	message: `mailRes: ${await mailRes.text()}`
+				// });
+				console.error(`mailRes: ${await mailRes.text()}`);
 			}
 
-			const notificationRes = await notificationFetch(email, order);
-			if (!mailRes.ok) {
+			const notificationRes = await notificationFetch(cartItem.notificationEmail, order);
+			if (!notificationRes.ok) {
 				console.error(`notificationRes: ${await notificationRes.text()}`);
 			}
 

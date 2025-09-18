@@ -380,17 +380,17 @@ export const actions: Actions = {
 				shipping: {
 					name: shippingName,
 					surname: shippingSurname,
-					address : shippingAddress,
-					city : shippingCity,
-					county : shippingCounty,
-					postalCode : shippingPostalCode,
+					address: shippingAddress,
+					city: shippingCity,
+					county: shippingCounty,
+					postalCode: shippingPostalCode,
 					state: '',
 					region: '',
-					country : shippingCountry,
+					country: shippingCountry,
 					deliveryNotes: '',
-					email 	: shippingEmail,
-					phone : shippingPhone,
-					mobilePhone : shippingMobilePhone,
+					email: shippingEmail,
+					phone: shippingPhone,
+					mobilePhone: shippingMobilePhone,
 					// tracking: {
 					// 	company: '',
 					// 	trackingNumber: '',
@@ -588,7 +588,7 @@ export const actions: Actions = {
 
 	applyDiscount: async ({ request, fetch, locals }) => {
 		const formData = await request.formData();
-		const discountCode = formData.get('discountCode') as string;
+		const discountCode = formData.get('discountCode').toString().toLowerCase().trim();
 		const cart = formData.get('cart') as string;
 		const subTotal = formData.get('subTotal') as string;
 		const discountList = formData.get('discountList') as string;
@@ -781,7 +781,7 @@ export const actions: Actions = {
 		});
 		try {
 			const formData = await request.formData();
-			const removeCode = formData.get('removeCode') as string;
+			const removeCode = formData.get('removeCode').toString().toLowerCase().trim();
 			const subTotal = formData.get('subTotal') as string;
 			const cart = formData.get('cart') as string;
 			const discountList = formData.get('discountList') as string;

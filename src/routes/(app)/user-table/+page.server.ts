@@ -84,7 +84,7 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const name = formData.get('name');
 		const surname = formData.get('surname');
-		const email = formData.get('email');
+		const email = formData.get('email')?.toString().toLowerCase().trim();
 		const address = formData.get('address');
 		const postalCode = formData.get('postalCode') || '';
 		const city = formData.get('city') || '';
@@ -94,7 +94,6 @@ export const actions: Actions = {
 		const mobilePhone = formData.get('mobilePhone') || '';
 		const password1: any = formData.get('password1') || '';
 		const level = formData.get('level') || '';
-
 
 		if (!name || !surname || !email || !address || !postalCode || !city || !county || !country || !phone || !mobilePhone || !password1 || !level) {
 			return fail(400, { action: 'newUser', success: false, message: 'Dati mancanti' });
@@ -151,7 +150,7 @@ export const actions: Actions = {
 		const userId = formData.get('userId');
 		const name = formData.get('name');
 		const surname = formData.get('surname');
-		const email = formData.get('email');
+		const email = formData.get('email')?.toString().toLowerCase().trim();
 		const address = formData.get('address');
 		const postalCode = formData.get('postalCode') || '';
 		const city = formData.get('city') || '';
@@ -273,7 +272,7 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const level = formData.get('level');
 		const membershipLevel = formData.get('membershipLevel');
-		const email = formData.get('email');
+		const email = formData.get('email')?.toString().toLowerCase().trim();
 		const name = formData.get('name');
 		const surname = formData.get('surname');
 		// const arrayField = ['level', 'membership.membershipLevel', 'email'];

@@ -16,7 +16,7 @@ export const POST: RequestHandler = async ({ request }) => {
         return json({ message: 'api error' }, { status: 401 });
     }
 
-    if (!email) {
+    if (!email || !content) {
         return json({ message: 'Data missing' }, { status: 400 });
     }
 

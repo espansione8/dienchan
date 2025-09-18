@@ -124,7 +124,7 @@ export const actions: Actions = {
 		const type = formData.get('type');
 		const selectedApplicability = formData.get('applicability') as string;
 		const selectId = formData.get('selectId').toString().trim()
-		const code = formData.get('code') as string || '';
+		const code = formData.get('code').toString().toLowerCase().trim()
 		const notes = formData.get('notes') || '';
 		const value = formData.get('value');
 		const refDiscount = formData.get('refDiscount');
@@ -149,7 +149,7 @@ export const actions: Actions = {
 		if (selectedApplicability === 'riflessologo') {
 			selectIdToUse = selectId === 'true';
 		} else {
-			selectIdToUse = selectId as string;
+			selectIdToUse = selectId.toString().toLowerCase().trim();
 		}
 
 		if (type == 'percent' || type == 'amount') {
@@ -170,7 +170,7 @@ export const actions: Actions = {
 				refDiscount,
 				refPoints,
 				selectedApplicability,
-				referral: selectIdToUse,
+				referral: selectIdToUse.toString().toLowerCase().trim(),
 				notes
 			}
 		} else {
@@ -213,7 +213,7 @@ export const actions: Actions = {
 	modify: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const discountId = formData.get('discountId');
-		const code = formData.get('code');
+		const code = formData.get('code')?.toString().toLowerCase().trim();;
 		const type = formData.get('type');
 		const selectedApplicability = formData.get('applicability') as string;
 		const selectId = formData.get('selectId');
@@ -240,7 +240,7 @@ export const actions: Actions = {
 		if (selectedApplicability === 'riflessologo') {
 			selectIdToUse = selectId === 'true';
 		} else {
-			selectIdToUse = selectId as string;
+			selectIdToUse = selectId.toString().toLowerCase().trim();
 		}
 
 		if (type == 'percent' || type == 'amount') {
