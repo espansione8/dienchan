@@ -107,7 +107,6 @@ const productSchema = new Schema(
             }
         ],
         shippingCost: { type: Number, default: 0 },
-        sku: { type: String, default: null },
         state: { type: String, default: null },
         status: {
             type: String,

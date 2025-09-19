@@ -566,7 +566,15 @@
 
 						<div class="flex items-center gap-2 mb-2 text-sm">
 							<MapPin size={16} class="text-primary flex-shrink-0" />
-							<span class="font-medium">{courseData.county}</span>
+							<span class="font-medium">
+								{#if Array.isArray(courseData.county) && courseData.county.length > 0}
+										{courseData.county.join(', ')}
+									{:else if courseData.county}
+										{courseData.county}
+									{:else}
+										Non specificato
+									{/if}
+							</span>
 						</div>
 
 						<div class="flex items-center gap-2 mb-1 text-sm">

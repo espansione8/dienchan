@@ -47,6 +47,7 @@
 	let title = $state('');
 	let descrShort = $state('');
 	let descrLong = $state('');
+	let sku = $state('');
 	let stockQty = $state(0);
 	let category = $state('');
 	let price = $state(0);
@@ -165,6 +166,7 @@
 		title = '';
 		descrShort = '';
 		descrLong = '';
+		sku = '';
 		stockQty = 0;
 		category = '';
 		price = 0;
@@ -195,6 +197,7 @@
 			title = item.title;
 			descrShort = item.descrShort;
 			descrLong = item.descrLong;
+			sku = item.sku;
 			stockQty = item.stockQty;
 			price = item.price;
 			weight = item.weight;
@@ -490,6 +493,25 @@
 					></textarea>
 				</div>
 			</section>
+			<section class="col-span-4">
+				<label for="sku" class="form-label">
+					<p class="font-bold mb-2">SKU</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="sku"
+						name="sku"
+						type="text"
+						placeholder="SKU"
+						aria-label="Sku"
+						aria-describedby="basic-titolo"
+						bind:value={sku}
+						required
+					/>
+				</div>
+			</section>
 			<section class="col-span-1 md:col-span-2">
 				<label for="quantitaProdotto" class="form-label">
 					<p class="font-bold mb-2">Quantità magazzino</p>
@@ -663,6 +685,25 @@
 					></textarea>
 				</div>
 			</section>
+			<section class="col-span-4">
+				<label for="sku" class="form-label">
+					<p class="font-bold mb-2">SKU</p>
+				</label>
+				<div class="join join-horizontal rounded-md w-full">
+					<button class="join-item bg-gray-300 px-3"><Pen /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="sku"
+						name="sku"
+						type="text"
+						placeholder="SKU"
+						aria-label="Sku"
+						aria-describedby="basic-titolo"
+						bind:value={sku}
+						required
+					/>
+				</div>
+			</section>
 			<section class="col-span-1 md:col-span-2">
 				<label for="quantitaProdotto" class="form-label">
 					<p class="font-bold mb-2">Quantità magazzino</p>
@@ -806,6 +847,8 @@
 				<input class="input input-bordered w-full" id="prodId" name="prodId" type="text" placeholder="ID" bind:value={prodId} />
 				<legend class="fieldset-legend">Titolo</legend>
 				<input class="input input-bordered w-full" id="title" name="title" type="text" placeholder="Titolo" bind:value={title} />
+				<legend class="fieldset-legend">SKU</legend>
+				<input class="input input-bordered w-full" id="sku" name="sku" type="text" placeholder="SKU" bind:value={sku} />
 
 				<legend class="fieldset-legend">Categoria</legend>
 				<select class="select w-full" id="category" name="category" bind:value={category}>

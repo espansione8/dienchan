@@ -210,6 +210,7 @@ export const actions: Actions = {
 		const title = formData.get('title');
 		const category = formData.get('category');
 		const status = formData.get('status');
+		const sku = formData.get('sku');
 
 		const resFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
@@ -219,6 +220,7 @@ export const actions: Actions = {
 				query: {
 					type: 'product',
 					...(prodId && { prodId }),
+					...(sku && { sku }),
 					...(title && { title: { $regex: `.*${title}.*`, $options: 'i' } }),
 					...(category && { category }),
 					...(status && { status }),

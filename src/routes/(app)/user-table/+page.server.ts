@@ -88,7 +88,8 @@ export const actions: Actions = {
 		const address = formData.get('address');
 		const postalCode = formData.get('postalCode') || '';
 		const city = formData.get('city') || '';
-		const county = formData.get('county') || '';
+		const countyArray = formData.get('countyArray') as string;
+		const county = countyArray.split(",");
 		const country = formData.get('country') || '';
 		const phone = formData.get('phone') || '';
 		const mobilePhone = formData.get('mobilePhone') || '';
@@ -154,7 +155,8 @@ export const actions: Actions = {
 		const address = formData.get('address');
 		const postalCode = formData.get('postalCode') || '';
 		const city = formData.get('city') || '';
-		const county = formData.get('county') || '';
+		const countyArray = formData.get('countyArray') as string;
+		const county = countyArray.split(",");
 		const country = formData.get('country') || '';
 		const phone = formData.get('phone') || '';
 		const mobilePhone = formData.get('mobilePhone') || '';
@@ -292,7 +294,7 @@ export const actions: Actions = {
 					...(email && { email: { $regex: email, $options: 'i' } }),
 					...(name && { name: { $regex: name, $options: 'i' } }),
 					...(surname && { surname: { $regex: surname, $options: 'i' } }),
-					...(county && { county: { $regex: county, $options: 'i' } }),
+					...(county && { county: { $in: [county] } }),
 					...(mobilePhone && { mobilePhone: { $regex: mobilePhone, $options: 'i' } }),
 				},
 				projection: { _id: 0 }, // 0: exclude | 1: include,

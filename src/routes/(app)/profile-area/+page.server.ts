@@ -108,10 +108,12 @@ export const actions: Actions = {
 		const name = formData.get('name');
 		const surname = formData.get('surname');
 		const email = formData.get('email');
+		const countyArray = formData.get('countyArray') as string;
+		const county = countyArray.split(",");
 		const address = formData.get('address');
 		const postalCode = formData.get('postalCode') || '';
 		const city = formData.get('city') || '';
-		const county = formData.get('county') || '';
+		// const county = formData.get('county') || '';
 		const country = formData.get('country') || '';
 		const phone = formData.get('phone') || '';
 		const mobilePhone = formData.get('mobilePhone') || '';
@@ -129,7 +131,7 @@ export const actions: Actions = {
 		const phonePublic = !!(formData.get('phonePublic') || '');
 		const mobilePhonePublic = !!(formData.get('mobilePhonePublic') || '');
 
-		if (!name || !surname || !email || !address || !postalCode || !city || !county || !country || (!phone || !mobilePhone)) {
+		if (!name || !surname || !email || !address || !postalCode || !countyArray || !city || !county || !country || (!phone || !mobilePhone)) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 

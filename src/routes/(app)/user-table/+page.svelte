@@ -46,7 +46,8 @@
 	let address = $state('');
 	let postalCode = $state('');
 	let city = $state('');
-	let county = $state('');
+	let countyArray = $state([]); // provincia
+	let county = $state(''); // provincia input
 	let country = $state('');
 	let phone = $state('');
 	let mobilePhone = $state('');
@@ -97,6 +98,29 @@
 	// 	loading = false;
 	// };
 	// goToPage(currentPage);
+
+	const addItem = (item: any, type: string) => {
+		if (type == 'county') {
+			if (county != '') {
+				if (!countyArray.includes(item)) {
+					countyArray.push(item);
+					county = '';
+				} else {
+					notification.error('Provincia già inserita');
+				}
+			} else {
+				notification.error('Provincia NON valida');
+			}
+		}
+
+		county = '';
+	};
+
+	const removeItem = (index: number, type: string) => {
+		if (index !== -1) {
+			if (type == 'county') countyArray.splice(index, 1); /// PROVINCE
+		}
+	};
 
 	const onSwitchPublicProfile = async (type: string, value: boolean) => {
 		//console.log('switch public profile', type, value);
@@ -192,6 +216,7 @@
 		postalCode = '';
 		city = '';
 		county = '';
+		countyArray = [];
 		country = '';
 		phone = '';
 		mobilePhone = '';
@@ -233,7 +258,8 @@
 			address = item.address;
 			postalCode = item.postalCode;
 			city = item.city;
-			county = item.county;
+			countyArray = item.county;
+			
 			country = item.country;
 			phone = item.phone;
 			mobilePhone = item.mobilePhone;
@@ -442,7 +468,13 @@
 								</li>
 								<li>
 									<strong>Provincia:</strong>
-									{row.county}
+									{#if Array.isArray(row.county) && row.county.length > 0}
+										{row.county.join(', ')}
+									{:else if row.county}
+										{row.county}
+									{:else}
+										Non specificato
+									{/if}
 								</li>
 								<li>
 									<strong>Nazione:</strong>
@@ -764,14 +796,32 @@
 							</label>
 						{/if}
 					</div>
-					<select id="county" class="select select-bordered w-full rounded-md mt-2" name="county" placeholder="Scegli" required bind:value={county}>
-						<option value="" selected disabled>Scegli</option>
-						{#each provinceFilterate as provincia, i}
-							<option value={provincia.title}>
-								{provincia.title} ({provincia.region})
-							</option>
+					<div class="join join-horizontal rounded-md w-full mb-2">
+						<!-- <button type="button" class="join-item bg-gray-300 px-3">AA</button> -->
+						<input type="hidden" name="countyArray" bind:value={countyArray} />
+						<select
+							class="select select-bordered w-full rounded-md mt-2"
+							id="county"
+							name="county"
+							bind:value={county}
+							onchange={() => addItem(county, 'county')}
+						>
+							<option disabled value="">Scegli provincia</option>
+							{#each $province as provincia}
+								<option value={provincia.title}>
+									{provincia.title} ({provincia.region})
+								</option>
+							{/each}
+						</select>
+					</div>
+					{#if countyArray.length > 0}
+						{#each countyArray as county, i}
+							<div class="btn btn-primary btn-sm m-1 rounded-md">
+								{county}
+								<button type="button" class="badge badge-error ml-2" onclick={() => removeItem(i, 'county')}> X </button>
+							</div>
 						{/each}
-					</select>
+					{/if}
 				</label>
 			</div>
 			<!-- CAP -->
@@ -1049,9 +1099,7 @@
 						<option value="">Seleziona il livello associato</option>
 						<option value="Socio inattivo">Socio inattivo</option>
 						<option value="Socio ordinario">Socio ordinario</option>
-						<option value="Socio formatore">Socio formatore</option>
 						<option value="Socio vitalizio">Socio vitalizio</option>
-						<option value="Socio vitalizio formatore">Socio vitalizio formatore</option>
 					</select>
 				</div>
 

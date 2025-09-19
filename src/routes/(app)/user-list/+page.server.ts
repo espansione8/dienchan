@@ -52,7 +52,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			}
 		});
 
-		// aggregate
+		// aggregate - Updated for array county field
 		const aggregateFetch = fetch(`${BASE_URL}/api/mongo/aggregate`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -63,24 +63,24 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 						$match: {
 							'membership.membershipStatus': true,
 							level: { $in: ['accademia', 'formatore base', 'master', 'formatore avanzato'] },
-							county: { $exists: true, $ne: null }
+							county: { $exists: true, $ne: null, $not: { $size: 0 } } // Check array exists and is not empty
 						}
 					},
+					{ $unwind: '$county' }, // Unwind the county array to process each element
 					{ $group: { _id: '$county', count: { $sum: 1 } } }, // group by county and count
 					{ $sort: { _id: 1 } } // sort by county name alphabetically
 				]
 			}),
 			headers: { 'Content-Type': 'application/json' }
 		});
+		
 		const [countRes, userRes, aggregateRes] = await Promise.all([
 			countFetch,
 			userFetch,
 			aggregateFetch
 		]);
 
-
 		if (!countRes.ok) {
-			// return fail(400, { action: 'renew', success: false, message: `res: ${await res.text()}` });
 			throw error(400, 'count fetch failed');
 		}
 
@@ -91,13 +91,6 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			throw error(400, 'user fetch failed');
 		}
 		const response = await userRes.json();
-
-		// Alphabetical sort
-		// response.sort((a, b) => {
-		// 	const surnameA = a.surname || '';
-		// 	const surnameB = b.surname || '';
-		// 	return surnameA.localeCompare(surnameB);
-		// });
 
 		getTable = response.map((obj: any) => ({
 			...obj,
@@ -132,25 +125,33 @@ export const actions: Actions = {
 		const county = formData.get('county');
 
 		try {
-			// Count filtered items
+			// Count filtered items - Updated for array county field
 			const countFetch = fetch(`${BASE_URL}/api/mongo/count`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey: APIKEY,
 					schema: 'user',
-					query: { 'membership.membershipStatus': true, level: { $in: ['accademia', 'formatore base', 'master', 'formatore avanzato'] }, county: county },
+					query: { 
+						'membership.membershipStatus': true, 
+						level: { $in: ['accademia', 'formatore base', 'master', 'formatore avanzato'] }, 
+						...(county && { county: { $in: [county] } }) // Use $in to search in array
+					},
 					option: { hint: { userId: 1 } },
 				}),
 				headers: { 'Content-Type': 'application/json' }
 			});
 
-			// Get filtered users (first page)
+			// Get filtered users (first page) - Updated for array county field
 			const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey: APIKEY,
 					schema: 'user',
-					query: { 'membership.membershipStatus': true, level: { $in: ['accademia', 'formatore base', 'master', 'formatore avanzato'] }, county: county },
+					query: {
+						'membership.membershipStatus': true,
+						level: { $in: ['accademia', 'formatore base', 'master', 'formatore avanzato'] },
+						...(county && { county: { $in: [county] } }), // Use $in to search in array
+					},
 					sort: { surname: 1 },
 					projection: { _id: 0, password: 0 },
 					limit: 40,
@@ -186,7 +187,6 @@ export const actions: Actions = {
 		const itemsPerPage = Number(formData.get('itemsPerPage'));
 		const county = formData.get('county');
 		let currentPage = Number(formData.get('currentPage'));
-		//console.log('changePage', navigation, itemsPerPage, currentPage, county);
 
 		if (navigation === 'prev') {
 			currentPage = Math.max(1, currentPage - 1);
@@ -203,7 +203,11 @@ export const actions: Actions = {
 				body: JSON.stringify({
 					apiKey: APIKEY,
 					schema: 'user', //product | order | user | layout | discount
-					query: { 'membership.membershipStatus': true, level: { $in: ['accademia', 'formatore base', 'master', 'formatore avanzato'] }, ...(county && { county }) },
+					query: { 
+						'membership.membershipStatus': true, 
+						level: { $in: ['accademia', 'formatore base', 'master', 'formatore avanzato'] }, 
+						...(county && { county: { $in: [county] } }) // Use $in to search in array
+					},
 					sort: { surname: 1 },
 					projection: { _id: 0, password: 0 },
 					limit: itemsPerPage,

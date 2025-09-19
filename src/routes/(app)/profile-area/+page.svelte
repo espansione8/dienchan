@@ -87,7 +87,8 @@
 	let surname = $state(userData.surname || '');
 	let address = $state(userData.address || '');
 	let city = $state(userData.city || '');
-	let county = $state(userData.county || ''); // provincia
+	let countyArray = $state([userData.county || '']); // provincia
+	let county = $state(''); // provincia input
 	let postalCode = $state(userData.postalCode || '');
 	let country = $state(userData.country || '');
 	let phone = $state(userData.phone || '');
@@ -117,6 +118,29 @@
 	let trainingDescription = $state('');
 	let trainingHours = $state<number>(0);
 	let setTrainingFile = $state<File | null>(null);
+
+	const addItem = (item: any, type: string) => {
+		if (type == 'county') {
+			if (county != '') {
+				if (!countyArray.includes(item)) {
+					countyArray.push(item);
+					county = '';
+				} else {
+					notification.error('Provincia già inserita');
+				}
+			} else {
+				notification.error('Provincia NON valida');
+			}
+		}
+
+		county = '';
+	};
+
+	const removeItem = (index: number, type: string) => {
+		if (index !== -1) {
+			if (type == 'county') countyArray.splice(index, 1); /// PROVINCE
+		}
+	};
 
 	const createPDFcert = (item, user) => {
 		if (!item?.layoutView?.layoutId || !user?.name || !user?.surname || !user?.certificationDate) {
@@ -1053,14 +1077,44 @@
 												</div>
 											</div>
 										</label>
-										<select id="county" class="select select-bordered w-full" name="county" required disabled={closedInput} bind:value={county}>
+										<!-- <Building2 /> -->
+										<div class="join join-horizontal rounded-md w-full mb-2">
+											<!-- <button type="button" class="join-item bg-gray-300 px-3">AA</button> -->
+											<input type="hidden" name="countyArray" bind:value={countyArray} />
+											<select
+												class="select select-bordered w-full rounded-md mt-2"
+												id="county"
+												name="county"
+												disabled={closedInput}
+												bind:value={county}
+												onchange={() => addItem(county, 'county')}
+											>
+												<option disabled value="">Scegli provincia</option>
+												{#each $province as provincia}
+													<option value={provincia.title}>
+														{provincia.title} ({provincia.region})
+													</option>
+												{/each}
+											</select>
+
+											<!-- <button type="button" class="join-item btn btn-primary" onclick={() => addItem(county, 'province')}> Aggiungi </button> -->
+										</div>
+										{#if countyArray.length > 0}
+											{#each countyArray as county, i}
+												<div class="btn btn-primary btn-sm m-1 rounded-md">
+													{county}
+													<button type="button" class="badge badge-error ml-2" onclick={() => removeItem(i, 'county')}> X </button>
+												</div>
+											{/each}
+										{/if}
+										<!-- <select id="county" class="select select-bordered w-full" name="county" required disabled={closedInput} bind:value={county}>
 											<option value="" disabled>Seleziona provincia</option>
 											{#each provinceFilterate as provincia}
 												<option value={provincia.title}>
 													{provincia.title} ({provincia.region})
 												</option>
 											{/each}
-										</select>
+										</select> -->
 									</div>
 
 									<!-- Nazione -->

@@ -9,7 +9,6 @@
 	import Loader from '$lib/components/Loader.svelte';
 	import { cartProducts } from '$lib/stores/cart';
 	import { imgCheck } from '$lib/tools/tools.js';
-	//import { province } from '$lib/stores/arrays.js';
 	import {
 		ChevronDown,
 		Check,
@@ -40,42 +39,28 @@
 
 	let activeFilter = $state({
 		county: '',
-		// citta: '',
 		riflessologo: ''
 	});
 
 	// Pagination
 	let currentPage = $state(1);
 	const itemsPerPage = 40;
-	// const pageNumbers = $derived(() => {
-	// 	const pageCount = Math.ceil(count / itemsPerPage);
-	// 	const numbers = [];
-	// 	for (let i = 1; i <= pageCount; i++) {
-	// 		numbers.push(i);
-	// 	}
-	// 	return numbers;
-	// });
 
-	// Count reflexologists by province
-	// let numReflexologistsInProvince = $state({});
-	// tableList.forEach((item) => {
-	// 	const county = item.county;
-	// 	numReflexologistsInProvince[county] = (numReflexologistsInProvince[county] || 0) + 1;
-	// });
+	// Helper function to get first county from array or empty string
+	const getFirstCounty = (counties: string[] | string | null | undefined) => {
+		if (Array.isArray(counties)) {
+			return counties.length > 0 ? counties[0] : '';
+		}
+		return counties || '';
+	};
 
-	// //Sort provinces alphabetically
-	// const sortedNumReflexologistsInProvince = Object.keys(numReflexologistsInProvince)
-	// 	.sort((a, b) => {
-	// 		const countyA = a || '';
-	// 		const countyB = b || '';
-	// 		return countyA.localeCompare(countyB);
-	// 	})
-	// 	.reduce((acc, key) => {
-	// 		acc[key] = numReflexologistsInProvince[key];
-	// 		return acc;
-	// 	}, {});
-
-	// numReflexologistsInProvince = sortedNumReflexologistsInProvince;
+	// Helper function to get all counties as comma-separated string
+	const getAllCounties = (counties: string[] | string | null | undefined) => {
+		if (Array.isArray(counties)) {
+			return counties.join(', ');
+		}
+		return counties || '';
+	};
 
 	// Reset filters
 	const onFilterReset = () => {
@@ -94,37 +79,13 @@
 		filterAccordion = '';
 		currentPage = 1;
 		count = itemCount;
-		// Close accordions
-		// const accordionList = ['accordion1', 'accordion2', 'accordion3'];
-		// accordionList.forEach((item) => (document.getElementById(item).checked = false));
 	};
-
-	// Filter by province
-	// const onClickFilterProvincia = (provinciaSelected) => {
-	// 	currentPage = 1;
-	// 	resetActive = true;
-	// 	activeFilter.county = provinciaSelected;
-	// 	filterAccordion = 'accordion1';
-
-	// 	if (activeFilter.county) {
-	// 		tableList = getTable.filter((item) => item.county === activeFilter.county);
-	// 		count = tableList.length;
-	// 	}
-	// 	document.getElementById('top').scrollIntoView({ behavior: 'smooth' });
-	// };
 
 	// Sort reflexologists
 	const sortItems = (option) => {
 		switch (option) {
 			case 'alfabetico':
 				currentSort = 'alfabetico';
-				// Test refactor
-				// tableList.sort((a, b) => {
-				// 	const surnameA = a.surname || '';
-				// 	const surnameB = b.surname || '';
-				// 	return surnameA.localeCompare(surnameB);
-				// });
-				//break;
 				return tableList.sort((a, b) => {
 					const surnameA = a.surname || '';
 					const surnameB = b.surname || '';
@@ -135,59 +96,12 @@
 		}
 	};
 
-	// Filter reflexologists by search query
-	// $effect(() => {
-	// 	if (searchQuery.trim() === '') {
-	// 		if (!resetActive) {
-	// 			tableList = reflexologists;
-	// 			sortItems(currentSort);
-	// 		}
-	// 		return;
-	// 	}
-
-	// 	const query = searchQuery.toLowerCase();
-	// 	tableList = reflexologists.filter(
-	// 		(item) =>
-	// 			item.name.toLowerCase().includes(query) || item.surname.toLowerCase().includes(query)
-	// 	);
-	// });
-
-	// Pagination
-	// const applyFiltersAndSort = () => {
-	// 	let filtered = [...getTable];
-
-	// 	if (activeFilter.county) {
-	// 		filtered = getTable.filter((item) => item.county === activeFilter.county);
-	// 	}
-
-	// 	count = filtered.length;
-	// 	sortItems(currentSort);
-	// 	return filtered;
-	// };
-
-	// const goToPage = (newPage: number) => {
-	// 	loading = true;
-	// 	currentPage = newPage;
-	// 	const filtered = applyFiltersAndSort();
-	// 	const maxPageAfterFilter = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
-	// 	if (currentPage > maxPageAfterFilter) {
-	// 		currentPage = maxPageAfterFilter;
-	// 	}
-
-	// 	// Pagination
-	// 	const skipItems = (currentPage - 1) * itemsPerPage;
-	// 	tableList = filtered.slice(skipItems, skipItems + itemsPerPage);
-	// 	loading = false;
-	// };
-	// goToPage(currentPage);
-
 	const formSubmit = () => {
 		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
-			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
-				const { action, message, payload } = result.data; // { action, success, message, payload }
+				const { action, message, payload } = result.data;
 				if (action == 'changePage') {
 					tableList = payload.getTable;
 					currentPage = payload.currentPage;
@@ -211,20 +125,16 @@
 			if (result.type === 'error') {
 				notification.error(result.error.message);
 			}
-			// 'update()' is called by default by use:enhance
-			// call 'await update()' if you need to ensure it completes before further client logic.
-			//resetFields();
 			loading = false;
 		};
 	};
 
 	$effect(() => {
-		// if (currentPage || tableList ) { // old, no animation on filter
 		if (tableList) {
 			tick().then(() => {
 				const element = document.getElementById('top');
 				if (element) {
-					element.scrollIntoView({ behavior: 'smooth' }); // smooth , instant
+					element.scrollIntoView({ behavior: 'smooth' });
 				}
 			});
 		}
@@ -287,44 +197,8 @@
 							</ul>
 						</div>
 					</div>
-
-					<!-- Riflessologo Filter -->
-					<!-- <div
-					class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200"
-				>
-					<input id="accordion4" type="checkbox" class="peer" />
-					<div
-						class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold"
-					>
-						<span class="inline-flex items-center">
-							<b><UserSearch class="-mt-1 mr-2" /> Riflessologo</b>
-							{#if activeFilter.riflessologo.length > 0}
-								<Check class="ml-1" color="green" />
-							{/if}
-						</span>
-					</div>
-					<div
-						class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto"
-					>
-						<ul class="list-none -mx-4 divide-y divide-base-200/70">
-							{#each tableList as item}
-								<li
-									class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
-                {activeFilter.riflessologo == `${item.name} ${item.surname}`
-										? 'bg-orange-200 text-red-900 font-bold'
-										: 'hover:bg-blue-200 hover:text-blue-900'}"
-									onclick={() => onClickFilterRiflessologo(item.userId, item.name, item.surname)}
-								>
-									<span>{item.name} {item.surname}</span>
-									{#if activeFilter.riflessologo == `${item.name} ${item.surname}`}
-										<Check size={18} class="flex-shrink-0 text-green-600" />
-									{/if}
-								</li>
-							{/each}
-						</ul>
-					</div>
-				</div> -->
 				</form>
+				
 				<!-- Reset Button -->
 				{#if resetActive || searchQuery.trim() !== ''}
 					<div class="pt-3 mt-2 border-t border-base-200">
@@ -341,6 +215,7 @@
 			</div>
 		</div>
 	</section>
+	
 	<!-- Reflexologists column -->
 	{#if loading}
 		<Loader />
@@ -364,32 +239,6 @@
 						Reset filtri
 					</button>
 				{/if}
-
-				<!-- Sort button -->
-				<!-- <div class="dropdown dropdown-end ml-auto">
-					<button
-						id="dropdownSortButton"
-						class="btn btn-sm btn-primary btn-outline gap-2 rounded-md"
-						tabindex="0"
-					>
-						<span class="flex items-center justify-center gap-2">
-							Ordina: <span class="font-bold">{currentSort}</span>
-							<ChevronDown />
-						</span>
-					</button>
-					<ul class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-lg w-52 mt-1">
-						<li>
-							<button
-								class="flex items-center {currentSort === 'alfabetico'
-									? 'bg-primary/10 text-primary font-medium'
-									: ''}"
-								onclick={() => sortItems('alfabetico')}
-							>
-								alfabetico
-							</button>
-						</li>
-					</ul>
-				</div> -->
 			</div>
 
 			<!-- Active filters display -->
@@ -440,10 +289,11 @@
 
 							<div class="card-body p-4 relative min-h-[220px] flex flex-col">
 								<div class="space-y-2">
+									<!-- Updated to handle county as array -->
 									<div class="flex items-center gap-2">
 										<MapPin size={18} class="text-primary flex-shrink-0" />
 										<span>
-											<span class="font-medium">{reflexologist.city}</span>, {reflexologist.county}
+											<span class="font-medium">{reflexologist.city}</span>, {getAllCounties(reflexologist.county)}
 										</span>
 									</div>
 
@@ -467,11 +317,6 @@
 											<span>{reflexologist.mobilePhone || 'Non disponibile'}</span>
 										</div>
 									{/if}
-
-									<!-- <div class="flex items-center gap-2">
-									<Calendar size={18} class="text-primary flex-shrink-0" />
-									<span>Esperienza: <b>{reflexologist.yearsOfExperience} anni</b></span>
-								</div> -->
 								</div>
 
 								<div class="mt-4 flex flex-wrap gap-2">
@@ -480,7 +325,6 @@
 									{/each}
 								</div>
 
-								<!-- <div class="absolute bottom-4 right-4"> -->
 								<div class="card-actions mt-auto justify-end">
 									<a href={`/profile-public/${reflexologist.userId}`} class="btn btn-primary rounded-md"> Visualizza Profilo </a>
 								</div>
@@ -489,6 +333,7 @@
 					{/each}
 				{/if}
 			</div>
+			
 			<div class="join flex justify-center mt-5">
 				<form method="POST" action="?/changePage" use:enhance={formSubmit}>
 					{#if currentPage > 1}
@@ -500,14 +345,6 @@
 					<button type="submit" id="prev" class="join-item btn" name="navigation" value="prev" disabled={currentPage <= 1}> « </button>
 					<button type="button" class="join-item btn">Pagina {currentPage}</button>
 					<button type="submit" id="next" class="join-item btn" name="navigation" value="next" disabled={tableList.length < itemsPerPage}>»</button>
-					<!-- <button
-						type="submit"
-						id="next"
-						class="join-item btn"
-						name="navigation"
-						value="next"
-						disabled={currentPage >= Math.max(1, Math.ceil(count / itemsPerPage))}>»</button
-					> -->
 					<input type="hidden" name="itemsPerPage" value={itemsPerPage} />
 					<input type="hidden" name="currentPage" value={currentPage} />
 					<input type="hidden" name="county" value={activeFilter.county} />

@@ -100,7 +100,7 @@ const UserSchema = new mongoose.Schema(
 		cityPublic: { type: Boolean, default: false },
 		postalCode: { type: String, default: null },
 		postalCodePublic: { type: Boolean, default: false },
-		county: { type: String, default: null }, // Provincia
+		county: [{ type: String, default: null }],// provincia
 		countyPublic: { type: Boolean, default: false },
 		region: { type: String, default: null }, // Regione	
 		regionPublic: { type: Boolean, default: false },
