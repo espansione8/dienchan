@@ -23,7 +23,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 				query: { type: 'product' },//types: course / product / membership / event
 				projection: { _id: 0 }, // 0: exclude | 1: include
 				sort: { title: 1 }, // 1:Sort ascending | -1:Sort descending
-				limit: 10000,
+				limit: 50,
 				skip: 0
 			}),
 			headers: {
@@ -493,6 +493,55 @@ export const actions: Actions = {
 		} catch (err) {
 			console.error('Error uploadCsv:', err);
 			return { action: 'uploadCsv', success: false, message: 'Errore server upload' };
+		}
+	},
+	changePage: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const navigation = formData.get('navigation');
+		const itemsPerPage = Number(formData.get('itemsPerPage'));
+		let currentPage = Number(formData.get('currentPage'));
+		const category = formData.get('category');
+		console.log('changePage', navigation, itemsPerPage, currentPage, category);
+
+		if (navigation === 'prev') {
+			currentPage = Math.max(1, currentPage - 1);
+		} else if (navigation === 'next') {
+			currentPage += 1;
+		} else if (navigation === 'reset') {
+			currentPage = 1;
+		}
+		const skipItems = (currentPage - 1) * itemsPerPage;
+
+		try {
+			const res = await fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'product', //product | order | user | layout | discount
+					query: {
+						...(category && { category })
+					},
+					projection: { _id: 0 },
+					//sort: { createdAt: -1 },
+					limit: itemsPerPage,
+					skip: skipItems
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('discount changePage failed', res.status, errorText);
+				return fail(400, { action: 'changePage', success: false, message: `changePage Error: ${errorText}` });
+			}
+			const result = await res.json();
+
+			return { action: 'changePage', success: true, message: result.message, payload: { result, currentPage } };
+
+		} catch (error) {
+			console.error('Error changePage:', error);
+			return { action: 'changePage', success: false, message: 'Error changePage' };
 		}
 	},
 

@@ -27,7 +27,9 @@
 		Calculator,
 		List,
 		Users,
-		Pen
+		Pen,
+		House,
+		ShieldAlert
 	} from 'lucide-svelte';
 
 	const { data } = $props();
@@ -52,28 +54,30 @@
 	let category = $state('');
 	let price = $state(0);
 	let prodId = $state('');
+	let uploadfiles = $state('');
 	let weight = $state(0);
 	let status = $state('');
 
 	// Pagination
 	let currentPage = $state(1);
-	const itemsPerPage = 20;
-	const pageNumbers = $derived(() => {
-		const pageCount = Math.ceil(count / itemsPerPage);
-		const numbers = [];
-		for (let i = 1; i <= pageCount; i++) {
-			numbers.push(i);
-		}
-		return numbers;
-	});
+	const itemsPerPage = 50;
 
-	const goToPage = (newPage?: number) => {
-		currentPage = newPage;
+	// const pageNumbers = $derived(() => {
+	// 	const pageCount = Math.ceil(count / itemsPerPage);
+	// 	const numbers = [];
+	// 	for (let i = 1; i <= pageCount; i++) {
+	// 		numbers.push(i);
+	// 	}
+	// 	return numbers;
+	// });
 
-		// Pagination
-		const skipItems = (currentPage - 1) * itemsPerPage;
-		tableList = tableList.slice(skipItems, skipItems + itemsPerPage);
-	};
+	// const goToPage = (newPage?: number) => {
+	// 	currentPage = newPage;
+
+	// 	// Pagination
+	// 	const skipItems = (currentPage - 1) * itemsPerPage;
+	// 	tableList = tableList.slice(skipItems, skipItems + itemsPerPage);
+	// };
 
 	// goToPage(currentPage);
 
@@ -168,14 +172,15 @@
 		descrLong = '';
 		sku = '';
 		stockQty = 0;
-		category = '';
+		// category = '';
 		price = 0;
 		prodId = '';
 		status = '';
-		currentPage = 1;
+		// currentPage = 1;
 	};
 
 	const refresh = () => {
+		category = '';
 		invalidateAll();
 		resetFields();
 		resetActive = false;
@@ -209,9 +214,19 @@
 			prodId = item.prodId;
 			//console.log('deleteId', deleteId);
 		}
+		if (type == 'deletePic') {
+			postAction = `?/delProdPic`;
+			modalTitle = 'Elimina';
+			prodId = item.prodId;
+			uploadfiles = item.uploadfiles;
+			title = item.title;
+
+			// console.log('item', item);
+		}
 		if (type == 'filter') {
 			postAction = `?/filter`;
 			modalTitle = 'Filtra';
+			category = '';
 			status = 'enabled';
 		}
 		if (type == 'uploadCsv') {
@@ -236,46 +251,67 @@
 			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
 
 			await invalidateAll();
-			if (result.type === 'success' && result.data) {
-				const { action, success, message, payload } = result.data; // { action, success, message, payload }
-				if (action == 'filter') {
-					resetActive = true;
-					tableList = payload;
-				} else if (action == 'downloadCsv') {
-					csvCreate(payload);
-					notification.success(message);
-				} else {
-					resetActive = false;
-					tableList = getTable;
-				}
 
-				if (success) {
-					notification.info(message);
-				} else {
-					notification.error(message);
+			try {
+				if (result.type === 'success' && result.data) {
+					const { action, success, message, payload } = result.data; // { action, success, message, payload }
+					if (action == 'filter') {
+						resetActive = true;
+						tableList = payload;
+						notification.info(message);
+					} else if (action == 'downloadCsv') {
+						csvCreate(payload);
+						notification.success(message);
+					} else if (action == 'changePage') {
+						tableList = payload.result;
+						currentPage = payload.currentPage;
+					} else {
+						resetActive = false;
+						tableList = getTable;
+						notification.info(message);
+					}
+
+					// if (success) {
+					// 	notification.info(message);
+					// } else {
+					// 	notification.error(message);
+					// }
+					onCloseModal();
 				}
-				onCloseModal();
+				if (result.type === 'failure') {
+					notification.error(result.data.message);
+				}
+				if (result.type === 'error') {
+					notification.error(result.error.message);
+				}
+				// 'update()' is called by default by use:enhance
+				// call 'await update()' if you need to ensure it completes before further client logic.
+			} finally {
+				resetFields();
+				loading = false;
 			}
-			if (result.type === 'failure') {
-				notification.error(result.data.message);
-			}
-			if (result.type === 'error') {
-				notification.error(result.error.message);
-			}
-			// 'update()' is called by default by use:enhance
-			// call 'await update()' if you need to ensure it completes before further client logic.
-			resetFields();
-			goToPage(currentPage);
-			loading = false;
 		};
 	};
 
+	// $effect(() => {
+	// 	if (currentPage) {
+	// 		tick().then(() => {
+	// 			const element = document.getElementById('top');
+	// 			if (element) {
+	// 				element.scrollIntoView({ behavior: 'instant' }); // smooth / instant
+	// 			}
+	// 		});
+	// 	}
+	// });
+
 	$effect(() => {
+		console.log('Effect triggered - currentPage:', currentPage);
+		console.log('tableList:', tableList);
 		if (currentPage) {
 			tick().then(() => {
 				const element = document.getElementById('top');
 				if (element) {
-					element.scrollIntoView({ behavior: 'instant' }); // smooth / instant
+					element.scrollIntoView({ behavior: 'instant' }); // smooth , instant
 				}
 			});
 		}
@@ -356,25 +392,26 @@
 					<td>{row.prodId} <br /> {row.createdAt?.substring(0, 10) || ''}</td>
 					<td>
 						<!-- img start -->
-						{#if imgCheck.single(row.uploadfiles, 'product-primary') !== '/images/placeholder.jpg'}
+						{#if imgCheck?.single(row?.uploadfiles, 'product-primary') !== '/images/placeholder.jpg'}
 							<div class="card-body p-4">
-								<div class="flex items-center">
+								<div class="flex items-center gap-5">
 									<figure class="flex-shrink-0">
 										<Image
 											layout="constrained"
 											aspectRatio={1}
-											src={imgCheck.single(row.uploadfiles, 'product-primary')}
+											src={imgCheck?.single(row?.uploadfiles, 'product-primary')}
 											alt="product-primary"
 											class="object-cover rounded-md max-w-28 max-h-28 h-auto"
 										/>
 									</figure>
-									<form method="POST" action={`?/delProdPic`} use:enhance={formSubmit} class="ml-4 flex-shrink-0">
-										<input type="hidden" name="prodId" value={row.prodId} />
-										<input type="hidden" name="fileName" value={imgCheck.fileName(row.uploadfiles, 'product-primary')} />
-										<button class="btn btn-sm btn-error rounded-lg border-2" type="submit" aria-label="Delete image">
+									<!-- <form method="POST" action={`?/delProdPic`} use:enhance={formSubmit} class="ml-4 flex-shrink-0"> -->
+									<!-- <input type="hidden" name="prodId" value={row.prodId} />
+										<input type="hidden" name="fileName" value={imgCheck.fileName(row.uploadfiles, 'product-primary')} /> -->
+									<!-- <button class="btn btn-sm btn-error rounded-lg border-2" type="submit" aria-label="Delete image">
 											<Trash2 size="24" />
-										</button>
-									</form>
+										</button> -->
+									<button class="btn btn-error btn-sm" onclick={() => onClickModal('deletePic', row)}><Trash2 /></button>
+									<!-- </form> -->
 								</div>
 							</div>
 						{:else}
@@ -414,12 +451,38 @@
 			{/each}
 		</tbody>
 	</table>
-	<div class="join flex justify-center">
+	<!-- <div class="join flex justify-center">
 		{#each pageNumbers() as page (page)}
 			<button type="submit" class="join-item btn" class:btn-active={page === currentPage} onclick={() => goToPage(page)}>
 				{page}
 			</button>
 		{/each}
+	</div> -->
+	{#if tableList.length == 0}
+		<div class="alert alert-warning shadow-lg flex item-center text-center justify-center mt-3 mx-auto w-full max-w-lg">
+			<div>
+				<ShieldAlert />
+				<br />
+				<span class="mt-2 text-semibold"> Nessun Prodotto trovato. Cambia parametri o resetta il filtro. </span>
+			</div>
+		</div>
+	{/if}
+	<div class="join flex justify-center mt-5">
+		<form method="POST" action="?/changePage" use:enhance={formSubmit}>
+			{#if currentPage > 1}
+				<button type="submit" id="reset" class="join-item btn" name="navigation" value="reset">
+					<House />
+				</button>
+			{/if}
+
+			<button type="submit" id="prev" class="join-item btn" name="navigation" value="prev" disabled={currentPage <= 1}> « </button>
+			<button type="button" class="join-item btn cursor-default">Pagina {currentPage}</button>
+			<button type="submit" id="next" class="join-item btn" name="navigation" value="next" disabled={tableList.length < itemsPerPage}>» </button>
+			<input type="hidden" name="itemsPerPage" value={itemsPerPage} />
+			<input type="hidden" name="currentPage" value={currentPage} />
+
+			<input type="hidden" name="category" value={category} />
+		</form>
 	</div>
 </div>
 
@@ -823,6 +886,32 @@
 			>
 				<input type="hidden" name="prodId" value={prodId} />
 				<header class="col-span-4 text-center text-2xl font-bold text-green-800">Conferma rimozione</header>
+				<div class="col-span-4 mt-5 flex justify-center">
+					<div class="bg-gray-50 flex justify-center">
+						<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
+						<button type="submit" class="btn btn-error btn-sm mx-2 text-white">Elimina</button>
+					</div>
+				</div>
+			</form>
+		{/if}
+	</Modal>
+{/if}
+
+{#if currentModal == 'deletePic'}
+	<Modal isOpen={openModal} header={modalTitle}>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
+		{#if loading}
+			<Loader />
+		{:else}
+			<form
+				method="POST"
+				action={postAction}
+				use:enhance={formSubmit}
+				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+			>
+				<input type="hidden" name="prodId" value={prodId} />
+				<input type="hidden" name="fileName" value={imgCheck.fileName(uploadfiles, 'product-primary')} />
+				<header class="col-span-4 text-center text-2xl font-bold text-green-800">Conferma rimozione immagine del prodotto: {title}?</header>
 				<div class="col-span-4 mt-5 flex justify-center">
 					<div class="bg-gray-50 flex justify-center">
 						<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}>Annulla</button>
