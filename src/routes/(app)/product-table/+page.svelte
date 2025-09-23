@@ -6,7 +6,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import { Image } from '@unpic/svelte';
 	import Papa from 'papaparse';
-	import { courseKeysToDelete } from '$lib/stores/arrays';
+	import { productKeysToDelete } from '$lib/stores/arrays';
 	import { notification } from '$lib/stores/notifications';
 	import DragDrop from '$lib/components/DragDrop.svelte';
 	import Modal from '$lib/components/Modal.svelte';
@@ -83,34 +83,6 @@
 	// });
 
 	const csvCreate = (content) => {
-		// let csv = $state('');
-		// let newList: any = $state();
-
-		// const flattenObject = (obj: any, prefix = '') => {
-		// 	return Object.keys(obj).reduce((acc, k) => {
-		// 		const pre = prefix.length ? prefix + '_' : '';
-		// 		if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
-		// 			Object.assign(acc, flattenObject(obj[k], pre + k));
-		// 		} else {
-		// 			acc[pre + k] = obj[k];
-		// 		}
-		// 		return acc;
-		// 	}, {});
-		// };
-
-		// const flattenedArray = content.map((obj: any) => {
-		// 	return flattenObject(obj);
-		// });
-
-		// newList = flattenedArray.map((obj: any) => ({
-		// 	...obj,
-		// 	createdAt: obj.createdAt?.substring(0, 10)
-		// }));
-
-		// newList.forEach((obj: any) => {
-		// 	$courseKeysToDelete.forEach((key: string) => delete (obj as any)[key]);
-		// });
-
 		const flattenObject = (obj: any, prefix = '') => {
 			return Object.keys(obj).reduce((acc, k) => {
 				const pre = prefix.length ? prefix + '_' : '';
@@ -118,9 +90,10 @@
 					Object.assign(acc, flattenObject(obj[k], pre + k));
 				} else {
 					// Only include non-array, non-object values in the final flat object
-					if (!Array.isArray(obj[k])) {
-						acc[pre + k] = obj[k];
-					}
+					// if (!Array.isArray(obj[k])) {
+					// 	acc[pre + k] = obj[k];
+					// }
+					acc[pre + k] = obj[k];
 				}
 				return acc;
 			}, {});
@@ -132,7 +105,7 @@
 			if (flatOrder.createdAt) flatOrder.createdAt = (flatOrder.createdAt as string).substring(0, 10);
 			// if (flatOrder.birthdate) flatOrder.birthdate = (flatOrder.birthdate as string).substring(0, 10);
 
-			$courseKeysToDelete.forEach((key: string) => delete (flatOrder as any)[key]);
+			$productKeysToDelete.forEach((key: string) => delete (flatOrder as any)[key]);
 			return flatOrder;
 		});
 
@@ -336,6 +309,7 @@
 		<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600 sticky top-0">
 			<tr>
 				<th>ID</th>
+				<th>SKU</th>
 				<th>Immagine</th>
 				<th>Status</th>
 				<th>Titolo</th>
@@ -354,6 +328,7 @@
 			{#each tableList as row (row.prodId)}
 				<tr class="hover:bg-gray-100">
 					<td>{row.prodId} <br /> {row.createdAt?.substring(0, 10) || ''}</td>
+					<td>{row.sku || ''}</td>
 					<td>
 						<!-- img start -->
 						{#if imgCheck.single(row.uploadfiles, 'product-primary') !== '/images/placeholder.jpg'}

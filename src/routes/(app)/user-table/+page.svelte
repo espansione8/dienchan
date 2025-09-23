@@ -139,9 +139,6 @@
 	};
 
 	const csvCreate = (content) => {
-		let csv = $state('');
-		let newList: any = $state();
-
 		const flattenObject = (obj: any, prefix = '') => {
 			return Object.keys(obj).reduce((acc, k) => {
 				const pre = prefix.length ? prefix + '.' : '';
@@ -154,22 +151,33 @@
 			}, {});
 		};
 
-		const flattenedArray = content.map((obj: any) => {
-			return flattenObject(obj);
-		});
+		// let newList: any = $state();
+		// const flattenedArray = content.map((obj: any) => {
+		// 	return flattenObject(obj);
+		// });
 
-		newList = flattenedArray.map((obj: any) => ({
-			...obj,
-			createdAt: obj.createdAt?.substring(0, 10),
-			birthdate: obj.birthdate?.substring(0, 10)
-		}));
+		// newList = flattenedArray.map((obj: any) => ({
+		// 	...obj,
+		// 	createdAt: obj.createdAt?.substring(0, 10),
+		// 	birthdate: obj.birthdate?.substring(0, 10)
+		// }));
 
-		newList.forEach((obj: any) => {
-			$orderKeysToDelete.forEach((key: string) => delete (obj as any)[key]);
+		// newList.forEach((obj: any) => {
+		// 	$orderKeysToDelete.forEach((key: string) => delete (obj as any)[key]);
+		// });
+
+		const dataToExport = content.map((order) => {
+			const flatOrder: any = flattenObject(order);
+
+			if (flatOrder.createdAt) flatOrder.createdAt = (flatOrder.createdAt as string).substring(0, 10);
+			if (flatOrder.birthdate) flatOrder.birthdate = (flatOrder.birthdate as string).substring(0, 10);
+
+			$orderKeysToDelete.forEach((key: string) => delete (flatOrder as any)[key]);
+			return flatOrder;
 		});
 
 		//CSV UNPARSE
-		csv = Papa.unparse(newList, {
+		const csv = Papa.unparse(dataToExport, {
 			quotes: false,
 			quoteChar: '"',
 			escapeChar: '"',
@@ -259,7 +267,7 @@
 			postalCode = item.postalCode;
 			city = item.city;
 			countyArray = item.county;
-			
+
 			country = item.country;
 			phone = item.phone;
 			mobilePhone = item.mobilePhone;

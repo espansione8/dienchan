@@ -336,6 +336,8 @@ export interface Order {
 
 export interface Product {
     prodId: string;
+    sku: string;
+    ean13: string;
     title: string;
     descrShort: string;
     stockQty: number;
