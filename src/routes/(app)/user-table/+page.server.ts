@@ -171,6 +171,7 @@ export const actions: Actions = {
 		const countryPublic = !!(formData.get('countryPublic') || '');
 		const phonePublic = !!(formData.get('phonePublic') || '');
 		const mobilePhonePublic = !!(formData.get('mobilePhonePublic') || '');
+		const membershipExpiry = formData.get('membershipExpiry') as string;
 
 		const riflessologoLevels = new Set(['accademia', 'formatore base', 'master', 'formatore avanzato']);
 		const isRiflessologo = !!level && riflessologoLevels.has(level.toLowerCase());
@@ -208,7 +209,8 @@ export const actions: Actions = {
 						postalCodePublic,
 						countryPublic,
 						phonePublic,
-						mobilePhonePublic
+						mobilePhonePublic,
+						'membership.membershipExpiry' : membershipExpiry
 					}
 				},
 				options: { upsert: false },

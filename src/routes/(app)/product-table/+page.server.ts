@@ -161,7 +161,6 @@ export const actions: Actions = {
 				return fail(400, { action: 'modify', success: false, message: errorText });
 			}
 			const result = await res.json();
-			console.log('result modify', result);
 			return { action: 'modify', success: true, message: result.message };
 
 		} catch (error) {
@@ -501,7 +500,6 @@ export const actions: Actions = {
 		const itemsPerPage = Number(formData.get('itemsPerPage'));
 		let currentPage = Number(formData.get('currentPage'));
 		const category = formData.get('category');
-		console.log('changePage', navigation, itemsPerPage, currentPage, category);
 
 		if (navigation === 'prev') {
 			currentPage = Math.max(1, currentPage - 1);
@@ -519,6 +517,7 @@ export const actions: Actions = {
 					apiKey: APIKEY,
 					schema: 'product', //product | order | user | layout | discount
 					query: {
+						type: 'product',
 						...(category && { category })
 					},
 					projection: { _id: 0 },
@@ -532,11 +531,11 @@ export const actions: Actions = {
 			});
 			if (!res.ok) {
 				const errorText = await res.text();
-				console.error('discount changePage failed', res.status, errorText);
+				console.error('product changePage failed', res.status, errorText);
 				return fail(400, { action: 'changePage', success: false, message: `changePage Error: ${errorText}` });
 			}
 			const result = await res.json();
-
+			// console.log('changePage result', result);
 			return { action: 'changePage', success: true, message: result.message, payload: { result, currentPage } };
 
 		} catch (error) {

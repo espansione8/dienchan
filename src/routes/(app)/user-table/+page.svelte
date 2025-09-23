@@ -26,7 +26,7 @@
 		FileDown,
 		CopyPlus,
 		FileUp,
-		Info,
+		Calendar,
 		House,
 		Coins
 	} from 'lucide-svelte';
@@ -68,6 +68,7 @@
 	let pointsHistory = $state([]);
 	let pointsType = $state('add');
 	let resetActive = $state(false);
+	let membershipExpiry = $state('');
 
 	// Pagination
 	let currentPage = $state(1);
@@ -267,6 +268,8 @@
 			postalCode = item.postalCode;
 			city = item.city;
 			countyArray = item.county;
+			// membershipExpiry = item.membership.membershipExpiry;
+			membershipExpiry = new Date(item.membership.membershipExpiry).toISOString().split('T')[0];
 
 			country = item.country;
 			phone = item.phone;
@@ -1023,9 +1026,9 @@
 				</div>
 			{/if}
 			<!-- Level -->
-			<div class="form-control col-span-12">
+			<div class="form-control col-span-12 md:col-span-6">
 				<label for="level" class="form-label">
-					<p class="font-bold mb-2">Livello di permesso (solo per SuperAdmin)</p>
+					<p class="font-bold">Livello di permesso (solo per SuperAdmin)</p>
 				</label>
 				<select id="level" name="level" class="select select-bordered w-full rounded-md mt-2" placeholder="Scegli" required bind:value={level}>
 					<option value="" selected disabled>Seleziona livello</option>
@@ -1038,6 +1041,22 @@
 					<option value="superadmin">Superadmin</option>
 				</select>
 			</div>
+			{#if currentModal == 'modify'}
+				<div class="form-control col-span-12 md:col-span-6">
+					<label for="membershipExpiry" class="form-label">
+						<p class="font-bold mb-2">Scadenza iscrizione Membership</p>
+					</label>
+
+					<input
+						type="date"
+						id="membershipExpiry"
+						name="membershipExpiry"
+						class="input input-bordered w-full"
+						bind:value={membershipExpiry}
+						required
+					/>
+				</div>
+			{/if}
 
 			<!-- button -->
 			<div class="col-span-12 mt-5 flex justify-center gap-4">

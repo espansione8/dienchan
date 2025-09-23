@@ -34,7 +34,8 @@
 
 	const { data } = $props();
 	const { getTable, itemCount } = $derived(data);
-	let tableList: Product[] = $state(getTable || []);
+	// let tableList: Product[] = $state(getTable || []);
+	let tableList = $state(getTable);
 	let count = $state(itemCount);
 
 	// modal
@@ -236,11 +237,15 @@
 						csvCreate(payload);
 						notification.success(message);
 					} else if (action == 'changePage') {
-						tableList = payload.result;
+						if (payload.result.length > 0) {
+							tableList = payload.result;
+						} else {
+							tableList = getTable;
+						}
 						currentPage = payload.currentPage;
 					} else {
-						resetActive = false;
 						tableList = getTable;
+						resetActive = false;
 						notification.info(message);
 					}
 
@@ -278,9 +283,7 @@
 	// });
 
 	$effect(() => {
-		console.log('Effect triggered - currentPage:', currentPage);
-		console.log('tableList:', tableList);
-		if (currentPage) {
+		if (currentPage && Array.isArray(tableList)) {
 			tick().then(() => {
 				const element = document.getElementById('top');
 				if (element) {
