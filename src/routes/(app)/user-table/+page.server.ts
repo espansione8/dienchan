@@ -210,7 +210,7 @@ export const actions: Actions = {
 						countryPublic,
 						phonePublic,
 						mobilePhonePublic,
-						'membership.membershipExpiry' : membershipExpiry
+						'membership.membershipExpiry': membershipExpiry
 					}
 				},
 				options: { upsert: false },
@@ -629,7 +629,7 @@ export const actions: Actions = {
 					schema: 'user', //product | order | user | layout | discount
 					query: {},
 					projection: { _id: 0, password: 0 }, // 0: exclude | 1: include
-					sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+					//sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
 					limit: 100000,
 					skip: 0
 				}),
