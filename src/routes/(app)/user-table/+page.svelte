@@ -69,6 +69,7 @@
 	let pointsType = $state('add');
 	let resetActive = $state(false);
 	let membershipExpiry = $state('');
+	let membershipStatus = $state();
 
 	// Pagination
 	let currentPage = $state(1);
@@ -276,6 +277,7 @@
 			mobilePhone = item.mobilePhone;
 			password1 = item.password1;
 			level = item.level;
+			membershipStatus = item.membership.membershipStatus;
 			namePublic = item.namePublic;
 			surnamePublic = item.surnamePublic;
 			emailPublic = item.emailPublic;
@@ -1041,7 +1043,6 @@
 					<option value="superadmin">Superadmin</option>
 				</select>
 			</div>
-			{#if currentModal == 'modify'}
 				<div class="form-control col-span-12 md:col-span-6">
 					<label for="membershipExpiry" class="form-label">
 						<p class="font-bold mb-2">Scadenza iscrizione Membership</p>
@@ -1056,7 +1057,38 @@
 						required
 					/>
 				</div>
-			{/if}
+
+					<div class="form-control col-span-12">
+					<label class="form-label">
+						<div class="flex items-center justify-between gap-4">
+							<span class="label-text font-bold">Status Tessera</span>
+						</div>
+					</label>
+					<div class="flex gap-4 mt-2">
+						<label class="flex items-center cursor-pointer">
+							<input
+								type="radio"
+								name="membershipStatus"
+								value="true"
+								class="radio radio-success mr-2"
+								checked={membershipStatus === true}
+								onchange={() => membershipStatus = true}
+							/>
+							<span class="text-sm">Attiva</span>
+						</label>
+						<label class="flex items-center cursor-pointer">
+							<input
+								type="radio"
+								name="membershipStatus"
+								value="false"
+								class="radio radio-error mr-2"
+								checked={membershipStatus === false}
+								onchange={() => membershipStatus = false}
+							/>
+							<span class="text-sm">Inattiva</span>
+						</label>
+					</div>
+				</div>
 
 			<!-- button -->
 			<div class="col-span-12 mt-5 flex justify-center gap-4">
