@@ -120,8 +120,6 @@ export const actions: Actions = {
 		const shippingPostalCode = formData.get('shippingPostalCode');
 		const shippingCountry = formData.get('shippingCountry');
 
-
-
 		if (usePoint && newPointsBalance < 0) {
 			return fail(400, { action: 'new', success: false, message: 'Saldo punti insufficiente' });
 		}

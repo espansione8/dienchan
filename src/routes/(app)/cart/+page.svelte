@@ -32,7 +32,7 @@
 		ArrowLeft,
 		CircleCheckBig,
 		Tag,
-		HandCoins   ,
+		HandCoins,
 		Car
 	} from 'lucide-svelte';
 
@@ -256,7 +256,7 @@
 						country: formData.country === 'Italy' ? 'IT' : formData.country,
 						line1: formData.address,
 						postal_code: formData.postalCode,
-						state: formData.county
+						state: formData.county[0]
 					}
 				}
 			});
@@ -1102,7 +1102,7 @@
 										<Lock size={14} class="inline-block mr-1" /> Le tue informazioni di pagamento sono protette.
 									</p>
 									{#if !paymentMethodId}
-										<button type="button" class="btn btn-info mt-4" onclick={getStripeId}>VERIFICA CARTA </button>
+										<button type="button" class="btn btn-info mt-4" onclick={() => getStripeId()}>VERIFICA CARTA </button>
 									{:else}
 										<div class="btn btn-primary mt-4">CARTA OK <CircleCheckBig /></div>
 									{/if}
@@ -1232,7 +1232,11 @@
 							<span class="label-text">Spendi saldo punti {formData.usePoint ? `(${Math.round(newPointsBalance())} punti rimasti)` : ''}</span>
 						</label>
 					</div>
-					<button class="btn btn-primary w-full mt-4" onclick={() => onClickModal(discountList.length === 0 ? 'rememberCoupon' : 'new', null)} disabled={$cartProducts.length === 0}>
+					<button
+						class="btn btn-primary w-full mt-4"
+						onclick={() => onClickModal(discountList.length === 0 ? 'rememberCoupon' : 'new', null)}
+						disabled={$cartProducts.length === 0}
+					>
 						Procedi al checkout
 					</button>
 				</div>
@@ -1613,13 +1617,15 @@
 	<dialog id="success-modal" class="modal modal-open">
 		<div class="modal-box text-center">
 			<div class="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-4">
-				<Info  size={40} class="text-success" />
+				<Info size={40} class="text-success" />
 			</div>
 			<h3 class="font-bold text-xl mb-2">Hai qualche codice sconto da usare?</h3>
 			<p class="py-2">Prima di procedere all'acquisto inserisci i codici sconti per attivarli in fase di conferma ordine.</p>
 			<div class="modal-action justify-center">
 				<button class="btn btn-primary" onclick={onCloseModal}> Chiudi </button>
-				<button class="btn btn-primary" onclick={() => onClickModal('new', null)}> Continua l'acquisto 	<HandCoins     size={20} class="text-white" /></button>
+				<button class="btn btn-primary" onclick={() => onClickModal('new', null)}>
+					Continua l'acquisto <HandCoins size={20} class="text-white" /></button
+				>
 			</div>
 		</div>
 		<form method="dialog" class="modal-backdrop">
@@ -1627,4 +1633,3 @@
 		</form>
 	</dialog>
 {/if}
-

@@ -520,8 +520,8 @@
 				<div
 					class="card overflow-hidden bg-base-100 rounded-xl shadow-lg border
 	border-base-200 hover:shadow-xl transition-shadow duration-300 flex flex-col w-full sm:w-81"
-					class:h-114={auth}
-					class:h-128={!auth}
+					class:h-122={auth && userData?.membership.membershipStatus}
+					class:h-136={!auth || !userData?.membership.membershipStatus}
 				>
 					<div class="relative px-6 pt-6 pb-2 bg-base-200/30 space-y-0">
 						<a href="/course-detail/{courseData.prodId}">
@@ -568,12 +568,12 @@
 							<MapPin size={16} class="text-primary flex-shrink-0" />
 							<span class="font-medium">
 								{#if Array.isArray(courseData.county) && courseData.county.length > 0}
-										{courseData.county.join(', ')}
-									{:else if courseData.county}
-										{courseData.county}
-									{:else}
-										Non specificato
-									{/if}
+									{courseData.county.join(', ')}
+								{:else if courseData.county}
+									{courseData.county}
+								{:else}
+									Non specificato
+								{/if}
 							</span>
 						</div>
 

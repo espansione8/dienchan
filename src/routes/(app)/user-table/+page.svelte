@@ -6,7 +6,7 @@
 	import Modal from '$lib/components/Modal.svelte';
 	import Papa from 'papaparse';
 	import Loader from '$lib/components/Loader.svelte';
-	import { orderKeysToDelete } from '$lib/stores/arrays';
+	import { userKeysToDelete } from '$lib/stores/arrays';
 	import { enhance } from '$app/forms';
 	import { country_list } from '$lib/stores/arrays.js';
 	import { province } from '$lib/stores/arrays';
@@ -153,28 +153,13 @@
 			}, {});
 		};
 
-		// let newList: any = $state();
-		// const flattenedArray = content.map((obj: any) => {
-		// 	return flattenObject(obj);
-		// });
-
-		// newList = flattenedArray.map((obj: any) => ({
-		// 	...obj,
-		// 	createdAt: obj.createdAt?.substring(0, 10),
-		// 	birthdate: obj.birthdate?.substring(0, 10)
-		// }));
-
-		// newList.forEach((obj: any) => {
-		// 	$orderKeysToDelete.forEach((key: string) => delete (obj as any)[key]);
-		// });
-
 		const dataToExport = content.map((order) => {
 			const flatOrder: any = flattenObject(order);
 
 			if (flatOrder.createdAt) flatOrder.createdAt = (flatOrder.createdAt as string).substring(0, 10);
 			if (flatOrder.birthdate) flatOrder.birthdate = (flatOrder.birthdate as string).substring(0, 10);
 
-			$orderKeysToDelete.forEach((key: string) => delete (flatOrder as any)[key]);
+			$userKeysToDelete.forEach((key: string) => delete (flatOrder as any)[key]);
 			return flatOrder;
 		});
 
@@ -1043,52 +1028,45 @@
 					<option value="superadmin">Superadmin</option>
 				</select>
 			</div>
-				<div class="form-control col-span-12 md:col-span-6">
-					<label for="membershipExpiry" class="form-label">
-						<p class="font-bold mb-2">Scadenza iscrizione Membership</p>
-					</label>
+			<div class="form-control col-span-12 md:col-span-6">
+				<label for="membershipExpiry" class="form-label">
+					<p class="font-bold mb-2">Scadenza iscrizione Membership</p>
+				</label>
 
-					<input
-						type="date"
-						id="membershipExpiry"
-						name="membershipExpiry"
-						class="input input-bordered w-full"
-						bind:value={membershipExpiry}
-						required
-					/>
-				</div>
+				<input type="date" id="membershipExpiry" name="membershipExpiry" class="input input-bordered w-full" bind:value={membershipExpiry} required />
+			</div>
 
-					<div class="form-control col-span-12">
-					<label class="form-label">
-						<div class="flex items-center justify-between gap-4">
-							<span class="label-text font-bold">Status Tessera</span>
-						</div>
-					</label>
-					<div class="flex gap-4 mt-2">
-						<label class="flex items-center cursor-pointer">
-							<input
-								type="radio"
-								name="membershipStatus"
-								value="true"
-								class="radio radio-success mr-2"
-								checked={membershipStatus === true}
-								onchange={() => membershipStatus = true}
-							/>
-							<span class="text-sm">Attiva</span>
-						</label>
-						<label class="flex items-center cursor-pointer">
-							<input
-								type="radio"
-								name="membershipStatus"
-								value="false"
-								class="radio radio-error mr-2"
-								checked={membershipStatus === false}
-								onchange={() => membershipStatus = false}
-							/>
-							<span class="text-sm">Inattiva</span>
-						</label>
+			<div class="form-control col-span-12">
+				<label class="form-label">
+					<div class="flex items-center justify-between gap-4">
+						<span class="label-text font-bold">Status Tessera</span>
 					</div>
+				</label>
+				<div class="flex gap-4 mt-2">
+					<label class="flex items-center cursor-pointer">
+						<input
+							type="radio"
+							name="membershipStatus"
+							value="true"
+							class="radio radio-success mr-2"
+							checked={membershipStatus === true}
+							onchange={() => (membershipStatus = true)}
+						/>
+						<span class="text-sm">Attiva</span>
+					</label>
+					<label class="flex items-center cursor-pointer">
+						<input
+							type="radio"
+							name="membershipStatus"
+							value="false"
+							class="radio radio-error mr-2"
+							checked={membershipStatus === false}
+							onchange={() => (membershipStatus = false)}
+						/>
+						<span class="text-sm">Inattiva</span>
+					</label>
 				</div>
+			</div>
 
 			<!-- button -->
 			<div class="col-span-12 mt-5 flex justify-center gap-4">

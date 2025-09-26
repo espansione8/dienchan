@@ -276,7 +276,7 @@
 						country: formData.country === 'Italy' ? 'IT' : formData.country,
 						line1: formData.address,
 						postal_code: formData.postalCode,
-						state: formData.county
+						state: formData.county[0]
 					}
 				}
 			});
