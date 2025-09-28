@@ -28,7 +28,7 @@
 	const userName = $derived(user?.name || '');
 	const userSurname = $derived(user?.surname || '');
 
-	const formatoreLevels = new Set(['formatore base', 'master', 'formatore avanzato']);
+	const formatoreLevels = new Set(['accademia, formatore base', 'master', 'formatore avanzato']);
 	const isFormatore = formatoreLevels.has(level.toLowerCase());
 
 	const toggleMenu = () => {
@@ -87,6 +87,49 @@
 							<span class="absolute -top-2 -right-2 badge badge-sm badge-primary">{$cdata.q1}</span>
 						{/if}
 					</a>
+
+					<div class="dropdown dropdown-end">
+						<button class="btn btn-sm btn-ghost">
+							<Layers size={16} />
+							<span>Tutorial</span>
+							<ChevronDown size={14} />
+						</button>
+
+						<ul class="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2">
+							<li>
+								<a href="https://vimeo.com/1122482609/8966f3df8f" target="_blank">
+									<BookOpen size={16} />
+									Tutorial 1
+								</a>
+							</li>
+							<li>
+								<a href="https://vimeo.com/1122482599/f7528712a6" target="_blank">
+									<BookOpen size={16} />
+									Tutorial 2
+								</a>
+							</li>
+							<li>
+								<a href="https://vimeo.com/1122482586/fc96d35bd6" target="_blank">
+									<BookOpen size={16} />
+									Tutorial 3
+								</a>
+							</li>
+							{#if isFormatore}
+								<li>
+									<a href="#" target="_blank">
+										<BookOpen size={16} />
+										Tutorial 4
+									</a>
+								</li>
+								<li>
+									<a href="#" target="_blank">
+										<BookOpen size={16} />
+										Tutorial 5
+									</a>
+								</li>
+							{/if}
+						</ul>
+					</div>
 
 					{#if auth}
 						<a href="/profile-area" class={`btn btn-sm ${isActive('/profile-area') ? 'btn-primary' : 'btn-ghost'}`}>
@@ -154,6 +197,7 @@
 								</ul>
 							</div>
 						{/if}
+
 						<form method="POST" action="/api/logout/" use:enhance={handleLogout}>
 							<button type="submit" class="btn btn-sm btn-outline btn-error">
 								<LogOut size={16} />
