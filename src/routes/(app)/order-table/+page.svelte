@@ -29,6 +29,7 @@
 	let paymentMethod = $state('');
 	let status = $state('');
 	let statusPayment = $state('');
+	let type = $state('');
 	let surname = $state('');
 	let email = $state('');
 
@@ -133,6 +134,7 @@
 		orderId = '';
 		userId = '';
 		paymentMethod = '';
+		type = '';
 		status = '';
 		statusPayment = '';
 		surname = '';
@@ -771,6 +773,20 @@
 							<option value="pending">Pending</option>
 							<option value="done">Confermato</option>
 							<option value="canceled">Cancellato</option>
+						</select>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="type" class="block text-sm font-medium text-gray-700 mb-1">Tipo ordine</label>
+						<select
+							id="type"
+							name="type"
+							bind:value={type}
+							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						>
+							<option value="">Scegli un tipo d'ordine</option>
+							<option value="course">Corso</option>
+							<option value="product">Prodotto</option>
+							<option value="membership">Membership</option>
 						</select>
 					</div>
 				</div>
