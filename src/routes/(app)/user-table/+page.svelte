@@ -435,7 +435,8 @@
 				{#each tableList as row, i}
 					<tr class="hover:bg-gray-300">
 						<!-- Data registrazione -->
-						<td>{row.createdAt}</td>
+						<td>{row.createdAt ? new Date(row.createdAt).toLocaleDateString('it-IT') : '-'}</td>
+
 						<!-- Email -->
 						<td>{row.email}</td>
 						<!-- Name and Surname -->

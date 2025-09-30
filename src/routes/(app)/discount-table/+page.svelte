@@ -274,7 +274,7 @@
 								</span>
 							</form>
 						</td>
-						<td>{row.createdAt}</td>
+						<td>{row.createdAt ? new Date(row.createdAt).toLocaleDateString('it-IT') : '-'}</td>
 						<td>{row.discountId}</td>
 						<td>{row.code}</td>
 						<td>{row.type}</td>

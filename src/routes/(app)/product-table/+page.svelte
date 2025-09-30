@@ -366,7 +366,7 @@
 			{/if}
 			{#each tableList as row (row.prodId)}
 				<tr class="hover:bg-gray-100">
-					<td>{row.prodId} <br /> {row.createdAt?.substring(0, 10) || ''}</td>
+					<td>{row.prodId} <br /> {row.createdAt ? new Date(row.createdAt).toLocaleDateString('it-IT') : ''}</td>
 					<td>{row.sku || ''}</td>
 					<td>
 						<!-- img start -->

@@ -28,7 +28,7 @@
 	const userName = $derived(user?.name || '');
 	const userSurname = $derived(user?.surname || '');
 
-	const formatoreLevels = new Set(['accademia, formatore base', 'master', 'formatore avanzato']);
+	const formatoreLevels = new Set(['accademia', 'formatore base', 'master', 'formatore avanzato']);
 	const isFormatore = formatoreLevels.has(level.toLowerCase());
 
 	const toggleMenu = () => {
@@ -97,34 +97,34 @@
 
 						<ul class="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2">
 							<li>
-								<a href="https://vimeo.com/1122482609/8966f3df8f" target="_blank">
+								<a href="https://vimeo.com/1122482609/8966f3df8f" target="_blank" rel="noopener noreferrer">
 									<BookOpen size={16} />
-									Tutorial 1
+									Cambio Password
 								</a>
 							</li>
 							<li>
-								<a href="https://vimeo.com/1122482599/f7528712a6" target="_blank">
+								<a href="https://vimeo.com/1122482599/f7528712a6" target="_blank" rel="noopener noreferrer">
 									<BookOpen size={16} />
-									Tutorial 2
+									Iscrizione nuovo socio
 								</a>
 							</li>
 							<li>
-								<a href="https://vimeo.com/1122482586/fc96d35bd6" target="_blank">
+								<a href="https://vimeo.com/1122482586/fc96d35bd6" target="_blank" rel="noopener noreferrer">
 									<BookOpen size={16} />
-									Tutorial 3
+									Ricerca e acquisto corso
 								</a>
 							</li>
 							{#if isFormatore}
 								<li>
-									<a href="#" target="_blank">
+									<a href="https://vimeo.com/1122734353/d6cd2c1d38" target="_blank" rel="noopener noreferrer">
 										<BookOpen size={16} />
-										Tutorial 4
+										Panoramica pannello riflessologi
 									</a>
 								</li>
 								<li>
-									<a href="#" target="_blank">
+									<a href="https://vimeo.com/1122734367/669c906f77" target="_blank" rel="noopener noreferrer">
 										<BookOpen size={16} />
-										Tutorial 5
+										Creazione corso da modello
 									</a>
 								</li>
 							{/if}
@@ -299,6 +299,50 @@
 								{/if}
 							</div>
 						</a>
+					</li>
+					<li>
+						<div class="dropdown dropdown-end mx-auto">
+							<button class="btn btn-sm btn-ghost">
+								<Layers size={16} />
+								<span>Tutorial</span>
+								<ChevronDown size={14} />
+							</button>
+
+							<ul class="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2">
+								<li>
+									<a href="https://vimeo.com/1122482609/8966f3df8f">
+										<BookOpen size={16} />
+										Cambio Password
+									</a>
+								</li>
+								<li>
+									<a href="https://vimeo.com/1122482599/f7528712a6">
+										<BookOpen size={16} />
+										Iscrizione nuovo socio
+									</a>
+								</li>
+								<li>
+									<a href="https://vimeo.com/1122482586/fc96d35bd6">
+										<BookOpen size={16} />
+										Ricerca e acquisto corso
+									</a>
+								</li>
+								{#if isFormatore}
+									<li>
+										<a href="https://vimeo.com/1122734353/d6cd2c1d38">
+											<BookOpen size={16} />
+											Panoramica pannello riflessologi
+										</a>
+									</li>
+									<li>
+										<a href="https://vimeo.com/1122734367/669c906f77">
+											<BookOpen size={16} />
+											Creazione corso da modello
+										</a>
+									</li>
+								{/if}
+							</ul>
+						</div>
 					</li>
 
 					{#if auth}

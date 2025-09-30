@@ -43,7 +43,8 @@
 		FileText,
 		Upload,
 		CalendarClock,
-		CalendarPlus
+		CalendarPlus,
+		ExternalLink
 	} from 'lucide-svelte';
 
 	// PDF maker
@@ -592,6 +593,17 @@
 								<Award size={18} />
 								Certificati
 							</button>
+							{#if userData.membership.membershipStatus === true}
+								<a
+									href="https://accademia-online.riflessologiadienchan.it/"
+									class="btn btn-ghost justify-start gap-3"
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									<ExternalLink size={18} />
+									Link Accademia Online
+								</a>
+							{/if}
 							<a href="/profile-public/{userData.userId}" class="btn btn-ghost justify-start gap-3">
 								<Eye size={18} />
 								Anteprima profilo pubblico

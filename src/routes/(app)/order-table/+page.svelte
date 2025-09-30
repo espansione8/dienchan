@@ -280,7 +280,7 @@
 			{#each tableList as row}
 				<tr class="hover:bg-gray-100">
 					<!-- Data -->
-					<td>{row.orderDate}</td>
+					<td>{row.orderDate ? new Date(row.orderDate).toLocaleDateString('it-IT') : '-'}</td>
 					<!-- ID ordine-->
 					<td>{row.orderId}</td>
 					<!-- Email-->

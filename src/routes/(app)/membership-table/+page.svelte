@@ -251,7 +251,7 @@
 			{/if}
 			{#each tableList as row}
 				<tr class="hover:bg-gray-300">
-					<td>{row.prodId} <br /> {row.createdAt.substring(0, 10)}</td>
+					<td>{row.prodId} <br /> {row.createdAt ? new Date(row.createdAt).toLocaleDateString('it-IT') : 'N/A'}</td>
 					<td>
 						<!-- img start -->
 						{#if imgCheck.single(row.uploadfiles, 'product-primary') !== '/images/placeholder.jpg'}

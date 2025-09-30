@@ -886,13 +886,13 @@
 								<!-- img end -->
 							</td>
 
-							<td>{row.createdAt}</td>
+							<td>{row.createdAt ? new Date(row.createdAt).toLocaleDateString('it-IT') : 'N/A'}</td>
 
 							<td>{row.name} {row.surname}</td>
 
 							<td>{row.layoutView?.title}</td>
 
-							<td>{row.eventStartDate} - {row.timeStartDate} </td>
+							<td>{row.eventStartDate ? new Date(row.eventStartDate).toLocaleDateString('it-IT') : 'N/A'} - {row.timeStartDate || 'N/A'}</td>
 
 							<td>
 								<p class="card-text">

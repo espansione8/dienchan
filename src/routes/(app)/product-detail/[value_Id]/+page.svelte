@@ -112,17 +112,13 @@
 				<div class="flex flex-col">
 					{#if auth}
 						{#if !thisProd}
-							<button
-								class="btn btn-primary"
-								onclick={() => addToCart($cartProducts, getProduct, false)}
+							<button class="btn btn-primary" onclick={() => addToCart($cartProducts, getProduct, false)}
 								>+ <ShoppingCart /> aggiungi al carrello</button
 							>
 						{:else}
 							<div class="join join-vertical">
 								{#if $cartProducts.find((item) => item.prodId === getProduct.prodId)?.orderQuantity < thisProd.stockQty}
-									<button
-										class="btn btn-primary join-item"
-										onclick={() => addToCart($cartProducts, getProduct, false)}
+									<button class="btn btn-primary join-item" onclick={() => addToCart($cartProducts, getProduct, false)}
 										>+ <ShoppingCart /> aggiungi al carrello</button
 									>
 								{:else}
@@ -135,34 +131,25 @@
 								> -->
 								<input
 									type="text"
-									value={$cartProducts.find((item) => item.prodId === getProduct.prodId)
-										?.orderQuantity}
+									value={$cartProducts.find((item) => item.prodId === getProduct.prodId)?.orderQuantity}
 									class="input join-item text-center w-full"
 									readonly
 								/>
-								<button
-									class="btn join-item"
-									onclick={() => removeFromCart($cartProducts, getProduct)}
+								<button class="btn join-item" onclick={() => removeFromCart($cartProducts, getProduct)}
 									>- <ShoppingCart /> rimuovi dal carrello</button
 								>
 							</div>
 						{/if}
 					{:else}
-						<button class="btn btn-error flex-1 sm:flex-none sm:min-w-[200px]"
-							><ShoppingCart />Riservato agli associati</button
-						>
+						<button class="btn btn-error flex-1 sm:flex-none sm:min-w-[200px]"><ShoppingCart />Riservato agli associati</button>
 					{/if}
 				</div>
 
 				<div class="alert bg-primary/10 text-primary-focus border-none">
 					<CircleCheck size="20" />
 					<div>
-						<h3 class="font-bold">
-							Spedizioni gratuite per ordini superiori a € 100 (escluso spese di spedizione)
-						</h3>
-						<div class="text-xs">
-							Ordini saranno evasi ogni settimana nei giorni lavorativi il Lunedi e Giovedi.
-						</div>
+						<h3 class="font-bold">Spedizioni gratuite per ordini superiori a € 100 (escluso spese di spedizione)</h3>
+						<div class="text-xs">Ordini saranno evasi ogni settimana nei giorni lavorativi il Lunedì e Giovedì.</div>
 					</div>
 				</div>
 			</div>
@@ -178,20 +165,16 @@
 				>
 					Descrizione
 				</button>
-				<button
-					role="tab"
-					class="tab {activeTab === 'info' ? 'text-primary font-bold tab-active' : ''}"
-					onclick={() => setActiveTab('info')}
-				>
+				<button role="tab" class="tab {activeTab === 'info' ? 'text-primary font-bold tab-active' : ''}" onclick={() => setActiveTab('info')}>
 					Altre informazioni
 				</button>
-				<button
+				<!-- <button
 					role="tab"
 					class="tab {activeTab === 'usage' ? 'text-primary font-bold tab-active' : ''}"
 					onclick={() => setActiveTab('usage')}
 				>
 					Extra
-				</button>
+				</button> -->
 			</div>
 
 			<div class="p-4 bg-base-100 rounded-lg shadow-sm mt-2">
@@ -210,10 +193,7 @@
 							<div class="card bg-base-200">
 								<div class="card-body">
 									<h3 class="card-title text-primary">Evasione Ordini</h3>
-									<p>
-										Gli ordini vengono evasi il successivo giorno lavorativo rispetto alla data di
-										ricezione, se effettuati entro la sera
-									</p>
+									<p>Gli ordini vengono evasi il successivo giorno lavorativo rispetto alla data di ricezione, se effettuati entro la sera</p>
 								</div>
 							</div>
 							<div class="card bg-base-200">
@@ -231,41 +211,29 @@
 						<div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-2">
 							<div class="card bg-base-200">
 								<div class="card-body items-center text-center">
-									<div
-										class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-content mb-2"
-									>
+									<div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-content mb-2">
 										<Boxes />
 									</div>
 									<h3 class="font-medium">Title 1</h3>
-									<p class="text-sm">
-										Vestibulum pellentesque tortor finibus, aliquam velit vitae, feugiat lorem.
-									</p>
+									<p class="text-sm">Vestibulum pellentesque tortor finibus, aliquam velit vitae, feugiat lorem.</p>
 								</div>
 							</div>
 							<div class="card bg-base-200">
 								<div class="card-body items-center text-center">
-									<div
-										class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-content mb-2"
-									>
+									<div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-content mb-2">
 										<Boxes />
 									</div>
 									<h3 class="font-medium">Title 2</h3>
-									<p class="text-sm">
-										Nulla consectetur leo in ligula porttitor, id feugiat dolor vulputate.
-									</p>
+									<p class="text-sm">Nulla consectetur leo in ligula porttitor, id feugiat dolor vulputate.</p>
 								</div>
 							</div>
 							<div class="card bg-base-200">
 								<div class="card-body items-center text-center">
-									<div
-										class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-content mb-2"
-									>
+									<div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-content mb-2">
 										<Boxes />
 									</div>
 									<h3 class="font-medium">Title 3</h3>
-									<p class="text-sm">
-										AMauris sagittis magna a velit elementum, non pretium massa interdum.
-									</p>
+									<p class="text-sm">Mauris sagittis magna a velit elementum, non pretium massa interdum.</p>
 								</div>
 							</div>
 						</div>
