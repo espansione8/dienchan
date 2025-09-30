@@ -94,7 +94,10 @@ export const actions: Actions = {
 		const phone = formData.get('phone') || '';
 		const mobilePhone = formData.get('mobilePhone') || '';
 		const password1: any = formData.get('password1') || '';
-		const level = formData.get('level') || '';
+		const level = formData.get('level') || '';	
+		const membershipExpiry = formData.get('membershipExpiry') as string;
+		const membershipStatus = formData.get('membershipStatus') as string;
+		const membershipLevel = formData.get('membershipLevel') as string;
 
 		if (!name || !surname || !email || !address || !postalCode || !city || !county || !country || !phone || !mobilePhone || !password1 || !level) {
 			return fail(400, { action: 'newUser', success: false, message: 'Dati mancanti' });
@@ -119,7 +122,10 @@ export const actions: Actions = {
 					phone,
 					mobilePhone,
 					password: hash(password1, SALT),
-					level
+					level,
+					'membership.membershipExpiry': membershipExpiry,
+					'membership.membershipStatus': membershipStatus,
+					'membership.membershipLevel': membershipLevel,
 				},
 				returnObj: false
 			}),
@@ -173,11 +179,12 @@ export const actions: Actions = {
 		const mobilePhonePublic = !!(formData.get('mobilePhonePublic') || '');
 		const membershipExpiry = formData.get('membershipExpiry') as string;
 		const membershipStatus = formData.get('membershipStatus') as string;
+		const membershipLevel = formData.get('membershipLevel') as string;
 
 		const riflessologoLevels = new Set(['accademia', 'formatore base', 'master', 'formatore avanzato']);
 		const isRiflessologo = !!level && riflessologoLevels.has(level.toLowerCase());
 
-		if (!name || !surname || !email || !address || !postalCode || !city || !county || !country || !level) {
+		if (!name || !surname || !email || !address || !postalCode || !city || !county || !country || !level || !membershipLevel || !membershipExpiry || !membershipStatus) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
 
@@ -212,7 +219,8 @@ export const actions: Actions = {
 						phonePublic,
 						mobilePhonePublic,
 						'membership.membershipExpiry': membershipExpiry,
-						'membership.membershipStatus': membershipStatus
+						'membership.membershipStatus': membershipStatus,
+						'membership.membershipLevel': membershipLevel,
 					}
 				},
 				options: { upsert: false },

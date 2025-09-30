@@ -242,6 +242,9 @@
 		if (type == 'new') {
 			postAction = `?/new`;
 			modalTitle = 'Nuovo Utente';
+			membershipLevel = '';
+			level = '';
+			membershipExpiry = '';
 		}
 		if (type == 'modify') {
 			postAction = `?/modify`;
@@ -256,7 +259,7 @@
 			countyArray = item.county;
 			// membershipExpiry = item.membership.membershipExpiry;
 			membershipExpiry = new Date(item.membership.membershipExpiry).toISOString().split('T')[0];
-
+			membershipLevel = item.membership.membershipLevel;
 			country = item.country;
 			phone = item.phone;
 			mobilePhone = item.mobilePhone;
@@ -282,6 +285,14 @@
 		if (type == 'filter') {
 			postAction = `?/filter`;
 			modalTitle = 'Filtra';
+
+			level = '';
+			membershipLevel = '';
+			email = '';
+			name = '';
+			surname = '';
+			county = '';
+			mobilePhone = '';
 		}
 		if (type == 'uploadCsv') {
 			postAction = `?/uploadCsv`;
@@ -1029,12 +1040,34 @@
 					<option value="superadmin">Superadmin</option>
 				</select>
 			</div>
+
+			<!-- expire -->
 			<div class="form-control col-span-12 md:col-span-6">
 				<label for="membershipExpiry" class="form-label">
 					<p class="font-bold mb-2">Scadenza iscrizione Membership</p>
 				</label>
 
 				<input type="date" id="membershipExpiry" name="membershipExpiry" class="input input-bordered w-full" bind:value={membershipExpiry} required />
+			</div>
+
+			<!-- livello membership -->
+			<div class="form-control col-span-12 md:col-span-6">
+				<label for="membershipLevel" class="form-label">
+					<p class="font-bold">Livello Membership</p>
+				</label>
+				<select
+					id="membershipLevel"
+					name="membershipLevel"
+					class="select select-bordered w-full rounded-md mt-2"
+					placeholder="Scegli"
+					required
+					bind:value={membershipLevel}
+				>
+					<option value="" selected disabled>Seleziona livello Membership</option>
+					<option value="Socio inattivo">Socio inattivo</option>
+					<option value="Socio ordinario">Socio ordinario</option>
+					<option value="Socio vitalizio">Socio vitalizio</option>
+				</select>
 			</div>
 
 			<div class="form-control col-span-12">
