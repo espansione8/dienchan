@@ -119,7 +119,8 @@
 		coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
 		filtriAttivi = {
-			mese: currentMonthName,
+			// mese: currentMonthName,
+			mese: '',
 			provincia: '',
 			evento: '',
 			riflessologo: ''
