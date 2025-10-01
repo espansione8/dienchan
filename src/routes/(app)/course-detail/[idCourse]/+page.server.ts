@@ -239,27 +239,7 @@ export const actions: Actions = {
 			}
 		});
 
-		const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'product', //product | order | user | layout | discount
-				query: { type: 'course', prodId: cartItem.prodId }, // 'course', 'product', 'membership', 'event',
-				update: {
-					$push: {
-						listSubscribers: {
-							userId: currentUserId, email, name, surname, phone, mobilePhone,
-							...promoterId ? { promoterId: promoterId.trim() } : { promoterId: null }
-						}
-					}
-				},
-				options: { upsert: false },
-				multi: false
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
+
 
 		const updateUserFetch = fetch(`${BASE_URL}/api/mongo/update`, {
 			method: 'POST',
@@ -566,127 +546,44 @@ export const actions: Actions = {
 			}
 			const order = await orderRes.json();
 
-			if (!locals.user?.membership.membershipStatus) {
-				const newExpire = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
-				const membershipUpdateRes = await fetch(`${BASE_URL}/api/mongo/update`, {
-					method: 'POST',
-					body: JSON.stringify({
-						apiKey: APIKEY,
-						schema: 'user', //product | order | user | layout | discount
-						query: { userId: locals.user?.userId },
-						update: {
-							$set: {
-								'membership.membershipLevel': 'Socio ordinario',
-								'membership.membershipExpiry': newExpire,
-								'membership.membershipStatus': paymentIntentId ? true : false,
-							}
-						},
-						options: { upsert: false },
-						multi: false
-					}),
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				});
-
-				if (!membershipUpdateRes.ok) return fail(400, { action: 'new', success: false, message: 'Error new order' });
-			}
-
-			const updateRes = await updateFetch;
-			if (!updateRes.ok) {
-				return fail(400, {
-					action: 'new',
-					success: false,
-					message: `updateRes: ${await updateRes.text()}`
-				});
-			}
-
-
-			//const mailArray = [...cartItem.notificationEmail, email]; // mail amministrazione dienchan?
-			const mailArray = [email]; // mail amministrazione dienchan?
-			const mailRes = await mailFetch(mailArray, order);
-
-			if (!mailRes.ok) {
-				// return fail(400, {
-				// 	action: 'new',
-				// 	success: false,
-				// 	message: `mailRes: ${await mailRes.text()}`
-				// });
-				console.error(`mailRes: ${await mailRes.text()}`);
-			}
-
-			const notificationRes = await notificationFetch(cartItem.notificationEmail, order);
-			if (!notificationRes.ok) {
-				console.error(`notificationRes: ${await notificationRes.text()}`);
-			}
-
-			const updateUserRes = await updateUserFetch;
-
-			if (!updateUserRes.ok) {
-				return fail(400, {
-					action: 'new',
-					success: false,
-					message: `updateUserRes: ${await updateUserRes.text()}`
-				});
-			}
-
-			const updateQty = bundleProducts.map(async (item) => {
-				const updateQtyRes = await fetch(`${BASE_URL}/api/mongo/update`, {
-					method: 'POST',
-					body: JSON.stringify({
-						apiKey: APIKEY,
-						schema: 'product',
-						query: { prodId: item.prodId },
-						update: {
-							$inc: {
-								stockQty: -1
-							}
-						},
-						options: { upsert: false },
-						multi: false
-					}),
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				});
-
-				if (!updateQtyRes.ok) {
-					const errorData = await updateQtyRes.json();
-					console.error(`Failed to update prodId ${item.prodId}:`, errorData);
-					throw new Error(`Failed to update stock for ${item.prodId}`); // return fail do not stop the map and don't trigger try/catch
-				}
-				return updateQtyRes.json();
-			});
-
-			await Promise.all(updateQty);
-
-			if (payment === 'Carta di credito' && promoterId) {
-				const id = cartItem.layoutId
-				let points = 0;
-				let pointsBase = 0;
-				let pointsAvanzato = 0;
-				if (id === 'XW7LYV2LG2BU') points = 10; // base
-				if (id === '794792843') points = 40; // avanzato
-				if (id === 'accademia') { // accademia
-					pointsBase = 50;
-					pointsAvanzato = 100;
-				}
-
-				//course type
-				const userPointsFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
-					method: 'POST',
-					body: JSON.stringify({
-						apiKey: APIKEY,
-						schema: 'user', //product | order | user | layout | discount
-						query: { email: promoterId }, // 'course', 'product', 'membership', 'event',
-						update: {
-							$inc: {
-								pointsBalance: points
+			if (orderRes.ok) {
+				if (!locals.user?.membership.membershipStatus) {
+					const newExpire = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
+					const membershipUpdateRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+						method: 'POST',
+						body: JSON.stringify({
+							apiKey: APIKEY,
+							schema: 'user', //product | order | user | layout | discount
+							query: { userId: locals.user?.userId },
+							update: {
+								$set: {
+									'membership.membershipLevel': 'Socio ordinario',
+									'membership.membershipExpiry': newExpire,
+									'membership.membershipStatus': paymentIntentId ? true : false,
+								}
 							},
-							$push: {
-								pointsHistory: {
-									points: points,
-									note: `Commissione ${cartItem.layoutView.title} - Ordine ${orderId}`,
+							options: { upsert: false },
+							multi: false
+						}),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					});
+
+					if (!membershipUpdateRes.ok) return fail(400, { action: 'new', success: false, message: 'Error new order' });
+				}
+
+				const updateSubscribers = await fetch(`${BASE_URL}/api/mongo/update`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'product', //product | order | user | layout | discount
+						query: { type: 'course', prodId: cartItem.prodId }, // 'course', 'product', 'membership', 'event',
+						update: {
+							$addToSet: { // $push: {
+								listSubscribers: {
+									userId: currentUserId, email, name, surname, phone, mobilePhone,
+									...promoterId ? { promoterId: promoterId.trim() } : { promoterId: null }
 								}
 							}
 						},
@@ -698,13 +595,120 @@ export const actions: Actions = {
 					}
 				});
 
-				if (!userPointsFetch.ok) {
+				if (!updateSubscribers.ok) {
 					return fail(400, {
 						action: 'new',
 						success: false,
-						message: `userPointsFetch: ${await userPointsFetch.text()}`
+						message: `updateRes: ${await updateSubscribers.text()}`
 					});
 				}
+
+				//const mailArray = [...cartItem.notificationEmail, email]; // mail amministrazione dienchan?
+				const mailArray = [email]; // mail amministrazione dienchan?
+				const mailRes = await mailFetch(mailArray, order);
+
+				if (!mailRes.ok) {
+					// return fail(400, {
+					// 	action: 'new',
+					// 	success: false,
+					// 	message: `mailRes: ${await mailRes.text()}`
+					// });
+					console.error(`mailRes: ${await mailRes.text()}`);
+				}
+
+				const notificationRes = await notificationFetch(cartItem.notificationEmail, order);
+				if (!notificationRes.ok) {
+					console.error(`notificationRes: ${await notificationRes.text()}`);
+				}
+
+				const updateUserRes = await updateUserFetch;
+
+				if (!updateUserRes.ok) {
+					return fail(400, {
+						action: 'new',
+						success: false,
+						message: `updateUserRes: ${await updateUserRes.text()}`
+					});
+				}
+
+				const updateQty = bundleProducts.map(async (item) => {
+					const updateQtyRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+						method: 'POST',
+						body: JSON.stringify({
+							apiKey: APIKEY,
+							schema: 'product',
+							query: { prodId: item.prodId },
+							update: {
+								$inc: {
+									stockQty: -1
+								}
+							},
+							options: { upsert: false },
+							multi: false
+						}),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					});
+
+					if (!updateQtyRes.ok) {
+						const errorData = await updateQtyRes.json();
+						console.error(`Failed to update prodId ${item.prodId}:`, errorData);
+						throw new Error(`Failed to update stock for ${item.prodId}`); // return fail do not stop the map and don't trigger try/catch
+					}
+					return updateQtyRes.json();
+				});
+
+				await Promise.all(updateQty);
+
+				if (payment === 'Carta di credito' && promoterId) {
+					const id = cartItem.layoutId
+					let points = 0;
+					let pointsBase = 0;
+					let pointsAvanzato = 0;
+					if (id === 'XW7LYV2LG2BU') points = 10; // base
+					if (id === '794792843') points = 40; // avanzato
+					if (id === 'accademia') { // accademia
+						pointsBase = 50;
+						pointsAvanzato = 100;
+					}
+
+					//course type
+					const userPointsFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
+						method: 'POST',
+						body: JSON.stringify({
+							apiKey: APIKEY,
+							schema: 'user', //product | order | user | layout | discount
+							query: { email: promoterId }, // 'course', 'product', 'membership', 'event',
+							update: {
+								$inc: {
+									pointsBalance: points
+								},
+								$push: {
+									pointsHistory: {
+										points: points,
+										note: `Commissione ${cartItem.layoutView.title} - Ordine ${orderId}`,
+									}
+								}
+							},
+							options: { upsert: false },
+							multi: false
+						}),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					});
+
+					if (!userPointsFetch.ok) {
+						return fail(400, {
+							action: 'new',
+							success: false,
+							message: `userPointsFetch: ${await userPointsFetch.text()}`
+						});
+					}
+				}
+			} else {
+				return fail(400, { action: 'new', success: false, message: `Errore ordine` });
 			}
 
 			if (locals.auth) {

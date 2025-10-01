@@ -42,9 +42,9 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			schema: 'user', //product | order | user | layout | discount
 			query: {
 				$or: [
-					{ level: 'formatore' },
-					{ level: 'superadmin' },
-					{ level: 'admin' }
+					{ level: 'formatore base' },
+					{ level: 'master' },
+					{ level: 'formatore avanzato' }
 				],
 				status: "enabled" //IF USE Products.model -> types: course / product / membership / event
 			},
@@ -122,7 +122,7 @@ export const actions: Actions = {
 		const name = locals.user.name;
 		const surname = locals.user.surname
 		const eventStartDate = formData.get('eventStartDate');
-		const stockQty = formData.get('stockQty') || 0;
+		const stockQty = formData.get('stockQty');
 		const provinceArray = formData.get('provinceArray') as string;
 		const province = provinceArray.split(",");
 		const location = formData.get('location');
@@ -184,7 +184,7 @@ export const actions: Actions = {
 	modify: async ({ request, fetch, locals }) => {
 		const formData = await request.formData();
 		const eventStartDate = formData.get('eventStartDate');
-		const stockQty = formData.get('stockQty') || 0;
+		const stockQty = formData.get('stockQty');
 		const provinceArray = formData.get('provinceArray') as string;
 		const province = provinceArray.split(",");
 		const location = formData.get('location');
@@ -272,7 +272,7 @@ export const actions: Actions = {
 			const res = await resFetch;
 			if (!res.ok) {
 				const errorText = await res.text();
-				console.error('discount delete failed', res.status, errorText);
+				console.error('course delete failed', res.status, errorText);
 				return fail(400, { action: 'delete', success: false, message: errorText });
 			}
 			const result = await res.json();
@@ -323,7 +323,7 @@ export const actions: Actions = {
 
 			if (!res.ok) {
 				const errorText = await res.text();
-				console.error('discount filter failed', res.status, errorText);
+				console.error('course filter failed', res.status, errorText);
 				return fail(400, { action: 'filter', success: false, message: errorText });
 			}
 			const resData = await res.json();
@@ -421,7 +421,7 @@ export const actions: Actions = {
 						$elemMatch: { prodId: prodId }
 					}
 				},
-				projection: { _id: 0, userId: 1, 'payment.method': 1, 'payment.statusPayment': 1, 'totalValue': 1  },
+				projection: { _id: 0, userId: 1, 'payment.method': 1, 'payment.statusPayment': 1, 'totalValue': 1 },
 				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
 				limit: 1000,
 				skip: 0
@@ -440,11 +440,11 @@ export const actions: Actions = {
 				return fail(400, { action: 'coursePdf', success: false, message: errorText });
 			}
 			const resData = await res.json();
-			console.log('resData', resData);
+			//console.log('resData', resData);
 
 
 			const orderMap = new Map(resData.map(order => [order.userId, { method: order.payment.method, status: order.payment.statusPayment, value: order.totalValue }]));
-			console.log('orderMap', orderMap);
+			//console.log('orderMap', orderMap);
 
 			const payload = subscribersArray.map(user => {
 				const orderData = orderMap.get(user.userId);
@@ -455,7 +455,7 @@ export const actions: Actions = {
 					value: orderData ? orderData.value : null
 				};
 			});
-			console.log('payload', payload);
+			//console.log('payload', payload);
 
 			return { action: 'coursePdf', success: true, message: 'coursePdf attivato', payload };
 

@@ -601,7 +601,25 @@
 									rel="noopener noreferrer"
 								>
 									<ExternalLink size={18} />
-									Link Accademia Online
+									Corsi Online
+								</a>
+								<a
+									href="https://riflessologiadienchan.it/scheda/scheda.php"
+									class="btn btn-ghost justify-start gap-3"
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									<ExternalLink size={18} />
+									Mappatura punti online
+								</a>
+								<a
+									href="https://riflessologiadienchan.it/auto-dien-chan/"
+									class="btn btn-ghost justify-start gap-3"
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									<ExternalLink size={18} />
+									Auto Dien Chan (programma interattivo)
 								</a>
 							{/if}
 							<a href="/profile-public/{userData.userId}" class="btn btn-ghost justify-start gap-3">
