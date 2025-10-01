@@ -790,14 +790,15 @@
 									<label for="state" class="label">
 										<span class="label-text font-medium">Provincia</span>
 									</label>
+									<!-- bindo la prima provincia considerata come quella più vicina alla persona -->
 									<select
 										id="county"
 										class="select select-bordered w-full"
 										name="county"
 										required
 										disabled={closedInput}
-										bind:value={formData.county}
-									>
+										bind:value={formData.county[0]} 
+										>
 										<option value="" disabled>Seleziona provincia</option>
 										{#each $province as provincia, i}
 											{#if provincia.title !== 'Online'}

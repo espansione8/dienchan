@@ -50,6 +50,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 			}
 		});
 
+
 	// const kitFetch = (kitProducts: Array<string>) => fetch(`${BASE_URL}/api/mongo/find`, {
 	// 	method: 'POST',
 	// 	body: JSON.stringify({
@@ -204,6 +205,7 @@ export const actions: Actions = {
 		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
 
 		let currentUserId: string = locals.user?.userId ?? '';
+	
 		//let membership = [];
 		let userExist = locals.auth;
 

@@ -455,7 +455,7 @@ export const actions: Actions = {
 					value: orderData ? orderData.value : null
 				};
 			});
-			//console.log('payload', payload);
+			
 
 			return { action: 'coursePdf', success: true, message: 'coursePdf attivato', payload };
 

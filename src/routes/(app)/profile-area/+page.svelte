@@ -114,11 +114,37 @@
 	// let passwordNew = $state('');
 	// let passwordOld = $state('');
 
+	// Check for missing required fields
+	let missingFields = $state<string[]>([]);
+	let showMissingFieldsModal = $state(false);
+
 	// Training
 	let trainingDate = $state('');
 	let trainingDescription = $state('');
 	let trainingHours = $state<number>(0);
 	let setTrainingFile = $state<File | null>(null);
+
+	const checkMissingFields = () => {
+		const fields = [
+			{ value: name, label: 'Nome' },
+			{ value: surname, label: 'Cognome' },
+			{ value: address, label: 'Indirizzo' },
+			{ value: city, label: 'Città' },
+			{ value: countyArray.length > 0, label: 'Provincia' },
+			{ value: postalCode, label: 'CAP' },
+			{ value: country, label: 'Nazione' },
+			{ value: phone, label: 'Telefono' },
+			{ value: mobilePhone, label: 'Cellulare' },
+			{ value: email, label: 'Email' }
+		];
+
+		const missing = fields.filter((field) => !field.value).map((field) => field.label);
+		missingFields = missing;
+
+		if (missing.length > 0) {
+			showMissingFieldsModal = true;
+		}
+	};
 
 	const addItem = (item: any, type: string) => {
 		if (type == 'county') {
@@ -425,6 +451,12 @@
 		currentModal = '';
 	};
 
+	const onCloseMissingFieldsModal = () => {
+		showMissingFieldsModal = false;
+		activeTab = 'profile';
+		openInput();
+	};
+
 	const formSubmit = () => {
 		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
@@ -451,6 +483,12 @@
 	if (!userData.name && !userData.surname) {
 		notification.info('Registrazione effettuta, completare il profilo');
 	}
+
+	$effect(() => {
+		if (activeTab !== 'profile') {
+			checkMissingFields();
+		}
+	});
 </script>
 
 <svelte:head>
@@ -1134,10 +1172,8 @@
 												<div class="btn btn-primary btn-sm m-1 rounded-md">
 													{county}
 													{#if !closedInput}
-													   
-													<button type="button" class="badge badge-error ml-2" onclick={() => removeItem(i, 'county')}> X </button>
+														<button type="button" class="badge badge-error ml-2" onclick={() => removeItem(i, 'county')}> X </button>
 													{/if}
-													
 												</div>
 											{/each}
 										{/if}
@@ -1748,6 +1784,43 @@
 					</div>
 				</form>
 			{/if}
+		</div>
+	</Modal>
+{/if}
+
+{#if showMissingFieldsModal}
+	<Modal isOpen={showMissingFieldsModal} header="Completa il tuo profilo">
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseMissingFieldsModal}>✕</button>
+		<div class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative">
+			<div class="alert alert-warning mb-4">
+				<div class="flex items-start gap-3">
+					<User size={24} class="flex-shrink-0 mt-1" />
+					<div>
+						<h3 class="font-bold text-lg mb-2">Attenzione: Profilo Incompleto</h3>
+						<p class="text-base-content/80">Per utilizzare al meglio la piattaforma è necessario completare i seguenti campi obbligatori:</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="bg-base-200 rounded-lg p-4 mb-6">
+				<h4 class="font-semibold mb-3 flex items-center gap-2">Campi Mancanti:</h4>
+				<ul class="space-y-2">
+					{#each missingFields as field}
+						<li class="flex items-center gap-2">
+							<span class="badge badge-error badge-sm">!</span>
+							<span class="font-medium">{field}</span>
+						</li>
+					{/each}
+				</ul>
+			</div>
+
+			<div class="modal-action">
+				<button type="button" class="btn btn-ghost" onclick={() => (showMissingFieldsModal = false)}> Chiudi </button>
+				<button type="button" class="btn btn-primary" onclick={onCloseMissingFieldsModal}>
+					<Edit size={18} />
+					Completa Profilo
+				</button>
+			</div>
 		</div>
 	</Modal>
 {/if}

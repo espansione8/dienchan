@@ -31,28 +31,22 @@
 	const { getTable, getTableNames, getLayout, auth, userData } = data;
 	let coursesList = $state(getTable);
 
-	let resetActive = $state(true);
+	let resetActive = $state(false);
 	let currentSort = $state('dal più recente');
 
 	// TODO TESTING:  toLocaleDateString for consistent localization
 	//const currentMonthName = new Date().toLocaleDateString('it-IT', { month: 'long' });
 	const nomiMesi = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
 	const currentMonthIndex = new Date().getMonth();
-	const currentMonthName = nomiMesi[currentMonthIndex];
+	// const currentMonthName = nomiMesi[currentMonthIndex];
 
 	const capitalizzaPrimaLettera = (stringa) => {
 		return stringa.replace(/\b\w/g, (l) => l.toUpperCase());
 	};
 
-	let filtriAttivi = $state({
-		mese: currentMonthName,
-		provincia: '',
-		evento: '',
-		riflessologo: ''
-	});
-
+	
 	// inizializzo ordinando visualizzanco prima quelli con giorno di svolgimento più recente
-	coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
+	// coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
 	// cycle to count the number of courses in each province
 	let numCoursesInProvince: any = $state({});
@@ -112,15 +106,26 @@
 		};
 	});
 
+	const meseAttualeInfo = informazioniMesi.find((item) => item.mese === nomiMesi[currentMonthIndex]);
+	const currentMonthName = meseAttualeInfo && meseAttualeInfo?.conteggio > 0 ? nomiMesi[currentMonthIndex] : nomiMesi[(currentMonthIndex + 1) % 12];
+
+	let filtriAttivi = $state({
+		mese: currentMonthName,
+		provincia: '',
+		evento: '',
+		riflessologo: ''
+	});
+
+
 	const onFilterReset = () => {
 		// invalidateAll();
 		resetActive = false;
 		coursesList = getTable || [];
-		coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
+		// coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
 		filtriAttivi = {
-			// mese: currentMonthName,
-			mese: '',
+			mese: currentMonthName,
+			// mese: '',
 			provincia: '',
 			evento: '',
 			riflessologo: ''
@@ -477,7 +482,7 @@
 			</div> -->
 		</div>
 		<!-- Visualizzazione filtri attivi e RESET -->
-		{#if resetActive}
+		{#if filtriAttivi.evento.length > 0 || filtriAttivi.mese.length > 0 || filtriAttivi.provincia.length > 0 || filtriAttivi.riflessologo.length > 0}
 			<div class="flex items-center space-x-4 pb-3 px-4">
 				<!-- Active filter -->
 				<div class="text-gray-700">

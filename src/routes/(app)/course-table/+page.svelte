@@ -756,6 +756,7 @@
 			subscribers = item.listSubscribers ?? [];
 			certificationStatus = item.certificationStatus;
 			postAction = `?/createCertification`;
+	
 		}
 	};
 

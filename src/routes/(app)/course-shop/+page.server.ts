@@ -54,8 +54,9 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 				query: {
 					status: 'enabled',
 					$or: [
-						{ level: 'superadmin' },
-						{ level: 'formatore' }
+						// { level: 'superadmin' },
+						{ level: 'formatore base' },
+						{ level: 'formatore avanzato' },
 					]
 				},
 				projection: { _id: 0, name: 1, surname: 1, userId: 1 },

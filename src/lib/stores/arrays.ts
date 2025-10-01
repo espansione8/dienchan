@@ -277,6 +277,11 @@ export const province = readable(
             "region": "Marche"
         },
         {
+            "title": "Aosta",
+            "code": "AO",
+            "region": "Aosta"
+        },
+        {
             "title": "Arezzo",
             "code": "AR",
             "region": "Toscana"
@@ -765,11 +770,6 @@ export const province = readable(
             "title": "Udine",
             "code": "UD",
             "region": "Friuli-Venezia Giulia"
-        },
-        {
-            "title": "Valle d'Aosta/Vallée d'Aoste",
-            "code": "AO",
-            "region": "Valle d'Aosta/Vallée d'Aoste"
         },
         {
             "title": "Varese",
