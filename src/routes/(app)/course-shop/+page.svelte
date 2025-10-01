@@ -31,7 +31,7 @@
 	const { getTable, getTableNames, getLayout, auth, userData } = data;
 	let coursesList = $state(getTable);
 
-	let resetActive = $state(false);
+	let resetActive = $state(true);
 	let currentSort = $state('dal più recente');
 
 	// TODO TESTING:  toLocaleDateString for consistent localization
@@ -119,7 +119,8 @@
 		coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
 		filtriAttivi = {
-			mese: currentMonthName,
+			// mese: currentMonthName,
+			mese: '',
 			provincia: '',
 			evento: '',
 			riflessologo: ''

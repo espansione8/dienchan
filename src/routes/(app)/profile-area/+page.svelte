@@ -88,7 +88,7 @@
 	let surname = $state(userData.surname || '');
 	let address = $state(userData.address || '');
 	let city = $state(userData.city || '');
-	let countyArray = $state([userData.county || '']); // provincia
+	let countyArray = $state(userData.county || ''); // provincia
 	let county = $state(''); // provincia input
 	let postalCode = $state(userData.postalCode || '');
 	let country = $state(userData.country || '');
@@ -1133,7 +1133,11 @@
 											{#each countyArray as county, i}
 												<div class="btn btn-primary btn-sm m-1 rounded-md">
 													{county}
+													{#if !closedInput}
+													   
 													<button type="button" class="badge badge-error ml-2" onclick={() => removeItem(i, 'county')}> X </button>
+													{/if}
+													
 												</div>
 											{/each}
 										{/if}
