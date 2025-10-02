@@ -289,8 +289,7 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const county = formData.get('county');
 		const layoutId = formData.get('layoutId');
-		const userId = formData.get('userId');
-		const localUserId = locals.user.userId
+		const userId = locals.user.userId
 
 		const query = {
 			type: 'course',
@@ -298,7 +297,7 @@ export const actions: Actions = {
 			...(county && { county: { $in: [county] } }),
 			...(layoutId && { layoutId }),
 			...(userId && { userId }),
-			...(locals.user.level === 'formatore' && { userId: localUserId }),
+			//...(locals.user.level === 'formatore' && { userId: localUserId }),
 			//...(title && { title: { $regex: `.*${title}.*`, $options: 'i' } }),
 		};
 
@@ -327,7 +326,14 @@ export const actions: Actions = {
 				return fail(400, { action: 'filter', success: false, message: errorText });
 			}
 			const resData = await res.json();
-			const payload = resData.filter(item => item.layoutView !== null);
+			const payload = resData
+				.filter(item => item.layoutView !== null)
+				.map((obj: any) => ({
+					...obj,
+					createdAt: obj.createdAt ? obj.createdAt.substring(0, 10) : undefined,
+					eventStartDate: obj.eventStartDate ? obj.eventStartDate.substring(0, 10) : undefined,
+					timeStartDate: obj.eventStartDate ? obj.eventStartDate.substring(11, 16) : undefined,
+				}));;
 
 			return { action: 'filter', success: true, message: 'Filtro attivato', payload };
 
@@ -455,7 +461,7 @@ export const actions: Actions = {
 					value: orderData ? orderData.value : null
 				};
 			});
-			
+
 
 			return { action: 'coursePdf', success: true, message: 'coursePdf attivato', payload };
 

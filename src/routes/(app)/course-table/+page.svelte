@@ -726,16 +726,12 @@
 			descrLong = item.layoutView.descr;
 			infoExtra = item.infoExtra;
 			location = item.location;
+			mode = item.county && item.county.length > 0 && item.county[0] === 'Online' ? 'ONLINE' : 'IN_PRESENZA';
 			startYear = item.eventStartDate.substring(0, 4);
 			startMonth = item.eventStartDate.substring(5, 7);
 			startDay = item.eventStartDate.substring(8, 10);
 			startHour = item.timeStartDate.substring(0, 2);
 			startMinute = item.timeStartDate.substring(3, 5);
-			if (county[0] == 'Online') {
-				mode = 'ONLINE';
-			} else {
-				mode = 'IN_PRESENZA';
-			}
 		}
 		if (type == 'delete') {
 			postAction = `?/delete`;
@@ -756,7 +752,6 @@
 			subscribers = item.listSubscribers ?? [];
 			certificationStatus = item.certificationStatus;
 			postAction = `?/createCertification`;
-	
 		}
 	};
 
@@ -774,10 +769,10 @@
 
 	const formSubmit = () => {
 		loading = true;
-		return async ({ result }: { result: ActionResult }) => {
-			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
-
-			await invalidateAll();
+		//return async ({ result }: { result: ActionResult }) => {
+		//await invalidateAll();
+		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
+			await update();
 			if (result.type === 'success' && result.data) {
 				const { action, message, payload } = result.data; // { action, success, message, payload }
 				//onclick={() => createPDFUserList(currentObj, subscribers)}
@@ -1405,21 +1400,22 @@
 		{/if}
 		<form method="POST" action={postAction} use:enhance={formSubmit} class="p-6 space-y-6">
 			<div class="space-y-4">
-				<div>
-					<label for="county" class="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
-					<select
-						id="county"
-						name="county"
-						bind:value={county}
-						class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-					>
-						<option value="">Scegli una Provincia</option>
-						{#each $province as item}
-							<option value={item.title}>{item.title}</option>
-						{/each}
-					</select>
-				</div>
-
+				{#if userData.level === 'admin' || userData.level === 'superadmin'}
+					<div>
+						<label for="county" class="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
+						<select
+							id="county"
+							name="county"
+							bind:value={county}
+							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						>
+							<option value="">Scegli una Provincia</option>
+							{#each $province as item}
+								<option value={item.title}>{item.title}</option>
+							{/each}
+						</select>
+					</div>
+				{/if}
 				<div>
 					<label for="layoutId" class="block text-sm font-medium text-gray-700 mb-1">Tipo corso</label>
 					<select

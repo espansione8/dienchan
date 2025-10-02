@@ -31,7 +31,7 @@
 		Clock,
 		ChevronDown,
 		ChevronUp,
-		Edit,
+		SquarePen,
 		Camera,
 		Shield,
 		Package,
@@ -44,7 +44,9 @@
 		Upload,
 		CalendarClock,
 		CalendarPlus,
-		ExternalLink
+		ExternalLink,
+		MapPinned,
+		CirclePlay
 	} from 'lucide-svelte';
 
 	// PDF maker
@@ -88,7 +90,7 @@
 	let surname = $state(userData.surname || '');
 	let address = $state(userData.address || '');
 	let city = $state(userData.city || '');
-	let countyArray = $state(userData.county || ''); // provincia
+	let countyArray = $state(userData.county || []); // provincia
 	let county = $state(''); // provincia input
 	let postalCode = $state(userData.postalCode || '');
 	let country = $state(userData.country || '');
@@ -123,6 +125,9 @@
 	let trainingDescription = $state('');
 	let trainingHours = $state<number>(0);
 	let setTrainingFile = $state<File | null>(null);
+
+	const formatoreLevels = new Set(['formatore base', 'master', 'formatore avanzato']);
+	const isFormatore = level ? formatoreLevels.has(level.toLowerCase()) : false;
 
 	const checkMissingFields = () => {
 		const fields = [
@@ -660,6 +665,18 @@
 									Auto Dien Chan (programma interattivo)
 								</a>
 							{/if}
+							{#if isFormatore}
+								<a
+									href="https://riflessologiadienchan.it/rapporti-iscritti-agli-eventi/"
+									class="btn btn-ghost justify-start gap-3"
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									<ExternalLink size={18} />
+									Vecchio report eventi
+								</a>
+							{/if}
+
 							<a href="/profile-public/{userData.userId}" class="btn btn-ghost justify-start gap-3">
 								<Eye size={18} />
 								Anteprima profilo pubblico
@@ -760,6 +777,36 @@
 								<div class="text-base-content/60">Nessuna formazione registrata.</div>
 							{/if}
 						</div>
+						<!-- Card: Mappatura Punti Online -->
+						<div class="card bg-base-100 shadow-md p-6 flex flex-col justify-between">
+							<div class="flex items-center gap-3 mb-2">
+								<MapPinned size={24} class="text-primary" />
+								<span class="font-semibold text-lg">Mappatura Punti Online</span>
+							</div>
+							<div class="text-base-content/60">Genera la mappa dei punti direttamente online</div>
+							{#if userData.membership.membershipStatus === true}
+								<a type="button" class="btn btn-sm btn-primary mt-2" href="https://riflessologiadienchan.it/scheda/scheda.php"
+									><ExternalLink /> Vai al programma</a
+								>
+							{:else}
+								<button type="button" class="btn btn-sm btn-primary mt-2" disabled>Tessera scaduta</button>
+							{/if}
+						</div>
+						<!-- Card: Auto Dien Chan -->
+						<div class="card bg-base-100 shadow-md p-6 flex flex-col justify-between">
+							<div class="flex items-center gap-3 mb-2">
+								<CirclePlay size={24} class="text-primary" />
+								<span class="font-semibold text-lg">Auto Dien Chan</span>
+							</div>
+							<div class="text-base-content/60">Programma interattivo di auto-trattamento Dien Chan</div>
+							{#if userData.membership.membershipStatus === true}
+								<a type="button" class="btn btn-sm btn-primary mt-2" href="https://riflessologiadienchan.it/auto-dien-chan/"
+									><ExternalLink /> Vai al programma</a
+								>
+							{:else}
+								<button type="button" class="btn btn-sm btn-primary mt-2" disabled>Tessera scaduta</button>
+							{/if}
+						</div>
 					</div>
 					<!-- Quick Actions -->
 					<!-- <div class="mt-8">
@@ -787,7 +834,7 @@
 
 							{#if closedInput}
 								<button class="btn btn-sm" onclick={openInput}>
-									<Edit size={16} />
+									<SquarePen size={16} />
 									Modifica
 								</button>
 							{:else}
@@ -1817,7 +1864,7 @@
 			<div class="modal-action">
 				<button type="button" class="btn btn-ghost" onclick={() => (showMissingFieldsModal = false)}> Chiudi </button>
 				<button type="button" class="btn btn-primary" onclick={onCloseMissingFieldsModal}>
-					<Edit size={18} />
+					<SquarePen size={18} />
 					Completa Profilo
 				</button>
 			</div>
