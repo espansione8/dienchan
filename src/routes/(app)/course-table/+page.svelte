@@ -27,7 +27,8 @@
 		FileDown,
 		ShieldAlert,
 		UserRoundCheck,
-		Handshake
+		Handshake,
+		Link
 	} from 'lucide-svelte';
 
 	// PDF maker
@@ -915,6 +916,19 @@
 								<button type="button" class="btn btn-sm" aria-label="Modifica" onclick={() => onClickModal('modify', row)}><Settings /> </button>
 								<button type="button" class="btn btn-error btn-sm" aria-label="Elimina" onclick={() => onClickModal('delete', row)}
 									><Trash2 />
+								</button>
+								<button
+									type="button"
+									class="btn btn-sm btn-info"
+									aria-label="Copia link corso"
+									onclick={() => {
+										const link = `${window.location.origin}/course-detail/${row.prodId}`;
+										navigator.clipboard.writeText(link).then(() => {
+											notification.info('Link corso copiato negli appunti');
+										});
+									}}
+								>
+									<Link />
 								</button>
 							</td>
 						</tr>

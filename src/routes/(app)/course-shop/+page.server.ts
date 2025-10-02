@@ -7,7 +7,7 @@ const baseURL = BASE_URL;
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
 	let getTable = [];
-	let getTableNames = [];
+	let getRiflessologi = [];
 	let getLayout = [];
 	//const user = locals.user
 
@@ -55,8 +55,8 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 				timeStartDate: obj.eventStartDate ? obj.eventStartDate.substring(11, 16) : undefined,
 			}));
 
-		// user list
-		const resName = await fetch(`${baseURL}/api/mongo/find`, {
+		// riflessologi list
+		const resRiflessologi = await fetch(`${baseURL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey,
@@ -78,8 +78,36 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 				'Content-Type': 'application/json'
 			}
 		});
-		if (!resName.ok) throw error(400, `resName: ${await resName.text()}`);
-		getTableNames = await resName.json();
+		if (!resRiflessologi.ok) throw error(400, `resRiflessologi: ${await resRiflessologi.text()}`);
+		const allFormatori = await resRiflessologi.json(); // Salviamo qui i formatori
+
+		const resCorsiAttivi = await fetch(`${baseURL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey,
+				schema: 'product',
+				query: {
+					type: 'course',
+					status: 'enabled'
+				},
+				projection: { _id: 0, userId: 1 },
+				limit: 1000,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+		if (!resCorsiAttivi.ok) throw error(400, `resCorsiAttivi: ${await resCorsiAttivi.text()}`);
+		const corsiAttivi = await resCorsiAttivi.json();
+
+		// Creiamo un Set con gli userId dei formatori che hanno corsi attivi
+		const formatoriConCorsiAttivi = new Set(corsiAttivi.map(corso => corso.userId));
+
+		// Filtriamo solo i formatori che hanno almeno un corso attivo
+		getRiflessologi = allFormatori.filter(formatore =>
+			formatoriConCorsiAttivi.has(formatore.userId)
+		);
 
 		// get layout
 		const resLayout = await fetch(`${baseURL}/api/mongo/find`, {
@@ -107,7 +135,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 	return {
 		getTable,
-		getTableNames,
+		getRiflessologi,
 		getLayout,
 		auth: locals.auth,
 		userData: locals.user

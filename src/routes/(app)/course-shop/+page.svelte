@@ -28,9 +28,9 @@
 	//import { province } from '$lib/stores/arrays.js';
 
 	const { data } = $props();
-	const { getTable, getTableNames, getLayout, auth, userData } = data;
+	const { getTable, getRiflessologi, getLayout, auth, userData } = data;
 	let coursesList = $state(getTable);
-
+	console.log('getRiflessologi', getRiflessologi);
 	let resetActive = $state(false);
 	let currentSort = $state('dal più recente');
 
@@ -44,7 +44,6 @@
 		return stringa.replace(/\b\w/g, (l) => l.toUpperCase());
 	};
 
-	
 	// inizializzo ordinando visualizzanco prima quelli con giorno di svolgimento più recente
 	// coursesList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 
@@ -113,9 +112,12 @@
 		mese: currentMonthName,
 		provincia: '',
 		evento: '',
-		riflessologo: ''
+		riflessologo: {
+			id: '',
+			name: '',
+			surname: ''
+		}
 	});
-
 
 	const onFilterReset = () => {
 		// invalidateAll();
@@ -128,7 +130,11 @@
 			// mese: '',
 			provincia: '',
 			evento: '',
-			riflessologo: ''
+			riflessologo: {
+				id: '',
+				name: '',
+				surname: ''
+			}
 			//userId: ''
 		};
 
@@ -164,8 +170,8 @@
 			coursesList = coursesList.filter((item) => item.county.some((county) => county === filtriAttivi.provincia));
 		}
 		// riflessologo
-		if (filtriAttivi.riflessologo) {
-			coursesList = coursesList.filter((item) => item.userId == filtriAttivi.riflessologo);
+		if (filtriAttivi.riflessologo.id && filtriAttivi.riflessologo.id.length > 0) {
+			coursesList = coursesList.filter((item) => item.userId == filtriAttivi.riflessologo.id);
 		}
 	};
 	updateFilter();
@@ -186,10 +192,12 @@
 		filtriAttivi.provincia = provinciaSelected;
 		updateFilter();
 	};
-	const onClickFilterRiflessologo = async (id) => {
+	const onClickFilterRiflessologo = async (id, name, surname) => {
 		resetActive = true;
-		filtriAttivi.riflessologo = id;
-		//filtriAttivi.riflessologo = name + ' ' + surname;
+		// filtriAttivi.riflessologo = id;
+		filtriAttivi.riflessologo.id = id;
+		filtriAttivi.riflessologo.name = name;
+		filtriAttivi.riflessologo.surname = surname;
 		updateFilter();
 	};
 
@@ -365,23 +373,23 @@
 					<div class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold">
 						<span class="inline-flex items-center">
 							<b><UserSearch class="-mt-1 mr-2" /> Riflessologo</b>
-							{#if filtriAttivi.riflessologo.length > 0}
+							{#if filtriAttivi.riflessologo.id.length > 0}
 								<Check class="ml-1" color="green" />
 							{/if}
 						</span>
 					</div>
 					<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto">
 						<ul class="list-none -mx-4 divide-y divide-base-200/70">
-							{#each getTableNames as item}
+							{#each getRiflessologi as item}
 								<li>
 									<button
 										type="button"
 										class="p-3 cursor-pointer transition-all duration-300 flex items-center justify-between
-                {filtriAttivi.riflessologo === item.userId ? 'bg-orange-200 text-red-900 font-bold' : 'hover:bg-blue-200 hover:text-blue-900'}"
-										onclick={() => onClickFilterRiflessologo(item.userId)}
+                {filtriAttivi.riflessologo.id === item.userId ? 'bg-orange-200 text-red-900 font-bold' : 'hover:bg-blue-200 hover:text-blue-900'}"
+										onclick={() => onClickFilterRiflessologo(item.userId, item.name, item.surname)}
 									>
 										<span>{item.surname} {item.name}</span>
-										{#if filtriAttivi.riflessologo === item.userId}
+										{#if filtriAttivi.riflessologo.id === item.userId}
 											<Check size={18} class="flex-shrink-0 text-green-600" />
 										{/if}
 									</button>
@@ -482,7 +490,7 @@
 			</div> -->
 		</div>
 		<!-- Visualizzazione filtri attivi e RESET -->
-		{#if filtriAttivi.evento.length > 0 || filtriAttivi.mese.length > 0 || filtriAttivi.provincia.length > 0 || filtriAttivi.riflessologo.length > 0}
+		{#if filtriAttivi.evento.length > 0 || filtriAttivi.mese.length > 0 || filtriAttivi.provincia.length > 0 || filtriAttivi.riflessologo.id.length > 0}
 			<div class="flex items-center space-x-4 pb-3 px-4">
 				<!-- Active filter -->
 				<div class="text-gray-700">
@@ -502,9 +510,9 @@
 							Provincia: <strong class="pl-1">{filtriAttivi.provincia}</strong>
 						</div>
 					{/if}
-					{#if filtriAttivi.riflessologo.length > 0}
+					{#if filtriAttivi.riflessologo.id.length > 0}
 						<div class="badge badge-accent rounded-md">
-							Riflessologo: <strong class="pl-1">{filtriAttivi.riflessologo}</strong>
+							Riflessologo: <strong class="pl-1">{filtriAttivi.riflessologo.name} {filtriAttivi.riflessologo.surname}</strong>
 						</div>
 					{/if}
 				</div>
