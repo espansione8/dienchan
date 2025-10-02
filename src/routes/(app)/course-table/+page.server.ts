@@ -289,7 +289,15 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const county = formData.get('county');
 		const layoutId = formData.get('layoutId');
-		const userId = locals.user.userId
+		let userId: any;
+
+		if (locals.user.level == 'admin' || locals.user.level == 'superadmin') {
+			userId = formData.get('userId');
+
+		} else {
+			userId = locals.user.userId
+		}
+
 
 		const query = {
 			type: 'course',

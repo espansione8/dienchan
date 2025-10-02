@@ -1153,7 +1153,10 @@
 					>
 						<option value="">Seleziona il livello utente</option>
 						<option value="user">Utente base</option>
-						<option value="formatore">Formatore</option>
+						<option value="accademia">Accademia</option>
+						<option value="formatore base">Formatore base</option>
+						<option value="master">Master</option>
+						<option value="formatore avanzato">Formatore avanzato</option>
 						<option value="admin">Admin</option>
 						<option value="superadmin">Superadmin</option>
 					</select>
