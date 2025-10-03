@@ -74,7 +74,9 @@
 		phone: userData?.phone || '',
 		mobilePhone: userData?.mobilePhone || '',
 		payment: 'Carta di credito',
-		membershipLevel: ''
+		membershipLevel: '',
+		howDidYouKnow: '',
+		eventDetails: ''
 	});
 	let password1: string = $state('');
 	let password2: string = $state('');
@@ -211,6 +213,8 @@
 		formData.membershipLevel = '';
 		password1 = '';
 		password2 = '';
+		formData.howDidYouKnow = '';
+		formData.eventDetails = '';
 		if (cardElement) {
 			cardElement.destroy();
 			cardElement = null;
@@ -273,7 +277,16 @@
 	};
 
 	const isStep2Valid = () => {
-		return !!(formData.address && formData.city && formData.postalCode && formData.county && formData.country);
+		if (!formData.address || !formData.city || !formData.postalCode || !formData.county || !formData.country || !formData.howDidYouKnow) {
+			return false;
+		}
+
+		// Se ha selezionato presentazione o fiera, richiedi i dettagli
+		if ((formData.howDidYouKnow === 'presentazione' || formData.howDidYouKnow === 'fiera') && !formData.eventDetails) {
+			return false;
+		}
+
+		return true;
 	};
 
 	const isStep3Valid = () => {
@@ -983,6 +996,46 @@
 								<input type="hidden" name="country" value={formData.country} />
 							{/if}
 						</div>
+					</div>
+				</div>
+
+				<!-- Nuova sezione: Come ci hai conosciuto -->
+				<div class="card bg-base-100 shadow-sm border border-base-200 p-4 rounded-lg mt-4">
+					<div class="card-title text-lg font-bold mb-4 pb-2 border-b">
+						<span>Come ci hai conosciuto?</span>
+					</div>
+
+					<div class="grid grid-cols-1 gap-4">
+						<div class="form-control w-full">
+							<label for="howDidYouKnow" class="label">
+								<span class="label-text font-medium">Seleziona un'opzione</span>
+							</label>
+							<select id="howDidYouKnow" class="select select-bordered w-full" name="howDidYouKnow" required bind:value={formData.howDidYouKnow}>
+								<option value="" disabled selected>Seleziona come ci hai conosciuto</option>
+								<option value="amico">Tramite un amico</option>
+								<option value="presentazione">Tramite una presentazione</option>
+								<option value="fiera">Tramite una fiera</option>
+								<option value="ricerca">Motore di ricerca</option>
+								<option value="altro">Altro</option>
+							</select>
+						</div>
+
+						{#if formData.howDidYouKnow === 'presentazione' || formData.howDidYouKnow === 'fiera'}
+							<div class="form-control w-full">
+								<label for="eventDetails" class="label">
+									<span class="label-text font-medium"> Indica l'evento, luogo o fiera </span>
+								</label>
+								<textarea
+									id="eventDetails"
+									name="eventDetails"
+									class="textarea textarea-bordered w-full"
+									placeholder="Descrivi l'evento, il luogo o la fiera..."
+									rows="3"
+									required
+									bind:value={formData.eventDetails}
+								></textarea>
+							</div>
+						{/if}
 					</div>
 				</div>
 			</div>

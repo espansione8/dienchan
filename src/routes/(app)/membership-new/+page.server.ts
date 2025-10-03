@@ -80,6 +80,8 @@ export const actions: Actions = {
 		const password2 = formData.get('password2') || '';
 		const totalValue = formData.get('totalValue');
 		const paymentMethodId = formData.get('paymentMethodId') as string | null;
+		const howDidYouKnow = formData.get('howDidYouKnow') || '';
+		const eventDetails = formData.get('eventDetails') || '';
 
 		// const cart = formData.get('cart');
 		// const cartItem = JSON.parse(String(cart)) || null;
@@ -154,8 +156,13 @@ export const actions: Actions = {
 		let membership: any[] = [];
 		let userExist = false;
 
-		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue) {
+		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || !howDidYouKnow) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
+		}
+
+
+		if ((howDidYouKnow === 'presentazione' || howDidYouKnow === 'fiera') && !eventDetails) {
+			return fail(400, { action: 'new', success: false, message: 'Specifica i dettagli dell\'evento' });
 		}
 
 		if (!locals.auth && (password1 != password2)) {
@@ -257,7 +264,11 @@ export const actions: Actions = {
 							// "membership.membershipSignUp": new Date(),
 							// "membership.membershipActivation": new Date(),
 							// "membership.membershipExpiry": new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-							"membership.membershipStatus": paymentIntentId ? true : false
+							"membership.membershipStatus": paymentIntentId ? true : false,
+							extraFieldText1: howDidYouKnow,
+							extraFieldText2: eventDetails,
+
+
 						},
 						returnObj: true
 					}),

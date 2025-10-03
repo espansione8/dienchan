@@ -8,7 +8,7 @@
 	import { notification } from '$lib/stores/notifications';
 	import Modal from '$lib/components/Modal.svelte';
 	import Loader from '$lib/components/Loader.svelte';
-	import { UserPlus, Mail, KeyRound, Lock, Eye, EyeOff, ArrowRight } from 'lucide-svelte';
+	import { UserPlus, Mail, KeyRound, Lock, Eye, EyeOff, ArrowRight, Video } from 'lucide-svelte';
 
 	// form
 	let loginEmail = $state('');
@@ -27,6 +27,7 @@
 	let cardWrapperVisible = $state(false);
 
 	// Modal
+	let currentModal = $state('');
 	let openModal = $state(false);
 	let postAction = $state('?/');
 	let modalTitle = $state('');
@@ -70,18 +71,21 @@
 	};
 
 	const onClickModal = (type: string, item: any) => {
-		//currentModal = type;
+		currentModal = type;
 		openModal = true;
 		if (type == 'reset') {
 			postAction = `?/resetPassword`;
 			modalTitle = 'Recupera Password';
+		}
+		if (type == 'alert') {
+			modalTitle = 'Problemi di accesso?';
 		}
 	};
 
 	const onCloseModal = () => {
 		openModal = false;
 		resetFields();
-		//currentModal = '';
+		currentModal = '';
 	};
 
 	const formSubmit = () => {
@@ -105,6 +109,7 @@
 			}
 			if (result.type === 'failure') {
 				notification.error(result.data.message);
+				onClickModal('alert', null);
 			}
 			if (result.type === 'error') {
 				notification.error(result.error?.message || String(result.error) || 'Si è verificato un errore');
@@ -393,41 +398,73 @@
 	</div>
 </div>
 
-<Modal isOpen={openModal} header={modalTitle}>
-	<button class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content" onclick={onCloseModal}>✕</button>
-	<div class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative">
-		<!-- <h3 class="font-bold text-xl mb-4">{modalTitle}</h3> -->
-		<p class="text-base-content/70 mb-6">Inserisci il tuo indirizzo email e ti invieremo un link per reimpostare la password.</p>
+{#if currentModal == 'reset'}
+	<Modal isOpen={openModal} header={modalTitle}>
+		<button class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content" onclick={onCloseModal}>✕</button>
+		<div class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative">
+			<!-- <h3 class="font-bold text-xl mb-4">{modalTitle}</h3> -->
+			<p class="text-base-content/70 mb-6">Inserisci il tuo indirizzo email e ti invieremo un link per reimpostare la password.</p>
 
-		<form method="POST" action={postAction} use:enhance={formSubmit} class="grid grid-cols-2 bg-base-100 grid-rows-[min-content]">
-			<section class="col-span-2">
-				<label for="price" class="form-label">
-					<p class="font-bold mb-2 label">Email</p>
-				</label>
-				<div class="join join-horizontal rounded-md w-full">
-					<button type="button" class="join-item bg-primary/20 px-3"><Mail class="text-emerald-500" /></button>
-					<input
-						name="resetEmail"
-						type="email"
-						placeholder="la.tua@email.com"
-						class="input input-primary w-full pl-10"
-						bind:value={resetEmail}
-						required
-					/>
+			<form method="POST" action={postAction} use:enhance={formSubmit} class="grid grid-cols-2 bg-base-100 grid-rows-[min-content]">
+				<section class="col-span-2">
+					<label for="price" class="form-label">
+						<p class="font-bold mb-2 label">Email</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button type="button" class="join-item bg-primary/20 px-3"><Mail class="text-emerald-500" /></button>
+						<input
+							name="resetEmail"
+							type="email"
+							placeholder="la.tua@email.com"
+							class="input input-primary w-full pl-10"
+							bind:value={resetEmail}
+							required
+						/>
+					</div>
+				</section>
+
+				<div class="modal-action mt-6 col-span-2">
+					{#if loading}
+						<Loader />
+					{:else}
+						<button type="button" class="btn flex-1" onclick={onCloseModal}>Annulla</button>
+						<button type="submit" class="btn btn-primary flex-1"> Invia Link </button>
+					{/if}
 				</div>
-			</section>
+			</form>
+		</div>
+	</Modal>
+{/if}
 
-			<div class="modal-action mt-6 col-span-2">
-				{#if loading}
-					<Loader />
-				{:else}
-					<button type="button" class="btn flex-1" onclick={onCloseModal}>Annulla</button>
-					<button type="submit" class="btn btn-primary flex-1"> Invia Link </button>
-				{/if}
+{#if currentModal == 'alert'}
+	<Modal isOpen={openModal} header={modalTitle}>
+		<button class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content" onclick={onCloseModal}>✕</button>
+		<div class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative">
+			<div class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative">
+				<p class="mb-4 text-base-content">
+					Se hai problemi di accesso al tuo account, puoi:
+					<br />- Visionare il video tutorial <strong> Cambio Password</strong>
+					accessibile dal menù "Tutorial" in alto a sinistra.
+					<br />- Oppure accedere direttamente alla sezione <strong>Modifica Password</strong>.
+				</p>
+
+				<div class="flex gap-2 justify-between">
+					<button
+						class="btn btn-primary"
+						onclick={() => {
+							window.open('https://vimeo.com/1122482609/8966f3df8f', '_blank', 'noopener,noreferrer');
+							onCloseModal();
+						}}
+					>
+						<Video />Vai al Tutorial
+					</button>
+
+					<button class="btn btn-info" onclick={() => onClickModal('reset', null)}><ArrowRight />Modifica Password</button>
+				</div>
 			</div>
-		</form>
-	</div>
-</Modal>
+		</div>
+	</Modal>
+{/if}
 
 <style>
 </style>

@@ -114,7 +114,7 @@
 									Ricerca e acquisto corso
 								</a>
 							</li>
-							{#if isFormatore}
+							{#if isFormatore || level === 'superadmin'}
 								<li>
 									<a href="https://vimeo.com/1122734353/d6cd2c1d38" target="_blank" rel="noopener noreferrer">
 										<BookOpen size={16} />
@@ -125,6 +125,12 @@
 									<a href="https://vimeo.com/1122734367/669c906f77" target="_blank" rel="noopener noreferrer">
 										<BookOpen size={16} />
 										Creazione corso da modello
+									</a>
+								</li>
+								<li>
+									<a href="https://vimeo.com/1124119351/25a552cc7f" target="_blank" rel="noopener noreferrer">
+										<BookOpen size={16} />
+										Gestione corso
 									</a>
 								</li>
 							{/if}

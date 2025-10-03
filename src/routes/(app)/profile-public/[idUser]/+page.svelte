@@ -64,7 +64,7 @@
 									<span class="italic">Nome Privato</span>
 								{/if}
 							</h1>
-							<div class="font-medium text-teal-50 text-xs">ASSOCIATO</div>
+							<div class="font-medium text-teal-50 text-xs">RIFLESSOLOGO</div>
 
 							<div class="flex justify-center mt-3 flex-wrap gap-2">
 								<div class="badge badge-xl bg-teal-700 border-none text-teal-50 text-sm">Diện Chẩn</div>
