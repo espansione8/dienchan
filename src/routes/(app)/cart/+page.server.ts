@@ -425,9 +425,9 @@ export const actions: Actions = {
 			}
 
 			const order = await res.json();
-			// METTERE EMAIL ADMIN DIENCHAN
-			// const mailArray = [amministrazionedienchan@gmail.com, email]
-			const mailRes = await mailFetch(email, order);
+
+			const mailArray = ['powerperformace.vn@gmail.com', email]
+			const mailRes = await mailFetch(mailArray, order);
 			if (!mailRes.ok) {
 				console.error('Mail sending failed:', await mailRes.text());
 			}

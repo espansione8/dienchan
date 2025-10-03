@@ -735,7 +735,11 @@
 									</div>
 								{/if}
 							</div>
-							<button type="button" class="btn btn-sm btn-primary mt-2" onclick={() => createPDFmembership(userData)}> Stampa Tessera </button>
+							{#if userData.membership.membershipStatus === true}
+								<button type="button" class="btn btn-sm btn-primary mt-2" onclick={() => createPDFmembership(userData)}> Stampa Tessera </button>
+							{:else}
+								<button type="button" class="btn btn-sm btn-primary mt-2" disabled>Tessera scaduta</button>
+							{/if}
 						</div>
 
 						<!-- Card: Punti e Attività -->
