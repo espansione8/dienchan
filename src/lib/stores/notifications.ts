@@ -5,7 +5,7 @@ import type { Notification } from '$lib/types';
 const createNotificationStore = () => {
     const { subscribe, update } = writable<Notification[]>([]);
 
-    const addNotification = (content: string, type: 'success' | 'error' | 'info', duration: number = 3000) => {
+    const addNotification = (content: string, type: 'success' | 'error' | 'info', duration: number = 5000) => {
         //const id = crypto.randomUUID();
         const id = Date.now() + Math.random()
         const notification: Notification = {

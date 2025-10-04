@@ -92,6 +92,27 @@
 			case $layoutArray.soccorso:
 				pdfLayout = $pdfValue.soccorso;
 				break;
+			case $layoutArray.difese:
+				pdfLayout = $pdfValue.difese;
+				break;
+			case $layoutArray.occhiVista:
+				pdfLayout = $pdfValue.occhiVista;
+				break;
+			case $layoutArray.occhiVistaCorso:
+				pdfLayout = $pdfValue.occhiVistaCorso;
+				break;
+			case $layoutArray.bellezzaViso:
+				pdfLayout = $pdfValue.bellezzaViso;
+				break;
+			case $layoutArray.bellezzaPancia:
+				pdfLayout = $pdfValue.bellezzaPancia;
+				break;
+			case $layoutArray.dimagriamoInsieme:
+				pdfLayout = $pdfValue.dimagriamoInsieme;
+				break;
+			case $layoutArray.respirazione:
+				pdfLayout = $pdfValue.respirazione;
+				break;
 			default:
 				notification.error('Layout certificato non riconosciuto');
 				return;
@@ -1462,7 +1483,7 @@
 				{/if}
 			</div>
 
-			<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">
+			<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2 mb-140">
 				<button type="button" class="btn btn-error btn-sm rounded-md hover:bg-red-300" onclick={onCloseModal}> Annulla </button>
 				<button type="submit" class="btn btn-success btn-sm rounded-md hover:bg-green-400"> Applica Filtri </button>
 			</div>

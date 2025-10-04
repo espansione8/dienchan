@@ -69,7 +69,7 @@
 	let pointsType = $state('add');
 	let resetActive = $state(false);
 	let membershipExpiry = $state('');
-	let membershipStatus = $state();
+	let membershipStatus = $state(false);
 
 	// Pagination
 	let currentPage = $state(1);
@@ -233,6 +233,7 @@
 		note = '';
 		pointsHistory = [];
 		pointsType = 'add';
+		membershipStatus = false;
 	};
 
 	const onClickModal = (type: string, item: any) => {
@@ -245,6 +246,7 @@
 			membershipLevel = '';
 			level = '';
 			membershipExpiry = '';
+			country = 'Italy';
 		}
 		if (type == 'modify') {
 			postAction = `?/modify`;
