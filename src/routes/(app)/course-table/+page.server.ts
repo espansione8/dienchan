@@ -424,52 +424,108 @@ export const actions: Actions = {
 			return fail(400, { action: 'coursePdf', success: false, message: 'Dati mancanti' });
 		}
 
+		const resFetchProduct = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'product',
+				query: { prodId: prodId },
+				projection: { _id: 0, listSubscribers: 1 },
+				limit: 1
+			}),
+			headers: { 'Content-Type': 'application/json' }
+		});
+
+		const resFetchUsers = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user',
+				query: { userId: { $in: subscribersArray.map(sub => sub.userId) } },
+				projection: { _id: 0, userId: 1, city: 1, county: 1 },
+				limit: 1000
+			}),
+			headers: { 'Content-Type': 'application/json' }
+		});
+
 		const resFetchOrders = fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
-				schema: 'order', //product | order | user | layout | discount
+				schema: 'order',
 				query: {
 					userId: { $in: subscribersArray.map(sub => sub.userId) },
-					'cart': {
-						$elemMatch: { prodId: prodId }
-					}
+					'cart': { $elemMatch: { prodId: prodId } }
 				},
-				projection: { _id: 0, userId: 1, 'payment.method': 1, 'payment.statusPayment': 1, 'totalValue': 1 },
-				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				projection: {
+					_id: 0,
+					userId: 1,
+					'payment.method': 1,
+					'payment.statusPayment': 1,
+					'totalValue': 1
+				},
+				sort: { createdAt: -1 },
 				limit: 1000,
 				skip: 0
 			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
+			headers: { 'Content-Type': 'application/json' }
 		});
 
 		try {
-			const res = await resFetchOrders;
+			const [resProduct, resUsers, resOrders] = await Promise.all([
+				resFetchProduct,
+				resFetchUsers,
+				resFetchOrders
+			]);
 
-			if (!res.ok) {
-				const errorText = await res.text();
-				console.error('coursePdf failed', res.status, errorText);
+			if (!resOrders.ok) {
+				const errorText = await resOrders.text();
+				console.error('coursePdf failed', resOrders.status, errorText);
 				return fail(400, { action: 'coursePdf', success: false, message: errorText });
 			}
-			const resData = await res.json();
-			//console.log('resData', resData);
 
+			const resOrdersData = await resOrders.json();
+			const resProductData = resProduct.ok ? await resProduct.json() : [];
+			const resUsersData = resUsers.ok ? await resUsers.json() : [];
 
-			const orderMap = new Map(resData.map(order => [order.userId, { method: order.payment.method, status: order.payment.statusPayment, value: order.totalValue }]));
-			//console.log('orderMap', orderMap);
+			const productSubscribersMap = new Map();
+			if (resProductData.length > 0 && resProductData[0].listSubscribers) {
+				resProductData[0].listSubscribers.forEach(sub => {
+					productSubscribersMap.set(sub.userId, {
+						paymentMethod: sub.paymentMethod,
+						paymentStatus: sub.paymentStatus
+					});
+				});
+			}
+
+			const usersMap = new Map(resUsersData.map(user => [
+				user.userId,
+				{ city: user.city, county: user.county }
+			]));
+
+			const orderMap = new Map(resOrdersData.map(order => [
+				order.userId,
+				{
+					method: order.payment.method,
+					status: order.payment.statusPayment,
+					value: order.totalValue
+				}
+			]));
 
 			const payload = subscribersArray.map(user => {
 				const orderData = orderMap.get(user.userId);
+				const productSubData = productSubscribersMap.get(user.userId);
+				const userData = usersMap.get(user.userId);
+
 				return {
 					...user,
-					paymentMethod: orderData ? orderData.method : null,
-					paymentStatus: orderData ? orderData.status : 'not paid',
-					value: orderData ? orderData.value : null
+					paymentMethod: orderData?.method || productSubData?.paymentMethod || null,
+					paymentStatus: orderData ? orderData.status : (productSubData?.paymentStatus || 'not paid'),
+					value: orderData ? orderData.value : null,
+					city: userData?.city || null,
+					county: userData?.county || null
 				};
 			});
-
 
 			return { action: 'coursePdf', success: true, message: 'coursePdf attivato', payload };
 
@@ -477,6 +533,6 @@ export const actions: Actions = {
 			console.error('Error coursePdf:', error);
 			return { action: 'coursePdf', success: false, message: 'Error coursePdf' };
 		}
-	},
+	}
 
 } satisfies Actions;

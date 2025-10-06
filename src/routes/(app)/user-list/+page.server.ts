@@ -21,7 +21,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 				schema: 'user', //product | order | user | layout | discount
 				query: {
 					'membership.membershipStatus': true, level: {
-						$in: ['accademia', 'formatore base', 'master', 'formatore avanzato']
+						$in: ['riflessologo', 'formatore base', 'master', 'formatore avanzato']
 					}
 				},
 				option: { hint: { userId: 1 } },// optional: define index to use
@@ -39,7 +39,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 				schema: 'user', //product | order | user | layout | discount
 				query: {
 					'membership.membershipStatus': true, level: {
-						$in: ['accademia', 'formatore base', 'master', 'formatore avanzato']
+						$in: ['riflessologo', 'formatore base', 'master', 'formatore avanzato']
 					}
 				},
 				sort: { surname: 1 }, // 1:Sort ascending | -1:Sort descending
@@ -62,7 +62,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 					{
 						$match: {
 							'membership.membershipStatus': true,
-							level: { $in: ['accademia', 'formatore base', 'master', 'formatore avanzato'] },
+							level: { $in: ['riflessologo', 'formatore base', 'master', 'formatore avanzato'] },
 							county: { $exists: true, $ne: null, $not: { $size: 0 } } // Check array exists and is not empty
 						}
 					},
@@ -133,7 +133,7 @@ export const actions: Actions = {
 					schema: 'user',
 					query: { 
 						'membership.membershipStatus': true, 
-						level: { $in: ['accademia', 'formatore base', 'master', 'formatore avanzato'] }, 
+						level: { $in: ['riflessologo', 'formatore base', 'master', 'formatore avanzato'] }, 
 						...(county && { county: { $in: [county] } }) // Use $in to search in array
 					},
 					option: { hint: { userId: 1 } },
@@ -149,7 +149,7 @@ export const actions: Actions = {
 					schema: 'user',
 					query: {
 						'membership.membershipStatus': true,
-						level: { $in: ['accademia', 'formatore base', 'master', 'formatore avanzato'] },
+						level: { $in: ['riflessologo', 'formatore base', 'master', 'formatore avanzato'] },
 						...(county && { county: { $in: [county] } }), // Use $in to search in array
 					},
 					sort: { surname: 1 },
@@ -205,7 +205,7 @@ export const actions: Actions = {
 					schema: 'user', //product | order | user | layout | discount
 					query: { 
 						'membership.membershipStatus': true, 
-						level: { $in: ['accademia', 'formatore base', 'master', 'formatore avanzato'] }, 
+						level: { $in: ['riflessologo', 'formatore base', 'master', 'formatore avanzato'] }, 
 						...(county && { county: { $in: [county] } }) // Use $in to search in array
 					},
 					sort: { surname: 1 },

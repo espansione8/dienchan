@@ -26,7 +26,7 @@ const UserSchema = new mongoose.Schema(
 			type: String,
 			enum: [
 				'user',
-				'accademia',
+				'riflessologo',
 				'formatore base',
 				'master',
 				'formatore avanzato',

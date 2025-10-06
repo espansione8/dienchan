@@ -1034,7 +1034,7 @@
 				<select id="level" name="level" class="select select-bordered w-full rounded-md mt-2" placeholder="Scegli" required bind:value={level}>
 					<option value="" selected disabled>Seleziona livello</option>
 					<option value="user">Utente base</option>
-					<option value="accademia">Accademia</option>
+					<option value="riflessologo">Riflessologo</option>
 					<option value="formatore base">Formatore base</option>
 					<option value="master">Master</option>
 					<option value="formatore avanzato">Formatore avanzato</option>
@@ -1155,7 +1155,7 @@
 					>
 						<option value="">Seleziona il livello utente</option>
 						<option value="user">Utente base</option>
-						<option value="accademia">Accademia</option>
+						<option value="riflessologo">Riflessologo</option>
 						<option value="formatore base">Formatore base</option>
 						<option value="master">Master</option>
 						<option value="formatore avanzato">Formatore avanzato</option>
