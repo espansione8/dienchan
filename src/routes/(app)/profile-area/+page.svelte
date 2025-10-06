@@ -665,7 +665,7 @@
 									Auto Dien Chan (programma interattivo)
 								</a>
 							{/if}
-							{#if isFormatore}
+							{#if isFormatore || level === 'superadmin' || level === 'admin'}
 								<a
 									href="https://riflessologiadienchan.it/rapporti-iscritti-agli-eventi/"
 									class="btn btn-ghost justify-start gap-3"
