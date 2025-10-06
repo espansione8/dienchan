@@ -213,12 +213,13 @@
 	};
 
 	const createPDFUserList = (courseItem, subscribers) => {
+		// console.log('createPDFUserList', courseItem, subscribers);
+
 		if (!courseItem || !subscribers || subscribers.length === 0) {
 			notification.error('Dati mancanti per generare la lista partecipanti');
 			return;
 		}
-		// console.log('courseItem', courseItem);
-		// console.log('subscribers', subscribers);
+
 		const getPaidCount = (subscribers) => {
 			return subscribers.filter((sub) => sub.paymentStatus === 'done').length;
 		};
@@ -227,6 +228,8 @@
 			[
 				{ text: 'Nome', style: 'tableHeader' },
 				{ text: 'Cognome', style: 'tableHeader' },
+				{ text: 'Città', style: 'tableHeader' },
+				{ text: 'Regione', style: 'tableHeader' },
 				{ text: 'Email', style: 'tableHeader' },
 				{ text: 'Telefono', style: 'tableHeader' },
 				{ text: 'Metodo Pagamento', style: 'tableHeader' },
@@ -239,6 +242,8 @@
 			tableBody.push([
 				{ text: subscriber.name || 'N/A', style: 'tableData' },
 				{ text: subscriber.surname || 'N/A', style: 'tableData' },
+				{ text: subscriber.city || 'N/A', style: 'tableData' },
+				{ text: subscriber.county || 'N/A', style: 'tableData' },
 				{ text: subscriber.email || 'N/A', style: 'tableData' },
 				{ text: subscriber.mobilePhone || subscriber.phone || 'N/A', style: 'tableData' },
 				{ text: subscriber.paymentMethod || 'Non trovato', style: 'tableData' },
@@ -251,7 +256,7 @@
 			compress: true,
 			pageSize: 'A4',
 			pageOrientation: 'portrait',
-			pageMargins: [40, 60, 40, 60],
+			pageMargins: [20, 60, 20, 60],
 
 			content: [
 				{
@@ -320,13 +325,15 @@
 				{
 					table: {
 						headerRows: 1,
-						// table column width
-						widths: ['8%', '12%', '12%', '20%', '12%', '12%', '12%', '12%'],
+						// table column width - ottimizzato per migliore leggibilità
+						widths: ['3%', '11%', '11%', '13%', '10%', '18%', '10%', '9%', '8%', '7%'],
 						body: [
 							[
 								{ text: '  ', style: 'tableHeader' },
 								{ text: 'Nome', style: 'tableHeader' },
 								{ text: 'Cognome', style: 'tableHeader' },
+								{ text: 'Città', style: 'tableHeader' },
+								{ text: 'Regione', style: 'tableHeader' },
 								{ text: 'Email', style: 'tableHeader' },
 								{ text: 'Telefono', style: 'tableHeader' },
 								{ text: 'Metodo Pagamento', style: 'tableHeader' },
@@ -342,6 +349,8 @@
 								},
 								{ text: subscriber.name || 'N/A', style: 'tableData' },
 								{ text: subscriber.surname || 'N/A', style: 'tableData' },
+								{ text: subscriber.city || 'N/A', style: 'tableData' },
+								{ text: subscriber.county || 'N/A', style: 'tableData' },
 								{ text: subscriber.email || 'N/A', style: 'tableData' },
 								{ text: subscriber.mobilePhone || subscriber.phone || 'N/A', style: 'tableData' },
 								{ text: subscriber.paymentMethod || 'N/A', style: 'tableData' },
@@ -445,13 +454,13 @@
 					color: '#555555'
 				},
 				tableHeader: {
-					fontSize: 9,
+					fontSize: 8,
 					bold: true,
 					color: 'white',
 					alignment: 'center'
 				},
 				tableData: {
-					fontSize: 8,
+					fontSize: 6,
 					color: '#333333'
 				},
 				tableCheckbox: {
@@ -459,12 +468,12 @@
 					color: '#333333'
 				},
 				tablePaid: {
-					fontSize: 8,
+					fontSize: 7,
 					color: '#008000',
 					bold: true
 				},
 				tablePending: {
-					fontSize: 8,
+					fontSize: 7,
 					color: '#FF6600'
 				},
 				footer: {

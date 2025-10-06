@@ -189,7 +189,7 @@ export const actions: Actions = {
 					let pointsAvanzato = 0;
 					if (id === 'XW7LYV2LG2BU') points = 10; // base
 					if (id === '794792843') points = 40; // avanzato
-					if (id === 'accademia') { // accademia
+					if (id === 'riflessologo') { // riflessologo
 						pointsBase = 50;
 						pointsAvanzato = 100;
 					}

@@ -181,7 +181,7 @@ export const actions: Actions = {
 		const membershipStatus = formData.get('membershipStatus') as string;
 		const membershipLevel = formData.get('membershipLevel') as string;
 
-		const riflessologoLevels = new Set(['accademia', 'formatore base', 'master', 'formatore avanzato']);
+		const riflessologoLevels = new Set(['riflessologo', 'formatore base', 'master', 'formatore avanzato']);
 		const isRiflessologo = !!level && riflessologoLevels.has(level.toLowerCase());
 
 		if (!name || !surname || !email || !address || !postalCode || !city || !county || !country || !level || !membershipLevel || !membershipExpiry || !membershipStatus) {

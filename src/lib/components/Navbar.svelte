@@ -28,7 +28,7 @@
 	const userName = $derived(user?.name || '');
 	const userSurname = $derived(user?.surname || '');
 
-	const formatoreLevels = new Set(['accademia', 'formatore base', 'master', 'formatore avanzato']);
+	const formatoreLevels = new Set(['riflessologo', 'formatore base', 'master', 'formatore avanzato']);
 	const isFormatore = formatoreLevels.has(level.toLowerCase());
 
 	const toggleMenu = () => {
