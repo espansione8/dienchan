@@ -149,7 +149,7 @@ export const actions: Actions = {
 		if (selectedApplicability === 'riflessologo') {
 			selectIdToUse = selectId === 'true';
 		} else {
-			selectIdToUse = selectId.toString().toLowerCase().trim();
+			selectIdToUse = selectId.toString().trim();
 		}
 
 		if (type == 'percent' || type == 'amount') {
