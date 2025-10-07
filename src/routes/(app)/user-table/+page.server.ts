@@ -75,6 +75,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 
 	return {
 		getTable,
+		getUser: locals.user,
 		itemCount
 	};
 }
@@ -94,7 +95,7 @@ export const actions: Actions = {
 		const phone = formData.get('phone') || '';
 		const mobilePhone = formData.get('mobilePhone') || '';
 		const password1: any = formData.get('password1') || '';
-		const level = formData.get('level') || '';	
+		const level = formData.get('level') || '';
 		const membershipExpiry = formData.get('membershipExpiry') as string;
 		const membershipStatus = formData.get('membershipStatus') as string;
 		const membershipLevel = formData.get('membershipLevel') as string;
@@ -777,4 +778,95 @@ export const actions: Actions = {
 		}
 	},
 
+	logUser: async ({ request, cookies, locals }) => {
+		const data = await request.formData();
+		const userId = data.get('userId');
+		//console.log('userId', userId);
+
+		let response: any;
+
+		if (!userId || typeof userId !== 'string') {
+			return fail(400, { action: 'logUser', success: false, message: 'userId mancante' });
+		}
+
+		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { userId }, //IF USE Products.model -> types: course / product / membership / event
+				projection: { cookieId: 1 }, // 0: exclude | 1: include
+				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				limit: 1,
+				skip: 0,
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			},
+		});
+
+		const updateFetch = (userId: string, cookieId: string) => fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user', //product | order | user | layout | discount
+				query: { userId }, //IF USE Products.model -> types: course / product / membership / event,
+				update: { $set: { cookieId } },
+				options: { upsert: false },
+				multi: false,
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			},
+		});
+
+		if (locals.user.level !== 'superadmin') {
+			return fail(400, { action: 'logUser', success: false, message: 'Non permesso' });
+		}
+
+		try {
+			// MEMO
+			// const [userRes, updateRes] = await Promise.all([ for
+			// 	userFetch,
+			// 	updateFetch(response[0].email)
+			// ]);
+
+			const userRes = await userFetch;
+
+			if (!userRes.ok) {
+				const errorText = await userRes.text();
+				console.error('user find failed', userRes.status, errorText);
+				return fail(400, { action: 'logUser', success: false, message: errorText });
+			}
+			response = await userRes.json(); // [{ email, password }]
+			console.log('response', response);
+
+			if (!response || response.length === 0 || !response[0].cookieId) {
+				return fail(400, { action: 'logUser', success: false, message: 'login fallito' })
+			}
+
+			const updateRes = await updateFetch(locals.user.userId, response[0].cookieId);
+
+			if (!updateRes.ok) {
+				const errorText = await updateRes.text();
+				console.error('user update failed', updateRes.status, errorText);
+				return fail(400, { action: 'logUser', success: false, message: errorText });
+			}
+
+			cookies.set('session_id', response[0].cookieId, {
+				httpOnly: true,
+				//maxAge: 60 * 60 * 24 * 7 // one week
+				//maxAge: 60 * 60 * 24 * 1 // one day
+				maxAge: 60 * 60 * 24 * 1,
+				sameSite: 'strict',
+				secure: process.env.NODE_ENV === 'production',
+				path: '/'
+			});
+			return { action: 'logUser', success: true, message: "Master login, Redirect user" };
+
+		} catch (error: any) {
+			console.error('Error logUser:', error);
+			return fail(400, { action: 'logUser', success: false, message: 'Error logUser' });
+		}
+	},
 } satisfies Actions;

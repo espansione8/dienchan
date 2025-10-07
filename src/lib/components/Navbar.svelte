@@ -114,7 +114,7 @@
 									Ricerca e acquisto corso
 								</a>
 							</li>
-							{#if isFormatore || level === 'superadmin'}
+							{#if isFormatore || level === 'superadmin' || level === 'admin'}
 								<li>
 									<a href="https://vimeo.com/1122734353/d6cd2c1d38" target="_blank" rel="noopener noreferrer">
 										<BookOpen size={16} />
@@ -143,7 +143,7 @@
 							<span>Area personale</span>
 						</a>
 
-						{#if auth && (level === 'superadmin' || isFormatore)}
+						{#if auth && (level === 'superadmin' || level === 'admin' || isFormatore)}
 							<div class="dropdown dropdown-end">
 								<button class="btn btn-sm btn-ghost">
 									<Layers size={16} />
@@ -159,7 +159,7 @@
 										</a>
 									</li>
 
-									{#if level === 'superadmin'}
+									{#if level === 'superadmin' || level === 'admin'}
 										<li>
 											<a href="/membership-table" class={isActive('/membership-table') ? 'active' : ''}>
 												<CreditCard size={16} />
@@ -359,7 +359,7 @@
 							</a>
 						</li>
 
-						{#if auth && (level === 'superadmin' || isFormatore)}
+						{#if auth && (level === 'superadmin' || level === 'admin' || isFormatore)}
 							<li class="menu-title mt-4">
 								<span>Gestione</span>
 							</li>
@@ -371,7 +371,7 @@
 								</a>
 							</li>
 
-							{#if level === 'superadmin'}
+							{#if level === 'superadmin' || level === 'admin'}
 								<li>
 									<a href="/product-table" class={`btn btn-sm ${isActive('/product-table') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
 										<Package size={18} />

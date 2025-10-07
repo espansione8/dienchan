@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ActionResult } from '@sveltejs/kit';
-	import { invalidateAll } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { notification } from '$lib/stores/notifications';
 	import { tick } from 'svelte';
 	import Modal from '$lib/components/Modal.svelte';
@@ -26,13 +26,13 @@
 		FileDown,
 		CopyPlus,
 		FileUp,
-		Calendar,
+		ExternalLink,
 		House,
 		Coins
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { getTable, itemCount } = $derived(data);
+	const { getTable, getUser, itemCount } = $derived(data);
 	let tableList = $state(getTable);
 	let loading = $state(false);
 
@@ -332,6 +332,9 @@
 					} else if (action == 'changePage') {
 						tableList = payload.result;
 						currentPage = payload.currentPage;
+					} else if (action == 'logUser') {
+						goto('/profile-area');
+						notification.success(message);
 					} else if (action == 'changeStatus') {
 						notification.success(message);
 						if (resetActive) {
@@ -549,11 +552,13 @@
 								href="/profile-public/{row.userId}"
 								class="btn btn-sm bg-green-200 btn-green-400 rounded-md text-green-800 hover:bg-green-300 hover:text-green-800"><UserRoundSearch /></a
 							>
-							<!-- <button
-							onclick={() => onClickDetail(row.userId)}
-							class="btn btn-sm bg-green-200 btn-green-400 rounded-md text-green-800 hover:bg-green-300 hover:text-green-800"
-							><UserRoundSearch />
-						</button> -->
+							{#if getUser.level == 'superadmin'}
+								<form method="POST" action={`?/logUser`} use:enhance={formSubmit}>
+									<input type="hidden" name="userId" value={row.userId} />
+									<button type="submit" class="btn btn-sm btn-info"><ExternalLink /></button>
+								</form>
+							{/if}
+
 							<button class="btn btn-error btn-sm" onclick={() => onClickModal('delete', row)}><Trash2 /></button>
 						</td>
 					</tr>

@@ -169,7 +169,8 @@ export const actions: Actions = {
 				query: { email: resetEmail },
 				update: {
 					$set: {
-						password: hashed
+						password: hashed,
+						cookieId: '',
 					}
 				},
 				options: { upsert: false },
