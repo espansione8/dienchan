@@ -33,6 +33,7 @@
 	let title = $state('');
 	let descr = $state('');
 	let price = $state(0);
+	let isEvent = $state(false);
 	let bundleProducts = $state([]);
 	let singleProduct = $state('');
 	let resetActive = $state(false);
@@ -160,6 +161,7 @@
 			descr = item.descr;
 			layoutId = item.layoutId;
 			price = item.price;
+			isEvent = item.isEvent;
 			bundleProducts = item.bundleProducts || [];
 			//console.log('bundleProducts', bundleProducts);
 		}
@@ -361,10 +363,10 @@
 			method="POST"
 			action={postAction}
 			use:enhance={formSubmit}
-			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+			class="grid grid-cols-6 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
 		>
 			{#if currentModal == 'modify'}
-				<section class="col-span-4">
+				<section class="col-span-6">
 					<label for="discountId" class="form-label">
 						<p class="font-bold mb-2">ID codice</p>
 					</label>
@@ -383,7 +385,7 @@
 					</div>
 				</section>
 			{/if}
-			<section class="col-span-4">
+			<section class="col-span-6">
 				<label for="title" class="form-label">
 					<p class="font-bold mb-2">Titolo</p>
 				</label>
@@ -394,7 +396,7 @@
 				</div>
 			</section>
 
-			<section class="col-span-4 md:col-span-4">
+			<section class="col-span-6 md:col-span-6">
 				<label for="descr" class="form-label">
 					<p class="font-bold mb-2">Descrizione</p>
 				</label>
@@ -406,7 +408,7 @@
 			</section>
 
 			<!-- Bundle -->
-			<section class="col-span-4 md:col-span-2">
+			<section class="col-span-6 md:col-span-3">
 				<label for="bundle" class="form-label">
 					<p class="font-bold mb-2">Prodotti Kit corso</p>
 				</label>
@@ -436,7 +438,7 @@
 			</section>
 
 			<!-- Value -->
-			<section class="col-span-2 md:col-span-2">
+			<section class="col-span-3 md:col-span-2">
 				<label for="price" class="form-label">
 					<p class="font-bold mb-2">Prezzo</p>
 				</label>
@@ -444,6 +446,12 @@
 					<button class="join-item bg-gray-300 px-3"><Calculator /></button>
 					<input class="input input-bordered join-item w-full" id="price" type="number" name="price" bind:value={price} />
 				</div>
+			</section>
+			<section class="col-span-3 md:col-span-1">
+				<label for="isEvent" class="form-label">
+					<p class="font-bold text-sm mb-2">Evento Gratuito</p>
+					<input type="checkbox" id="isEvent" name="isEvent" class="checkbox" checked={isEvent} />
+				</label>
 			</section>
 
 			<!-- Action -->

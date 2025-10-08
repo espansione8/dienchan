@@ -544,7 +544,11 @@
 									<div class="bg-gradient-to-r from-primary to-primary/80 text-primary-content px-4 py-2 rounded-bl-lg rounded-tr-lg shadow-md">
 										<span class="text-xs font-semibold">PREZZO</span>
 										<div class="flex items-baseline">
-											<span class="text-2xl font-bold">€ {courseData.layoutView?.price || 'N/A'} </span>
+											{#if courseData.type === 'course'}
+												<span class="text-2xl font-bold">€ {courseData.layoutView?.price || 'N/A'} </span>
+											{:else if courseData.type === 'event'}
+												<span class="text-2xl font-bold">€ 0 </span>
+											{/if}
 										</div>
 									</div>
 									<div

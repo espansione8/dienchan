@@ -507,6 +507,7 @@
 	let county = $state('');
 	let location = $state('');
 	let layoutId = $state('');
+	let isEvent = $state(false);
 	let userId = $state('');
 	let tagArray: any[] = $state([]);
 	let tag = $state('');
@@ -644,6 +645,7 @@
 
 	const resetFields = () => {
 		layoutId = '';
+		isEvent = false;
 		price = 1;
 		startYear = currentYear;
 		startMonth = currentMonth;
@@ -683,6 +685,7 @@
 		title = course.title;
 		descrLong = course.descr;
 		price = course.price;
+		isEvent = course.isEvent;
 	};
 
 	const addItem = (item: any, type: string) => {
@@ -747,6 +750,7 @@
 			modalTitle = 'Modifica Corso';
 			prodId = item.prodId;
 			layoutId = item.layoutId;
+			isEvent = item.isEvent;
 			price = item.layoutView.price;
 			stockQty = item.stockQty;
 			county = item.county;
@@ -1408,6 +1412,7 @@
 				</div>
 			</div>
 			<input type="hidden" name="eventStartDate" value={eventStartDate} />
+			<input type="hidden" name="isEvent" value={isEvent} />
 		</form>
 	</Modal>
 {/if}

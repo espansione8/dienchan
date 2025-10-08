@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 		body: JSON.stringify({
 			apiKey: APIKEY,
 			schema: 'product', //product | order | user | layout | discount
-			query: { prodId: params.idCourse, type: 'course' }, //IF USE Products.model -> types: course / product / membership / event
+			query: { prodId: params.idCourse, type: { $in: ['course', 'event'] } }, //IF USE Products.model -> types: course / product / membership / event
 			projection: { _id: 0 }, // 0: exclude | 1: include
 			sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
 			limit: 1,
@@ -205,7 +205,7 @@ export const actions: Actions = {
 		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
 
 		let currentUserId: string = locals.user?.userId ?? '';
-	
+
 		//let membership = [];
 		let userExist = locals.auth;
 

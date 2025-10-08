@@ -8,7 +8,7 @@ const LayoutSchema = new Schema(
             unique: true,
             dropDups: true
         },
-
+        isEvent: { type: Boolean, default: false },
         title: { type: String, default: null },
         descr: { type: String, default: null },
         urlPic: { type: String, default: null },

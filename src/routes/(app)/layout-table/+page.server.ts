@@ -87,6 +87,7 @@ export const actions: Actions = {
 		const descr = formData.get('descr');
 		const price = formData.get('price') || '';
 		const bundle = formData.get('bundleProducts');
+		const isEvent = formData.get('isEvent') === "on" ? true : false;
 		let bundleProducts: any[] = [];
 		try {
 			bundleProducts = bundle ? JSON.parse(String(bundle)) : [];
@@ -106,6 +107,7 @@ export const actions: Actions = {
 				schema: 'layout', //product | order | user | layout | discount
 				newDoc: {
 					layoutId: nanoid(),
+					isEvent,
 					title,
 					descr,
 					price,

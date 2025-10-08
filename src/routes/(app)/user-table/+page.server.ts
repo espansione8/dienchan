@@ -782,6 +782,7 @@ export const actions: Actions = {
 		const data = await request.formData();
 		const userId = data.get('userId');
 		//console.log('userId', userId);
+		const cookieId = crypto.randomUUID()
 
 		let response: any;
 
@@ -831,21 +832,21 @@ export const actions: Actions = {
 			// 	updateFetch(response[0].email)
 			// ]);
 
-			const userRes = await userFetch;
+			// const userRes = await userFetch;
 
-			if (!userRes.ok) {
-				const errorText = await userRes.text();
-				console.error('user find failed', userRes.status, errorText);
-				return fail(400, { action: 'logUser', success: false, message: errorText });
-			}
-			response = await userRes.json(); // [{ email, password }]
-			console.log('response', response);
+			// if (!userRes.ok) {
+			// 	const errorText = await userRes.text();
+			// 	console.error('user find failed', userRes.status, errorText);
+			// 	return fail(400, { action: 'logUser', success: false, message: errorText });
+			// }
+			// response = await userRes.json(); // [{ email, password }]
+			// console.log('response', response);
 
-			if (!response || response.length === 0 || !response[0].cookieId) {
-				return fail(400, { action: 'logUser', success: false, message: 'login fallito' })
-			}
+			// if (!response || response.length === 0 || !response[0].cookieId) {
+			// 	return fail(400, { action: 'logUser', success: false, message: 'login fallito' })
+			// }
 
-			const updateRes = await updateFetch(locals.user.userId, response[0].cookieId);
+			const updateRes = await updateFetch(userId, cookieId);
 
 			if (!updateRes.ok) {
 				const errorText = await updateRes.text();
@@ -853,7 +854,7 @@ export const actions: Actions = {
 				return fail(400, { action: 'logUser', success: false, message: errorText });
 			}
 
-			cookies.set('session_id', response[0].cookieId, {
+			cookies.set('session_id', cookieId, {
 				httpOnly: true,
 				//maxAge: 60 * 60 * 24 * 7 // one week
 				//maxAge: 60 * 60 * 24 * 1 // one day

@@ -26,7 +26,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 				schema: 'product',
 				query: {
 					status: 'enabled',
-					type: 'course',
+					type: { $in: ['course', 'event'] },
 					eventStartDate: {
 						$gte: startOfYear,
 						$lt: startOfNextYear
@@ -87,7 +87,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 				apiKey,
 				schema: 'product',
 				query: {
-					type: 'course',
+					type: { $in: ['course', 'event'] },
 					status: 'enabled'
 				},
 				projection: { _id: 0, userId: 1 },

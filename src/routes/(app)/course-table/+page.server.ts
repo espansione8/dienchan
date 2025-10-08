@@ -11,12 +11,12 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	let getTable = [];
 	let getTableNames = [];
 	let getLayout = [];
-	let setQuery: { type: string; userId?: string } = { type: 'course', userId: locals.user.userId };
+	let setQuery: { type: any; userId?: string } = { type: { $in: ['course', 'event'] }, userId: locals.user.userId };
 	const user: any = locals.user
 	// const userId = locals.user.userId || ''
 
 	if (user.level === 'admin' || user.level === 'superadmin') {
-		setQuery = { type: 'course' }
+		setQuery = { type: { $in: ['course', 'event'] } }
 	}
 
 	const courseFetch = fetch(`${BASE_URL}/api/mongo/find`, {
@@ -132,6 +132,7 @@ export const actions: Actions = {
 		const arrayEmail = formData.get('notificationEmail') as string;
 		const notificationEmail = arrayEmail.split(",");
 		const infoExtra = formData.get('infoExtra');
+		const isEvent = formData.get('isEvent') === "true" ? true : false;
 
 		if (!name || !surname || !eventStartDate || !stockQty || !provinceArray || !location) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
@@ -155,7 +156,7 @@ export const actions: Actions = {
 					notificationEmail,
 					//tag,
 					infoExtra,
-					type: 'course',
+					type: isEvent ? 'event' : 'course',
 				},
 				returnObj: false
 			}),
@@ -214,7 +215,7 @@ export const actions: Actions = {
 			body: JSON.stringify({
 				apiKey: APIKEY,
 				schema: 'product', //product | order | user | layout | discount
-				query: { prodId, type: 'course' }, // 'course', 'product', 'membership', 'event'
+				query: { prodId }, // 'course', 'product', 'membership', 'event'
 				update: {
 					$set: {
 						eventStartDate,
@@ -261,7 +262,7 @@ export const actions: Actions = {
 			body: JSON.stringify({
 				apiKey: APIKEY,
 				schema: 'product', //product | order | user | layout | discount
-				query: { prodId: prodId, type: 'course' },
+				query: { prodId: prodId, type: { $in: ['course', 'event'] } },
 				multi: false,
 			}),
 			headers: {
@@ -300,7 +301,7 @@ export const actions: Actions = {
 
 
 		const query = {
-			type: 'course',
+			type: { $in: ['course', 'event'] },
 			// ...(countryState && { countryState }),
 			...(county && { county: { $in: [county] } }),
 			...(layoutId && { layoutId }),
@@ -375,7 +376,7 @@ export const actions: Actions = {
 			body: JSON.stringify({
 				apiKey: APIKEY,
 				schema: 'product', //product | order | user | layout | discount
-				query: { prodId, type: 'course' }, // 'course', 'product', 'membership', 'event'
+				query: { prodId, type: { $in: ['course', 'event'] } }, // 'course', 'product', 'membership', 'event'
 				update: {
 					$set: {
 						certificationStatus: true,

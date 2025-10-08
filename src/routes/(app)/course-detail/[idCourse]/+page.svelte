@@ -51,7 +51,11 @@
 	// 	});
 	// 	return total;
 	// });
-	let subTotal = $derived(!auth || !userData?.membership.membershipStatus ? grandTotal() - totalDiscount() + 25 : grandTotal() - totalDiscount());
+	let subTotal = $derived(
+		(!auth && getCourse.type === 'course') || (!userData?.membership.membershipStatus && getCourse.type === 'course')
+			? grandTotal() - totalDiscount() + 25
+			: grandTotal() - totalDiscount()
+	);
 
 	// form
 	let closedInput = $state(false);
@@ -649,7 +653,7 @@
 									{/if}
 								</div>
 
-								{#if !auth}
+								{#if !auth && getCourse.type === 'course'}
 									<div class="flex items-center gap-3">
 										<div class="bg-blue-100 p-2 rounded-full">
 											<Coins class="w-5 h-5 text-blue-700" />
@@ -659,7 +663,7 @@
 											<p class="font-medium text-xl text-blue-900">+25 €</p>
 										</div>
 									</div>
-								{:else if !userData?.membership.membershipStatus}
+								{:else if !userData?.membership.membershipStatus && getCourse.type === 'course'}
 									<div class="flex items-center gap-3">
 										<div class="bg-blue-100 p-2 rounded-full">
 											<Coins class="w-5 h-5 text-blue-700" />
@@ -1082,12 +1086,12 @@
 							<span class="font-semibold">{getCourse.layoutView.price.toFixed(2)} €</span>
 						</div>
 
-						{#if !auth}
+						{#if !auth && getCourse.type === 'course'}
 							<div class="flex justify-between items-center py-2 border-b border-base-300">
 								<span class="text-base-content/80 font-medium">Tesseramento per il primo corso</span>
 								<span class="font-semibold">25.00 €</span>
 							</div>
-						{:else if !userData?.membership.membershipStatus}
+						{:else if !userData?.membership.membershipStatus && getCourse.type === 'course'}
 							<div class="flex justify-between items-center py-2 border-b border-base-300">
 								<span class="text-base-content/80 font-medium">Rinnovo tessera</span>
 								<span class="font-semibold">25.00 €</span>
@@ -1104,8 +1108,13 @@
 
 						<div class="flex justify-between items-center pt-2 text-xl font-bold">
 							<span>Totale Finale</span>
-							<span class="text-primary">€ {subTotal.toFixed(2)}</span>
-							<input type="hidden" name="totalValue" value={subTotal} />
+							{#if getCourse.type === 'event'}
+								<span class="text-primary">€ 0</span>
+								<input type="hidden" name="totalValue" value={0} />
+							{:else}
+								<span class="text-primary">€ {subTotal.toFixed(2)}</span>
+								<input type="hidden" name="totalValue" value={subTotal} />
+							{/if}
 						</div>
 					</div>
 				</div>
