@@ -193,6 +193,7 @@ export const actions: Actions = {
 		const totalDiscount = formData.get('totalDiscount') || 0;
 		const paymentMethodId = formData.get('paymentMethodId') as string | null;
 		const promoterId = formData.get('promoterId') as string | null;
+		const isEvent = formData.get('isEvent') === 'true' ? true : false;
 
 		const bundle = formData.get('bundleProducts');
 
@@ -276,7 +277,7 @@ export const actions: Actions = {
 			});
 
 		const notificationFetch = (email, order) => {
-			const courseItem = order.cart.find((item) => item.type === 'course');
+			const courseItem = order.cart.find((item) => item.type === 'course' || item.type === 'event');
 			const courseTitle = courseItem?.layoutView.title;
 			const send = fetch(`${BASE_URL}/api/mailer/default`, {
 				method: 'POST',
@@ -509,7 +510,7 @@ export const actions: Actions = {
 
 			let cart = [];
 
-			if (!userExist || !locals.user?.membership.membershipStatus) {
+			if ((!isEvent && !userExist) || (!isEvent && !locals.user?.membership.membershipStatus)) {
 				cart = [...bundleProducts, cartItem, membership[0]];
 			} else {
 				cart = [...bundleProducts, cartItem];
@@ -580,7 +581,7 @@ export const actions: Actions = {
 					body: JSON.stringify({
 						apiKey: APIKEY,
 						schema: 'product', //product | order | user | layout | discount
-						query: { type: 'course', prodId: cartItem.prodId }, // 'course', 'product', 'membership', 'event',
+						query: { type: { $in: ['course', 'event'] }, prodId: cartItem.prodId }, // 'course', 'product', 'membership', 'event',
 						update: {
 							$addToSet: { // $push: {
 								listSubscribers: {

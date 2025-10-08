@@ -1474,7 +1474,7 @@
 														{#each order.cart as item}
 															<div class="flex gap-4 p-3 bg-base-200/30 rounded-lg">
 																<div class="w-20 h-20 bg-base-200 rounded-lg overflow-hidden flex-shrink-0">
-																	{#if item.type === 'course'}
+																	{#if item.type === 'course' || item.type === 'event'}
 																		<Image
 																			layout="constrained"
 																			aspectRatio={1}
@@ -1496,7 +1496,7 @@
 																<div class="flex-1">
 																	<h4 class="font-bold text-base-content">{item.title}</h4>
 
-																	{#if item.type === 'course'}
+																	{#if item.type === 'course' || item.type === 'event'}
 																		<div class="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-base-content/70">
 																			<div class="flex items-center gap-1">
 																				<Calendar size={14} />
@@ -1523,7 +1523,7 @@
 																	<div class="text-right flex-shrink-0">
 																		<div class="font-bold text-primary">
 																			<!-- € {item.type === 'course' ? item.layoutView.price : item.price} -->
-																			{#if item.type === 'course'}
+																			{#if item.type === 'course' || item.type === 'event'}
 																				{`€ ${item.layoutView.price.toFixed(2)}`}
 																			{:else if item.type === 'membership'}
 																				{`€ ${item.price.toFixed(2)}`}

@@ -9,7 +9,22 @@
 	import { imgCheck } from '$lib/tools/tools';
 	import { country_list, province } from '$lib/stores/arrays.js';
 	import { loadStripe, type Stripe, type StripeElements } from '@stripe/stripe-js';
-	import { Lock, Tag, Calendar, MapPin, User, Users, HandCoins, CreditCard, Landmark, Coins, Mail, ArrowLeft, CheckCircle, X } from 'lucide-svelte';
+	import {
+		Lock,
+		Tag,
+		Calendar,
+		MapPin,
+		User,
+		Users,
+		HandCoins,
+		CreditCard,
+		Landmark,
+		Coins,
+		Mail,
+		ArrowLeft,
+		CircleCheckBig,
+		X
+	} from 'lucide-svelte';
 
 	const { data } = $props();
 	const { getCourse, formatoreData, auth, userData, bundleProducts, stripePublishableKey } = data;
@@ -74,7 +89,7 @@
 		country: userData?.country || 'Italy',
 		phone: userData?.phone || '',
 		mobilePhone: userData?.mobilePhone || '',
-		payment: 'Carta di credito',
+		payment: getCourse.type === 'course' ? 'Carta di credito' : 'Evento gratuito',
 		currentStep: 1
 	});
 
@@ -154,7 +169,7 @@
 		formData.country = userData?.country || 'Italy';
 		formData.phone = userData?.phone || '';
 		formData.mobilePhone = userData?.mobilePhone || '';
-		formData.payment = 'Carta di credito';
+		formData.payment = getCourse.type === 'course' ? 'Carta di credito' : 'Evento gratuito';
 		password1 = '';
 		password2 = '';
 		if (cardElement) {
@@ -728,7 +743,7 @@
 								class={`w-10 h-10 rounded-full flex items-center justify-center ${i + 1 === currentStep ? 'bg-primary text-primary-content' : i + 1 < currentStep ? 'bg-success text-success-content' : 'bg-base-200'}`}
 							>
 								{#if i + 1 < currentStep}
-									<CheckCircle size={20} />
+									<CircleCheckBig size={20} />
 								{:else}
 									{i + 1}
 								{/if}
@@ -1007,74 +1022,78 @@
 					<div class="card-title text-lg font-bold mb-4 pb-2 border-b">
 						<span>Metodo di Pagamento</span>
 					</div>
+					{#if getCourse.type === 'course'}
+						<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+							<label
+								class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
+								class:border-primary={formData.payment === 'Carta di credito'}
+								class:bg-base-200={formData.payment === 'Carta di credito'}
+							>
+								<input type="radio" name="payment" value="Carta di credito" class="hidden" bind:group={formData.payment} />
+								<CreditCard class="h-8 w-8 text-primary" />
+								<span class="text-center font-medium">Carta di Credito</span>
+							</label>
 
-					<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-						<label
-							class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
-							class:border-primary={formData.payment === 'Carta di credito'}
-							class:bg-base-200={formData.payment === 'Carta di credito'}
-						>
-							<input type="radio" name="payment" value="Carta di credito" class="hidden" bind:group={formData.payment} />
-							<CreditCard class="h-8 w-8 text-primary" />
-							<span class="text-center font-medium">Carta di Credito</span>
-						</label>
+							<label
+								class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
+								class:border-primary={formData.payment === 'Bonifico bancario'}
+								class:bg-base-200={formData.payment === 'Bonifico bancario'}
+							>
+								<input type="radio" name="payment" value="Bonifico bancario" class="hidden" bind:group={formData.payment} />
+								<Landmark class="h-8 w-8 text-primary" />
+								<span class="text-center font-medium">Bonifico Bancario</span>
+							</label>
 
-						<label
-							class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
-							class:border-primary={formData.payment === 'Bonifico bancario'}
-							class:bg-base-200={formData.payment === 'Bonifico bancario'}
-						>
-							<input type="radio" name="payment" value="Bonifico bancario" class="hidden" bind:group={formData.payment} />
-							<Landmark class="h-8 w-8 text-primary" />
-							<span class="text-center font-medium">Bonifico Bancario</span>
-						</label>
+							<label
+								class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
+								class:border-primary={formData.payment === 'Contanti'}
+								class:bg-base-200={formData.payment === 'Contanti'}
+							>
+								<input type="radio" name="payment" value="Contanti" class="hidden" bind:group={formData.payment} />
+								<HandCoins class="h-8 w-8 text-primary" />
+								<span class="text-center font-medium"> Contanti (all'inizio corso) </span>
+							</label>
+						</div>
 
-						<label
-							class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
-							class:border-primary={formData.payment === 'Contanti'}
-							class:bg-base-200={formData.payment === 'Contanti'}
-						>
-							<input type="radio" name="payment" value="Contanti" class="hidden" bind:group={formData.payment} />
-							<HandCoins class="h-8 w-8 text-primary" />
-							<span class="text-center font-medium"> Contanti (all'inizio corso) </span>
-						</label>
-					</div>
-
-					<div class="card bg-base-100 shadow-xl p-6" class:hidden={formData.payment !== 'Carta di credito'}>
-						<h3 class="text-xl font-semibold mb-4">Informazioni sulla carta di credito</h3>
-						<div class="form-control">
-							<div id="card-element" class="border border-base-300 p-3 rounded-md"></div>
-							{#if stripeError}
-								<p class="text-error text-sm mt-2">{stripeError}</p>
+						<div class="card bg-base-100 shadow-xl p-6" class:hidden={formData.payment !== 'Carta di credito'}>
+							<h3 class="text-xl font-semibold mb-4">Informazioni sulla carta di credito</h3>
+							<div class="form-control">
+								<div id="card-element" class="border border-base-300 p-3 rounded-md"></div>
+								{#if stripeError}
+									<p class="text-error text-sm mt-2">{stripeError}</p>
+								{/if}
+							</div>
+							<p class="text-sm text-gray-500 mt-2">
+								<Lock size={14} class="inline-block mr-1" /> Le tue informazioni di pagamento sono protette.
+							</p>
+							{#if !paymentMethodId}
+								<button type="button" class="btn btn-info mt-4" onclick={getStripeId}>VERIFICA CARTA </button>
+							{:else}
+								<div class="btn btn-primary mt-4">CARTA OK <CircleCheckBig /></div>
 							{/if}
 						</div>
-						<p class="text-sm text-gray-500 mt-2">
-							<Lock size={14} class="inline-block mr-1" /> Le tue informazioni di pagamento sono protette.
-						</p>
-						{#if !paymentMethodId}
-							<button type="button" class="btn btn-info mt-4" onclick={getStripeId}>VERIFICA CARTA </button>
-						{:else}
-							<div class="btn btn-primary mt-4">CARTA OK <CheckCircle /></div>
+
+						{#if formData.payment === 'Bonifico bancario'}
+							<div class="card bg-base-100 shadow-xl p-6">
+								<h3 class="text-xl font-semibold mb-4">Dettagli Bonifico Bancario</h3>
+								<p>Effettua un bonifico bancario alle seguenti coordinate:</p>
+								<p><strong>IBAN:</strong> IT93 R076 0111 5000 0102 3646 647</p>
+								<p><strong>BIC/SWIFT:</strong> BPPIITRRXXX</p>
+								<p><strong>INTESTATO A:</strong> ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia</p>
+								<p>VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA</p>
+								<br />
+								<p>Si prega di includere il tuo ID ordine nella causale del bonifico. Il tuo ordine sarà elaborato dopo la conferma del pagamento.</p>
+							</div>
 						{/if}
-					</div>
 
-					{#if formData.payment === 'Bonifico bancario'}
-						<div class="card bg-base-100 shadow-xl p-6">
-							<h3 class="text-xl font-semibold mb-4">Dettagli Bonifico Bancario</h3>
-							<p>Effettua un bonifico bancario alle seguenti coordinate:</p>
-							<p><strong>IBAN:</strong> IT93 R076 0111 5000 0102 3646 647</p>
-							<p><strong>BIC/SWIFT:</strong> BPPIITRRXXX</p>
-							<p><strong>INTESTATO A:</strong> ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia</p>
-							<p>VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA</p>
-							<br />
-							<p>Si prega di includere il tuo ID ordine nella causale del bonifico. Il tuo ordine sarà elaborato dopo la conferma del pagamento.</p>
-						</div>
-					{/if}
-
-					{#if formData.payment === 'Contanti'}
-						<div class="card bg-base-100 shadow-xl p-6">
-							<h3 class="text-xl font-semibold mb-4">Da consegnare ad inizio corso</h3>
-						</div>
+						{#if formData.payment === 'Contanti'}
+							<div class="card bg-base-100 shadow-xl p-6">
+								<h3 class="text-xl font-semibold mb-4">Da consegnare ad inizio corso</h3>
+							</div>
+						{/if}
+					{:else}
+						<!-- // Evento gratuito -->
+						<input type="hidden" name="payment" value="Evento gratuito" class="hidden" />
 					{/if}
 
 					<!-- Summary -->
@@ -1129,6 +1148,7 @@
 				{#if promoterId}
 					<input type="hidden" name="promoterId" value={promoterId} />
 				{/if}
+				<input type="hidden" name="isEvent" value={getCourse.type === 'event'} class="hidden" />
 			</div>
 
 			<!-- Navigation -->
@@ -1142,14 +1162,16 @@
 					<button type="button" class="btn btn-error btn-outline" onclick={onCloseModal}> Annulla </button>
 
 					{#if currentStep < totalSteps}
-						<button type="button" class="btn btn-primary" onclick={nextStep} disabled={!isCurrentStepValid()}> Continua </button>
+						<button type="button" class="btn btn-primary" onclick={nextStep} disabled={!isCurrentStepValid()}>
+							{getCourse.type === 'course' ? 'Conferma Acquisto' : 'Conferma Partecipazione'}
+						</button>
 					{:else}
 						<button
 							type="submit"
 							class="btn btn-success"
 							disabled={!isCurrentStepValid() || (!paymentMethodId && formData.payment === 'Carta di credito')}
 						>
-							Conferma Acquisto
+							{getCourse.type === 'course' ? 'Conferma Acquisto' : 'Conferma Partecipazione'}
 						</button>
 					{/if}
 				</div>

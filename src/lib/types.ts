@@ -291,7 +291,7 @@ export interface Order {
         statusPayment: string;
     };
     status: string;
-    type: 'course' | 'product' | 'membership';
+    type: 'course' | 'product' | 'membership' | 'event';
     invoicing: {
         name: string;
         surname: string;

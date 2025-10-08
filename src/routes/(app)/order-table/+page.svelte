@@ -299,7 +299,7 @@
 								{row.type}
 							</div>
 							{#each row.cart as item}
-								{#if item.type == 'course'}
+								{#if item.type == 'course' || item.type == 'event'}
 									<span class="font-semibold">{item.layoutView.title}: {item.prodId}</span>
 								{:else if item.type == 'membership'}
 									<span>{item.title}</span>

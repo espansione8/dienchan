@@ -20,8 +20,8 @@
 		BookOpen,
 		Clock,
 		MapPin,
-		UserCircle,
-		AlertCircle,
+		CircleUser,
+		MessageCircleWarning,
 		Info,
 		Calendar
 	} from 'lucide-svelte';
@@ -596,17 +596,17 @@
 						</div>
 
 						<div class="flex items-center gap-2 mb-1 text-sm">
-							<UserCircle size={16} class="text-primary flex-shrink-0" />
+							<CircleUser size={16} class="text-primary flex-shrink-0" />
 							<span>Riflessologo: <b>{courseData.name} {courseData.surname}</b></span>
 						</div>
-						{#if !auth}
+						{#if !auth && courseData.type === 'course'}
 							<div class="bg-amber-100 text-amber-800 p-2 rounded-md flex items-center gap-2 mb-3">
-								<AlertCircle size={16} class="flex-shrink-0" />
+								<MessageCircleWarning size={16} class="flex-shrink-0" />
 								<p class="text-xs font-medium">+25€ di tesseramento solo al primo corso</p>
 							</div>
-						{:else if !userData?.membership.membershipStatus}
+						{:else if !userData?.membership.membershipStatus && courseData.type === 'course'}
 							<div class="bg-amber-100 text-amber-800 p-2 rounded-md flex items-center gap-2 mb-3">
-								<AlertCircle size={16} class="flex-shrink-0" />
+								<MessageCircleWarning size={16} class="flex-shrink-0" />
 								<p class="text-xs font-medium">+25€ di rinnovo tessera</p>
 							</div>
 						{/if}
