@@ -30,7 +30,7 @@
 	const { data } = $props();
 	const { getTable, getRiflessologi, getLayout, auth, userData } = data;
 	let coursesList = $state(getTable);
-	console.log('getRiflessologi', getRiflessologi);
+	// console.log('getRiflessologi', getRiflessologi);
 	let resetActive = $state(false);
 	let currentSort = $state('dal più recente');
 
