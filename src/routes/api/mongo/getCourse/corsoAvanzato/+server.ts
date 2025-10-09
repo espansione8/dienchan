@@ -1,11 +1,13 @@
 
 import { json } from '@sveltejs/kit';
 import { Product } from '$lib/server/mongo/schema/Products.model';
+import { User } from '$lib/server/mongo/schema/Users.model';
+import { Layout } from '$lib/server/mongo/schema/ProductLayouts.model';
 import dbConnect from '$lib/server/mongo/database';
 import type { RequestHandler } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ url }) => {
-	
+
 	try {
 		await dbConnect();
 
