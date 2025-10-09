@@ -336,8 +336,9 @@ export const actions: Actions = {
 		const status = formData.get('status');
 		const statusPayment = formData.get('statusPayment');
 		const type = formData.get('type');
+		const courseId = formData.get('courseId');
 
-		if (!orderId && !userId && !surname && !email && !paymentMethod && !status && !statusPayment && !type) {
+		if (!orderId && !userId && !surname && !email && !paymentMethod && !status && !statusPayment && !type && !courseId) {
 			return fail(400, { action: 'filter', success: false, message: 'Dati mancanti' });
 		}
 
@@ -355,6 +356,14 @@ export const actions: Actions = {
 					...(status && { status }),
 					...(statusPayment && { 'payment.statusPayment': statusPayment }),
 					...(type && { 'type': type }),
+					...(courseId && {
+						'cart': {
+							$elemMatch: {
+								type: { $in: ['course', 'event'] },
+								prodId: courseId
+							}
+						}
+					}),
 				},
 				projection: { _id: 0, password: 0 },
 				sort: { createdAt: -1 },

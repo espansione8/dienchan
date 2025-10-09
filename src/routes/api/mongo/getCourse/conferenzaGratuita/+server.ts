@@ -11,7 +11,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
 		// Query per gli ultimi 10 corsi con i criteri specificati
 		const courses = await Product.find({
-			type: 'course',
+			type: 'event',
 			layoutId: 'V9CS5PRX7AMV',
 			status: 'enabled'
 		})

@@ -567,8 +567,8 @@
 						<div class="tabs tabs-lift">
 							<input type="radio" name="course_tabs" role="tab" class="tab text-lg font-medium" aria-label="Descrizione" checked={true} />
 							<div role="tabpanel" class="tab-content bg-white rounded-b-xl p-6 shadow-md max-w-none">
-								<p class="text-lg text-gray-700 leading-relaxed">
-									{getCourse.layoutView.descr}
+								<p class="text-lg text-gray-700 leading-relaxed whitespace-pre-wrap">
+									{@html getCourse.layoutView.descr}
 								</p>
 								<hr class="my-6" />
 								<div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
@@ -713,9 +713,9 @@
 								<div class="mt-8">
 									<div class="collapse collapse-arrow bg-blue-50 rounded-lg">
 										<input type="checkbox" checked />
-										<div class="collapse-title text-lg font-medium text-blue-800">Informazioni Extra</div>
+										<div class="collapse-title text-lg font-medium text-blue-800 ">Informazioni Extra</div>
 										<div class="collapse-content">
-											<p class="text-gray-700">{getCourse.infoExtra}</p>
+											<p class="text-gray-700 whitespace-pre-wrap">{getCourse.infoExtra}</p>
 										</div>
 									</div>
 								</div>
