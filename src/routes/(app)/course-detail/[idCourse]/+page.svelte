@@ -428,10 +428,12 @@
 
 						<!-- Course Details -->
 						<div class="w-full md:w-2/3 space-y-6">
-							<div class="flex items-center gap-3">
+							<div class="flex flex-col md:flex-row items-center gap-3">
 								<div class="badge badge-lg bg-blue-100 text-blue-800 p-3">
 									<Calendar class="w-4 h-4 mr-1" />
-									{getCourse.eventStartDate.substring(0, 10)} alle {getCourse.eventStartDate.substring(11, 16)}
+									<!-- {getCourse.eventStartDate.substring(0, 10)} alle {getCourse.eventStartDate.substring(11, 16)} -->
+									{new Date(getCourse.eventStartDate).toLocaleDateString('it-IT')} alle {getCourse.eventStartDate.substring(11, 16)}
+									<!-- <span class="font-medium">{new Date(courseData.eventStartDate).toLocaleDateString('it-IT')}</span> -->
 								</div>
 								<div class="badge badge-lg bg-blue-100 text-blue-800 p-3">
 									<MapPin class="w-4 h-4 mr-1" />
@@ -1162,9 +1164,7 @@
 					<button type="button" class="btn btn-error btn-outline" onclick={onCloseModal}> Annulla </button>
 
 					{#if currentStep < totalSteps}
-						<button type="button" class="btn btn-primary" onclick={nextStep} disabled={!isCurrentStepValid()}>
-							{getCourse.type === 'course' ? 'Conferma Acquisto' : 'Conferma Partecipazione'}
-						</button>
+						<button type="button" class="btn btn-primary" onclick={nextStep} disabled={!isCurrentStepValid()}> Continua </button>
 					{:else}
 						<button
 							type="submit"

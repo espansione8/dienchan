@@ -1069,13 +1069,13 @@
 				<label for="data-inizio" class="form-label">
 					<p class="font-bold mb-2">Data inizio</p>
 				</label>
-				<div class=" join join-horizontal rounded-md">
+				<div class="join join-vertical md:join-horizontal rounded-md">
 					<button type="button" class="join-item bg-gray-300 px-3"><Calendar /></button>
 					<!-- Giorno Dropdown -->
 					<select
 						id="productCorsoDataInizioGiorno"
 						name="productCorsoDataInizioGiorno"
-						class="join-item select select-bordered w-20"
+						class="join-item select select-bordered w-full md:w-20"
 						aria-label="Seleziona Giorno"
 						bind:value={startDay}
 						required
@@ -1090,7 +1090,7 @@
 					<select
 						id="productCorsoDataInizioMese"
 						name="productCorsoDataInizioMese"
-						class="join-item select select-bordered w-32"
+						class="join-item select select-bordered w-full md:w-32"
 						aria-label="Seleziona Mese"
 						bind:value={startMonth}
 						required
@@ -1105,7 +1105,7 @@
 					<select
 						id="productCorsoDataInizioAnno"
 						name="productCorsoDataInizioAnno"
-						class="join-item select select-bordered w-26 rounded-r-md"
+						class="join-item select select-bordered w-full md:w-26 rounded-r-md"
 						aria-label="Seleziona Anno"
 						bind:value={startYear}
 						required

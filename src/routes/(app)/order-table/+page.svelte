@@ -61,7 +61,7 @@
 								} else if (orderType === 'course') {
 									if (cartItem.type === 'product') {
 										return `(${cartItem.title}: 1)`;
-									} else if (cartItem.type === 'course') {
+									} else if (cartItem.type === 'course' || cartItem.type === 'event') {
 										return `(${cartItem.layoutView.title}: 1)`;
 									}
 								} else if (orderType === 'membership') {
@@ -612,7 +612,7 @@
 					{#each orderDetail?.cart as item}
 						<div class="flex items-center w-full max-w-96 bg-indigo-100 rounded-lg shadow-md overflow-hidden">
 							<div class="w-1/3 p-3">
-								{#if item.type === 'course'}
+								{#if item.type === 'course' || item.type === 'event'}
 									<Image
 										layout="constrained"
 										aspectRatio={1}

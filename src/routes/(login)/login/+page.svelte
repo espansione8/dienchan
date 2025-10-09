@@ -16,7 +16,7 @@
 	let password1 = $state('');
 	let password2 = $state('');
 	let registerEmail = $state('');
-	let rememberMe = $state(false);
+	let rememberMe = $state(true);
 	let showPassword = $state(false);
 	let isLogin = $state(true);
 	let resetEmail = $state('');
@@ -257,17 +257,13 @@
 												<!-- Remember me and forgot password -->
 												<div class="flex items-center justify-between">
 													<label class="flex items-center gap-2 cursor-pointer group">
-														<input
-															type="checkbox"
-															class="w-4 h-4 rounded border-white/20 bg-white/10 text-violet-500 focus:ring-violet-500 focus:ring-offset-0"
-															bind:checked={rememberMe}
-														/>
+														<input type="checkbox" class="w-4 h-4 checkbox-primary rounded border-white/20 bg-white/10" bind:checked={rememberMe} />
 														<span class="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">Ricordami</span>
 													</label>
 
 													<button
 														type="button"
-														class="text-sm text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer"
+														class="text-sm text-primary hover:text-emerald-700 transition-colors cursor-pointer"
 														onclick={() => onClickModal('reset', null)}
 													>
 														Password dimenticata?

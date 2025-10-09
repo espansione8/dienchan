@@ -83,8 +83,8 @@ export const actions: Actions = {
 				httpOnly: true,
 				//maxAge: 60 * 60 * 24 * 7 // one week
 				//maxAge: 60 * 60 * 24 * 1 // one day
-				maxAge: rememberMe ? 60 * 60 * 24 * 365 : 60 * 60 * 24 * 1,
-				sameSite: 'strict',
+				maxAge: rememberMe ? 60 * 60 * 24 * 365 : 60 * 60 * 24 * 7,
+				sameSite: 'lax',
 				secure: process.env.NODE_ENV === 'production',
 				path: '/'
 			});

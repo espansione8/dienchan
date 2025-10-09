@@ -11,9 +11,13 @@ import { fail, error } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve, }) => {
 	const session_id = event.cookies.get('session_id');
+	const isInternalCall = event.request.headers.get('x-internal-call') === 'true';
+	if (isInternalCall) {
+		return resolve(event);
+	}
 	//console.log('event.url.pathname', event.url.pathname);
 	if (session_id) {
-		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+		const userFetch = event.fetch(`/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
@@ -25,11 +29,12 @@ export const handle: Handle = async ({ event, resolve, }) => {
 				skip: 0
 			}),
 			headers: {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				'x-internal-call': 'true'
 			}
 		});
 
-		const updateFetch = (id: string) => fetch(`${BASE_URL}/api/mongo/update`, {
+		const updateFetch = (id: string) => event.fetch(`/api/mongo/update`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
@@ -44,7 +49,8 @@ export const handle: Handle = async ({ event, resolve, }) => {
 				multi: false
 			}),
 			headers: {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				'x-internal-call': 'true'
 			}
 		});
 

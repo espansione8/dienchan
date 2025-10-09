@@ -30,7 +30,7 @@
 	const { data } = $props();
 	const { getTable, getRiflessologi, getLayout, auth, userData } = data;
 	let coursesList = $state(getTable);
-	console.log('getRiflessologi', getRiflessologi);
+	//console.log('getRiflessologi', getRiflessologi);
 	let resetActive = $state(false);
 	let currentSort = $state('dal più recente');
 
@@ -146,6 +146,9 @@
 	};
 
 	const updateFilter = () => {
+		const workshopTitle = 'Workshop: 12 Massaggi mattutini';
+		const massaggiMattutini = getTable.filter((item) => item.layoutView.title == workshopTitle);
+
 		coursesList = getTable;
 		// Evento
 		if (filtriAttivi.evento) {
@@ -163,6 +166,14 @@
 				const eventMonth = new Date(item.eventStartDate).getMonth();
 				return eventMonth === monthIndex;
 			});
+
+			if (massaggiMattutini.length > 0) {
+				const checkArray = coursesList.some((item) => item.layoutView.title === workshopTitle);
+
+				if (!checkArray) {
+					coursesList.push(massaggiMattutini[0]);
+				}
+			}
 		}
 		// provincia
 		if (filtriAttivi.provincia) {
