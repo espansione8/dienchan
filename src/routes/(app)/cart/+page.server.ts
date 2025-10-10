@@ -426,7 +426,7 @@ export const actions: Actions = {
 
 			const order = await res.json();
 
-			const mailArray = ['powerperformace.vn@gmail.com', email]
+			const mailArray = ['powerperformance.vn@gmail.com', email]
 			const mailRes = await mailFetch(mailArray, order);
 			if (!mailRes.ok) {
 				console.error('Mail sending failed:', await mailRes.text());
