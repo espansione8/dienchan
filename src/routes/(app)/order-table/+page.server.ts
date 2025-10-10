@@ -99,10 +99,8 @@ export const actions: Actions = {
 		const statusPayment = formData.get('statusPayment');
 		const promoterId = formData.get('promoterId') as string | null;
 		const cart = formData.get('cart') as string;
-		const cartItem = JSON.parse(String(cart)) || null;
+		const cartItem = cart ? JSON.parse(String(cart)) : null;
 		const type = formData.get('type') as string;
-		// console.log(orderId);
-		// return
 
 		if (!orderId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
@@ -113,10 +111,10 @@ export const actions: Actions = {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey: APIKEY,
-					schema: 'order', //product | order | user | layout | discount
+					schema: 'order',
 					query: { orderId },
-					projection: { _id: 0 }, // 0: exclude | 1: include
-					sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+					projection: { _id: 0 },
+					sort: { createdAt: -1 },
 					limit: 1,
 					skip: 0
 				}),
@@ -133,8 +131,53 @@ export const actions: Actions = {
 
 			const oldOrder = await resFetch.json();
 			let oldStatusPayment = '';
+			let orderCartItems = [];
+
 			if (oldOrder.length > 0) {
 				oldStatusPayment = oldOrder[0].payment.statusPayment;
+				orderCartItems = oldOrder[0].cart;
+			}
+
+			// If payment is being canceled, restore stock quantities
+			if (statusPayment === 'canceled' && oldStatusPayment === 'pending') {
+				const itemsToRestore = cartItem || orderCartItems;
+
+				if (itemsToRestore && itemsToRestore.length > 0) {
+					const restoreQty = itemsToRestore.map(async (item: any) => {
+						// Skip non-product items (courses, events, memberships don't have stock)
+						if (item.type === 'course' || item.type === 'event' || item.type === 'membership') {
+							return Promise.resolve();
+						}
+
+						const restoreQtyRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+							method: 'POST',
+							body: JSON.stringify({
+								apiKey: APIKEY,
+								schema: 'product',
+								query: { prodId: item.prodId },
+								update: {
+									$inc: {
+										stockQty: item.orderQuantity || 1
+									}
+								},
+								options: { upsert: false },
+								multi: false
+							}),
+							headers: {
+								'Content-Type': 'application/json'
+							}
+						});
+
+						if (!restoreQtyRes.ok) {
+							const errorData = await restoreQtyRes.json();
+							console.error(`Failed to restore prodId ${item.prodId}:`, errorData);
+							throw new Error(`Failed to restore stock for ${item.prodId}`);
+						}
+						return restoreQtyRes.json();
+					});
+
+					await Promise.all(restoreQty);
+				}
 			}
 
 			const resUpdate = await fetch(`${BASE_URL}/api/mongo/update`, {
@@ -168,8 +211,6 @@ export const actions: Actions = {
 					'Content-Type': 'application/json'
 				}
 			});
-			//const res = await resFetch;
-			//console.log('res', res);
 
 			if (!resUpdate.ok) {
 				const errorText = await resUpdate.text();
@@ -177,11 +218,9 @@ export const actions: Actions = {
 				return fail(400, { action: 'modify', success: false, message: errorText });
 			}
 			const result = await resUpdate.json();
-			//console.log('result', result);
 
 			if (statusPayment === 'done' && oldStatusPayment === 'pending' && promoterId && type === 'course') {
-
-				const courseItem = cartItem.find((item: any) => item.type === 'course');
+				const courseItem = (cartItem || orderCartItems).find((item: any) => item.type === 'course');
 				if (courseItem) {
 					const id = courseItem.layoutId;
 					let points = 0;
@@ -194,13 +233,12 @@ export const actions: Actions = {
 						pointsAvanzato = 100;
 					}
 
-					//course type
 					const userPointsFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
 						method: 'POST',
 						body: JSON.stringify({
 							apiKey: APIKEY,
-							schema: 'user', //product | order | user | layout | discount
-							query: { email: promoterId }, // 'course', 'product', 'membership', 'event',
+							schema: 'user',
+							query: { email: promoterId },
 							update: {
 								$inc: {
 									pointsBalance: points
@@ -235,7 +273,7 @@ export const actions: Actions = {
 					method: 'POST',
 					body: JSON.stringify({
 						apiKey: APIKEY,
-						schema: 'user', //product | order | user | layout | discount
+						schema: 'user',
 						query: { userId },
 						projection: { _id: 0, membership: 1 },
 						sort: { createdAt: -1 },
@@ -251,8 +289,8 @@ export const actions: Actions = {
 					method: 'POST',
 					body: JSON.stringify({
 						apiKey: APIKEY,
-						schema: 'user', //product | order | user | layout | discount
-						query: { userId }, // 'course', 'product', 'membership', 'event',
+						schema: 'user',
+						query: { userId },
 						update: {
 							$set: {
 								"membership.membershipStatus": true
@@ -265,6 +303,7 @@ export const actions: Actions = {
 						'Content-Type': 'application/json'
 					}
 				});
+
 				if (!resFetch.ok) {
 					const errorText = await resFetch.text();
 					console.error('user fetch failed', resFetch.status, errorText);
@@ -282,7 +321,6 @@ export const actions: Actions = {
 						return fail(400, { action: 'modify', success: false, message: errorText });
 					}
 				}
-
 			}
 
 			return { action: 'modify', success: true, message: result.message };
@@ -297,32 +335,98 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const orderId = formData.get('orderId');
 
-		const resFetch = fetch(`${BASE_URL}/api/mongo/remove`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'order', //product | order | user | layout | discount
-				query: { orderId: orderId },
-				multi: false,
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
 		try {
-			const res = await resFetch;
-			if (!res.ok) {
-				const errorText = await res.text();
-				console.error('order delete failed', res.status, errorText);
+			// First, fetch the order to get the cart items
+			const orderFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'order',
+					query: { orderId: orderId },
+					projection: { cart: 1, _id: 0 },
+					sort: {},
+					limit: 1,
+					skip: 0
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (!orderFetch.ok) {
+				const errorText = await orderFetch.text();
+				console.error('order fetch failed', orderFetch.status, errorText);
 				return fail(400, { action: 'delete', success: false, message: errorText });
 			}
-			const result = await res.json();
+
+			const orderData = await orderFetch.json();
+
+			if (!orderData || orderData.length === 0) {
+				return fail(400, { action: 'delete', success: false, message: 'Ordine non trovato' });
+			}
+
+			const cartItems = orderData[0].cart;
+
+			// Restore stock quantities for each item in cart
+			if (cartItems && cartItems.length > 0) {
+				const restoreQty = cartItems.map(async (item) => {
+					const restoreQtyRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+						method: 'POST',
+						body: JSON.stringify({
+							apiKey: APIKEY,
+							schema: 'product',
+							query: { prodId: item.prodId },
+							update: {
+								$inc: {
+									stockQty: item.orderQuantity || 1
+								}
+							},
+							options: { upsert: false },
+							multi: false
+						}),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					});
+
+					if (!restoreQtyRes.ok) {
+						const errorData = await restoreQtyRes.json();
+						console.error(`Failed to restore prodId ${item.prodId}:`, errorData);
+						throw new Error(`Failed to restore stock for ${item.prodId}`);
+					}
+					return restoreQtyRes.json();
+				});
+
+				await Promise.all(restoreQty);
+			}
+
+			// Now delete the order
+			const resFetch = await fetch(`${BASE_URL}/api/mongo/remove`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'order',
+					query: { orderId: orderId },
+					multi: false,
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (!resFetch.ok) {
+				const errorText = await resFetch.text();
+				console.error('order delete failed', resFetch.status, errorText);
+				return fail(400, { action: 'delete', success: false, message: errorText });
+			}
+
+			const result = await resFetch.json();
 
 			return { action: 'delete', success: true, message: result.message };
 
 		} catch (error) {
 			console.error('Error order delete:', error);
-			return { action: 'delete', success: false, message: 'Error order delete' };
+			return fail(400, { action: 'delete', success: false, message: 'Error order delete' });
 		}
 	},
 

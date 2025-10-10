@@ -797,8 +797,8 @@
 										name="county"
 										required
 										disabled={closedInput}
-										bind:value={formData.county[0]} 
-										>
+										bind:value={formData.county[0]}
+									>
 										<option value="" disabled>Seleziona provincia</option>
 										{#each $province as provincia, i}
 											{#if provincia.title !== 'Online'}
@@ -839,228 +839,229 @@
 								</div>
 							</div>
 
-							<!-- Checkbox per indirizzo di spedizione diverso -->
-							<div class="form-control">
-								<label class="label cursor-pointer justify-start gap-2">
-									<input type="checkbox" class="checkbox checkbox-primary" bind:checked={formData.differentShippingAddress} />
-									<span class="label-text text-base font-medium">L'indirizzo di spedizione è diverso da quello di fatturazione</span>
-								</label>
-							</div>
-
-							<!-- Sezione indirizzo di spedizione (mostrata solo se il checkbox è selezionato) -->
-							{#if formData.differentShippingAddress}
-								<div class="space-y-4 bg-base-100 p-4 rounded-lg border">
-									<div class="divider my-2">Indirizzo di Spedizione</div>
-
-									<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-										<!-- Nome Spedizione -->
-										<div class="form-control w-full">
-											<label for="shippingName" class="label">
-												<span class="label-text font-medium">Nome</span>
-											</label>
-											<input
-												id="shippingName"
-												name="shippingName"
-												type="text"
-												class="input input-bordered w-full"
-												placeholder="Inserisci il nome"
-												required={formData.differentShippingAddress}
-												bind:value={shippingName}
-											/>
-										</div>
-
-										<!-- Cognome Spedizione -->
-										<div class="form-control w-full">
-											<label for="shippingSurname" class="label">
-												<span class="label-text font-medium">Cognome</span>
-											</label>
-											<input
-												id="shippingSurname"
-												name="shippingSurname"
-												type="text"
-												class="input input-bordered w-full"
-												placeholder="Inserisci il cognome"
-												required={formData.differentShippingAddress}
-												bind:value={shippingSurname}
-											/>
-										</div>
-									</div>
-
-									<!-- Email Spedizione -->
-									<div class="form-control w-full">
-										<label for="shippingEmail" class="label">
-											<span class="label-text font-medium">Email</span>
-										</label>
-										<div class="input input-bordered flex items-center gap-2 pr-2">
-											<Mail size={18} class="ml-2" />
-											<input
-												id="shippingEmail"
-												name="shippingEmail"
-												type="email"
-												class="flex-1 outline-none bg-transparent"
-												placeholder="Inserisci una mail valida"
-												required={formData.differentShippingAddress}
-												bind:value={shippingEmail}
-											/>
-										</div>
-									</div>
-
-									<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-										<!-- Telefono Spedizione -->
-										<div class="form-control w-full">
-											<label for="shippingPhone" class="label">
-												<span class="label-text font-medium">Telefono</span>
-											</label>
-											<div class="input input-bordered flex items-center gap-2 pr-2">
-												<Phone size={18} class="ml-2" />
-												<input
-													id="shippingPhone"
-													name="shippingPhone"
-													type="tel"
-													class="flex-1 outline-none bg-transparent"
-													placeholder="Es: +39 01234567"
-													bind:value={shippingPhone}
-												/>
-											</div>
-										</div>
-
-										<!-- Cellulare Spedizione -->
-										<div class="form-control w-full">
-											<label for="shippingMobilePhone" class="label">
-												<span class="label-text font-medium">
-													Cellulare <span class="text-xs"> (richiesto) </span>
-												</span>
-											</label>
-											<div class="input input-bordered flex items-center gap-2 pr-2">
-												<Phone size={18} class="ml-2" />
-												<input
-													id="shippingMobilePhone"
-													name="shippingMobilePhone"
-													type="tel"
-													class="flex-1 outline-none bg-transparent"
-													placeholder="Es: +39 3331234567"
-													required={formData.differentShippingAddress}
-													bind:value={shippingMobilePhone}
-												/>
-											</div>
-										</div>
-									</div>
-
-									<!-- Indirizzo Spedizione -->
-									<div class="form-control w-full">
-										<label for="shippingAddress" class="label">
-											<span class="label-text font-medium">Indirizzo</span>
-										</label>
-										<div class="input input-bordered flex items-center gap-2 pr-2">
-											<MapPin size={18} class="ml-2" />
-											<input
-												id="shippingAddress"
-												name="shippingAddress"
-												type="text"
-												class="flex-1 outline-none bg-transparent"
-												placeholder="Es: Via/Piazza, numero civico"
-												required={formData.differentShippingAddress}
-												bind:value={shippingAddress}
-											/>
-										</div>
-									</div>
-
-									<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-										<!-- Città Spedizione -->
-										<div class="form-control w-full">
-											<label for="shippingCity" class="label">
-												<span class="label-text font-medium">Città</span>
-											</label>
-											<input
-												id="shippingCity"
-												name="shippingCity"
-												type="text"
-												class="input input-bordered w-full"
-												placeholder="Inserisci la città"
-												required={formData.differentShippingAddress}
-												bind:value={shippingCity}
-											/>
-										</div>
-
-										<!-- CAP Spedizione -->
-										<div class="form-control w-full">
-											<label for="shippingPostalCode" class="label">
-												<span class="label-text font-medium">CAP</span>
-											</label>
-											<input
-												id="shippingPostalCode"
-												name="shippingPostalCode"
-												type="text"
-												class="input input-bordered w-full"
-												placeholder="Es: 34754"
-												required={formData.differentShippingAddress}
-												bind:value={shippingPostalCode}
-											/>
-										</div>
-									</div>
-
-									<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-										<!-- Provincia Spedizione -->
-										<div class="form-control w-full">
-											<label for="shippingCounty" class="label">
-												<span class="label-text font-medium">Provincia</span>
-											</label>
-											<select
-												id="shippingCounty"
-												class="select select-bordered w-full"
-												name="shippingCounty"
-												required={formData.differentShippingAddress}
-												bind:value={shippingCounty}
-											>
-												<option value="" disabled>Seleziona provincia</option>
-												{#each $province as provincia, i}
-													{#if provincia.title !== 'Online'}
-														<option value={provincia.title}>
-															{provincia.title} ({provincia.region})
-														</option>
-													{/if}
-												{/each}
-											</select>
-											<!-- {#if closedInput}
-												<input type="hidden" name="shippingCounty" value={formData.shippingCounty} />
-											{/if} -->
-										</div>
-
-										<!-- Nazione Spedizione -->
-										<div class="form-control w-full">
-											<label for="shippingCountry" class="label">
-												<span class="label-text font-medium">Nazione</span>
-											</label>
-											<select
-												id="shippingCountry"
-												class="select select-bordered w-full"
-												name="shippingCountry"
-												required={formData.differentShippingAddress}
-												bind:value={shippingCountry}
-											>
-												<option value="" disabled>Seleziona nazione</option>
-												{#each $country_list as countryItem}
-													<option value={countryItem}>
-														{countryItem}
-													</option>
-												{/each}
-											</select>
-											<!-- {#if closedInput}
-												<input type="hidden" name="shippingCountry" value={formData.shippingCountry} />
-											{/if} -->
-										</div>
-									</div>
-								</div>
-							{/if}
-
 							<!-- Pick up -->
 							<div class="form-control">
 								<label class="label cursor-pointer justify-start gap-2">
-									<input type="checkbox" class="checkbox checkbox-primary" bind:checked={formData.storePickUp} />
+									<input type="checkbox" class="checkbox checkbox-primary" bind:checked={formData.storePickUp} onchange={()=> formData.differentShippingAddress=false}/>
 									<span class="label-text text-base font-medium">Ritiro in sede (Spedizione gratuita) </span>
 								</label>
 							</div>
 							<!-- {#if !formData.usePoint && formData.pointsBalance >= grandTotal() && $cartProducts.length > 0} -->
+
+							<!-- Checkbox per indirizzo di spedizione diverso -->
+							{#if !formData.storePickUp}
+								<div class="form-control">
+									<label class="label cursor-pointer justify-start gap-2">
+										<input type="checkbox" class="checkbox checkbox-primary" bind:checked={formData.differentShippingAddress} />
+										<span class="label-text text-base font-medium">L'indirizzo di spedizione è diverso da quello di fatturazione</span>
+									</label>
+								</div>
+								<!-- Sezione indirizzo di spedizione (mostrata solo se il checkbox è selezionato) -->
+								{#if formData.differentShippingAddress}
+									<div class="space-y-4 bg-base-100 p-4 rounded-lg border">
+										<div class="divider my-2">Indirizzo di Spedizione</div>
+
+										<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+											<!-- Nome Spedizione -->
+											<div class="form-control w-full">
+												<label for="shippingName" class="label">
+													<span class="label-text font-medium">Nome</span>
+												</label>
+												<input
+													id="shippingName"
+													name="shippingName"
+													type="text"
+													class="input input-bordered w-full"
+													placeholder="Inserisci il nome"
+													required={formData.differentShippingAddress}
+													bind:value={shippingName}
+												/>
+											</div>
+
+											<!-- Cognome Spedizione -->
+											<div class="form-control w-full">
+												<label for="shippingSurname" class="label">
+													<span class="label-text font-medium">Cognome</span>
+												</label>
+												<input
+													id="shippingSurname"
+													name="shippingSurname"
+													type="text"
+													class="input input-bordered w-full"
+													placeholder="Inserisci il cognome"
+													required={formData.differentShippingAddress}
+													bind:value={shippingSurname}
+												/>
+											</div>
+										</div>
+
+										<!-- Email Spedizione -->
+										<div class="form-control w-full">
+											<label for="shippingEmail" class="label">
+												<span class="label-text font-medium">Email</span>
+											</label>
+											<div class="input input-bordered flex items-center gap-2 pr-2">
+												<Mail size={18} class="ml-2" />
+												<input
+													id="shippingEmail"
+													name="shippingEmail"
+													type="email"
+													class="flex-1 outline-none bg-transparent"
+													placeholder="Inserisci una mail valida"
+													required={formData.differentShippingAddress}
+													bind:value={shippingEmail}
+												/>
+											</div>
+										</div>
+
+										<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+											<!-- Telefono Spedizione -->
+											<div class="form-control w-full">
+												<label for="shippingPhone" class="label">
+													<span class="label-text font-medium">Telefono</span>
+												</label>
+												<div class="input input-bordered flex items-center gap-2 pr-2">
+													<Phone size={18} class="ml-2" />
+													<input
+														id="shippingPhone"
+														name="shippingPhone"
+														type="tel"
+														class="flex-1 outline-none bg-transparent"
+														placeholder="Es: +39 01234567"
+														bind:value={shippingPhone}
+													/>
+												</div>
+											</div>
+
+											<!-- Cellulare Spedizione -->
+											<div class="form-control w-full">
+												<label for="shippingMobilePhone" class="label">
+													<span class="label-text font-medium">
+														Cellulare <span class="text-xs"> (richiesto) </span>
+													</span>
+												</label>
+												<div class="input input-bordered flex items-center gap-2 pr-2">
+													<Phone size={18} class="ml-2" />
+													<input
+														id="shippingMobilePhone"
+														name="shippingMobilePhone"
+														type="tel"
+														class="flex-1 outline-none bg-transparent"
+														placeholder="Es: +39 3331234567"
+														required={formData.differentShippingAddress}
+														bind:value={shippingMobilePhone}
+													/>
+												</div>
+											</div>
+										</div>
+
+										<!-- Indirizzo Spedizione -->
+										<div class="form-control w-full">
+											<label for="shippingAddress" class="label">
+												<span class="label-text font-medium">Indirizzo</span>
+											</label>
+											<div class="input input-bordered flex items-center gap-2 pr-2">
+												<MapPin size={18} class="ml-2" />
+												<input
+													id="shippingAddress"
+													name="shippingAddress"
+													type="text"
+													class="flex-1 outline-none bg-transparent"
+													placeholder="Es: Via/Piazza, numero civico"
+													required={formData.differentShippingAddress}
+													bind:value={shippingAddress}
+												/>
+											</div>
+										</div>
+
+										<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+											<!-- Città Spedizione -->
+											<div class="form-control w-full">
+												<label for="shippingCity" class="label">
+													<span class="label-text font-medium">Città</span>
+												</label>
+												<input
+													id="shippingCity"
+													name="shippingCity"
+													type="text"
+													class="input input-bordered w-full"
+													placeholder="Inserisci la città"
+													required={formData.differentShippingAddress}
+													bind:value={shippingCity}
+												/>
+											</div>
+
+											<!-- CAP Spedizione -->
+											<div class="form-control w-full">
+												<label for="shippingPostalCode" class="label">
+													<span class="label-text font-medium">CAP</span>
+												</label>
+												<input
+													id="shippingPostalCode"
+													name="shippingPostalCode"
+													type="text"
+													class="input input-bordered w-full"
+													placeholder="Es: 34754"
+													required={formData.differentShippingAddress}
+													bind:value={shippingPostalCode}
+												/>
+											</div>
+										</div>
+
+										<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+											<!-- Provincia Spedizione -->
+											<div class="form-control w-full">
+												<label for="shippingCounty" class="label">
+													<span class="label-text font-medium">Provincia</span>
+												</label>
+												<select
+													id="shippingCounty"
+													class="select select-bordered w-full"
+													name="shippingCounty"
+													required={formData.differentShippingAddress}
+													bind:value={shippingCounty}
+												>
+													<option value="" disabled>Seleziona provincia</option>
+													{#each $province as provincia, i}
+														{#if provincia.title !== 'Online'}
+															<option value={provincia.title}>
+																{provincia.title} ({provincia.region})
+															</option>
+														{/if}
+													{/each}
+												</select>
+												<!-- {#if closedInput}
+													<input type="hidden" name="shippingCounty" value={formData.shippingCounty} />
+												{/if} -->
+											</div>
+
+											<!-- Nazione Spedizione -->
+											<div class="form-control w-full">
+												<label for="shippingCountry" class="label">
+													<span class="label-text font-medium">Nazione</span>
+												</label>
+												<select
+													id="shippingCountry"
+													class="select select-bordered w-full"
+													name="shippingCountry"
+													required={formData.differentShippingAddress}
+													bind:value={shippingCountry}
+												>
+													<option value="" disabled>Seleziona nazione</option>
+													{#each $country_list as countryItem}
+														<option value={countryItem}>
+															{countryItem}
+														</option>
+													{/each}
+												</select>
+												<!-- {#if closedInput}
+													<input type="hidden" name="shippingCountry" value={formData.shippingCountry} />
+												{/if} -->
+											</div>
+										</div>
+									</div>
+								{/if}
+							{/if}
 
 							{#if grandTotal() > 0}
 								<div class="divider my-2 font-medium text-primary">Metodo di Pagamento</div>
