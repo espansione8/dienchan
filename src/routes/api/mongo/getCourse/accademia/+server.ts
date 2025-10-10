@@ -17,8 +17,8 @@ export const GET: RequestHandler = async ({ url }) => {
 			layoutId: '5G98NH2XQ',
 			status: 'enabled'
 		})
-			.sort({ createdAt: -1 }) // Ordina per data di creazione decrescente (ultimi inseriti)
-			.limit(10)
+			//.sort({ createdAt: -1 }) // Ordina per data di creazione decrescente (ultimi inseriti)
+			//.limit(10)
 			.populate({
 				path: 'userView',
 				options: { strictPopulate: false }

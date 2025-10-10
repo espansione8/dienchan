@@ -2,6 +2,7 @@ import { PUBLIC_BASE_URL } from '$env/static/public';
 import { readable, writable } from 'svelte/store';
 
 export const sidebarData = writable();
+export const courseId = writable<string>('');
 
 export const countries = readable([
     { value: "S", title: "Select" },

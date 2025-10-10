@@ -7,7 +7,7 @@
 	import { notification } from '$lib/stores/notifications';
 	import Loader from '$lib/components/Loader.svelte';
 	import { imgCheck } from '$lib/tools/tools';
-	import { country_list, province } from '$lib/stores/arrays.js';
+	import { country_list, province, courseId } from '$lib/stores/arrays.js';
 	import { loadStripe, type Stripe, type StripeElements } from '@stripe/stripe-js';
 	import {
 		Lock,
@@ -108,6 +108,11 @@
 	let totalSteps = $state(3);
 	let passwordsMatch = $state(true);
 
+	const gotoLogin = () => {
+		courseId.set(getCourse.prodId);
+		goto('/login');
+	};
+
 	const initializeStripe = async () => {
 		if (!stripePublishableKey) {
 			stripeError = 'La chiave pubblica di Stripe non è disponibile.';
@@ -181,6 +186,7 @@
 			paymentMethodId = null;
 		}
 		discountRadio = 'discountCode';
+		courseId.set('');
 	};
 
 	const checkPasswordsMatch = () => {
@@ -713,7 +719,7 @@
 								<div class="mt-8">
 									<div class="collapse collapse-arrow bg-blue-50 rounded-lg">
 										<input type="checkbox" checked />
-										<div class="collapse-title text-lg font-medium text-blue-800 ">Informazioni Extra</div>
+										<div class="collapse-title text-lg font-medium text-blue-800">Informazioni Extra</div>
 										<div class="collapse-content">
 											<p class="text-gray-700 whitespace-pre-wrap">{getCourse.infoExtra}</p>
 										</div>
@@ -772,7 +778,11 @@
 								<a href="/profile-area" class="btn btn-sm btn-outline">Modifica profilo</a>
 							</div>
 						{:else}
-							<span>Registrazione</span>
+							<div class="flex justify-between items-center w-full">
+								<span>Registrazione</span>
+								<button class="btn btn-sm btn-outline" onclick={gotoLogin}>Sei già un utente?</button>
+							</div>
+							<!-- <span>Registrazione</span> -->
 						{/if}
 					</div>
 

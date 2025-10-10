@@ -8,6 +8,7 @@
 	import { notification } from '$lib/stores/notifications';
 	import Modal from '$lib/components/Modal.svelte';
 	import Loader from '$lib/components/Loader.svelte';
+	import { courseId } from '$lib/stores/arrays.js';
 	import { UserPlus, Mail, KeyRound, Lock, Eye, EyeOff, ArrowRight, Video } from 'lucide-svelte';
 
 	// form
@@ -89,35 +90,44 @@
 	};
 
 	const formSubmit = () => {
+		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
-			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
-			loading = true;
 			await invalidateAll();
-			if (result.type === 'success' && result.data) {
-				const { payload, message } = result.data; // { action, success, message, payload }
-				if (payload) {
-					notification.success(message);
-					try {
-						await goto('/profile-area');
-					} catch (err) {
-						notification.error('Errore durante la navigazione');
+			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
+			//await update()
+			try {
+				if (result.type === 'success' && result.data) {
+					const { action, success, payload, message } = result.data; // { action, success, message, payload }
+					if (action === 'login' && success) {
+						notification.success(message);
+						if ($courseId) {
+							try {
+								await goto('/course-detail/' + $courseId);
+							} catch (err) {
+								notification.error('Errore durante la navigazione');
+							}
+						} else {
+							try {
+								await goto('/profile-area');
+							} catch (err) {
+								notification.error('Errore durante la navigazione');
+							}
+						}
+					} else {
+						notification.success(message);
 					}
-				} else {
-					notification.success(message);
+					onCloseModal();
 				}
-				onCloseModal();
+				if (result.type === 'failure') {
+					notification.error(result.data.message);
+					onClickModal('alert', null);
+				}
+				if (result.type === 'error') {
+					notification.error(result.error?.message || String(result.error) || 'Si è verificato un errore');
+				}
+			} finally {
+				loading = false;
 			}
-			if (result.type === 'failure') {
-				notification.error(result.data.message);
-				onClickModal('alert', null);
-			}
-			if (result.type === 'error') {
-				notification.error(result.error?.message || String(result.error) || 'Si è verificato un errore');
-			}
-			// 'update()' is called by default by use:enhance
-			// call 'await update()' if you need to ensure it completes before further client logic.
-
-			loading = false;
 		};
 	};
 </script>
