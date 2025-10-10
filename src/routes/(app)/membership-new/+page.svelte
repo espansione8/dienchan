@@ -68,7 +68,7 @@
 		email: userData?.email || '',
 		address: userData?.address || '',
 		city: userData?.city || '',
-		county: userData?.county || '',
+		county: userData?.county[0] || '',
 		postalCode: userData?.postalCode || '',
 		country: userData?.country || 'Italy',
 		phone: userData?.phone || '',
@@ -277,13 +277,19 @@
 	};
 
 	const isStep2Valid = () => {
-		if (!formData.address || !formData.city || !formData.postalCode || !formData.county || !formData.country || !formData.howDidYouKnow) {
-			return false;
-		}
+		if (currentModal == 'new') {
+			if (!formData.address || !formData.city || !formData.postalCode || !formData.county || !formData.country || !formData.howDidYouKnow) {
+				return false;
+			}
 
-		// Se ha selezionato presentazione o fiera, richiedi i dettagli
-		if ((formData.howDidYouKnow === 'presentazione' || formData.howDidYouKnow === 'fiera') && !formData.eventDetails) {
-			return false;
+			// Se ha selezionato presentazione o fiera, richiedi i dettagli
+			if ((formData.howDidYouKnow === 'presentazione' || formData.howDidYouKnow === 'fiera') && !formData.eventDetails) {
+				return false;
+			}
+		} else {
+			if (!formData.address || !formData.city || !formData.postalCode || !formData.county || !formData.country) {
+				return false;
+			}
 		}
 
 		return true;
@@ -751,7 +757,7 @@
 						{#if auth}
 							<div class="flex justify-between items-center w-full">
 								<span>Dati Personali</span>
-								<a href="/profile-area" class="btn btn-sm btn-outline">Modifica profilo</a>
+								<a href="/profile-area" class="btn btn-xs btn-outline">Modifica profilo</a>
 							</div>
 						{:else}
 							<span>Registrazione</span>
@@ -905,7 +911,7 @@
 						{#if auth}
 							<div class="flex justify-between items-center w-full">
 								<span>Indirizzo di Fatturazione/Spedizione</span>
-								<a href="/profile-area" class="btn btn-sm btn-outline">Modifica profilo</a>
+								<a href="/profile-area" class="btn btn-xs btn-outline">Modifica profilo</a>
 							</div>
 						{:else}
 							<span>Indirizzo di Fatturazione/Spedizione</span>
