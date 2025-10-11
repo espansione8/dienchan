@@ -204,7 +204,7 @@
 		formData.email = userData?.email || '';
 		formData.address = userData?.address || '';
 		formData.city = userData?.city || '';
-		formData.county = userData?.county || '';
+		formData.county = userData?.county[0] || '';
 		formData.postalCode = userData?.postalCode || '';
 		formData.country = userData?.country || 'Italy';
 		formData.phone = userData?.phone || '';

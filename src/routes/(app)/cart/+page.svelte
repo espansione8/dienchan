@@ -57,7 +57,7 @@
 		email: userData?.email || '',
 		address: userData?.address || '',
 		city: userData?.city || '',
-		county: userData?.county || 'AG', // provincia
+		county: userData?.county[0] || 'AG', // provincia
 		postalCode: userData?.postalCode || '',
 		country: userData?.country || 'Italy',
 		phone: userData?.phone || '',
@@ -77,7 +77,7 @@
 	let shippingMobilePhone = $derived(formData.differentShippingAddress == true ? '' : userData?.mobilePhone);
 	let shippingAddress = $derived(formData.differentShippingAddress == true ? '' : userData?.address);
 	let shippingCity = $derived(formData.differentShippingAddress == true ? '' : userData?.city);
-	let shippingCounty = $derived(formData.differentShippingAddress == true ? '' : userData?.county);
+	let shippingCounty = $derived(formData.differentShippingAddress == true ? '' : userData?.county[0]);
 	let shippingPostalCode = $derived(formData.differentShippingAddress == true ? '' : userData?.postalCode);
 	let shippingCountry = $derived(formData.differentShippingAddress == true ? '' : userData?.country);
 	// let shippingState = $derived(formData.differentShippingAddress == true ? '' : userData?.state)
@@ -256,7 +256,7 @@
 						country: formData.country === 'Italy' ? 'IT' : formData.country,
 						line1: formData.address,
 						postal_code: formData.postalCode,
-						state: formData.county[0]
+						state: formData.county
 					}
 				}
 			});
@@ -797,7 +797,7 @@
 										name="county"
 										required
 										disabled={closedInput}
-										bind:value={formData.county[0]}
+										bind:value={formData.county}
 									>
 										<option value="" disabled>Seleziona provincia</option>
 										{#each $province as provincia, i}
@@ -842,7 +842,12 @@
 							<!-- Pick up -->
 							<div class="form-control">
 								<label class="label cursor-pointer justify-start gap-2">
-									<input type="checkbox" class="checkbox checkbox-primary" bind:checked={formData.storePickUp} onchange={()=> formData.differentShippingAddress=false}/>
+									<input
+										type="checkbox"
+										class="checkbox checkbox-primary"
+										bind:checked={formData.storePickUp}
+										onchange={() => (formData.differentShippingAddress = false)}
+									/>
 									<span class="label-text text-base font-medium">Ritiro in sede (Spedizione gratuita) </span>
 								</label>
 							</div>

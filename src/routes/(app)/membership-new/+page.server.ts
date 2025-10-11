@@ -435,7 +435,7 @@ export const actions: Actions = {
 		let paymentIntentId: string | null = null;
 
 		if (!userData.name || !userData.surname || !userData.email || !userData.address ||
-			!userData.city || !userData.county || !userData.postalCode || !userData.country) {
+			!userData.city || !userData.county[0] || !userData.postalCode || !userData.country) {
 			return fail(400, { action: 'renew', success: false, message: 'Dati utente incompleti' });
 		}
 
@@ -477,6 +477,7 @@ export const actions: Actions = {
 					orderCode: crypto.randomUUID(),
 					userId: userData.userId,
 					status: 'requested',
+					type: 'membership',
 					orderDate: new Date(),
 					orderConfirmDate: null,
 					promotionId: '',
@@ -497,7 +498,7 @@ export const actions: Actions = {
 						vatNumber: '',
 						address: userData.address,
 						city: userData.city,
-						county: userData.county,
+						county: userData.county[0],
 						postalCode: userData.postalCode,
 						state: '',
 						region: '',
@@ -512,7 +513,7 @@ export const actions: Actions = {
 						surname: userData.surname,
 						address: userData.address,
 						city: userData.city,
-						county: userData.county,
+						county: userData.county[0],
 						postalCode: userData.postalCode,
 						state: '',
 						region: '',

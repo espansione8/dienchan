@@ -84,7 +84,7 @@
 		email: userData?.email || '',
 		address: userData?.address || '',
 		city: userData?.city || '',
-		county: userData?.county || '',
+		county: userData?.county[0] || '',
 		postalCode: userData?.postalCode || '',
 		country: userData?.country || 'Italy',
 		phone: userData?.phone || '',
@@ -169,7 +169,7 @@
 		formData.email = userData?.email || '';
 		formData.address = userData?.address || '';
 		formData.city = userData?.city || '';
-		formData.county = userData?.county || '';
+		formData.county = userData?.county[0] || '';
 		formData.postalCode = userData?.postalCode || '';
 		formData.country = userData?.country || 'Italy';
 		formData.phone = userData?.phone || '';
@@ -301,7 +301,7 @@
 						country: formData.country === 'Italy' ? 'IT' : formData.country,
 						line1: formData.address,
 						postal_code: formData.postalCode,
-						state: formData.county[0]
+						state: formData.county
 					}
 				}
 			});
