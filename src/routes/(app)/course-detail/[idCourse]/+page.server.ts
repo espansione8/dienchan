@@ -210,6 +210,43 @@ export const actions: Actions = {
 		//let membership = [];
 		let userExist = locals.auth;
 
+		if (locals.auth && currentUserId) {
+			const checkEnrollmentRes = await fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user',
+					query: {
+						userId: currentUserId,
+						courseJoined: cartItem.prodId
+					},
+					projection: { _id: 1 },
+					limit: 1
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (!checkEnrollmentRes.ok) {
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: 'Errore nel controllo iscrizione'
+				});
+			}
+
+			const alreadyEnrolled = await checkEnrollmentRes.json();
+
+			if (alreadyEnrolled.length > 0) {
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: 'Sei già iscritto a questo corso'
+				});
+			}
+		}
+
 		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
