@@ -112,8 +112,21 @@
 	});
 
 	const calculateDeliveryFee = (subtotal: number) => {
-		// return subtotal < 100 ? 9 : 0;
-		return formData.storePickUp ? 0 : subtotal < 100 ? 9 : 0;
+		// Se ritiro in sede, spedizione gratuita
+		if (formData.storePickUp) return 0;
+
+		// Se subtotale >= 100€, spedizione gratuita
+		if (subtotal >= 100) return 0;
+
+		// Se subtotale o prodotti a costo 0, spedizione gratuita
+		const allFree = subtotal === 0 || ($cartProducts.length > 0 && $cartProducts.every((item: any) => item.price === 0));
+		if (allFree) return 0;
+
+		// Verifica se nel carrello ci sono SOLO libri
+		const onlyBooks = $cartProducts.length > 0 && $cartProducts.every((item: any) => item.category && item.category.includes('Libri'));
+
+		// Se solo libri: 4.5€, altrimenti 9€
+		return onlyBooks ? 4.5 : 9;
 	};
 
 	let couponDiscount = $derived(() => discountList.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0));
@@ -1153,7 +1166,9 @@
 						<div class="flex justify-between text-success">
 							<span>Spedizione</span>
 							<!-- <span>{subTotal() < 100 ? '€ 9' : 'gratuita'}</span> -->
-							<span>{formData.storePickUp ? 'gratuita (ritiro in sede)' : subTotal() < 100 ? '€ 9' : 'gratuita'}</span>
+							<span>
+								{formData.storePickUp ? '€ 0.00 Ritiro in sede' : `€ ${calculateDeliveryFee(subTotal()).toFixed(2)}`}
+							</span>
 						</div>
 					{/if}
 
@@ -1400,7 +1415,9 @@
 							<tr class="text-info">
 								<td colspan="2">Spedizione</td>
 								<td class="text-right">
-									<span> {formData.storePickUp ? '€ 0.00 Ritiro in sede' : subTotal() < 100 ? '€ 9.00' : '€ 0.00'}</span>
+									<span>
+										{formData.storePickUp ? '€ 0.00 Ritiro in sede' : `€ ${calculateDeliveryFee(subTotal()).toFixed(2)}`}
+									</span>
 								</td>
 							</tr>
 

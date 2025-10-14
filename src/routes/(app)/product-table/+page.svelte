@@ -636,8 +636,10 @@
 						<option value="Altri attrezzi e Accessori">Altri attrezzi e Accessori</option>
 						<option value="Cercapunti">Cercapunti</option>
 						<option value="Creme & Co.">Creme & Co.</option>
+						<option value="Libri">Libri</option>
 						<option value="Martelli">Martelli</option>
 						<option value="Materiale didattico">Materiale didattico</option>
+						<option value="Materiale riflessologi">Materiale riflessologi</option>
 						<option value="Pettini">Pettini</option>
 						<option value="Rulli">Rulli</option>
 						<option value="Vietmassage">Vietmassage</option>
@@ -828,8 +830,10 @@
 						<option value="Altri attrezzi e Accessori">Altri attrezzi e Accessori</option>
 						<option value="Cercapunti">Cercapunti</option>
 						<option value="Creme & Co.">Creme & Co.</option>
+						<option value="Libri">Libri</option>
 						<option value="Martelli">Martelli</option>
 						<option value="Materiale didattico">Materiale didattico</option>
+						<option value="Materiale riflessologi">Materiale riflessologi</option>
 						<option value="Pettini">Pettini</option>
 						<option value="Rulli">Rulli</option>
 						<option value="Vietmassage">Vietmassage</option>
@@ -924,8 +928,10 @@
 					<option value="Altri attrezzi e Accessori">Altri attrezzi e Accessori</option>
 					<option value="Cercapunti">Cercapunti</option>
 					<option value="Creme & Co.">Creme & Co.</option>
+					<option value="Libri">Libri</option>
 					<option value="Martelli">Martelli</option>
 					<option value="Materiale didattico">Materiale didattico</option>
+						<option value="Materiale riflessologi">Materiale riflessologi</option>
 					<option value="Pettini">Pettini</option>
 					<option value="Rulli">Rulli</option>
 					<option value="Vietmassage">Vietmassage</option>

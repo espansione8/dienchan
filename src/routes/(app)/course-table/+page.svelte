@@ -28,7 +28,9 @@
 		ShieldAlert,
 		UserRoundCheck,
 		Handshake,
-		Link
+		Link,
+		ToggleRight,
+		ToggleLeft
 	} from 'lucide-svelte';
 
 	// PDF maker
@@ -884,6 +886,10 @@
 					<th>Luogo</th>
 					<th>Prezzo</th>
 					<th>Adesioni</th>
+					{#if userData.level == 'admin' || userData.level == 'superadmin'}
+						<th>Certificazioni status</th>
+					{/if}
+
 					<th>Azioni</th>
 				</tr>
 			</thead>
@@ -945,6 +951,20 @@
 									{row.listSubscribers.length}
 								</button>
 							</td>
+
+							{#if userData.level == 'admin' || userData.level == 'superadmin'}
+								<td>
+									<!-- <form method="POST" action={`?/changeStatus`} use:enhance={formSubmit}> -->
+									<span class="flex items-center">
+										{#if row.certificationStatus}
+											<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleRight color="darkgreen" /> </button>
+										{:else}
+											<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleLeft color="darkred" /></button>
+										{/if}
+									</span>
+									<!-- </form> -->
+								</td>
+							{/if}
 
 							<td class="flex items-center space-x-4">
 								<button type="button" class="btn btn-sm" aria-label="Modifica" onclick={() => onClickModal('modify', row)}><Settings /> </button>
@@ -1542,16 +1562,18 @@
 				</form>
 			{/if}
 			<div class="mb-6 flex justify-between items-center">
-				<button
-					type="button"
-					class="btn"
-					class:btn-error={showCheckboxes}
-					aria-pressed={showCheckboxes}
-					onclick={toggleCheckboxes}
-					disabled={certificationStatus}
-				>
-					{showCheckboxes ? 'Annulla' : 'Genera Attestati'}
-				</button>
+				{#if currentObj.type !== 'event'}
+					<button
+						type="button"
+						class="btn"
+						class:btn-error={showCheckboxes}
+						aria-pressed={showCheckboxes}
+						onclick={toggleCheckboxes}
+						disabled={certificationStatus}
+					>
+						{showCheckboxes ? 'Annulla' : 'Genera Attestati'}
+					</button>
+				{/if}
 				<form method="POST" action="?/coursePdf" use:enhance={formSubmit} class="">
 					<input type="hidden" name="prodId" value={prodId} />
 					<input type="hidden" name="subscribers" value={JSON.stringify(subscribers)} />

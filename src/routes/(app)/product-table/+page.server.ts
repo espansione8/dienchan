@@ -64,6 +64,7 @@ export const actions: Actions = {
 		const category = formData.get('category') || '';
 		const weight = formData.get('weight');
 		const price = formData.get('price');
+		const sku = formData.get('sku');
 
 		const newDoc = {
 			prodId,
@@ -74,6 +75,7 @@ export const actions: Actions = {
 			weight,
 			category: [category],
 			price,
+			sku
 		};
 
 		if (!title || !stockQty || !price) {
@@ -120,6 +122,7 @@ export const actions: Actions = {
 		const price = formData.get('price');
 		const weight = formData.get('weight');
 		const category = formData.get('category') || '';
+		const sku = formData.get('sku');
 
 		if (!prodId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
@@ -140,6 +143,7 @@ export const actions: Actions = {
 						price,
 						weight,
 						category,
+						sku
 					}
 				},
 				options: {
