@@ -108,6 +108,11 @@
 	let totalSteps = $state(3);
 	let passwordsMatch = $state(true);
 
+	// let isJoined: boolean = false;
+	// if (userData && auth) isJoined = userData.courseJoined.includes(getCourse.prodId);
+
+	const isJoined: boolean = userData?.courseJoined?.includes(getCourse.prodId) ?? false;
+
 	const gotoLogin = () => {
 		courseId.set(getCourse.prodId);
 		goto('/login');
@@ -472,9 +477,15 @@
 							</div>
 
 							<!-- <div class="flex flex-wrap gap-3 mt-4"> -->
-							<button class="btn btn-primary gap-2" onclick={() => onClickModal('new', null)}>
-								<CreditCard class="w-5 h-5" /> Acquista Ora
-							</button>
+							{#if isJoined}
+								<button class="btn btn-outline gap-2">
+									<CreditCard class="w-5 h-5" /> Corso acquistato
+								</button>
+							{:else}
+								<button class="btn btn-primary gap-2" onclick={() => onClickModal('new', null)}>
+									<CreditCard class="w-5 h-5" /> Acquista Ora
+								</button>
+							{/if}
 
 							<!-- </div> -->
 							{#if discountList.length > 0}

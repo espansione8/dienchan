@@ -21,6 +21,7 @@ export type User = {
     codeSponsor: string;
     codeAdmin: string;
     codeSuperAdmin: string;
+    courseJoined: string[];
     name: string;
     namePublic: boolean;
     surname: string;
@@ -164,8 +165,6 @@ export type User = {
     userCart: [];
     userWishList: [];
     documentPageArray: string[];
-    storicoCorsiPartecipati: [];
-    storicoCorsiCreati: [];
     docModifyArray: Array<{
         documentPageId: string;
         shortDescription: string;

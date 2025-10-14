@@ -288,7 +288,7 @@ export const actions: Actions = {
 				schema: 'user', //product | order | user | layout | discount
 				query: { userId: currentUserId }, // 'course', 'product', 'membership', 'event',
 				update: {
-					$push: {
+					$addToSet: { // $push
 						courseJoined: cartItem.prodId
 					}
 				},
