@@ -986,7 +986,7 @@
 			</fieldset>
 
 			<fieldset class="fieldset col-span-1">
-				<legend class="fieldset-legend">Destinatario (Sconto + Punti)</legend>
+				<legend class="fieldset-legend">Referral: Sconto + Punti (filtro non compatibile con altri)</legend>
 				<!-- <span class="label">Optional</span> -->
 				<div class="join w-full">
 					<div class="join-item btn pointer-events-none"><Pen /></div>
@@ -1003,7 +1003,7 @@
 			</fieldset>
 			{#if referralEmail === ''}
 				<fieldset class="fieldset col-span-1">
-					<legend class="fieldset-legend">Tipo Categoria</legend>
+					<legend class="fieldset-legend">Categoria</legend>
 					<div class="join w-full">
 						<div class="join-item btn pointer-events-none"><StretchHorizontal /></div>
 						<select name="selectedApplicability" value="" class="select join-item flex-1">
@@ -1019,7 +1019,7 @@
 				</fieldset>
 
 				<fieldset class="fieldset col-span-1">
-					<legend class="fieldset-legend">Tipo Sconto</legend>
+					<legend class="fieldset-legend">Tipologia</legend>
 					<!-- <span class="label">Optional</span> -->
 					<div class="join w-full">
 						<div class="join-item btn pointer-events-none"><StretchHorizontal /></div>
@@ -1027,7 +1027,7 @@
 							<option value="" disabled>Seleziona il tipo di sconto</option>
 							<option value="percent">Sconto in Percentuale</option>
 							<option value="amount">Sconto valore fisso</option>
-							<option value="referral">Sconto + Punti</option>
+							<option value="referral">Referral Sconto + Punti</option>
 							<!-- <option value="membershipLevel">Associato</option> -->
 						</select>
 					</div>

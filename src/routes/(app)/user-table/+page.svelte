@@ -831,7 +831,7 @@
 							{/each}
 						</select>
 					</div>
-					{#if countyArray.length > 0}
+					{#if countyArray?.length > 0}
 						{#each countyArray as county, i}
 							<div class="btn btn-primary btn-sm m-1 rounded-md">
 								{county}

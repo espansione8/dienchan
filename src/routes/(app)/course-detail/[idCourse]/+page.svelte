@@ -478,7 +478,7 @@
 
 							<!-- <div class="flex flex-wrap gap-3 mt-4"> -->
 							{#if isJoined}
-								<button class="btn btn-outline gap-2">
+								<button class="btn btn-success gap-2">
 									<CreditCard class="w-5 h-5" /> Corso acquistato
 								</button>
 							{:else}
