@@ -413,6 +413,77 @@ export const actions: Actions = {
 		}
 	},
 
+	// Aggiungi questa action nel tuo server.ts
+
+	toggleCertificationStatus: async ({ request, fetch, locals }) => {
+		const formData = await request.formData();
+		const prodId = formData.get('prodId');
+		const userId = formData.get('userId');
+		const currentStatus = formData.get('currentStatus') === 'true';
+
+		if (!prodId || !userId) {
+			return fail(400, {
+				action: 'toggleCertificationStatus',
+				success: false,
+				message: 'Dati mancanti'
+			});
+		}
+
+		const newStatus = !currentStatus;
+
+		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'product',
+				query: { prodId, type: { $in: ['course', 'event'] } },
+				update: {
+					$set: {
+						certificationStatus: newStatus,
+						"listSubscribers.$[elem].certificationStatus": newStatus
+					}
+				},
+				options: {
+					arrayFilters: [{ "elem.userId": userId }],
+					upsert: false
+				},
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		try {
+			const res = await resFetch;
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('toggleCertificationStatus update failed', res.status, errorText);
+				return fail(400, {
+					action: 'toggleCertificationStatus',
+					success: false,
+					message: errorText
+				});
+			}
+			const result = await res.json();
+
+			return {
+				action: 'toggleCertificationStatus',
+				success: true,
+				message: result.message,
+				newStatus
+			};
+
+		} catch (error) {
+			console.error('Error toggleCertificationStatus:', error);
+			return {
+				action: 'toggleCertificationStatus',
+				success: false,
+				message: 'Error toggleCertificationStatus'
+			};
+		}
+	},
+
 	coursePdf: async ({ request, fetch, locals }) => {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');

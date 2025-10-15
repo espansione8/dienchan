@@ -954,18 +954,25 @@
 
 							{#if userData.level == 'admin' || userData.level == 'superadmin'}
 								<td>
-									<!-- <form method="POST" action={`?/changeStatus`} use:enhance={formSubmit}> -->
-									<span class="flex items-center">
-										{#if row.certificationStatus}
-											<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleRight color="darkgreen" /> </button>
-										{:else}
-											<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleLeft color="darkred" /></button>
-										{/if}
-									</span>
-									<!-- </form> -->
+									<form method="POST" action={`?/toggleCertificationStatus`} use:enhance={formSubmit}>
+										<input type="hidden" name="prodId" value={prodId} />
+										<input type="hidden" name="userId" value={row.userId} />
+										<input type="hidden" name="currentStatus" value={row.certificationStatus} />
+
+										<span class="flex items-center">
+											{#if row.certificationStatus}
+												<button type="submit" class="btn btn-ghost btn-sm font-semibold">
+													<ToggleRight color="darkgreen" />
+												</button>
+											{:else}
+												<button type="submit" class="btn btn-ghost btn-sm font-semibold">
+													<ToggleLeft color="darkred" />
+												</button>
+											{/if}
+										</span>
+									</form>
 								</td>
 							{/if}
-
 							<td class="flex items-center space-x-4">
 								<button type="button" class="btn btn-sm" aria-label="Modifica" onclick={() => onClickModal('modify', row)}><Settings /> </button>
 								<button type="button" class="btn btn-error btn-sm" aria-label="Elimina" onclick={() => onClickModal('delete', row)}
