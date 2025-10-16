@@ -12,6 +12,8 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 
 	let getTable = [];
 	let itemCount = 0;
+	let totalPendingApprovals = 0;
+	let pendingApprovalsList = [];
 
 	try {
 		// Count
@@ -45,9 +47,43 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			}
 		});
 
-		const [countRes, userRes] = await Promise.all([
+		// get pending approvals count su TUTTI gli utenti
+		const pendingFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user',
+				query: {
+					$and: [
+						{ trainingHistory: { $exists: true, $ne: [] } },
+						{ trainingHistory: { $elemMatch: { approved: false } } }
+					]
+				},
+				projection: {
+					_id: 0,
+					userId: 1,
+					name: 1,
+					surname: 1,
+					email: 1,
+					phone: 1,
+					mobilePhone: 1,
+					county: 1,
+					city: 1,
+					userAvatar: 1,
+					trainingHistory: 1
+				},
+				limit: 100000,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		const [countRes, userRes, pendingRes] = await Promise.all([
 			countFetch,
-			userFetch
+			userFetch,
+			pendingFetch
 		]);
 
 		if (!countRes.ok) {
@@ -68,6 +104,38 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			createdAt: obj.createdAt.substring(0, 10)
 		}));
 
+
+		if (pendingRes.ok) {
+			const pendingUsers = await pendingRes.json();
+
+			// Costruisci la lista con solo i training non approvati
+			pendingApprovalsList = pendingUsers.map((user: any) => {
+				const pendingTrainings = (user.trainingHistory || []).filter(
+					(t: any) => t.approved === false
+				);
+
+				return {
+					userId: user.userId,
+					name: user.name,
+					surname: user.surname,
+					email: user.email,
+					phone: user.phone,
+					mobilePhone: user.mobilePhone,
+					county: user.county,
+					city: user.city,
+					userAvatar: user.userAvatar,
+					trainingHistory: pendingTrainings,
+					pendingCount: pendingTrainings.length
+				};
+			}).filter(u => u.pendingCount > 0);
+
+			// Calcola il totale
+			totalPendingApprovals = pendingApprovalsList.reduce(
+				(sum, u) => sum + u.pendingCount,
+				0
+			);
+		}
+
 	} catch (error) {
 		console.log('getUser fetch error:', error);
 		throw error(500, 'Server error');
@@ -76,7 +144,9 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	return {
 		getTable,
 		getUser: locals.user,
-		itemCount
+		itemCount,
+		totalPendingApprovals,
+			pendingApprovalsList
 	};
 }
 
@@ -870,4 +940,80 @@ export const actions: Actions = {
 			return fail(400, { action: 'logUser', success: false, message: 'Error logUser' });
 		}
 	},
+
+	approveTraining: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const userId = formData.get('userId');
+		const trainingIndex = formData.get('trainingIndex');
+		const approved = formData.get('approved') === 'true';
+
+		console.log('approveTraining', { userId, trainingIndex, approved });
+
+		if (!userId || trainingIndex === null) {
+			return fail(400, { action: 'approveTraining', success: false, message: 'Dati mancanti' });
+		}
+
+		const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user',
+				query: { userId },
+				update: {
+					$set: {
+						[`trainingHistory.${trainingIndex}.approved`]: approved
+					}
+				},
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user',
+				query: { userId },
+				projection: { _id: 0, password: 0 },
+				sort: { createdAt: -1 },
+				limit: 1,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		try {
+			const res = await updateFetch;
+			const resUser = await userFetch;
+
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('approveTraining update failed', res.status, errorText);
+				return fail(400, { action: 'approveTraining', success: false, message: errorText });
+			}
+			const result = await res.json();
+
+			if (!resUser.ok) {
+				const errorText = await resUser.text();
+				console.error('user fetch failed', resUser.status, errorText);
+				return fail(400, { action: 'approveTraining', success: false, message: errorText });
+			}
+			const user = await resUser.json();
+
+			return { action: 'approveTraining', success: true, message: result.message, payload: user, approved };
+
+		} catch (error) {
+			console.error('Error approveTraining:', error);
+			return fail(400, { action: 'approveTraining', success: false, message: 'Error approveTraining' });
+		}
+	}
+
+
+
 } satisfies Actions;

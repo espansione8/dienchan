@@ -28,12 +28,15 @@
 		FileUp,
 		ExternalLink,
 		House,
-		Coins
+		Coins,
+		BookText
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { getTable, getUser, itemCount } = $derived(data);
+	const { getTable, getUser, itemCount, pendingApprovalsList, totalPendingApprovals } = $derived(data);
 	let tableList = $state(getTable);
+	let pendingApprovalsCount = $state(totalPendingApprovals);
+	let pendingList = $state(pendingApprovalsList);
 	let loading = $state(false);
 
 	let level = $state('');
@@ -70,6 +73,7 @@
 	let resetActive = $state(false);
 	let membershipExpiry = $state('');
 	let membershipStatus = $state(false);
+	let trainingHistory: any[] = [];
 
 	// Pagination
 	let currentPage = $state(1);
@@ -306,6 +310,15 @@
 			userId = item.userId;
 			pointsHistory = item.pointsHistory;
 		}
+		if (type == 'trainingHistory') {
+			modalTitle = 'Storico formazione';
+			userId = item.userId;
+			trainingHistory = item.trainingHistory || [];
+			postAction = `?/approveTraining`;
+		}
+		if (type == 'pendingApprovals') {
+			modalTitle = 'Utenti in attesa di approvazione';
+		}
 	};
 
 	const onCloseModal = () => {
@@ -321,7 +334,7 @@
 			await invalidateAll();
 			try {
 				if (result.type === 'success' && result.data) {
-					const { action, message, payload } = result.data; // { action, success, message, payload }
+					const { action, message, payload, totalPending, approved } = result.data; // { action, success, message, payload }
 					if (action == 'filter') {
 						resetActive = true;
 						tableList = payload;
@@ -342,6 +355,17 @@
 							//console.log('tableList', tableList);
 						} else {
 							tableList = getTable;
+						}
+					} else if (action == 'approveTraining') {
+						await invalidateAll(); // Ricarica tutti i dati
+						tableList = getTable;
+						pendingList = pendingApprovalsList;
+						resetActive = false;
+						notification.info(message);
+						if (approved === true && pendingApprovalsCount > 0) {
+							pendingApprovalsCount -= 1;
+						} else if (approved === false) {
+							pendingApprovalsCount += 1;
 						}
 					} else {
 						tableList = getTable;
@@ -424,6 +448,17 @@
 				<button aria-label="uploadCSV" class="btn btn-info text-white w-full sm:w-auto" onclick={() => onClickModal('uploadCsv', null)}>
 					<FileUp />CSV Update
 				</button>
+				{#if pendingApprovalsCount > 0}
+					<button class="btn btn-warning rounded-md text-white relative" onclick={() => onClickModal('pendingApprovals', null)}>
+						<BookText />
+						In attesa
+						<span
+							class="absolute -top-2 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full"
+						>
+							{pendingApprovalsCount}
+						</span>
+					</button>
+				{/if}
 			</div>
 		</div>
 
@@ -437,6 +472,7 @@
 					<th>Livello</th>
 					<th>Dati utente</th>
 					<th>Punti</th>
+					<th>Formazione</th>
 					<th>Status</th>
 					<th>Praticante</th>
 					<th>Azione</th>
@@ -509,6 +545,19 @@
 						<td>
 							<button onclick={() => onClickModal('points', row)} class="btn btn-info font-bold">{row.pointsBalance} <Coins /> </button>
 						</td>
+						<!-- Formazione -->
+						<td>
+							<button
+								type="button"
+								class="btn btn-info font-bold"
+								onclick={() => onClickModal('trainingHistory', row)}
+								disabled={!row.trainingHistory || row.trainingHistory.length === 0}
+								aria-label="Storico formazione"
+							>
+								<BookText />
+							</button>
+						</td>
+
 						<!-- Status -->
 						<td>
 							<form method="POST" action={`?/changeStatus`} use:enhance={formSubmit}>
@@ -1370,6 +1419,130 @@
 					<div class="w-full"><span class="text-sm text-base-content">{new Date(item.date).toLocaleString()}</span></div>
 				</div>
 			{/each}
+		</div>
+	</Modal>
+{/if}
+
+{#if currentModal == 'trainingHistory'}
+	<Modal isOpen={openModal} header={modalTitle}>
+		<button type="button" class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
+		{#if loading}
+			<Loader />
+		{/if}
+		<div class="p-4 lg:p-8">
+			{#if trainingHistory && trainingHistory.length > 0}
+				<div class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-4">
+					{#each trainingHistory as training, index}
+						<div class="col-span-4 p-4 rounded-box shadow-md bg-base-200 flex flex-col gap-y-4">
+    <!-- Header -->
+    <div class="flex items-start justify-between gap-4 flex-wrap lg:flex-nowrap">
+        <span class="font-bold text-lg text-primary flex-1 break-words">{training.description || 'N/A'}</span>
+        
+        <div class="flex items-center gap-2 flex-shrink-0">
+            <div
+                class="badge badge-lg"
+                class:badge-success={training.approved}
+                class:badge-warning={!training.approved}
+            >
+                {training.approved ? 'Approvato' : 'In attesa'}
+            </div>
+
+            <form method="POST" action={postAction} use:enhance={formSubmit}>
+                <input type="hidden" name="userId" value={userId} />
+                <input type="hidden" name="trainingIndex" value={index} />
+                <input type="hidden" name="approved" value={!training.approved} />
+
+                <button
+                    type="submit"
+                    class="btn btn-xs whitespace-nowrap"
+                    class:btn-success={!training.approved}
+                    class:btn-error={training.approved}
+                    aria-label={training.approved ? 'Revoca approvazione' : 'Approva'}
+                >
+                    {training.approved ? '✕ Revoca' : '✓ Approva'}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Info -->
+    <div class="flex flex-wrap gap-x-6 gap-y-2">
+        <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold">Ore:</span>
+            <span class="text-info-content">{training.hours}h</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold">Data:</span>
+            <span class="text-info-content">
+                {new Date(training.date).toLocaleDateString('it-IT', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                })}
+            </span>
+        </div>
+    </div>
+
+    {#if training.fileUrl}
+        <div class="flex items-center gap-2 mt-2">
+            <span class="text-sm font-semibold">File:</span>
+            <a href={training.fileUrl} target="_blank" rel="noopener noreferrer" class="link link-primary truncate">
+                {training.fileName}
+            </a>
+        </div>
+    {/if}
+</div>
+
+					{/each}
+				</div>
+			{:else}
+				<div class="text-center py-12">
+					<p class="text-base-content/70">Nessuna formazione registrata</p>
+				</div>
+			{/if}
+		</div>
+	</Modal>
+{/if}
+
+{#if currentModal == 'pendingApprovals'}
+	<Modal isOpen={openModal} header="Utenti in attesa di approvazione" cssClass="max-w-5xl">
+		<button type="button" class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
+		<div class="p-4 lg:p-8">
+			{#if pendingApprovalsList && pendingApprovalsList.length > 0}
+				<div class="space-y-3">
+					{#each pendingApprovalsList as row}
+						<button
+							type="button"
+							onclick={() => onClickModal('trainingHistory', row)}
+							class="w-full p-4 rounded-box shadow-md bg-warning/20 border-l-4 border-warning hover:bg-warning/30 transition-colors text-left cursor-pointer"
+						>
+							<div class="flex items-start justify-between gap-4">
+								<div class="flex-1">
+									<div class="flex items-center gap-2 mb-2">
+										<p class="font-bold text-lg">{row.name} {row.surname}</p>
+										<span class="badge badge-warning badge-sm">In attesa</span>
+										{#if row.pendingCount > 0}
+											<span class="badge bg-blue-400 badge-sm ml-1 text-md text-bold">{row.pendingCount}</span>
+										{/if}
+									</div>
+									<div class="space-y-1 text-sm">
+										<p class="text-gray-700"><strong>Email:</strong> {row.email}</p>
+										{#if row.phone}<p class="text-gray-700"><strong>Tel:</strong> {row.phone}</p>{/if}
+										{#if row.mobilePhone}<p class="text-gray-700"><strong>Cell:</strong> {row.mobilePhone}</p>{/if}
+									</div>
+								</div>
+								<div class="flex flex-col items-end gap-2">
+									<p class="text-xs text-gray-500 mt-2">Clicca per dettagli →</p>
+								</div>
+							</div>
+						</button>
+					{/each}
+				</div>
+			{:else}
+				<div class="text-center py-12">
+					<p class="text-base-content/70">Nessuna approvazione in sospeso</p>
+				</div>
+			{/if}
 		</div>
 	</Modal>
 {/if}
