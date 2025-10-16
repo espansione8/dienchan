@@ -146,6 +146,7 @@ const UserSchema = new mongoose.Schema(
 				date: { type: Date, default: Date.now },
 				fileName: { type: String, default: 'N/A' },
 				fileUrl: { type: String, default: null },
+				approved: { type: Boolean, default: false }
 			}
 		],
 		userAvatar: { type: String, default: null },
