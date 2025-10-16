@@ -947,7 +947,7 @@ export const actions: Actions = {
 		const trainingIndex = formData.get('trainingIndex');
 		const approved = formData.get('approved') === 'true';
 
-		console.log('approveTraining', { userId, trainingIndex, approved });
+		// console.log('approveTraining', { userId, trainingIndex, approved });
 
 		if (!userId || trainingIndex === null) {
 			return fail(400, { action: 'approveTraining', success: false, message: 'Dati mancanti' });

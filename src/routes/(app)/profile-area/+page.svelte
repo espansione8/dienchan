@@ -16,6 +16,8 @@
 	import {
 		HandCoins,
 		X,
+		XCircle,
+		CheckCircle,
 		Check,
 		Eye,
 		ToggleLeft,
@@ -1581,11 +1583,17 @@
 						<h2 class="text-2xl font-bold mb-4"><NotebookPen size={24} class="text-primary" /> Gestione Formazione</h2>
 						<div class="mb-4 text-lg">
 							<p class="font-semibold">
-								<CalendarPlus size={24} class="text-primary" /> Eventi: <span class="font-normal">{userData?.trainingHistory?.length || 0}</span>
+								<CalendarPlus size={24} class="text-primary" /> Eventi approvati:
+								<span class="font-normal">
+									{userData?.trainingHistory?.filter((entry) => entry.approved === true).length || 0}
+								</span>
 							</p>
+
 							<p class="font-semibold">
-								<CalendarClock size={24} class="text-primary" /> Ore totali:
-								<span class="font-normal">{userData?.trainingHistory?.reduce((sum, entry) => sum + (entry.hours || 0), 0) || 0}</span>
+								<CalendarClock size={24} class="text-primary" /> Ore totali approvate:
+								<span class="font-normal">
+									{userData?.trainingHistory?.filter((entry) => entry.approved === true).reduce((sum, entry) => sum + (entry.hours || 0), 0) || 0}
+								</span>
 							</p>
 						</div>
 						<h3 class="text-xl font-bold mb-4">Aggiungi Nuova Voce di Formazione</h3>
@@ -1685,6 +1693,7 @@
 											<th>Descrizione</th>
 											<th>Ore</th>
 											<th>File</th>
+											<th>Status approvazione</th>
 											<th class="text-center">Azioni</th>
 										</tr>
 									</thead>
@@ -1703,6 +1712,21 @@
 														>
 													{:else}
 														N/A
+													{/if}
+												</td>
+												<td>
+													{#if entry.approved === true}
+														<span class="badge badge-success flex items-center gap-1">
+															<CheckCircle size={16} /> Approvato
+														</span>
+													{:else if entry.approved === false}
+														<span class="badge badge-warning flex items-center gap-1">
+															<Clock size={16} /> In attesa
+														</span>
+													{:else}
+														<span class="badge badge-warning flex items-center gap-1">
+															<Clock size={16} /> In attesa
+														</span>
 													{/if}
 												</td>
 												<td class="text-center">
