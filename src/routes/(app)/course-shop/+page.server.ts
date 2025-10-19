@@ -15,10 +15,10 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		// get courses
 		const currentYear = new Date().getFullYear()
 		const startOfYear = new Date(currentYear, 0, 1);
-		const startOfNextYear = new Date(currentYear + 1, 0, 1);
-		//const currentYear = new Date().getUTCFullYear()
-		//const startOfYear = new Date(Date.UTC(currentYear, 0, 1));
-		//const startOfNextYear = new Date(Date.UTC(currentYear + 1, 0, 1));
+		//const startOfYear = new Date(currentYear, 1, 1);
+		//const startOfNextYear = new Date(currentYear + 1, 0, 1);
+		const startOfNextYear = new Date(currentYear + 1, 1, 1);
+
 		const resProductsCorso = await fetch(`${baseURL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({

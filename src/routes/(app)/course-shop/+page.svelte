@@ -587,10 +587,16 @@
 							</h3>
 						</a>
 						<div class="flex items-center gap-2 mb-2 text-sm">
-							<Calendar size={16} class="text-primary flex-shrink-0" />
-							<span class="font-medium">{new Date(courseData.eventStartDate).toLocaleDateString('it-IT')}</span>
-							<Clock size={16} class="text-primary flex-shrink-0 ml-2" />
-							<span>Dalle <b>{courseData.timeStartDate}</b></span>
+							{#if courseData.layoutId === 'PYSYPA4QCTH1'}
+								<span class="font-medium">Tutti i giorni</span>
+								<Clock size={16} class="text-primary flex-shrink-0 ml-2" />
+								<span>alle 7:00 e 9:00</span>
+							{:else}
+								<Calendar size={16} class="text-primary flex-shrink-0" />
+								<span class="font-medium"><b>{new Date(courseData.eventStartDate).toLocaleDateString('it-IT')}</b></span>
+								<Clock size={16} class="text-primary flex-shrink-0 ml-2" />
+								<span>Dalle <b>{courseData.timeStartDate}</b></span>
+							{/if}
 						</div>
 
 						<div class="flex items-center gap-2 mb-2 text-sm">
