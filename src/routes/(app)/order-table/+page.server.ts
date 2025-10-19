@@ -138,8 +138,8 @@ export const actions: Actions = {
 				orderCartItems = oldOrder[0].cart;
 			}
 
-			// If payment is being canceled, restore stock quantities
-			if (statusPayment === 'canceled' && oldStatusPayment === 'pending') {
+			// If payment is being cancelled, restore stock quantities
+			if (statusPayment === 'cancelled' && oldStatusPayment === 'pending') {
 				const itemsToRestore = cartItem || orderCartItems;
 
 				if (itemsToRestore && itemsToRestore.length > 0) {
@@ -370,6 +370,11 @@ export const actions: Actions = {
 			// Restore stock quantities for each item in cart
 			if (cartItems && cartItems.length > 0) {
 				const restoreQty = cartItems.map(async (item) => {
+					// Skip non-product items (courses, events, memberships don't have stock)
+					if (item.type === 'course' || item.type === 'event' || item.type === 'membership') {
+						return Promise.resolve();
+					}
+
 					const restoreQtyRes = await fetch(`${BASE_URL}/api/mongo/update`, {
 						method: 'POST',
 						body: JSON.stringify({
