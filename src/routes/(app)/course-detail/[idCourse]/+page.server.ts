@@ -279,27 +279,6 @@ export const actions: Actions = {
 			}
 		});
 
-
-
-		const updateUserFetch = fetch(`${BASE_URL}/api/mongo/update`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'user', //product | order | user | layout | discount
-				query: { userId: currentUserId }, // 'course', 'product', 'membership', 'event',
-				update: {
-					$addToSet: { // $push
-						courseJoined: cartItem.prodId
-					}
-				},
-				options: { upsert: false },
-				multi: false
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
 		const mailFetch = (email, order) =>
 			fetch(`${BASE_URL}/api/mailer/new-order`, {
 				method: 'POST',
@@ -313,23 +292,7 @@ export const actions: Actions = {
 				}
 			});
 
-		const notificationFetch = (email, order) => {
-			const courseItem = order.cart.find((item) => item.type === 'course' || item.type === 'event');
-			const courseTitle = courseItem?.layoutView.title;
-			const send = fetch(`${BASE_URL}/api/mailer/default`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey: APIKEY,
-					email,
-					content: `${name} ${surname}: iscrizione al corso ${courseTitle}<br>
-					email: ${email}.`
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			return send
-		}
+
 
 		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || !cart || !cartItem) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
@@ -655,13 +618,49 @@ export const actions: Actions = {
 					// });
 					console.error(`mailRes: ${await mailRes.text()}`);
 				}
+				const notificationFetch = (email, order) => {
+					const courseItem = order.cart.find((item) => item.type === 'course' || item.type === 'event');
+					const courseTitle = courseItem?.layoutView.title;
+					const send = fetch(`${BASE_URL}/api/mailer/default`, {
+						method: 'POST',
+						body: JSON.stringify({
+							apiKey: APIKEY,
+							email,
+							content: `${name} ${surname}: iscrizione al corso ${courseTitle}<br>
+					email: ${email}.`
+						}),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					});
+					return send
+				}
 
 				const notificationRes = await notificationFetch(cartItem.notificationEmail, order);
 				if (!notificationRes.ok) {
 					console.error(`notificationRes: ${await notificationRes.text()}`);
 				}
 
-				const updateUserRes = await updateUserFetch;
+				const updateUserFetch = () => fetch(`${BASE_URL}/api/mongo/update`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'user', //product | order | user | layout | discount
+						query: { userId: currentUserId }, // 'course', 'product', 'membership', 'event',
+						update: {
+							$addToSet: { // $push
+								courseJoined: cartItem.prodId
+							}
+						},
+						options: { upsert: false },
+						multi: false
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+
+				const updateUserRes = await updateUserFetch();
 
 				if (!updateUserRes.ok) {
 					return fail(400, {
