@@ -262,6 +262,7 @@
 				<th>Email</th>
 				<th>Utente</th>
 				<th>Carrello</th>
+				<th>Note</th>
 				<th>Totale</th>
 				<th>Pagamento</th>
 				<!-- <th>Stato Ordine</th> -->
@@ -309,6 +310,8 @@
 							{/each}
 						</div>
 					</td>
+					<!-- Note-->
+					<td>{row.orderNotes || '-'}</td>
 					<!-- Totale -->
 					<td>
 						<div class="flex flex-col space-y-1">
@@ -792,7 +795,12 @@
 
 					<div class="w-full md:w-1/2 px-2 mb-4">
 						<label for="type" class="block text-sm font-medium text-gray-700 mb-1">ID Corso</label>
-						<input type="text" name="courseId" placeholder="Inserisci l'ID del corso" class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5" />
+						<input
+							type="text"
+							name="courseId"
+							placeholder="Inserisci l'ID del corso"
+							class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						/>
 					</div>
 				</div>
 				<div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-2">

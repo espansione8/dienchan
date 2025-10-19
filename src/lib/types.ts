@@ -290,6 +290,7 @@ export interface Order {
         statusPayment: string;
     };
     status: string;
+    orderNotes: string;
     type: 'course' | 'product' | 'membership' | 'event';
     invoicing: {
         name: string;

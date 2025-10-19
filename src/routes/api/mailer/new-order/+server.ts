@@ -12,7 +12,7 @@ export const POST: RequestHandler = async ({ request }) => {
         order
     } = body;
 
-    const { orderId, createdAt, totalValue, invoicing, payment, cart, type, totalDiscount } = order;
+    const { orderId, createdAt, totalValue, invoicing, payment, cart, type, totalDiscount, orderNotes = '' } = order;
     const { name, surname, address, city, county, postalCode, country } = invoicing
 
     if (apiKey !== APIKEY) {
@@ -174,6 +174,9 @@ export const POST: RequestHandler = async ({ request }) => {
                             <li style="margin-bottom: 0.5em;">${postalCode} ${city} ${county}</li>
                             <li style="margin-bottom: 0.5em;">${country}</li>
                         </ul>
+
+                        <h4 class="margin-top-lg text-black">Note ordine :</h4>
+                        <p style="margin-top: 0.5em;">${orderNotes}</p>
 
                         <h4 class="margin-top-lg text-black">Metodo di pagamento:</h4>
                         <p style="margin-top: 0.5em;">${payment.method}</p>
