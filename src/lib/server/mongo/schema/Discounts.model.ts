@@ -43,6 +43,7 @@ const discountSchema = new Schema(
 		referral: { type: String, default: null }, // email
 		riflessologo: { type: Boolean, default: false },
 		notes: { type: String, default: null },
+		expiryDate: { type: Date, default: null },
 		status: {
 			type: String,
 			enum: ['enabled', 'disabled'],

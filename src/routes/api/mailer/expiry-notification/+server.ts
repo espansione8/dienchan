@@ -15,27 +15,30 @@ export const POST: RequestHandler = async ({ request }) => {
 	}
 
 	const now = new Date();
+	const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 	const twoWeeksFromNow = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 	const startOfDayTwoWeeksFromNow = new Date(twoWeeksFromNow.getFullYear(), twoWeeksFromNow.getMonth(), twoWeeksFromNow.getDate());
 	const startOfNextDayTwoWeeksFromNow = new Date(startOfDayTwoWeeksFromNow.getTime() + 24 * 60 * 60 * 1000);
 
+	let expiringCount = 0;
+	let expiredCount = 0;
+
 	try {
-		const resFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+		// PARTE 1: Disattivazione tessere scadute
+		
+		const resExpiredFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
-				//product | order | user | layout | discount
 				schema: 'user',
-				//IF USE Products.model -> types: course / product / membership / event
 				query: {
 					'membership.membershipExpiry': {
-						$gte: startOfDayTwoWeeksFromNow, // bigger OR equal target day
-						$lt: startOfNextDayTwoWeeksFromNow // smaller than next day
-					}
+						$lt: startOfToday // Scadenza minore di oggi
+					},
+					'membership.membershipStatus': true // Solo tessere ancora attive
 				},
-
-				projection: { _id: 0, password: 0 },  // 0: exclude | 1: include
-				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				projection: { _id: 0, password: 0 },
+				sort: { createdAt: -1 },
 				limit: 10000,
 				skip: 0
 			}),
@@ -44,64 +47,168 @@ export const POST: RequestHandler = async ({ request }) => {
 			}
 		});
 
-		const res = await resFetch;
-		if (!res.ok) {
-			console.error('user fetch error:', res.status, await res.text());
-			return json({ message: 'CRON api error: user fetch error' }, { status: 500 });
-		}
-		const users = await res.json();
-		console.log(`Found ${users.length} membership.membershipStatus: false. Sending emails...`);
+		if (!resExpiredFetch.ok) {
+			console.error('Expired users fetch error:', resExpiredFetch.status, await resExpiredFetch.text());
+		} else {
+			const expiredUsers = await resExpiredFetch.json();
 
-		const transporter = nodemailer.createTransport({
-			host: MAILER_HOST,
-			port: Number(MAILER_PORT),
-			secure: MAILER_SECURE === 'true' ? true : false, // true for 465, false for other ports
-			auth: {
-				user: MAILER_USER,
-				pass: MAILER_PASS
+			const transporter = nodemailer.createTransport({
+				host: MAILER_HOST,
+				port: Number(MAILER_PORT),
+				secure: MAILER_SECURE === 'true' ? true : false,
+				auth: {
+					user: MAILER_USER,
+					pass: MAILER_PASS
+				}
+			});
+
+			for (const user of expiredUsers) {
+				try {
+					// Disattiva la tessera
+					const updateRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+						method: 'POST',
+						body: JSON.stringify({
+							apiKey: APIKEY,
+							schema: 'user',
+							query: { userId: user.userId },
+							update: {
+								'membership.membershipStatus': false
+							}
+						}),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					});
+
+					if (!updateRes.ok) {
+						console.error(`Failed to deactivate membership for ${user.email}`);
+						continue;
+					}
+
+					// Invia email di notifica scadenza
+					const emailContentHtml = `
+						<!DOCTYPE html>
+						<html>
+						<head>
+							<meta charset="utf-8">
+							<title>Tessera Scaduta - Riflessologia Dienchan</title>
+						</head>
+						<body>
+							<p>Gentile ${user.name || ''} ${user.surname || ''},</p>
+							<p><strong>La tua tessera associativa in Riflessologia Dienchan è scaduta.</strong></p>
+							<p>La tua membership è stata disattivata automaticamente.</p>
+							<p>Per continuare ad usufruire dei corsi e del negozio riservato agli associati, è necessario rinnovare la tessera.</p>
+							<p>Per procedere al rinnovo, clicca sul link: <a href="https://associazione.riflessologiadienchan.it/login">https://associazione.riflessologiadienchan.it/login</a></p>
+							<p>Cordiali saluti,</p>
+							<p>Riflessologia Dienchan</p>
+						</body>
+						</html>
+					`;
+
+					const mailOptions = {
+						from: '"Notifiche Dienchan" <no-reply@riflessologiadienchan.it>',
+						to: user.email,
+						subject: 'Tessera Associativa Scaduta',
+						html: emailContentHtml
+					};
+
+					await transporter.sendMail(mailOptions);
+					expiredCount++;
+
+				} catch (err) {
+					console.error(`Error processing expired user ${user.email}:`, err);
+				}
+			}
+		}
+
+		// PARTE 2: Notifica tessere in scadenza (tra 2 settimane)
+		
+		const resExpiringFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user',
+				query: {
+					'membership.membershipExpiry': {
+						$gte: startOfDayTwoWeeksFromNow,
+						$lt: startOfNextDayTwoWeeksFromNow
+					}
+				},
+				projection: { _id: 0, password: 0 },
+				sort: { createdAt: -1 },
+				limit: 10000,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
 			}
 		});
 
-		for (const user of users) {
-			try {
-				const emailContentHtml = `
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <meta charset="utf-8">
-                        <title>Notifica da Riflessologia Dienchan</title>
-                    </head>
-                    <body>
-                        <p>Gentile ${user.name || ''} ${user.surname || ''},</p>
-                        <p>La tua tessera associativa in Riflessologia Dienchan sta per scadere.</p>
-                        <p>Per favore, rinnovala per continuare ad usufruire dei corsi e del negozio riservato agli associati.</p>
-                        <p>Per procedere al rinnovo della tua tessera, clicca sul link <a href="https://associazione.riflessologiadienchan.it/login">https://associazione.riflessologiadienchan.it/login</a> </p>
-                        <p>Cordiali saluti,</p>
-                        <p>Riflessologiadienchan.it</p>
-                    </body>
-                    </html>
-                `;
+		if (!resExpiringFetch.ok) {
+			console.error('Expiring users fetch error:', resExpiringFetch.status, await resExpiringFetch.text());
+		} else {
+			const expiringUsers = await resExpiringFetch.json();
 
-				const mailOptions = {
-					from: '"Notifiche Dienchan" <no-reply@riflessologiadienchan.it>', // sender address
-					to: user.email, // list of receivers
-					subject: 'Aggiornamento sul tuo stato di membership', // Subject line
-					html: emailContentHtml
-				};
+			const transporter = nodemailer.createTransport({
+				host: MAILER_HOST,
+				port: Number(MAILER_PORT),
+				secure: MAILER_SECURE === 'true' ? true : false,
+				auth: {
+					user: MAILER_USER,
+					pass: MAILER_PASS
+				}
+			});
 
-				// Send email
-				await transporter.sendMail(mailOptions);
-				//console.log(`Expiry email sent: ${user.email}`);
+			for (const user of expiringUsers) {
+				try {
+					const emailContentHtml = `
+						<!DOCTYPE html>
+						<html>
+						<head>
+							<meta charset="utf-8">
+							<title>Notifica da Riflessologia Dienchan</title>
+						</head>
+						<body>
+							<p>Gentile ${user.name || ''} ${user.surname || ''},</p>
+							<p>La tua tessera associativa in Riflessologia Dienchan sta per scadere tra 2 settimane.</p>
+							<p>Per favore, rinnovala per continuare ad usufruire dei corsi e del negozio riservato agli associati.</p>
+							<p>Per procedere al rinnovo della tua tessera, clicca sul link: <a href="https://associazione.riflessologiadienchan.it/login">https://associazione.riflessologiadienchan.it/login</a></p>
+							<p>Cordiali saluti,</p>
+							<p>Riflessologia Dienchan</p>
+						</body>
+						</html>
+					`;
 
-			} catch (emailError) {
-				console.error(`Error sending Expiry email to ${user.email}:`, emailError);
+					const mailOptions = {
+						from: '"Notifiche Dienchan" <no-reply@riflessologiadienchan.it>',
+						to: user.email,
+						subject: 'Aggiornamento sul tuo stato di membership',
+						html: emailContentHtml
+					};
+
+					await transporter.sendMail(mailOptions);
+					expiringCount++;
+
+				} catch (emailError) {
+					console.error(`Error sending expiring email to ${user.email}:`, emailError);
+				}
 			}
 		}
 
-		return json({ message: `Expiry email sent. Processed ${users.length} users.` }, { status: 200 });
+		return json({ 
+			message: `Process completed successfully`,
+			expired: {
+				count: expiredCount,
+				action: 'Memberships deactivated and notification emails sent'
+			},
+			expiring: {
+				count: expiringCount,
+				action: 'Warning emails sent (2 weeks notice)'
+			}
+		}, { status: 200 });
 
 	} catch (err) {
-		console.error('Error sending Expiry email:', err);
+		console.error('Error in expiry notification cron:', err);
 		throw error(500, `Server Error Expiry Cron: ${err.message}`);
 	}
 };
