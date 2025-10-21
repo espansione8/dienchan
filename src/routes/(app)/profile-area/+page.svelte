@@ -39,7 +39,7 @@
 		Package,
 		BadgeCheck,
 		IdCard,
-		Home,
+		House,
 		NotebookPen,
 		Plus,
 		FileText,
@@ -602,7 +602,7 @@
 								class="btn btn-ghost justify-start gap-3 {activeTab === 'dashboard' ? 'btn-active' : ''}"
 								onclick={() => (activeTab = 'dashboard')}
 							>
-								<Home size={18} />
+								<House size={18} />
 								Dashboard
 							</button>
 							<button class="btn btn-ghost justify-start gap-3 {activeTab === 'profile' ? 'btn-active' : ''}" onclick={() => (activeTab = 'profile')}>
@@ -668,12 +668,7 @@
 								</a>
 							{/if}
 							{#if isFormatore || level === 'superadmin' || level === 'admin'}
-								<a
-									href="https://riflessologiadienchan.it/rapporti-iscritti-agli-eventi/"
-									class="btn btn-ghost justify-start gap-3"
-									target="_blank"
-									rel="noopener noreferrer"
-								>
+								<a href="https://riflessologiadienchan.it/login/" class="btn btn-ghost justify-start gap-3" target="_blank" rel="noopener noreferrer">
 									<ExternalLink size={18} />
 									Vecchio report eventi
 								</a>
@@ -1050,7 +1045,7 @@
 											</div>
 										</label>
 										<div class="input input-bordered flex items-center gap-2">
-											<Home size={18} class="text-base-content/50 ml-2" />
+											<House size={18} class="text-base-content/50 ml-2" />
 											<input
 												id="address"
 												name="address"

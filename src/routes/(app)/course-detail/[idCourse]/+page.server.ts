@@ -172,6 +172,61 @@ const calculateItemDiscount = (
 };
 // 
 export const actions: Actions = {
+	createPaymentIntent: async ({ request, locals }) => {
+		try {
+			const formData = await request.formData();
+			const totalValue = formData.get('totalValue') as string;
+			const email = formData.get('email')?.toString().toLowerCase().trim();
+			const name = formData.get('name') as string;
+			const surname = formData.get('surname') as string;
+
+			if (!totalValue || !email) {
+				return fail(400, {
+					action: 'createPaymentIntent',
+					success: false,
+					message: 'Dati mancanti'
+				});
+			}
+
+			const amountInCents = Math.round(Number(totalValue) * 100);
+
+			// Create PaymentIntent WITHOUT confirming
+			const paymentIntent = await stripe.paymentIntents.create({
+				amount: amountInCents,
+				currency: 'eur',
+				automatic_payment_methods: {
+					enabled: true
+				},
+				metadata: {
+					email,
+					name: `${name.trim()} ${surname.trim()}`
+				},
+				// Request 3DS when needed
+				payment_method_options: {
+					card: {
+						request_three_d_secure: 'automatic'
+					}
+				}
+			});
+
+			return {
+				action: 'createPaymentIntent',
+				success: true,
+				payload: {
+					clientSecret: paymentIntent.client_secret,
+					paymentIntentId: paymentIntent.id
+				}
+			};
+		} catch (err: any) {
+			console.error('PaymentIntent creation error:', err);
+			return fail(400, {
+				action: 'createPaymentIntent',
+				success: false,
+				message: `Errore creazione pagamento: ${err.message}`
+			});
+		}
+	},
+
 	new: async ({ request, fetch, locals, cookies }) => {
 		const formData = await request.formData();
 		const name = formData.get('name') as string;
@@ -192,11 +247,11 @@ export const actions: Actions = {
 		const cartItem = JSON.parse(String(cart)) || null;
 		const totalDiscount = formData.get('totalDiscount') || 0;
 		const paymentMethodId = formData.get('paymentMethodId') as string | null;
+		//const paymentIntentId = formData.get('paymentIntentId') as string | null; // Changed from paymentMethodId
 		const promoterId = formData.get('promoterId') as string | null;
 		const isEvent = formData.get('isEvent') === 'true' ? true : false;
 
 		const bundle = formData.get('bundleProducts');
-
 		const bundleProducts = JSON.parse(String(bundle)) || [];
 
 		// console.log('cartItem.notificationEmail', cartItem.notificationEmail);
@@ -308,8 +363,10 @@ export const actions: Actions = {
 
 		// Stripe payment processing
 		let paymentIntentId: string | null = null;
+		//let paymentVerified = false;
 		if (payment === 'Carta di credito') {
 			if (!paymentMethodId) {
+				//if (!paymentIntentId) {
 				return fail(400, {
 					action: 'new',
 					success: false,
@@ -318,7 +375,6 @@ export const actions: Actions = {
 			}
 
 			const amountInCents = Math.round(Number(totalValue) * 100);
-
 			try {
 				const paymentIntent = await stripe.paymentIntents.create({
 					amount: amountInCents,
@@ -344,6 +400,26 @@ export const actions: Actions = {
 					message: `Pagamento fallito: ${err.message}`
 				});
 			}
+
+			// try {
+			// 	const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+			// 	if (paymentIntent.status !== 'succeeded') {
+			// 		return fail(400, {
+			// 			action: 'new',
+			// 			success: false,
+			// 			message: `Pagamento non completato: ${paymentIntent.status}`
+			// 		});
+			// 	}
+			// 	paymentVerified = true;
+			// } catch (err: any) {
+			// 	console.error('PaymentIntent verification error:', err);
+			// 	return fail(400, {
+			// 		action: 'new',
+			// 		success: false,
+			// 		message: `Errore verifica pagamento: ${err.message}`
+			// 	});
+			// }
 		}
 
 		if (!locals.auth) {
@@ -392,7 +468,8 @@ export const actions: Actions = {
 								// "membership.membershipSignUp": new Date(),
 								// "membership.membershipActivation": new Date(),
 								// "membership.membershipExpiry": new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-								"membership.membershipStatus": paymentIntentId ? true : false
+								"membership.membershipStatus": paymentIntentId ? true : false,
+								//"membership.membershipStatus": paymentVerified
 							},
 							returnObj: true
 						}),
@@ -486,6 +563,7 @@ export const actions: Actions = {
 				payment: {
 					method: payment,
 					statusPayment: paymentIntentId ? 'done' : 'pending',
+					//statusPayment: paymentVerified  ? 'done' : 'pending',
 					transactionId: paymentIntentId || '',
 					points: '',
 					value: ''
@@ -563,6 +641,7 @@ export const actions: Actions = {
 									'membership.membershipLevel': 'Socio ordinario',
 									'membership.membershipExpiry': newExpire,
 									'membership.membershipStatus': paymentIntentId ? true : false,
+									//'membership.membershipStatus': paymentVerified,
 								}
 							},
 							options: { upsert: false },
@@ -776,7 +855,7 @@ export const actions: Actions = {
 
 	applyDiscount: async ({ request, fetch, locals }) => {
 		const formData = await request.formData();
-		const discountCode = formData.get('discountCode') as string;
+		const discountCode = formData.get('discountCode').toString().toLowerCase().trim();
 		const cart = formData.get('cart') as string;
 
 		const grandTotal = formData.get('grandTotal') as string;
@@ -944,7 +1023,7 @@ export const actions: Actions = {
 
 		try {
 			const formData = await request.formData();
-			const removeCode = formData.get('removeCode') as string;
+			const removeCode = formData.get('removeCode').toString().toLowerCase().trim();
 			const grandTotal = formData.get('grandTotal') as string;
 
 			const cart = formData.get('cart') as string;
@@ -1010,7 +1089,7 @@ export const actions: Actions = {
 
 	applyEmailRef: async ({ request, fetch, locals }) => {
 		const formData = await request.formData();
-		const discountCode = formData.get('discountCode') as string; // email formatore
+		const discountCode = formData.get('discountCode').toString().toLowerCase().trim();// email formatore
 
 		try {
 			const userFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
@@ -1018,7 +1097,7 @@ export const actions: Actions = {
 				body: JSON.stringify({
 					apiKey: APIKEY,
 					schema: 'user', //product | order | user | layout | discount
-					query: { email: discountCode.trim() }, //IF USE Products.model -> types: course / product / membership / event
+					query: { email: discountCode }, //IF USE Products.model -> types: course / product / membership / event
 					projection: { _id: 0, email: 1 }, // 0: exclude | 1: include
 					sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
 					limit: 1,

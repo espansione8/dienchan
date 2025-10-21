@@ -36,6 +36,7 @@
 	let cardElement: any;
 	let stripeError = $state<string | null>(null);
 	let paymentMethodId = $state<string | null>(null);
+	//let paymentIntentId = $state<string | null>(null);
 
 	// discount
 	let discountCode = $state('');
