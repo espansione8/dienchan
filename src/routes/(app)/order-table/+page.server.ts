@@ -336,14 +336,14 @@ export const actions: Actions = {
 		const orderId = formData.get('orderId');
 
 		try {
-			// First, fetch the order to get the cart items
+			// First, fetch the order to get the cart items and user email
 			const orderFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey: APIKEY,
 					schema: 'order',
 					query: { orderId: orderId },
-					projection: { cart: 1, _id: 0 },
+					projection: { cart: 1, userEmail: 1, _id: 0 },
 					sort: {},
 					limit: 1,
 					skip: 0
@@ -366,43 +366,69 @@ export const actions: Actions = {
 			}
 
 			const cartItems = orderData[0].cart;
+			const userEmail = orderData[0].userEmail;
 
-			// Restore stock quantities for each item in cart
+			// Restore stock quantities and remove user from listSubscribers
 			if (cartItems && cartItems.length > 0) {
-				const restoreQty = cartItems.map(async (item) => {
-					// Skip non-product items (courses, events, memberships don't have stock)
-					if (item.type === 'course' || item.type === 'event' || item.type === 'membership') {
-						return Promise.resolve();
-					}
+				const restoreOperations = cartItems.map(async (item) => {
+					// Restore stock for products
+					if (item.type !== 'course' && item.type !== 'event' && item.type !== 'membership') {
+						const restoreQtyRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+							method: 'POST',
+							body: JSON.stringify({
+								apiKey: APIKEY,
+								schema: 'product',
+								query: { prodId: item.prodId },
+								update: {
+									$inc: {
+										stockQty: item.orderQuantity || 1
+									}
+								},
+								options: { upsert: false },
+								multi: false
+							}),
+							headers: {
+								'Content-Type': 'application/json'
+							}
+						});
 
-					const restoreQtyRes = await fetch(`${BASE_URL}/api/mongo/update`, {
-						method: 'POST',
-						body: JSON.stringify({
-							apiKey: APIKEY,
-							schema: 'product',
-							query: { prodId: item.prodId },
-							update: {
-								$inc: {
-									stockQty: item.orderQuantity || 1
-								}
-							},
-							options: { upsert: false },
-							multi: false
-						}),
-						headers: {
-							'Content-Type': 'application/json'
+						if (!restoreQtyRes.ok) {
+							const errorData = await restoreQtyRes.json();
+							console.error(`Failed to restore prodId ${item.prodId}:`, errorData);
+							throw new Error(`Failed to restore stock for ${item.prodId}`);
 						}
-					});
-
-					if (!restoreQtyRes.ok) {
-						const errorData = await restoreQtyRes.json();
-						console.error(`Failed to restore prodId ${item.prodId}:`, errorData);
-						throw new Error(`Failed to restore stock for ${item.prodId}`);
 					}
-					return restoreQtyRes.json();
+
+					// Remove user from listSubscribers for courses, events, and memberships
+					if ((item.type === 'course' || item.type === 'event' || item.type === 'membership') && userEmail) {
+						const removeSubscriberRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+							method: 'POST',
+							body: JSON.stringify({
+								apiKey: APIKEY,
+								schema: 'product',
+								query: { prodId: item.prodId },
+								update: {
+									$pull: {
+										listSubscribers: { email: userEmail }
+									}
+								},
+								options: { upsert: false },
+								multi: false
+							}),
+							headers: {
+								'Content-Type': 'application/json'
+							}
+						});
+
+						if (!removeSubscriberRes.ok) {
+							const errorData = await removeSubscriberRes.json();
+							console.error(`Failed to remove subscriber from ${item.prodId}:`, errorData);
+							throw new Error(`Failed to remove subscriber from ${item.prodId}`);
+						}
+					}
 				});
 
-				await Promise.all(restoreQty);
+				await Promise.all(restoreOperations);
 			}
 
 			// Now delete the order
