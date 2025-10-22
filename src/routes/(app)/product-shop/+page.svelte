@@ -249,26 +249,26 @@
 
 							<div class="grid grid-cols-1 gap-1 mt-2 pr-1 filter-scrollbar overflow-y-auto">
 								{#each Object.entries(getCategories) as [key, value]}
-									{#if key !== 'Materiale riflessologi' || user?.isRiflessologo }
+									{#if (key !== 'Materiale riflessologi' || user?.isRiflessologo) && key !== 'Materiale formatori'}
 										<button
 											type="submit"
 											name="category"
 											value={key}
 											class="group relative flex items-center justify-between py-2.5 px-3 rounded-lg transition-all duration-300 overflow-hidden
-                {activeFilter.category === key ? 'bg-primary text-primary-content font-medium' : 'hover:bg-base-200'}"
+        {activeFilter.category === key ? 'bg-primary text-primary-content font-medium' : 'hover:bg-base-200'}"
 										>
 											<!-- Background animation on hover -->
 											<div
-												class="absolute inset-0 bg-primary/10 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out {activeFilter.category ===
-												key
-													? 'scale-x-100'
-													: ''}"
+												class="absolute inset-0 bg-primary/10 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out
+        {activeFilter.category === key ? 'scale-x-100' : ''}"
 											></div>
 
 											<span class="relative z-10">{key}</span>
-											<span class="badge {activeFilter.category === key ? 'bg-primary-content/20 text-primary-content' : 'bg-base-200'} relative z-10"
-												>{value}</span
+											<span
+												class="badge {activeFilter.category === key ? 'bg-primary-content/20 text-primary-content' : 'bg-base-200'} relative z-10"
 											>
+												{value}
+											</span>
 										</button>
 									{/if}
 								{/each}

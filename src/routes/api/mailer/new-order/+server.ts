@@ -150,13 +150,16 @@ export const POST: RequestHandler = async ({ request }) => {
                                         `
                     ).join('')
             }
-                            <tr>
-                                <td colspan="2" class="table-cell-style text-right font-bold">Spedizione</td>
-                                <td class="table-cell-style text-right font-bold">${(totalValue - 9 < 100 && type === 'product')
-                ? '9.00 €'
+                          <tr>
+    <td colspan="2" class="table-cell-style text-right font-bold">Spedizione</td>
+    <td class="table-cell-style text-right font-bold">
+        ${totalValue === 0 
+            ? 'Gratuita' 
+            : (totalValue - 9 < 100 && type === 'product') 
+                ? '9.00 €' 
                 : 'Gratuita'}
-                                </td>
-                            </tr>
+    </td>
+</tr>
                             <tr>
                                 <td colspan="2" class="table-cell-style text-right font-bold">Sconti</td>
                                 <td class="table-cell-style text-right font-bold">${totalDiscount > 0 ? totalDiscount.toFixed(2) : '0'} €</td>

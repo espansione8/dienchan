@@ -639,6 +639,7 @@
 						<option value="Libri">Libri</option>
 						<option value="Martelli">Martelli</option>
 						<option value="Materiale didattico">Materiale didattico</option>
+						<option value="Materiale formatori">Materiale formatori</option>
 						<option value="Materiale riflessologi">Materiale riflessologi</option>
 						<option value="Pettini">Pettini</option>
 						<option value="Rulli">Rulli</option>
@@ -833,6 +834,7 @@
 						<option value="Libri">Libri</option>
 						<option value="Martelli">Martelli</option>
 						<option value="Materiale didattico">Materiale didattico</option>
+						<option value="Materiale formatori">Materiale formatori</option>
 						<option value="Materiale riflessologi">Materiale riflessologi</option>
 						<option value="Pettini">Pettini</option>
 						<option value="Rulli">Rulli</option>
@@ -931,6 +933,7 @@
 					<option value="Libri">Libri</option>
 					<option value="Martelli">Martelli</option>
 					<option value="Materiale didattico">Materiale didattico</option>
+					<option value="Materiale formatori">Materiale formatori</option>
 						<option value="Materiale riflessologi">Materiale riflessologi</option>
 					<option value="Pettini">Pettini</option>
 					<option value="Rulli">Rulli</option>

@@ -1542,7 +1542,9 @@
 															<div class="flex justify-between items-center pt-3 border-t border-base-200">
 																<div class="font-medium">Spedizione</div>
 																<div class="font-bold text-lg text-info">
-																	<p>{order.totalValue < 100 ? '€ 9' : 'gratuita'}</p>
+																	<p>
+																		{order.totalValue === 0 ? 'gratuita' : order.totalValue < 100 ? '€ 9' : 'gratuita'}
+																	</p>
 																</div>
 															</div>
 														{/if}

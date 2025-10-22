@@ -16,7 +16,7 @@
 		Layers,
 		BookOpen,
 		Package,
-		CreditCard
+		CreditCard, ShoppingBag
 	} from 'lucide-svelte';
 
 	const { user, auth } = $props();
@@ -156,6 +156,13 @@
 										<a href="/course-table" class={isActive('/course-table') ? 'active' : ''}>
 											<BookOpen size={16} />
 											Corsi
+										</a>
+									</li>
+
+									<li>
+										<a href="/kit-materiale-formatori" class={isActive('/kit-materiale-formatori') ? 'active' : ''}>
+											<ShoppingBag size={16} />
+											Materiale Kit Formatori
 										</a>
 									</li>
 
