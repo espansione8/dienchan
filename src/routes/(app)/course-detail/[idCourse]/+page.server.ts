@@ -208,6 +208,14 @@ export const actions: Actions = {
 					}
 				}
 			});
+			// 	In the context of Stripe's API, request_three_d_secure can be set to:
+			// 'any' – for trying 3DS with a preference for a frictionless or challenge flow.
+			// 'challenge' – explicitly requesting an active challenge flow.
+			// 'automatic' – letting Stripe decide dynamically based on risk.
+			// 'off' – explicitly avoiding 3DS authentication.
+
+			// console.log('paymentIntent.id', paymentIntent.id);
+			// console.log('paymentIntent.client_secret', paymentIntent.client_secret);
 
 			return {
 				action: 'createPaymentIntent',
@@ -246,8 +254,8 @@ export const actions: Actions = {
 		const cart = formData.get('cart') as string;
 		const cartItem = JSON.parse(String(cart)) || null;
 		const totalDiscount = formData.get('totalDiscount') || 0;
-		const paymentMethodId = formData.get('paymentMethodId') as string | null;
-		//const paymentIntentId = formData.get('paymentIntentId') as string | null; // Changed from paymentMethodId
+		//const paymentMethodId = formData.get('paymentMethodId') as string | null;
+		const paymentIntentId = formData.get('paymentIntentId') as string | null; // Changed from paymentMethodId
 		const promoterId = formData.get('promoterId') as string | null;
 		const isEvent = formData.get('isEvent') === 'true' ? true : false;
 
@@ -362,11 +370,11 @@ export const actions: Actions = {
 		}
 
 		// Stripe payment processing
-		let paymentIntentId: string | null = null;
-		//let paymentVerified = false;
+		//let paymentIntentId: string | null = null;
+		let paymentVerified = false;
 		if (payment === 'Carta di credito') {
-			if (!paymentMethodId) {
-				//if (!paymentIntentId) {
+			//if (!paymentMethodId) {
+			if (!paymentIntentId) {
 				return fail(400, {
 					action: 'new',
 					success: false,
@@ -374,52 +382,52 @@ export const actions: Actions = {
 				});
 			}
 
-			const amountInCents = Math.round(Number(totalValue) * 100);
-			try {
-				const paymentIntent = await stripe.paymentIntents.create({
-					amount: amountInCents,
-					currency: 'eur',
-					payment_method: paymentMethodId,
-					confirm: true,
-					automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
-				});
-				if (paymentIntent.status === 'succeeded') {
-					paymentIntentId = paymentIntent.id;
-				} else {
-					return fail(400, {
-						action: 'new',
-						success: false,
-						message: `Pagamento fallito: ${paymentIntent.status}`
-					});
-				}
-			} catch (err: any) {
-				console.error('Stripe error:', err);
-				return fail(400, {
-					action: 'new',
-					success: false,
-					message: `Pagamento fallito: ${err.message}`
-				});
-			}
-
+			// const amountInCents = Math.round(Number(totalValue) * 100);
 			// try {
-			// 	const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-
-			// 	if (paymentIntent.status !== 'succeeded') {
+			// 	const paymentIntent = await stripe.paymentIntents.create({
+			// 		amount: amountInCents,
+			// 		currency: 'eur',
+			// 		payment_method: paymentMethodId,
+			// 		confirm: true,
+			// 		automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
+			// 	});
+			// 	if (paymentIntent.status === 'succeeded') {
+			// 		paymentIntentId = paymentIntent.id;
+			// 	} else {
 			// 		return fail(400, {
 			// 			action: 'new',
 			// 			success: false,
-			// 			message: `Pagamento non completato: ${paymentIntent.status}`
+			// 			message: `Pagamento fallito: ${paymentIntent.status}`
 			// 		});
 			// 	}
-			// 	paymentVerified = true;
 			// } catch (err: any) {
-			// 	console.error('PaymentIntent verification error:', err);
+			// 	console.error('Stripe error:', err);
 			// 	return fail(400, {
 			// 		action: 'new',
 			// 		success: false,
-			// 		message: `Errore verifica pagamento: ${err.message}`
+			// 		message: `Pagamento fallito: ${err.message}`
 			// 	});
 			// }
+
+			try {
+				const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+				if (paymentIntent.status !== 'succeeded') {
+					return fail(400, {
+						action: 'new',
+						success: false,
+						message: `Pagamento non completato: ${paymentIntent.status}`
+					});
+				}
+				paymentVerified = true;
+			} catch (err: any) {
+				console.error('PaymentIntent verification error:', err);
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: `Errore verifica pagamento: ${err.message}`
+				});
+			}
 		}
 
 		if (!locals.auth) {
@@ -468,8 +476,8 @@ export const actions: Actions = {
 								// "membership.membershipSignUp": new Date(),
 								// "membership.membershipActivation": new Date(),
 								// "membership.membershipExpiry": new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-								"membership.membershipStatus": paymentIntentId ? true : false,
-								//"membership.membershipStatus": paymentVerified
+								//"membership.membershipStatus": paymentIntentId ? true : false,
+								"membership.membershipStatus": paymentVerified
 							},
 							returnObj: true
 						}),
@@ -562,8 +570,8 @@ export const actions: Actions = {
 				},
 				payment: {
 					method: payment,
-					statusPayment: paymentIntentId ? 'done' : 'pending',
-					//statusPayment: paymentVerified  ? 'done' : 'pending',
+					//statusPayment: paymentIntentId ? 'done' : 'pending',
+					statusPayment: paymentVerified ? 'done' : 'pending',
 					transactionId: paymentIntentId || '',
 					points: '',
 					value: ''
@@ -640,8 +648,8 @@ export const actions: Actions = {
 								$set: {
 									'membership.membershipLevel': 'Socio ordinario',
 									'membership.membershipExpiry': newExpire,
-									'membership.membershipStatus': paymentIntentId ? true : false,
-									//'membership.membershipStatus': paymentVerified,
+									//'membership.membershipStatus': paymentIntentId ? true : false,
+									'membership.membershipStatus': paymentVerified,
 								}
 							},
 							options: { upsert: false },
