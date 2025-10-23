@@ -2,32 +2,33 @@
 	import type { ActionResult } from '@sveltejs/kit';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { enhance } from '$app/forms';
+	import Papa from 'papaparse';
 	import { Image } from '@unpic/svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import { notification } from '$lib/stores/notifications';
 	import Loader from '$lib/components/Loader.svelte';
-	import { country_list, province } from '$lib/stores/arrays.js';
-	import { 
-		Package, 
-		Mail, 
-		Phone, 
-		MapPin, 
-		ShoppingCart,
-		CheckCircle,
-		AlertCircle
-	} from 'lucide-svelte';
+	import { country_list, province, orderKeysToDelete } from '$lib/stores/arrays.js';
+	import type { Order } from '$lib/types';
+	import { Package, Mail, Phone, MapPin, ShoppingCart, CheckCircle, AlertCircle, FileDown, Plus, Minus, Trash2 } from 'lucide-svelte';
 
 	const { data } = $props();
 	const { kitProducts, auth, userData } = data;
+	let { tableList } = $derived(data);
+
+	console.log('tableList', tableList)
+
+
+
 
 	let formEl: HTMLFormElement;
 	let loading = $state(false);
 	let openModal = $state(false);
 
+	// Cart state - array of selected kits with quantities
+	let cart = $state<Array<{ prodId: string; quantity: number }>>([]);
+
 	// Form data
 	let formData = $state({
-		selectedKit: '',
-		quantity: 1,
 		shippingName: userData?.name || '',
 		shippingSurname: userData?.surname || '',
 		shippingEmail: userData?.email || '',
@@ -40,14 +41,59 @@
 		shippingCountry: userData?.country || 'Italy'
 	});
 
-	// Selected product details
-	let selectedProduct = $derived(
-		kitProducts.find((p) => p.prodId === formData.selectedKit)
-	);
+	// Cart management functions
+	const addToCart = (prodId: string) => {
+		const existingItem = cart.find(item => item.prodId === prodId);
+		if (existingItem) {
+			existingItem.quantity += 1;
+		} else {
+			cart.push({ prodId, quantity: 1 });
+		}
+		cart = [...cart]; // Trigger reactivity
+	};
+
+	const removeFromCart = (prodId: string) => {
+		cart = cart.filter(item => item.prodId !== prodId);
+	};
+
+	const updateQuantity = (prodId: string, quantity: number) => {
+		const item = cart.find(item => item.prodId === prodId);
+		if (item) {
+			item.quantity = Math.max(1, quantity);
+			cart = [...cart]; // Trigger reactivity
+		}
+	};
+
+	const incrementQuantity = (prodId: string) => {
+		const item = cart.find(item => item.prodId === prodId);
+		if (item) {
+			item.quantity += 1;
+			cart = [...cart];
+		}
+	};
+
+	const decrementQuantity = (prodId: string) => {
+		const item = cart.find(item => item.prodId === prodId);
+		if (item && item.quantity > 1) {
+			item.quantity -= 1;
+			cart = [...cart];
+		}
+	};
+
+	const isInCart = (prodId: string) => {
+		return cart.some(item => item.prodId === prodId);
+	};
+
+	const getCartItem = (prodId: string) => {
+		return cart.find(item => item.prodId === prodId);
+	};
+
+	// Get total items in cart
+	const totalItems = $derived(cart.reduce((sum, item) => sum + item.quantity, 0));
 
 	const openOrderModal = () => {
-		if (!formData.selectedKit) {
-			notification.error('Seleziona un kit prima di procedere');
+		if (cart.length === 0) {
+			notification.error('Aggiungi almeno un kit al carrello');
 			return;
 		}
 		openModal = true;
@@ -59,8 +105,7 @@
 
 	const isFormValid = () => {
 		return (
-			formData.selectedKit &&
-			formData.quantity > 0 &&
+			cart.length > 0 &&
 			formData.shippingName &&
 			formData.shippingSurname &&
 			formData.shippingEmail &&
@@ -73,6 +118,84 @@
 		);
 	};
 
+	const csvCreate = (content: Order[]) => {
+		// Prima rimuovi userView da tutti gli ordini
+		const cleanedContent = content.map(order => {
+			const { userView, ...rest } = order;
+			return rest;
+		});
+
+		const flattenObject = (obj, prefix = '') => {
+			let result = {};
+			const orderType = obj.type;
+
+			for (const key in obj) {
+				if (Object.prototype.hasOwnProperty.call(obj, key)) {
+					const value = obj[key];
+					const newPrefix = prefix ? `${prefix}.${key}` : key;
+
+					if (newPrefix === 'cart' && Array.isArray(value)) {
+						const cartString = value
+							.map((cartItem) => {
+								if (orderType === 'product') {
+									return `(${cartItem.title}: ${cartItem.orderQuantity})`;
+								} else if (orderType === 'course') {
+									if (cartItem.type === 'product') {
+										return `(${cartItem.title}: 1)`;
+									} else if (cartItem.type === 'course' || cartItem.type === 'event') {
+										return `(${cartItem.layoutView.title}: 1)`;
+									}
+								} else if (orderType === 'membership') {
+									return `(${cartItem.title}: 1)`;
+								}
+								return '';
+							})
+							.filter(Boolean)
+							.join(', ');
+						result[newPrefix] = cartString;
+					} else if (Array.isArray(value)) {
+						value.forEach((item, index) => {
+							if (typeof item === 'object' && item !== null) {
+								Object.assign(result, flattenObject(item, `${newPrefix}.${index}`));
+							} else {
+								result[`${newPrefix}.${index}`] = item;
+							}
+						});
+					} else if (typeof value === 'object' && value !== null) {
+						Object.assign(result, flattenObject(value, newPrefix));
+					} else {
+						result[newPrefix] = value;
+					}
+				}
+			}
+			return result;
+		};
+
+		const dataToExport = cleanedContent.map((order) => {
+			const flatOrder: any = flattenObject(order);
+			if (flatOrder.createdAt) flatOrder.createdAt = (flatOrder.createdAt as string).substring(0, 10);
+			$orderKeysToDelete.forEach((key: string) => delete (flatOrder as any)[key]);
+			return flatOrder;
+		});
+
+		const csv = Papa.unparse(dataToExport, {
+			quotes: false,
+			quoteChar: '"',
+			escapeChar: '"',
+			delimiter: ';',
+			header: true,
+			skipEmptyLines: false
+		});
+
+		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+		const link = document.createElement('a');
+		link.href = URL.createObjectURL(blob);
+		link.download = `Export_orders_materiale_formatori_${new Date().toLocaleDateString()}.csv`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(link.href);
+	};
 	const formSubmit = () => {
 		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
@@ -84,6 +207,7 @@
 				if (action === 'createOrder') {
 					notification.success(message);
 					closeModal();
+					cart = []; // Clear cart after successful order
 					setTimeout(() => {
 						goto('/profile-area');
 					}, 2000);
@@ -91,7 +215,7 @@
 			}
 
 			if (result.type === 'failure') {
-				notification.error(result.data?.message || 'Errore durante la creazione dell\'ordine');
+				notification.error(result.data?.message || "Errore durante la creazione dell'ordine");
 			}
 
 			if (result.type === 'error') {
@@ -119,15 +243,16 @@
 </svelte:head>
 
 <div class="container mx-auto p-4 md:p-6 max-w-6xl">
-
-
 	{#if loading}
 		<Loader />
 	{:else}
-		<!-- Main Content -->
 		<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 			<!-- Left Column - Product Selection -->
 			<div class="lg:col-span-2 space-y-6">
+				<button class="btn btn-info text-white w-full sm:w-auto flex mx-auto" onclick={() => csvCreate(tableList)}>
+					<FileDown />CSV ordini formatori
+				</button>
+
 				<!-- Kit Selection Card -->
 				<div class="card bg-base-100 shadow-xl border border-base-200">
 					<div class="card-body">
@@ -135,7 +260,7 @@
 							<Package class="w-6 h-6" />
 							Seleziona Kit
 						</h2>
-
+						
 						{#if kitProducts.length === 0}
 							<div class="alert alert-warning">
 								<AlertCircle class="w-5 h-5" />
@@ -144,28 +269,15 @@
 						{:else}
 							<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 								{#each kitProducts as kit}
-									<label
-										class="card bg-base-100 border-2 hover:border-primary cursor-pointer transition-all"
-										class:border-primary={formData.selectedKit === kit.prodId}
-										class:bg-primary-500={formData.selectedKit === kit.prodId}
+									<div
+										class="card bg-base-100 border-2 hover:border-primary transition-all"
+										class:border-primary={isInCart(kit.prodId)}
+										class:bg-primary-500={isInCart(kit.prodId)}
 									>
-										<input
-											type="radio"
-											name="selectedKit"
-											value={kit.prodId}
-											class="hidden"
-											bind:group={formData.selectedKit}
-										/>
 										<div class="card-body p-4">
 											{#if kit.urlPic}
 												<div class="aspect-square w-full mb-3 rounded-lg overflow-hidden">
-													<Image
-														layout="constrained"
-														aspectRatio={1}
-														src={kit.urlPic}
-														alt={kit.title}
-														class="w-full h-full object-cover"
-													/>
+													<Image layout="constrained" aspectRatio={1} src={kit.urlPic} alt={kit.title} class="w-full h-full object-cover" />
 												</div>
 											{/if}
 											<h3 class="font-bold text-lg">{kit.title}</h3>
@@ -174,32 +286,44 @@
 													{kit.descr}
 												</p>
 											{/if}
-										</div>
-									</label>
-								{/each}
-							</div>
-						{/if}
 
-						{#if selectedProduct}
-							<!-- Quantity Selector -->
-							<div class="divider"></div>
-							<div class="form-control">
-								<label for="quantity" class="label">
-									<span class="label-text font-medium text-lg">Quantità</span>
-								</label>
-								<input
-									id="quantity"
-									type="number"
-									class="input input-bordered w-32"
-									min="1"
-									bind:value={formData.quantity}
-								/>
+											{#if isInCart(kit.prodId)}
+												{@const cartItem = getCartItem(kit.prodId)}
+												<div class="flex items-center justify-between mt-3 gap-2">
+													<div class="join">
+														<button class="btn btn-sm join-item" onclick={() => decrementQuantity(kit.prodId)}>
+															<Minus size={16} />
+														</button>
+														<input 
+															type="number" 
+															class="input input-sm join-item w-16 text-center" 
+															value={cartItem?.quantity || 1}
+															min="1"
+															onchange={(e) => updateQuantity(kit.prodId, parseInt(e.currentTarget.value) || 1)}
+														/>
+														<button class="btn btn-sm join-item" onclick={() => incrementQuantity(kit.prodId)}>
+															<Plus size={16} />
+														</button>
+													</div>
+													<button class="btn btn-sm btn-error btn-outline" onclick={() => removeFromCart(kit.prodId)}>
+														<Trash2 size={16} />
+													</button>
+												</div>
+											{:else}
+												<button class="btn btn-primary btn-sm mt-3 w-full" onclick={() => addToCart(kit.prodId)}>
+													<Plus size={16} />
+													Aggiungi
+												</button>
+											{/if}
+										</div>
+									</div>
+								{/each}
 							</div>
 						{/if}
 					</div>
 				</div>
 
-				{#if selectedProduct}
+				{#if cart.length > 0}
 					<!-- Shipping Address Card -->
 					<div class="card bg-base-100 shadow-xl border border-base-200">
 						<div class="card-body">
@@ -209,7 +333,6 @@
 							</h2>
 
 							<div class="space-y-4">
-								<!-- Name and Surname -->
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div class="form-control">
 										<label for="shippingName" class="label">
@@ -240,7 +363,6 @@
 									</div>
 								</div>
 
-								<!-- Email -->
 								<div class="form-control">
 									<label for="shippingEmail" class="label">
 										<span class="label-text font-medium">Email *</span>
@@ -258,7 +380,6 @@
 									</div>
 								</div>
 
-								<!-- Phone Numbers -->
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div class="form-control">
 										<label for="shippingPhone" class="label">
@@ -294,7 +415,6 @@
 									</div>
 								</div>
 
-								<!-- Address -->
 								<div class="form-control">
 									<label for="shippingAddress" class="label">
 										<span class="label-text font-medium">Indirizzo *</span>
@@ -312,7 +432,6 @@
 									</div>
 								</div>
 
-								<!-- City and Postal Code -->
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div class="form-control">
 										<label for="shippingCity" class="label">
@@ -343,18 +462,12 @@
 									</div>
 								</div>
 
-								<!-- County and Country -->
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div class="form-control">
 										<label for="shippingCounty" class="label">
 											<span class="label-text font-medium">Provincia *</span>
 										</label>
-										<select
-											id="shippingCounty"
-											class="select select-bordered"
-											required
-											bind:value={formData.shippingCounty}
-										>
+										<select id="shippingCounty" class="select select-bordered" required bind:value={formData.shippingCounty}>
 											<option value="" disabled>Seleziona provincia</option>
 											{#each $province as provincia}
 												{#if provincia.title !== 'Online'}
@@ -370,12 +483,7 @@
 										<label for="shippingCountry" class="label">
 											<span class="label-text font-medium">Nazione *</span>
 										</label>
-										<select
-											id="shippingCountry"
-											class="select select-bordered"
-											required
-											bind:value={formData.shippingCountry}
-										>
+										<select id="shippingCountry" class="select select-bordered" required bind:value={formData.shippingCountry}>
 											<option value="" disabled>Seleziona nazione</option>
 											{#each $country_list as country}
 												<option value={country}>
@@ -385,64 +493,72 @@
 										</select>
 									</div>
 								</div>
-
-								
 							</div>
 						</div>
 					</div>
 				{/if}
 			</div>
 
-			<!-- Right Column - Order Summary (Sticky) -->
+			<!-- Right Column - Cart Summary (Sticky) -->
 			<div class="lg:col-span-1">
 				<div class="card bg-base-100 shadow-xl border border-base-200 lg:sticky lg:top-4">
 					<div class="card-body">
-						<h2 class="card-title text-xl mb-4">Riepilogo Ordine</h2>
+						<h2 class="card-title text-xl mb-4">
+							Carrello
+							{#if cart.length > 0}
+								<span class="badge badge-primary">{totalItems}</span>
+							{/if}
+						</h2>
 
-						{#if !selectedProduct}
+						{#if cart.length === 0}
 							<div class="text-center py-8 text-base-content/50">
-								<Package class="w-12 h-12 mx-auto mb-2 opacity-50" />
-								<p>Seleziona un kit per visualizzare il riepilogo</p>
+								<ShoppingCart class="w-12 h-12 mx-auto mb-2 opacity-50" />
+								<p>Il carrello è vuoto</p>
+								<p class="text-sm">Aggiungi kit per procedere</p>
 							</div>
 						{:else}
 							<div class="space-y-4">
-								<!-- Product Info -->
-								<div class="flex gap-3">
-									{#if selectedProduct.urlPic}
-										<div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-											<Image
-												layout="constrained"
-												aspectRatio={1}
-												src={selectedProduct.urlPic}
-												alt={selectedProduct.title}
-												class="w-full h-full object-cover"
-											/>
-										</div>
-									{/if}
-									<div class="flex-1">
-										<h3 class="font-bold">{selectedProduct.title}</h3>
-										<p class="text-sm text-base-content/70">
-											Quantità: {formData.quantity}
-										</p>
-									</div>
+								<!-- Cart Items -->
+								<div class="space-y-3 max-h-96 overflow-y-auto">
+									{#each cart as item}
+										{@const product = kitProducts.find(p => p.prodId === item.prodId)}
+										{#if product}
+											<div class="flex gap-3 p-2 rounded-lg bg-base-200">
+												{#if product.urlPic}
+													<div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+														<Image
+															layout="constrained"
+															aspectRatio={1}
+															src={product.urlPic}
+															alt={product.title}
+															class="w-full h-full object-cover"
+														/>
+													</div>
+												{/if}
+												<div class="flex-1 min-w-0">
+													<h3 class="font-bold text-sm truncate">{product.title}</h3>
+													<p class="text-xs text-base-content/70">
+														Quantità: {item.quantity}
+													</p>
+												</div>
+											</div>
+										{/if}
+									{/each}
 								</div>
 
 								<div class="divider my-2"></div>
 
+								<div class="text-lg font-bold">
+									Totale articoli: {totalItems}
+								</div>
+
 								<!-- Submit Button -->
-								<button
-									type="button"
-									class="btn btn-primary w-full btn-lg"
-									onclick={openOrderModal}
-									disabled={!isFormValid()}
-								>
+								<button type="button" class="btn btn-primary w-full btn-lg" onclick={openOrderModal} disabled={!isFormValid()}>
 									<ShoppingCart class="w-5 h-5" />
 									Conferma Ordine
 								</button>
 
-								<p class="text-xs text-center text-base-content/60">
-									Cliccando confermi di aver inserito tutti i dati correttamente
-								</p>
+								<p class="text-xs text-center text-base-content/60">Cliccando confermi di aver inserito tutti i dati correttamente</p>
 							</div>
 						{/if}
 					</div>
@@ -454,49 +570,43 @@
 
 <!-- Confirmation Modal -->
 {#if openModal}
-	<Modal
-		isOpen={openModal}
-		header="Conferma Ordine"
-		cssClass="bg-white rounded-lg shadow-xl w-full max-w-2xl"
-	>
-		<button
-			class="btn btn-sm btn-circle absolute right-2 top-2"
-			onclick={closeModal}
-		>
-			✕
-		</button>
+	<Modal isOpen={openModal} header="Conferma Ordine" cssClass="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+		<button class="btn btn-sm btn-circle absolute right-2 top-2" onclick={closeModal}> ✕ </button>
 
-		<form
-			method="POST"
-			action="?/createOrder"
-			use:enhance={formSubmit}
-			bind:this={formEl}
-			class="px-6 pb-6"
-		>
+		<form method="POST" action="?/createOrder" use:enhance={formSubmit} bind:this={formEl} class="px-6 pb-6">
 			<div class="space-y-6">
-				<!-- Product Summary -->
+				<!-- Cart Summary -->
 				<div class="card bg-base-100 border border-base-200">
 					<div class="card-body">
-						<h3 class="font-bold text-lg mb-3">Prodotto</h3>
-						{#if selectedProduct}
-							<div class="flex gap-3 items-center">
-								{#if selectedProduct.urlPic}
-									<div class="w-16 h-16 rounded-lg overflow-hidden">
-										<Image
-											layout="constrained"
-											aspectRatio={1}
-											src={selectedProduct.urlPic}
-											alt={selectedProduct.title}
-											class="w-full h-full object-cover"
-										/>
+						<h3 class="font-bold text-lg mb-3">Prodotti Ordinati</h3>
+						<div class="space-y-3">
+							{#each cart as item}
+								{@const product = kitProducts.find(p => p.prodId === item.prodId)}
+								{#if product}
+									<div class="flex gap-3 items-center">
+										{#if product.urlPic}
+											<div class="w-16 h-16 rounded-lg overflow-hidden">
+												<Image
+													layout="constrained"
+													aspectRatio={1}
+													src={product.urlPic}
+													alt={product.title}
+													class="w-full h-full object-cover"
+												/>
+											</div>
+										{/if}
+										<div class="flex-1">
+											<p class="font-bold">{product.title}</p>
+											<p class="text-sm">Quantità: {item.quantity}</p>
+										</div>
 									</div>
 								{/if}
-								<div class="flex-1">
-									<p class="font-bold">{selectedProduct.title}</p>
-									<p class="text-sm">Quantità: {formData.quantity}</p>
-								</div>
-							</div>
-						{/if}
+							{/each}
+						</div>
+						<div class="divider my-2"></div>
+						<div class="text-right font-bold">
+							Totale articoli: {totalItems}
+						</div>
 					</div>
 				</div>
 
@@ -510,16 +620,18 @@
 							</p>
 							<p>{formData.shippingAddress}</p>
 							<p>
-								{formData.shippingPostalCode} {formData.shippingCity} ({formData.shippingCounty})
+								{formData.shippingPostalCode}
+								{formData.shippingCity} ({formData.shippingCounty})
 							</p>
 							<p>{formData.shippingCountry}</p>
 							<p class="mt-2">
-								<Mail size={14} class="inline" /> {formData.shippingEmail}
+								<Mail size={14} class="inline" />
+								{formData.shippingEmail}
 							</p>
 							<p>
-								<Phone size={14} class="inline" /> {formData.shippingMobilePhone}
+								<Phone size={14} class="inline" />
+								{formData.shippingMobilePhone}
 							</p>
-						
 						</div>
 					</div>
 				</div>
@@ -534,8 +646,7 @@
 				</div>
 
 				<!-- Hidden form fields -->
-				<input type="hidden" name="selectedKit" value={formData.selectedKit} />
-				<input type="hidden" name="quantity" value={formData.quantity} />
+				<input type="hidden" name="cart" value={JSON.stringify(cart)} />
 				<input type="hidden" name="shippingName" value={formData.shippingName} />
 				<input type="hidden" name="shippingSurname" value={formData.shippingSurname} />
 				<input type="hidden" name="shippingEmail" value={formData.shippingEmail} />
@@ -549,20 +660,8 @@
 
 				<!-- Action Buttons -->
 				<div class="flex gap-3 justify-end">
-					<button
-						type="button"
-						class="btn btn-outline"
-						onclick={closeModal}
-						disabled={loading}
-					>
-						Annulla
-					</button>
-					<button
-						type="button"
-						class="btn btn-primary"
-						onclick={handleSubmit}
-						disabled={loading}
-					>
+					<button type="button" class="btn btn-outline" onclick={closeModal} disabled={loading}> Annulla </button>
+					<button type="button" class="btn btn-primary" onclick={handleSubmit} disabled={loading}>
 						{#if loading}
 							<span class="loading loading-spinner loading-sm"></span>
 							Elaborazione...
