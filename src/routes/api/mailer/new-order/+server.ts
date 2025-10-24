@@ -153,11 +153,13 @@ export const POST: RequestHandler = async ({ request }) => {
                           <tr>
     <td colspan="2" class="table-cell-style text-right font-bold">Spedizione</td>
     <td class="table-cell-style text-right font-bold">
-        ${totalValue === 0 
-            ? 'Gratuita' 
-            : (totalValue - 9 < 100 && type === 'product') 
-                ? '9.00 €' 
-                : 'Gratuita'}
+     ${
+      totalValue === 0
+        ? 'Gratuita'
+        : (type === 'product' && (totalValue + totalDiscount) < 100)
+          ? '9.00 €'
+          : 'Gratuita'
+    }
     </td>
 </tr>
                             <tr>
