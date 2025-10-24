@@ -950,6 +950,7 @@
 
 		<!-- check -->
 		<form method="POST" action={postAction} use:enhance={formSubmit} class="px-6 pb-6" bind:this={formEl}>
+			<input type="hidden" name="discountList" value={JSON.stringify(discountList)} />
 			<!-- <form method="POST" action={postAction} use:enhance={formSubmit} class="px-6 pb-6" onsubmit={handleFinalSubmit}> -->
 			<div class="px-6 pt-4">
 				<div class="w-full flex justify-between mb-2">

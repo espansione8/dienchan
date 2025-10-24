@@ -101,7 +101,7 @@ export const actions: Actions = {
 		//const discountList = formData.get('discountList')
 		const discountList = formData.get('discountList') as string;
 		const cartItem = JSON.parse(String(cart)) || null;
-		const discountItem = JSON.parse(String(discountList)) || null;
+		const discountItem = JSON.parse(String(discountList)) || [];
 		const discountArray: string[] = JSON.parse(discountList || '[]').map(item => item.code);
 		const newPointsBalance = Number(formData.get('newPointsBalance'));
 		const usedPoints = Number(formData.get('usedPoints')) || 0;
@@ -123,6 +123,8 @@ export const actions: Actions = {
 		if (usePoint && newPointsBalance < 0) {
 			return fail(400, { action: 'new', success: false, message: 'Saldo punti insufficiente' });
 		}
+
+
 
 		// Calculate total cart on server anche for security
 		const cartRecalculated = () => {
@@ -164,6 +166,27 @@ export const actions: Actions = {
 		if (Number(totalValue) !== recalculatedTotal()) {
 			return fail(400, { action: 'new', success: false, message: 'Totale non valido' });
 		}
+
+		// Crea la stringa con gli sconti applicati
+		const discountNotes = (() => {
+			if (!discountList || discountList === '[]') return '';
+
+			try {
+				const discounts = JSON.parse(discountList);
+				if (!Array.isArray(discounts) || discounts.length === 0) return '';
+
+				const discountCodes = discounts.map(item => item.code).join(', ');
+				return `Codici sconto applicati: ${discountCodes}`;
+			} catch (error) {
+				console.error('Error parsing discountList:', error);
+				return '';
+			}
+		})();
+
+		// Fai l'append delle note sconti alle note esistenti
+		const finalNotes = orderNotes && discountNotes
+			? `${orderNotes}\n\n${discountNotes}`
+			: orderNotes || discountNotes;
 
 		const mailFetch = (email, order) => fetch(`${BASE_URL}/api/mailer/new-order`, {
 			method: 'POST',
@@ -356,7 +379,7 @@ export const actions: Actions = {
 				totalVAT: 0,
 				browser: '',
 				orderIp: '',
-				orderNotes,
+				orderNotes: finalNotes,
 				type: 'product',
 				invoicing: {
 					name,

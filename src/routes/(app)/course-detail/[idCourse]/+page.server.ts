@@ -253,6 +253,7 @@ export const actions: Actions = {
 		const totalValue = formData.get('totalValue') as string;
 		const cart = formData.get('cart') as string;
 		const cartItem = JSON.parse(String(cart)) || null;
+		const discountList = formData.get('discountList') as string;
 		const totalDiscount = formData.get('totalDiscount') || 0;
 		//const paymentMethodId = formData.get('paymentMethodId') as string | null;
 		const paymentIntentId = formData.get('paymentIntentId') as string | null; // Changed from paymentMethodId
@@ -261,6 +262,8 @@ export const actions: Actions = {
 
 		const bundle = formData.get('bundleProducts');
 		const bundleProducts = JSON.parse(String(bundle)) || [];
+
+		const existingNotes = formData.get('orderNotes') as string || '';
 
 		// console.log('cartItem.notificationEmail', cartItem.notificationEmail);
 		// return
@@ -341,6 +344,27 @@ export const actions: Actions = {
 				'Content-Type': 'application/json'
 			}
 		});
+
+		// Crea la stringa con gli sconti applicati
+		const discountNotes = (() => {
+			if (!discountList || discountList === '[]') return '';
+
+			try {
+				const discounts = JSON.parse(discountList);
+				if (!Array.isArray(discounts) || discounts.length === 0) return '';
+
+				const discountCodes = discounts.map(item => item.code).join(', ');
+				return `Codici sconto applicati: ${discountCodes}`;
+			} catch (error) {
+				console.error('Error parsing discountList:', error);
+				return '';
+			}
+		})();
+
+		// Fai l'append delle note sconti alle note esistenti
+		const finalNotes = existingNotes && discountNotes
+			? `${existingNotes}\n\n${discountNotes}`
+			: existingNotes || discountNotes;
 
 		const mailFetch = (email, order) =>
 			fetch(`${BASE_URL}/api/mailer/new-order`, {
@@ -527,7 +551,7 @@ export const actions: Actions = {
 				totalVAT: 0,
 				browser: '',
 				orderIp: '',
-				orderNotes: '',
+				orderNotes: finalNotes, 
 				type: 'course',
 				invoicing: {
 					name,
