@@ -16,7 +16,7 @@ const discountSchema = new Schema(
 		},
 		type: {
 			type: String,
-			enum: ['percent', 'amount', 'referral'],
+			enum: ['percent', 'amount', 'referral', 'qty'],
 			default: 'percent'
 		},
 		value: {
@@ -38,6 +38,7 @@ const discountSchema = new Schema(
 		},
 		email: { type: String, default: null },
 		prodId: { type: String, default: null },
+		qty: { type: Number, default: null },
 		layoutId: { type: String, default: null },
 		membershipLevel: { type: String, default: null },
 		referral: { type: String, default: null }, // email
