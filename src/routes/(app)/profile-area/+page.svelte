@@ -298,6 +298,30 @@
 					margin: [0, 0, 0, 20]
 				},
 
+				// Indirizzo di fatturazione (se presente)
+			...(order.invoicing?.businessName || order.invoicing?.name ? [
+				{
+					text: 'INDIRIZZO DI FATTURAZIONE',
+					style: 'sectionHeader',
+					margin: [0, 10, 0, 10]
+				},
+				{
+					text: [
+						...(order.invoicing.businessName ? [
+							{ text: `${order.invoicing.businessName}\n`, style: 'valueText', bold: true },
+							...(order.invoicing.vatNumber ? [{ text: `P.IVA: ${order.invoicing.vatNumber}\n`, style: 'valueText' }] : [])
+						] : []),
+						...(order.invoicing.name || order.invoicing.surname ? [
+							{ text: `${order.invoicing.name || ''} ${order.invoicing.surname || ''}\n`, style: 'valueText' }
+						] : []),
+						{ text: `${order.invoicing?.address || 'N/A'}\n`, style: 'valueText' },
+						{ text: `${order.invoicing?.postalCode || ''} ${order.invoicing?.city || ''} ${order.invoicing?.county ? `(${order.invoicing.county})` : ''}\n`, style: 'valueText' },
+						{ text: `${order.invoicing?.country || 'Italia'}`, style: 'valueText' }
+					],
+					margin: [0, 0, 0, 20]
+				}
+			] : []),
+
 				{
 					text: 'DETTAGLIO ORDINE',
 					style: 'sectionHeader',
@@ -408,20 +432,8 @@
 								}
 							]
 						},
-						{
-							width: '50%',
-							stack: order.invoicing?.businessName
-								? [
-										{ text: 'DATI FATTURAZIONE', style: 'sectionHeader', margin: [0, 0, 0, 5] },
-										{ text: order.invoicing.businessName, style: 'valueText' },
-										{
-											text: `P.IVA: ${order.invoicing.vatNumber || 'N/A'}`,
-											style: 'valueText',
-											margin: [0, 5, 0, 0]
-										}
-									]
-								: []
-						}
+						{ width: '50%', text: '' }
+						
 					]
 				},
 

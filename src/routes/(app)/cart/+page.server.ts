@@ -27,37 +27,88 @@ const calculateItemDiscount = (
 	cartArray: CartItem[],
 	originalTotal: number
 ): number => {
-	///// IF selectedApplicability === 'refPoints' use refDiscount
 	const { type, value, selectedApplicability } = discount;
 	let totalDiscount = 0;
 
-	if (selectedApplicability === 'prodId' || selectedApplicability === 'layoutId') {
-		cartArray.forEach((item: CartItem) => {
-			const isProduct = selectedApplicability === 'prodId' && item.prodId === discount.prodId;
-			const isLayout = selectedApplicability === 'layoutId' && item.layoutView?.layoutId === discount.layoutId;
+	// Gestione sconto QUANTITÀ
+if (selectedApplicability === 'prodId' && discount.qty && discount.qty > 1) {
+	cartArray.forEach((item: CartItem) => {
+		if (item.prodId === discount.prodId) {
+			const itemQty = typeof item.orderQuantity === 'number' && item.orderQuantity > 0 
+				? item.orderQuantity 
+				: 1;
 
-			if (isProduct || isLayout) {
-				const qty =
-					typeof item.orderQuantity === 'number' && item.orderQuantity > 0
-						? item.orderQuantity
-						: 1;
+			// Verifica se la quantità nel carrello soddisfa la soglia minima
+			if (itemQty >= discount.qty) {
+				const numericPrice = Number(item.price);
+				if (!Number.isFinite(numericPrice)) {
+					throw new Error('Errore calcolo prezzo non valido');
+				}
+
 				let itemDiscount = 0;
+
+				if (type === 'amount') {
+					// Quante volte si applica la soglia
+					const times = Math.floor(itemQty / discount.qty);
+					itemDiscount = value * times;
+				} else if (type === 'percent') {
+					// Sconto percentuale sul totale dei prodotti
+					const totalValue = numericPrice * itemQty;
+					itemDiscount = (totalValue * value) / 100;
+				}
+
+				totalDiscount += itemDiscount;
+			}
+		}
+	});
+}
+
+	// Gestione sconto PRODOTTO SINGOLO (senza qty)
+	else if (selectedApplicability === 'prodId' && (!discount.qty || discount.qty <= 1)) {
+		cartArray.forEach((item: CartItem) => {
+			if (item.prodId === discount.prodId) {
+				const itemQty = typeof item.orderQuantity === 'number' && item.orderQuantity > 0 
+					? item.orderQuantity 
+					: 1;
+				let itemDiscount = 0;
+				const numericPrice = Number(item.price);
+				
+				if (!Number.isFinite(numericPrice)) {
+					throw new Error('Errore calcolo');
+				}
+				
+				if (type === 'amount') {
+					itemDiscount = value * itemQty;
+				} else if (type === 'percent') {
+					const singleValue = (numericPrice * value) / 100;
+					itemDiscount = singleValue * itemQty;
+				}
+				totalDiscount += itemDiscount;
+			}
+		});
+	}
+	else if (selectedApplicability === 'layoutId') {
+		cartArray.forEach((item: CartItem) => {
+			if (item.layoutView?.layoutId === discount.layoutId) {
+				const qty = typeof item.orderQuantity === 'number' && item.orderQuantity > 0
+					? item.orderQuantity
+					: 1;
+				let itemDiscount = 0;
+				const numericPrice = Number(item.layoutView.price);
+				if (!Number.isFinite(numericPrice)) {
+					throw new Error('Errore calcolo');
+				}
 				if (type === 'amount') {
 					itemDiscount = value * qty;
 				} else if (type === 'percent') {
-					const rawPrice = isProduct ? item.price : item.layoutView.price;
-					const numericPrice = Number(rawPrice);
-					if (!Number.isFinite(numericPrice)) {
-						throw new Error('Errore calcolo');
-					}
 					const singleValue = (numericPrice * value) / 100;
 					itemDiscount = singleValue * qty;
 				}
 				totalDiscount += itemDiscount;
 			}
 		});
-	} else if (selectedApplicability === 'email' || selectedApplicability === 'membershipLevel' || selectedApplicability === 'riflessologo') {
-		// User-level discounts
+	} 
+	else if (selectedApplicability === 'email' || selectedApplicability === 'membershipLevel' || selectedApplicability === 'riflessologo') {
 		if (type === 'amount') {
 			totalDiscount = value;
 		} else if (type === 'percent') {
@@ -65,19 +116,10 @@ const calculateItemDiscount = (
 		}
 	}
 	else if (selectedApplicability === 'referral') {
-		// Ref-level discounts
 		totalDiscount = (originalTotal * discount.refDiscount) / 100;
-
 	}
+	
 	return totalDiscount;
-	// else if (selectedApplicability === 'cart') {
-	// 	// Cart-level discounts
-	// 		if (type === 'amount') {
-	// 			totalDiscount = value;
-	// 		} else if (type === 'percent') {
-	// 		totalDiscount = (originalTotal * value) / 100;
-	// 		}
-	// 	}
 }
 
 export const actions: Actions = {
@@ -657,6 +699,7 @@ export const actions: Actions = {
 				});
 			}
 
+
 			// Fetch all discounts from database that match new array
 			const newDiscountArray = [...discountArray, discountCode];
 			const discountRes = await discountFetch(newDiscountArray);
@@ -683,6 +726,7 @@ export const actions: Actions = {
 				});
 			}
 
+			
 			// check: Prevent more than one 'referral' discount
 			const countReferral = discountGroup.filter(d => d.selectedApplicability === 'referral').length;
 			if (discountItem.selectedApplicability === 'referral' && countReferral > 1) {
@@ -754,6 +798,20 @@ export const actions: Actions = {
 					message: 'Sconto non applicabile'
 				});
 			}
+
+			// Validazione quantità per sconti qty
+if (discountItem.selectedApplicability === 'prodId' && discountItem.qty && discountItem.qty > 1) {
+    const productInCart = cartArray.find(item => item.prodId === discountItem.prodId);
+    const currentQty = productInCart?.orderQuantity || 0;
+    
+    if (currentQty < discountItem.qty) {
+        return fail(400, {
+            action: 'applyDiscount',
+            success: false,
+            message: `Quantità insufficiente. Servono almeno ${discountItem.qty} pezzi per applicare questo sconto (attualmente: ${currentQty})`
+        });
+    }
+}
 
 			// Calculate all discounts
 			const discountApplied = () => {

@@ -13,16 +13,15 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	let getProduct
 	let getUser
 
-
 	try {
 		const discountFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
-				schema: 'discount', //product | order | user | layout | discount
-				query: {}, //IF USE Products.model -> types: course / product / membership / event
-				projection: { _id: 0 },// 0: exclude | 1: include
-				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				schema: 'discount',
+				query: {},
+				projection: { _id: 0 },
+				sort: { createdAt: -1 },
 				limit: 1000,
 				skip: 0
 			}),
@@ -35,10 +34,10 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
-				schema: 'layout', //product | order | user | layout | discount
-				query: {}, //IF USE Products.model -> types: course / product / membership / event
-				projection: { _id: 0, layoutId: 1, title: 1 },// 0: exclude | 1: include
-				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				schema: 'layout',
+				query: {},
+				projection: { _id: 0, layoutId: 1, title: 1 },
+				sort: { createdAt: -1 },
 				limit: 1000,
 				skip: 0
 			}),
@@ -51,10 +50,10 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
-				schema: 'product', //product | order | user | layout | discount
-				query: { type: 'product' }, //IF USE Products.model -> type: course / product / membership / event
-				projection: { _id: 0, prodId: 1, title: 1 },// 0: exclude | 1: include
-				sort: { title: 1 }, // 1:Sort ascending | -1:Sort descending
+				schema: 'product',
+				query: { type: 'product' },
+				projection: { _id: 0, prodId: 1, title: 1 },
+				sort: { title: 1 },
 				limit: 1000,
 				skip: 0
 			}),
@@ -67,10 +66,10 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
-				schema: 'user', //product | order | user | layout | discount
-				query: {}, //IF USE Products.model -> types: course / product / membership / event
-				projection: { userId: 1, email: 1 },// 0: exclude | 1: include
-				sort: { email: 1 }, // 1:Sort ascending | -1:Sort descending
+				schema: 'user',
+				query: {},
+				projection: { userId: 1, email: 1 },
+				sort: { email: 1 },
 				limit: 1000,
 				skip: 0
 			}),
@@ -89,7 +88,6 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		if (discountRes.status !== 200 || layoutRes.status !== 200 || productRes.status !== 200 || userRes.status !== 200) {
 			const errorText = `${await discountRes.text()} ${await layoutRes.text()} ${await productRes.text()} ${await userRes.text()}`;
 			console.error('Promise.all failed', discountRes.status, layoutRes.status, productRes.status, userRes.status, errorText);
-			//return fail(400, { action: 'load', success: false, message: errorText });
 			throw error(400, errorText);
 		}
 
@@ -114,7 +112,6 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		getLayout,
 		getProduct,
 		getUser,
-		//auth: locals.auth,
 	};
 }
 
@@ -129,15 +126,8 @@ export const actions: Actions = {
 		const value = formData.get('value');
 		const refDiscount = formData.get('refDiscount');
 		const refPoints = formData.get('refPoints');
-		//console.log('new discount', type, selectedApplicability, selectId, code, notes, value, refDiscount, refPoints);
-
-		// let value, refDiscount, refPoints;
-		// if (type == 'percent' || type == 'amount') {
-		// 	value = formData.get('value');
-		// } else if (type === 'referral') {
-		// 	refDiscount = formData.get('refDiscount');
-		// 	refPoints = formData.get('refPoints');
-		// }
+		const qty = formData.get('qty');
+		const discountValueType = formData.get('discountValueType');
 
 		if (!code || !type || !selectedApplicability || !selectId) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
@@ -152,7 +142,22 @@ export const actions: Actions = {
 			selectIdToUse = selectId.toString().trim();
 		}
 
-		if (type == 'percent' || type == 'amount') {
+		if (type == 'qty') {
+			// Sconto per quantità
+			if (!qty || !value || !discountValueType) {
+				return fail(400, { action: 'new', success: false, message: 'Dati mancanti per sconto quantità' });
+			}
+			newDoc = {
+				discountId: nanoid(),
+				code,
+				type: discountValueType, // 'percent' o 'amount'
+				value,
+				qty: Number(qty),
+				selectedApplicability,
+				[selectedApplicability]: selectIdToUse,
+				notes
+			}
+		} else if (type == 'percent' || type == 'amount') {
 			newDoc = {
 				discountId: nanoid(),
 				code,
@@ -181,7 +186,7 @@ export const actions: Actions = {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
-				schema: 'discount', //product | order | user | layout | discount
+				schema: 'discount',
 				newDoc: newDoc,
 				returnObj: false
 			}),
@@ -192,8 +197,6 @@ export const actions: Actions = {
 
 		try {
 			const res = await resFetch;
-			// console.log('newDoc', newDoc);
-			// console.log('res', res);
 
 			if (!res.ok) {
 				const errorText = await res.text();
@@ -213,7 +216,7 @@ export const actions: Actions = {
 	modify: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const discountId = formData.get('discountId');
-		const code = formData.get('code')?.toString().toLowerCase().trim();;
+		const code = formData.get('code')?.toString().toLowerCase().trim();
 		const type = formData.get('type');
 		const selectedApplicability = formData.get('applicability') as string;
 		const selectId = formData.get('selectId');
@@ -221,14 +224,7 @@ export const actions: Actions = {
 		const value = formData.get('value');
 		const refDiscount = formData.get('refDiscount');
 		const refPoints = formData.get('refPoints');
-
-		// let value, refDiscount, refPoints;
-		// if (type == 'percent' || type == 'amount') {
-		// 	value = formData.get('value');
-		// } else if (type === 'referral') {
-		// 	refDiscount = formData.get('refDiscount');
-		// 	refPoints = formData.get('refPoints');
-		// }
+		const qty = formData.get('qty');
 
 		if (!discountId || !code || !type || !selectedApplicability || !selectId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
@@ -243,14 +239,31 @@ export const actions: Actions = {
 			selectIdToUse = selectId.toString().toLowerCase().trim();
 		}
 
-		if (type == 'percent' || type == 'amount') {
+		if (type == 'qty') {
+    // Modifica sconto per quantità
+    const discountValueType = formData.get('discountValueType');
+    if (!qty || !value || !discountValueType) {
+        return fail(400, { action: 'modify', success: false, message: 'Dati mancanti per sconto quantità' });
+    }
+    update = {
+        $set: {
+            code: code,
+            type: discountValueType, // 'percent' o 'amount'
+            value: value,
+            qty: Number(qty),
+            selectedApplicability: selectedApplicability,
+            [selectedApplicability]: selectIdToUse,
+            notes: notes,
+        }
+    }
+} else if (type == 'percent' || type == 'amount') {
 			update = {
 				$set: {
 					code: code,
 					type: type,
 					value: value,
 					selectedApplicability: selectedApplicability,
-					[selectedApplicability]: selectIdToUse, // 'email', 'membershipLevel', 'prodId', 'layoutId', 'referral'
+					[selectedApplicability]: selectIdToUse,
 					notes: notes,
 				}
 			}
@@ -262,7 +275,7 @@ export const actions: Actions = {
 					refDiscount,
 					refPoints,
 					selectedApplicability: selectedApplicability,
-					[selectedApplicability]: selectId, // 'email', 'membershipLevel', 'prodId', 'layoutId', 'referral'
+					[selectedApplicability]: selectId,
 					notes: notes,
 				}
 			}
@@ -274,8 +287,8 @@ export const actions: Actions = {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
-				schema: 'discount', //product | order | user | layout | discount
-				query: { discountId }, // 'course', 'product', 'membership', 'event',
+				schema: 'discount',
+				query: { discountId },
 				update: update,
 				options: { upsert: false },
 				multi: false
@@ -310,8 +323,8 @@ export const actions: Actions = {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
-				schema: 'discount', //product | order | user | layout | discount
-				query: { discountId: discountId }, // 'course', 'product', 'membership', 'event'
+				schema: 'discount',
+				query: { discountId: discountId },
 				multi: false,
 			}),
 			headers: {
@@ -349,9 +362,8 @@ export const actions: Actions = {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
-				schema: 'discount', //product | order | user | layout | discount
+				schema: 'discount',
 				query: {
-					//type: 'course', 'product', 'membership', 'event'
 					...(code && { code: { $regex: `.*${code}.*`, $options: 'i' } }),
 					...(discountId && { discountId: { $regex: `.*${discountId}.*`, $options: 'i' } }),
 					...(type && { type }),
@@ -359,8 +371,8 @@ export const actions: Actions = {
 					...(status && { status }),
 					...(referralEmail && { referral: { $regex: `.*${referralEmail}.*`, $options: 'i' }, type: 'referral' }),
 				},
-				projection: { _id: 0 }, // 0: exclude | 1: include,
-				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending,
+				projection: { _id: 0 },
+				sort: { createdAt: -1 },
 				limit: 1000,
 				skip: 0
 			}),
@@ -401,7 +413,7 @@ export const actions: Actions = {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
-				schema: 'discount', //product | order | user | layout | discount
+				schema: 'discount',
 				query: { discountId },
 				update: {
 					$set: {

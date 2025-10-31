@@ -19,7 +19,8 @@
 		ToggleRight,
 		RefreshCcw,
 		CircleX,
-		Tags
+		Tags,
+		Package
 	} from 'lucide-svelte';
 
 	const { data } = $props();
@@ -30,15 +31,12 @@
 	let code = $state('');
 	let typeDiscount = $state('percent');
 	let value = $state(0);
+	let qty = $state(1);
 	let user = $state('');
 	let referralEmail = $state('');
-	// let prodId = $state('');
-	// let layoutId = $state('');
-	// let membershipLevel = $state('');
 	let notes = $state('');
 	let discountId = $state('');
 	let selectedApplicability = $state('email');
-	//let discountType = $state('normal');
 	let refDiscount = $state(0);
 	let refPoints = $state(0);
 	let selectedId = $state('');
@@ -52,9 +50,6 @@
 	let loading = $state(false);
 
 	const csvCreate = () => {
-		//let csv = $state('');
-		//let newList: any = $state();
-
 		const flattenObject = (obj: any, prefix = '') => {
 			return Object.keys(obj).reduce((acc, k) => {
 				const pre = prefix.length ? prefix + '_' : '';
@@ -74,16 +69,13 @@
 		const newList = flattenedArray.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt?.substring(0, 10)
-			// birthdate: obj.birthdate?.substring(0, 10)
 		}));
 
 		newList.forEach((obj: any) => {
 			delete obj.__v;
 			delete obj.updatedAt;
 		});
-		//console.log('newList user', newList);
 
-		//CSV UNPARSE
 		const csv = Papa.unparse(newList, {
 			quotes: false,
 			quoteChar: '"',
@@ -93,7 +85,6 @@
 			skipEmptyLines: false
 		});
 
-		//DOWNLOAD file
 		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
 		const link = document.createElement('a');
 		link.href = URL.createObjectURL(blob);
@@ -101,8 +92,6 @@
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
-
-		// Release the URL object
 		URL.revokeObjectURL(link.href);
 	};
 
@@ -110,13 +99,11 @@
 		code = '';
 		typeDiscount = 'percent';
 		value = 0;
+		qty = 1;
 		refDiscount = 0;
 		refPoints = 0;
 		user = '';
 		selectedId = '';
-		// prodId = '';
-		// layoutId = '';
-		// membershipLevel = '';
 		notes = '';
 		selectedApplicability = 'email';
 		referralEmail = '';
@@ -145,6 +132,7 @@
 			code = item.code;
 			typeDiscount = item.type;
 			value = item.value || 0;
+			qty = item.qty || 1;
 			refDiscount = item.refDiscount || 0;
 			refPoints = item.refPoints || 0;
 			user = item.user;
@@ -171,12 +159,10 @@
 
 	const formSubmit = () => {
 		loading = true;
-		//return async ({ result }: { result: ActionResult }) => {
-		//await invalidateAll();
 		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
 			await update();
 			if (result.type === 'success' && result.data) {
-				const { action, message, payload } = result.data; // { action, success, message, payload }
+				const { action, message, payload } = result.data;
 				if (action == 'filter') {
 					resetActive = true;
 					tableList = payload;
@@ -193,12 +179,17 @@
 			if (result.type === 'error') {
 				notification.error(result.error.message);
 			}
-			// 'update()' is called by default by use:enhance
-			// call 'await update()' if you need to ensure it completes before further client logic.
 			resetFields();
 			loading = false;
 		};
 	};
+
+	// Forza la categoria su prodId quando si seleziona quantity
+	$effect(() => {
+		if (typeDiscount === 'qty') {
+			selectedApplicability = 'prodId';
+		}
+	});
 </script>
 
 <svelte:head>
@@ -242,7 +233,6 @@
 			</div>
 		</div>
 		<table class="table mt-5 border-2">
-			<!-- head -->
 			<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">
 				<tr>
 					<th>Status</th>
@@ -256,9 +246,7 @@
 					<th>Azione</th>
 				</tr>
 			</thead>
-			<!-- body -->
 			<tbody>
-				<!-- row 1 -->
 				{#each tableList as row}
 					<tr class="hover:bg-gray-100">
 						<td>
@@ -277,14 +265,20 @@
 						<td>{row.createdAt ? new Date(row.createdAt).toLocaleDateString('it-IT') : '-'}</td>
 						<td>{row.discountId}</td>
 						<td>{row.code}</td>
-						<td>{row.type}</td>
-						<td>{row.type == 'referral' ? `${row.refDiscount}/${row.refPoints}` : row.value}</td>
+						<td>{row.type === 'qty' ? 'Quantità' : row.type}</td>
+						<td>
+							{#if row.type == 'referral'}
+								{row.refDiscount}% / {row.refPoints} pt
+							{:else if row.type == 'qty'}
+								<span class="badge badge-info">Da {row.qty} pz → {row.value}{row.type === 'percent' ? '%' : '€'}</span>
+							{:else}
+								{row.value}{row.type === 'percent' ? '%' : '€'}
+							{/if}
+						</td>
 						<td>"{row.selectedApplicability}"</td>
-						<!-- <td> {row[selectedApplicability]}</td> -->
 						<td>
 							{row.selectedApplicability === 'riflessologo' ? 'Tutti i Riflessologi' : `"${row[row.selectedApplicability]}"`}
 						</td>
-						<!-- Azione -->
 						<td class="flex items-center space-x-4">
 							<button
 								onclick={() => onClickModal('modify', row)}
@@ -302,17 +296,13 @@
 
 {#if currentModal == 'new'}
 	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-2xl">
-		<!-- <Modal isOpen={openModal} header={modalTitle} cssClass="max-w-4xl"> -->
 		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		<div class="p-6 bg-base-100/95 backdrop-blur-xl border border-base-content/10 relative">
 			{#if loading}
 				<Loader />
 			{/if}
-			{#if typeDiscount === 'percent' || typeDiscount === 'amount'}
+			{#if typeDiscount === 'percent' || typeDiscount === 'amount' || typeDiscount === 'qty'}
 				<form method="POST" action={postAction} use:enhance={formSubmit} class="grid grid-cols-2 bg-base-100 grid-rows-[min-content] gap-x-4 gap-y-4">
-					<!-- 
-				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-			 -->
 					<section class="col-span-4">
 						<label for="type" class="form-label">
 							<p class="font-bold mb-2 label">Tipo di Sconto "{typeDiscount}"</p>
@@ -323,8 +313,12 @@
 								<span>Sconto in Percentuale</span>
 							</label>
 							<label class="flex items-center cursor-pointer">
-								<input type="radio" name="type" value="amount" class="radio radio-primary mr-2" bind:group={typeDiscount} checked />
+								<input type="radio" name="type" value="amount" class="radio radio-primary mr-2" bind:group={typeDiscount} />
 								<span>Sconto valore fisso</span>
+							</label>
+							<label class="flex items-center cursor-pointer">
+								<input type="radio" name="type" value="qty" class="radio radio-primary mr-2" bind:group={typeDiscount} />
+								<span>Sconto per Quantità</span>
 							</label>
 							<label class="flex items-center cursor-pointer">
 								<input type="radio" name="type" value="referral" class="radio radio-primary mr-2" bind:group={typeDiscount} />
@@ -332,6 +326,7 @@
 							</label>
 						</div>
 					</section>
+
 					<section class="col-span-4">
 						<label for="titolo" class="form-label">
 							<p class="font-bold mb-2 label">Codice sconto</p>
@@ -354,94 +349,190 @@
 						</div>
 					</section>
 
-					<section class="col-span-4 md:col-span-2">
-						<label for="categoria" class="form-label">
-							<p class="font-bold mb-2 label">Tipologia</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full">
-							<button type="button" class="join-item bg-primary/20 px-3">
-								<StretchHorizontal class="text-emerald-500" />
-							</button>
-							<select
-								class="select join-item w-full"
-								id="categoria"
-								name="type"
-								aria-label="Categoria"
-								aria-describedby="basic-categoria"
-								bind:value={typeDiscount}
-								required
-							>
-								<option disabled selected>Scegli</option>
-								<option value="percent">Percentuale %</option>
-								<option value="amount">Valore fisso €</option>
-							</select>
-						</div>
-					</section>
+					{#if typeDiscount === 'qty'}
+						<!-- SCONTO QUANTITÀ -->
+						<section class="col-span-4 md:col-span-2">
+							<label for="qty" class="form-label">
+								<p class="font-bold mb-2 label">Quantità minima</p>
+							</label>
+							<div class="join join-horizontal rounded-md w-full">
+								<button type="button" class="join-item bg-primary/20 px-3">
+									<Package class="text-emerald-500" />
+								</button>
+								<input
+									class="input join-item w-full"
+									id="qty"
+									type="number"
+									name="qty"
+									min="1"
+									placeholder="Es: 3"
+									aria-label="qty"
+									bind:value={qty}
+									required
+								/>
+							</div>
+							<p class="text-xs text-gray-500 mt-1">Quantità minima per applicare lo sconto</p>
+						</section>
 
-					<section class="col-span-4 md:col-span-2">
-						<label for="categoria" class="form-label">
-							<p class="font-bold mb-2 label">Valore</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full">
-							<button type="button" class="join-item bg-primary/20 px-3"><Calculator class="text-emerald-500" /></button>
-							<input class="input join-item w-full" id="value" type="number" name="value" aria-label="value" aria-describedby="value" required />
-						</div>
-					</section>
+						<section class="col-span-4 md:col-span-2">
+							<label for="value" class="form-label">
+								<p class="font-bold mb-2 label">Sconto (% o €)</p>
+							</label>
+							<div class="join join-horizontal rounded-md w-full">
+								<button type="button" class="join-item bg-primary/20 px-3">
+									<Calculator class="text-emerald-500" />
+								</button>
+								<input
+									class="input join-item w-full"
+									id="value"
+									type="number"
+									name="value"
+									placeholder="Es: 10"
+									aria-label="value"
+									bind:value
+									required
+								/>
+							</div>
+							<p class="text-xs text-gray-500 mt-1">Valore dello sconto da applicare</p>
+						</section>
 
-					<section class="col-span-4">
-						<label for="categoria" class="form-label">
-							<p class="font-bold mb-2 label">Categoria</p>
-						</label>
-						<div class="join join-horizontal rounded-md w-full">
-							<button type="button" class="join-item bg-primary/20 px-3">
-								<Tags class="text-emerald-500" />
-							</button>
-							<select
-								name="applicability"
-								class="select select-bordered w-full max-w-xs"
-								bind:value={selectedApplicability}
-								onchange={() => (selectedId = '')}
-							>
-								<option value="" disabled selected>Seleziona una categoria</option>
-								<option value="email">Sconto Esclusivo Personale</option>
-								<!-- <option value="cart">Sconto totale Carrello</option> -->
-								<option value="membershipLevel">Sconto per Membership</option>
-								<option value="riflessologo">Sconto tutti Riflessologi</option>
-								<option value="prodId"> Sconto Prodotto specifico</option>
-								<option value="layoutId">Sconto per Tipo Corso</option>
-							</select>
-						</div>
-						<div class="mt-2">
-							{#if selectedApplicability === 'email'}
-								<input type="text" name="selectId" class="input w-full input-bordered" placeholder="Inserisci EMAIL utente" bind:value={selectedId} />
-								<!-- {:else if selectedApplicability === 'cart'}
-								<input type="text" name="selectId" class="input w-full input-bordered" placeholder="Inserisci EMAIL utente" bind:value={selectedId} /> -->
-							{:else if selectedApplicability === 'membershipLevel'}
-								<select name="selectId" bind:value={selectedId} class="select w-full select-bordered">
-									<option disabled value="">Seleziona il livello associato</option>
-									<option value="Socio inattivo">Socio inattivo</option>
-									<option value="Socio ordinario">Socio ordinario</option>
-									<option value="Socio vitalizio">Socio vitalizio</option>
-								</select>
-							{:else if selectedApplicability === 'riflessologo'}
-								<input type="hidden" id="selectId" name="selectId" value="true" />
-							{:else if selectedApplicability === 'prodId'}
-								<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full select-bordered">
-									<option value="">Scegli prodotto</option>
+						<section class="col-span-4">
+							<label class="form-label">
+								<p class="font-bold mb-2 label">Tipo di sconto</p>
+							</label>
+							<div class="flex gap-4">
+								<label class="flex items-center cursor-pointer">
+									<input type="radio" name="discountValueType" value="percent" class="radio radio-primary mr-2" checked />
+									<span>Percentuale %</span>
+								</label>
+								<label class="flex items-center cursor-pointer">
+									<input type="radio" name="discountValueType" value="amount" class="radio radio-primary mr-2" />
+									<span>Valore fisso €</span>
+								</label>
+							</div>
+						</section>
+
+						<!-- Prodotto obbligatorio per qty -->
+						<section class="col-span-4">
+							<label for="selectId" class="form-label">
+								<p class="font-bold mb-2 label">Prodotto <span class="badge badge-error badge-sm">Obbligatorio</span></p>
+							</label>
+							<div class="join join-horizontal rounded-md w-full">
+								<button type="button" class="join-item bg-primary/20 px-3">
+									<Tags class="text-emerald-500" />
+								</button>
+								<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full select-bordered" required>
+									<option value="">Scegli il prodotto</option>
 									{#each getProduct as option}
 										<option value={option.prodId}>{option.title}</option>
 									{/each}
 								</select>
-							{:else if selectedApplicability === 'layoutId'}
-								<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full select-bordered">
-									<option value="">Scegli un tipo</option>
-									{#each getLayout as option}
-										<option value={option.layoutId}>{option.title}</option>
-									{/each}
+							</div>
+							<input type="hidden" name="applicability" value="prodId" />
+						</section>
+					{:else}
+						<!-- SCONTO NORMALE -->
+						<section class="col-span-4 md:col-span-2">
+							<label for="categoria" class="form-label">
+								<p class="font-bold mb-2 label">Tipologia</p>
+							</label>
+							<div class="join join-horizontal rounded-md w-full">
+								<button type="button" class="join-item bg-primary/20 px-3">
+									<StretchHorizontal class="text-emerald-500" />
+								</button>
+								<select
+									class="select join-item w-full"
+									id="categoria"
+									name="type"
+									aria-label="Categoria"
+									aria-describedby="basic-categoria"
+									bind:value={typeDiscount}
+									required
+								>
+									<option disabled selected>Scegli</option>
+									<option value="percent">Percentuale %</option>
+									<option value="amount">Valore fisso €</option>
 								</select>
-							{/if}
-						</div>
-					</section>
+							</div>
+						</section>
+
+						<section class="col-span-4 md:col-span-2">
+							<label for="value" class="form-label">
+								<p class="font-bold mb-2 label">Valore</p>
+							</label>
+							<div class="join join-horizontal rounded-md w-full">
+								<button type="button" class="join-item bg-primary/20 px-3"><Calculator class="text-emerald-500" /></button>
+								<input
+									class="input join-item w-full"
+									id="value"
+									type="number"
+									name="value"
+									bind:value
+									aria-label="value"
+									aria-describedby="value"
+									required
+								/>
+							</div>
+						</section>
+
+						<section class="col-span-4">
+							<label for="categoria" class="form-label">
+								<p class="font-bold mb-2 label">Categoria</p>
+							</label>
+							<div class="join join-horizontal rounded-md w-full">
+								<button type="button" class="join-item bg-primary/20 px-3">
+									<Tags class="text-emerald-500" />
+								</button>
+								<select
+									name="applicability"
+									class="select select-bordered w-full max-w-xs"
+									bind:value={selectedApplicability}
+									onchange={() => (selectedId = '')}
+								>
+									<option value="" disabled selected>Seleziona una categoria</option>
+									<option value="email">Sconto Esclusivo Personale</option>
+									<option value="membershipLevel">Sconto per Membership</option>
+									<option value="riflessologo">Sconto tutti Riflessologi</option>
+									<option value="prodId"> Sconto Prodotto specifico</option>
+									<option value="layoutId">Sconto per Tipo Corso</option>
+								</select>
+							</div>
+							<div class="mt-2">
+								{#if selectedApplicability === 'email'}
+									<input
+										type="text"
+										name="selectId"
+										class="input w-full input-bordered"
+										placeholder="Inserisci EMAIL utente"
+										bind:value={selectedId}
+									/>
+								{:else if selectedApplicability === 'membershipLevel'}
+									<select name="selectId" bind:value={selectedId} class="select w-full select-bordered">
+										<option disabled value="">Seleziona il livello associato</option>
+										<option value="Socio inattivo">Socio inattivo</option>
+										<option value="Socio ordinario">Socio ordinario</option>
+										<option value="Socio vitalizio">Socio vitalizio</option>
+									</select>
+								{:else if selectedApplicability === 'riflessologo'}
+									<input type="hidden" id="selectId" name="selectId" value="true" />
+								{:else if selectedApplicability === 'prodId'}
+									<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full select-bordered">
+										<option value="">Scegli prodotto</option>
+										{#each getProduct as option}
+											<option value={option.prodId}>{option.title}</option>
+										{/each}
+									</select>
+								{:else if selectedApplicability === 'layoutId'}
+									<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full select-bordered">
+										<option value="">Scegli un tipo</option>
+										{#each getLayout as option}
+											<option value={option.layoutId}>{option.title}</option>
+										{/each}
+									</select>
+								{/if}
+							</div>
+						</section>
+					{/if}
 
 					<section class="col-span-4">
 						<label for="categoria" class="form-label">
@@ -465,28 +556,24 @@
 
 					<div class="col-span-4 mt-5 flex justify-center">
 						<div class="bg-gray-50 flex justify-center">
-							<button class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
-
+							<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
 							<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
 						</div>
 					</div>
 				</form>
 			{:else if typeDiscount === 'referral'}
 				<form method="POST" action={postAction} use:enhance={formSubmit} class="grid grid-cols-2 bg-base-100 grid-rows-[min-content] gap-x-4 gap-y-4">
-					<!-- 
-				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-			 -->
 					<section class="col-span-4">
 						<label for="type" class="form-label">
 							<p class="font-bold mb-2 label">Tipo di Sconto "{typeDiscount}"</p>
 						</label>
 						<div class="flex flex-wrap gap-4">
 							<label class="flex items-center cursor-pointer">
-								<input type="radio" name="type" value="percent" class="radio radio-primary mr-2" bind:group={typeDiscount} checked />
+								<input type="radio" name="type" value="percent" class="radio radio-primary mr-2" bind:group={typeDiscount} />
 								<span>Sconto Normale</span>
 							</label>
 							<label class="flex items-center cursor-pointer">
-								<input type="radio" name="type" value="referral" class="radio radio-primary mr-2" bind:group={typeDiscount} />
+								<input type="radio" name="type" value="referral" class="radio radio-primary mr-2" bind:group={typeDiscount} checked />
 								<span>Sconto + Punti</span>
 							</label>
 						</div>
@@ -526,6 +613,7 @@
 								name="refDiscount"
 								aria-label="refDiscount"
 								aria-describedby="refDiscount"
+								bind:value={refDiscount}
 								required
 							/>
 						</div>
@@ -544,6 +632,7 @@
 								name="refPoints"
 								aria-label="refPoints"
 								aria-describedby="refPoints"
+								bind:value={refPoints}
 								required
 							/>
 						</div>
@@ -592,7 +681,6 @@
 					<div class="col-span-4 mt-5 flex justify-center">
 						<div class="bg-gray-50 flex justify-center">
 							<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
-
 							<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
 						</div>
 					</div>
@@ -608,20 +696,14 @@
 		{#if loading}
 			<Loader />
 		{/if}
-		{#if typeDiscount === 'percent' || typeDiscount === 'amount'}
-			<form
-				method="POST"
-				action={postAction}
-				use:enhance={formSubmit}
-				class=" grid grid-cols-4 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-			>
+		{#if typeDiscount === 'percent' || typeDiscount === 'amount' || typeDiscount === 'qty'}
+			<form method="POST" action={postAction} use:enhance={formSubmit} class="grid grid-cols-4 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8">
 				<section class="col-span-4">
 					<label for="discountId" class="form-label">
 						<p class="font-bold mb-2">ID codice</p>
 					</label>
-
 					<div class="join join-horizontal w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
+						<button type="button" class="join-item bg-gray-300 px-3"><Pen /></button>
 						<input
 							class="input input-bordered join-item w-full"
 							id="discountId"
@@ -638,7 +720,6 @@
 
 				<fieldset class="fieldset col-span-4">
 					<legend class="fieldset-legend">Codice sconto</legend>
-					<!-- <span class="label">Optional</span> -->
 					<div class="join w-full">
 						<div class="join-item btn pointer-events-none"><Pen /></div>
 						<input
@@ -655,131 +736,165 @@
 					</div>
 				</fieldset>
 
-				<fieldset class="fieldset col-span-4 md:col-span-2">
-					<legend class="fieldset-legend">Tipologia</legend>
-					<!-- <span class="label">Optional</span> -->
-					<div class="join w-full">
-						<div class="join-item btn pointer-events-none"><StretchHorizontal /></div>
-						<select
-							class="select join-item flex-1"
-							id="categoria"
-							name="type"
-							aria-label="Categoria"
-							aria-describedby="basic-categoria"
-							bind:value={typeDiscount}
-							required
-						>
-							<option disabled selected>Scegli</option>
-							<option value="percent">Percentuale %</option>
-							<option value="amount">Valore fisso €</option>
-						</select>
-					</div>
-				</fieldset>
+				{#if typeDiscount === 'qty'}
+					<!-- MODIFICA SCONTO QUANTITÀ -->
+					<fieldset class="fieldset col-span-4 md:col-span-2">
+						<legend class="fieldset-legend">Quantità minima</legend>
+						<div class="join w-full">
+							<div class="join-item btn pointer-events-none"><Package /></div>
+							<input
+								class="input join-item flex-1"
+								id="qty"
+								type="number"
+								name="qty"
+								min="1"
+								aria-label="qty"
+								aria-describedby="qty"
+								bind:value={qty}
+								required
+							/>
+						</div>
+					</fieldset>
 
-				<fieldset class="fieldset col-span-4 md:col-span-2">
-					<legend class="fieldset-legend">Valore</legend>
-					<!-- <span class="label">Optional</span> -->
-					<div class="join w-full">
-						<div class="join-item btn pointer-events-none"><Calculator /></div>
-						<input
-							class="input join-item flex-1"
-							id="value"
-							type="number"
-							name="value"
-							aria-label="value"
-							aria-describedby="value"
-							bind:value
-							required
-						/>
-					</div>
-				</fieldset>
+					<fieldset class="fieldset col-span-4 md:col-span-2">
+						<legend class="fieldset-legend">Valore sconto</legend>
+						<div class="join w-full">
+							<div class="join-item btn pointer-events-none"><Calculator /></div>
+							<input
+								class="input join-item flex-1"
+								id="value"
+								type="number"
+								name="value"
+								aria-label="value"
+								aria-describedby="value"
+								bind:value
+								required
+							/>
+						</div>
+					</fieldset>
 
-				<fieldset class="fieldset col-span-4">
-					<!-- <div class="flex flex-col sm:flex-row sm:flex-wrap gap-4">
-						<label class="form-label">
-							<p class="font-bold mb-2"><Funnel /> Categoria</p>
-						</label>
-						<label class="flex items-center">
-							<input type="radio" name="applicability" value="email" class="radio radio-primary mr-2" bind:group={selectedApplicability} />
-							<span>Email utente</span>
-						</label>
-						<label class="flex items-center">
-							<input type="radio" name="applicability" value="membershipLevel" class="radio radio-primary mr-2" bind:group={selectedApplicability} />
-							<span>Membership</span>
-						</label>
-						<label class="flex items-center">
-							<input type="radio" name="applicability" value="prodId" class="radio radio-primary mr-2" bind:group={selectedApplicability} />
-							<span>Prodotto</span>
-						</label>
-						<label class="flex items-center">
-							<input type="radio" name="applicability" value="layoutId" class="radio radio-primary mr-2" bind:group={selectedApplicability} />
-							<span>Tipo Corso</span>
-						</label>
-					</div> -->
-					<label for="categoria" class="form-label">
-						<p class="font-bold mb-2 label">Categoria</p>
-					</label>
-					<div class="join join-horizontal rounded-md w-full">
-						<button type="button" class="join-item bg-primary/20 px-3">
-							<Tags class="text-emerald-500" />
-						</button>
-						<select
-							name="applicability"
-							class="select select-bordered w-full max-w-xs"
-							bind:value={selectedApplicability}
-							onchange={() => (selectedId = '')}
-						>
-							<option value="" disabled selected>Seleziona una categoria</option>
-							<option value="email">Sconto Esclusivo Personale</option>
-							<!-- <option value="cart">Sconto totale Carrello</option> -->
-							<option value="membershipLevel">Sconto per Membership</option>
-							<option value="riflessologo">Sconto tutti Riflessologi</option>
-							<option value="prodId"> Sconto Prodotto specifico</option>
-							<option value="layoutId">Sconto per Tipo Corso</option>
-						</select>
-					</div>
-					<div class="mt-2">
-						{#if selectedApplicability == 'email'}
-							<input type="text" name="email" class="input w-full" placeholder="Inserisci EMAIL utente" bind:value={selectedId} />
-							<!-- <input
-								type="text"
-								name="selectId"
-								class="input input-bordered w-full"
-								placeholder="Inserisci il valore corrispondente"
-								bind:value={selectedId}
-							/> -->
-						{:else if selectedApplicability == 'membershipLevel'}
-							<select name="selectId" bind:value={selectedId} class="select w-full">
-								<option disabled value="">Seleziona il livello associato</option>
-								<option value="Socio inattivo">Socio inattivo</option>
-								<option value="Socio ordinario">Socio ordinario</option>
-								<option value="Socio vitalizio">Socio vitalizio</option>
-							</select>
-						{:else if selectedApplicability === 'riflessologo'}
-							<input type="hidden" id="selectId" name="selectId" value="true" />
-						{:else if selectedApplicability == 'prodId'}
-							<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full">
+					<fieldset class="fieldset col-span-4">
+						<legend class="fieldset-legend">Tipo di sconto</legend>
+						<div class="flex gap-4">
+							<label class="flex items-center cursor-pointer">
+								<input type="radio" name="discountValueType" value="percent" class="radio radio-primary mr-2" checked={typeDiscount === 'percent'} />
+								<span>Percentuale %</span>
+							</label>
+							<label class="flex items-center cursor-pointer">
+								<input type="radio" name="discountValueType" value="amount" class="radio radio-primary mr-2" checked={typeDiscount === 'amount'} />
+								<span>Valore fisso €</span>
+							</label>
+						</div>
+					</fieldset>
+
+					<fieldset class="fieldset col-span-4">
+						<legend class="fieldset-legend">Prodotto</legend>
+						<div class="join w-full">
+							<div class="join-item btn pointer-events-none"><Tags /></div>
+							<select id="selectId" name="selectId" bind:value={selectedId} class="select join-item flex-1" required>
 								<option value="">Scegli prodotto</option>
 								{#each getProduct as option}
 									<option value={option.prodId}>{option.title}</option>
 								{/each}
 							</select>
-						{:else if selectedApplicability == 'layoutId'}
-							<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full">
-								<option value="">Scegli un tipo</option>
-								{#each getLayout as option}
-									<option value={option.layoutId}>{option.title}</option>
-								{/each}
+						</div>
+					</fieldset>
+					<input type="hidden" name="applicability" value="prodId" />
+					<input type="hidden" name="type" value="qty" />
+				{:else}
+					<!-- MODIFICA SCONTO NORMALE -->
+					<fieldset class="fieldset col-span-4 md:col-span-2">
+						<legend class="fieldset-legend">Tipologia</legend>
+						<div class="join w-full">
+							<div class="join-item btn pointer-events-none"><StretchHorizontal /></div>
+							<select
+								class="select join-item flex-1"
+								id="categoria"
+								name="type"
+								aria-label="Categoria"
+								aria-describedby="basic-categoria"
+								bind:value={typeDiscount}
+								required
+							>
+								<option disabled selected>Scegli</option>
+								<option value="percent">Percentuale %</option>
+								<option value="amount">Valore fisso €</option>
 							</select>
-						{/if}
-					</div>
-				</fieldset>
+						</div>
+					</fieldset>
+
+					<fieldset class="fieldset col-span-4 md:col-span-2">
+						<legend class="fieldset-legend">Valore</legend>
+						<div class="join w-full">
+							<div class="join-item btn pointer-events-none"><Calculator /></div>
+							<input
+								class="input join-item flex-1"
+								id="value"
+								type="number"
+								name="value"
+								aria-label="value"
+								aria-describedby="value"
+								bind:value
+								required
+							/>
+						</div>
+					</fieldset>
+
+					<fieldset class="fieldset col-span-4">
+						<label for="categoria" class="form-label">
+							<p class="font-bold mb-2 label">Categoria</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button type="button" class="join-item bg-primary/20 px-3">
+								<Tags class="text-emerald-500" />
+							</button>
+							<select
+								name="applicability"
+								class="select select-bordered w-full max-w-xs"
+								bind:value={selectedApplicability}
+								onchange={() => (selectedId = '')}
+							>
+								<option value="" disabled selected>Seleziona una categoria</option>
+								<option value="email">Sconto Esclusivo Personale</option>
+								<option value="membershipLevel">Sconto per Membership</option>
+								<option value="riflessologo">Sconto tutti Riflessologi</option>
+								<option value="prodId"> Sconto Prodotto specifico</option>
+								<option value="layoutId">Sconto per Tipo Corso</option>
+							</select>
+						</div>
+						<div class="mt-2">
+							{#if selectedApplicability == 'email'}
+								<input type="text" name="selectId" class="input w-full" placeholder="Inserisci EMAIL utente" bind:value={selectedId} />
+							{:else if selectedApplicability == 'membershipLevel'}
+								<select name="selectId" bind:value={selectedId} class="select w-full">
+									<option disabled value="">Seleziona il livello associato</option>
+									<option value="Socio inattivo">Socio inattivo</option>
+									<option value="Socio ordinario">Socio ordinario</option>
+									<option value="Socio vitalizio">Socio vitalizio</option>
+								</select>
+							{:else if selectedApplicability === 'riflessologo'}
+								<input type="hidden" id="selectId" name="selectId" value="true" />
+							{:else if selectedApplicability == 'prodId'}
+								<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full">
+									<option value="">Scegli prodotto</option>
+									{#each getProduct as option}
+										<option value={option.prodId}>{option.title}</option>
+									{/each}
+								</select>
+							{:else if selectedApplicability == 'layoutId'}
+								<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full">
+									<option value="">Scegli un tipo</option>
+									{#each getLayout as option}
+										<option value={option.layoutId}>{option.title}</option>
+									{/each}
+								</select>
+							{/if}
+						</div>
+					</fieldset>
+				{/if}
 
 				<fieldset class="col-span-4">
 					<legend class="fieldset-legend">note</legend>
-					<!-- <label for="descrizione" class="form-label">
-						<p class="font-bold mb-2">Note</p>
-					</label> -->
 					<div class="join w-full">
 						<div class="join-item btn pointer-events-none h-24"><Pen /></div>
 						<textarea
@@ -797,22 +912,18 @@
 				<div class="col-span-4 mt-5 flex justify-center">
 					<div class="bg-gray-50 flex justify-center">
 						<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
-
 						<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Modifica </button>
 					</div>
 				</div>
 			</form>
 		{:else if typeDiscount === 'referral'}
 			<form method="POST" action={postAction} use:enhance={formSubmit} class="grid grid-cols-4 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8">
-				<!-- 
-				class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
-			 -->
 				<section class="col-span-4">
 					<label for="discountId" class="form-label">
 						<p class="font-bold mb-2">ID codice</p>
 					</label>
 					<div class="join join-horizontal w-full">
-						<button class="join-item bg-gray-300 px-3"><Pen /></button>
+						<button type="button" class="join-item bg-gray-300 px-3"><Pen /></button>
 						<input
 							class="input input-bordered join-item w-full"
 							id="discountId"
@@ -935,7 +1046,6 @@
 				<div class="col-span-4 mt-5 flex justify-center">
 					<div class="bg-gray-50 flex justify-center">
 						<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
-
 						<button type="submit" class="btn btn-success btn-sm mx-2 text-white"> Registra </button>
 					</div>
 				</div>
@@ -969,7 +1079,6 @@
 		<form method="POST" action={postAction} use:enhance={formSubmit} class="grid grid-cols-1 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8">
 			<fieldset class="fieldset col-span-1">
 				<legend class="fieldset-legend">Codice sconto</legend>
-				<!-- <span class="label">Optional</span> -->
 				<div class="join w-full">
 					<div class="join-item btn pointer-events-none"><Pen /></div>
 					<input class="input join-item flex-1" name="code" type="text" placeholder="Codice" aria-label="Titolo" aria-describedby="basic-titolo" />
@@ -978,7 +1087,6 @@
 
 			<fieldset class="fieldset col-span-1">
 				<legend class="fieldset-legend">ID sconto</legend>
-				<!-- <span class="label">Optional</span> -->
 				<div class="join w-full">
 					<div class="join-item btn pointer-events-none"><Pen /></div>
 					<input class="input join-item flex-1" name="discountId" type="text" placeholder="ID" aria-label="Titolo" aria-describedby="basic-titolo" />
@@ -987,7 +1095,6 @@
 
 			<fieldset class="fieldset col-span-1">
 				<legend class="fieldset-legend">Referral: Sconto + Punti (filtro non compatibile con altri)</legend>
-				<!-- <span class="label">Optional</span> -->
 				<div class="join w-full">
 					<div class="join-item btn pointer-events-none"><Pen /></div>
 					<input
@@ -1009,7 +1116,6 @@
 						<select name="selectedApplicability" value="" class="select join-item flex-1">
 							<option value="" disabled>Seleziona la categoria</option>
 							<option value="email">Sconto Esclusivo Personale</option>
-							<!-- <option value="cart">Sconto totale Carrello</option> -->
 							<option value="membershipLevel">Sconto per Membership</option>
 							<option value="riflessologo">Sconto tutti Riflessologi</option>
 							<option value="prodId"> Sconto Prodotto specifico</option>
@@ -1020,22 +1126,20 @@
 
 				<fieldset class="fieldset col-span-1">
 					<legend class="fieldset-legend">Tipologia</legend>
-					<!-- <span class="label">Optional</span> -->
 					<div class="join w-full">
 						<div class="join-item btn pointer-events-none"><StretchHorizontal /></div>
 						<select name="type" value="" class="select join-item flex-1">
 							<option value="" disabled>Seleziona il tipo di sconto</option>
 							<option value="percent">Sconto in Percentuale</option>
 							<option value="amount">Sconto valore fisso</option>
+							<option value="qty">Sconto per Quantità</option>
 							<option value="referral">Referral Sconto + Punti</option>
-							<!-- <option value="membershipLevel">Associato</option> -->
 						</select>
 					</div>
 				</fieldset>
 
 				<fieldset class="fieldset col-span-1">
 					<legend class="fieldset-legend">Status</legend>
-					<!-- <span class="label">Optional</span> -->
 					<div class="join w-full">
 						<div class="join-item btn pointer-events-none"><ToggleLeft /></div>
 						<select name="status" value="" class="select join-item flex-1">
