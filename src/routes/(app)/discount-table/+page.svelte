@@ -736,7 +736,8 @@
 					</div>
 				</fieldset>
 
-				{#if typeDiscount === 'qty'}
+				<!-- {#if typeDiscount === 'qty'} -->
+				{#if qty}
 					<!-- MODIFICA SCONTO QUANTITÀ -->
 					<fieldset class="fieldset col-span-4 md:col-span-2">
 						<legend class="fieldset-legend">Quantità minima</legend>
