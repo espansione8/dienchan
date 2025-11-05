@@ -282,6 +282,37 @@ export const actions: Actions = {
 				const newUser = await resNewUser.json();
 				currentUserId = newUser.userId;
 
+				// TODO verificare se questa modifica funziona!
+
+				if (paymentIntentId) {
+					const now = new Date();
+					const expiry = new Date();
+					expiry.setFullYear(expiry.getFullYear() + 1);
+
+					await fetch(`${BASE_URL}/api/mongo/update`, {
+						method: 'POST',
+						body: JSON.stringify({
+							apiKey: APIKEY,
+							schema: 'user',
+							query: { userId: currentUserId },
+							update: {
+								$set: {
+									'membership.membershipLevel': membershipLevel,
+									'membership.membershipStatus': true,
+									'membership.membershipSignUp': now,
+									'membership.membershipActivation': now,
+									'membership.membershipExpiry': expiry
+								}
+							},
+							options: { upsert: false },
+							multi: false
+						}),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					});
+				}
+
 				userExist = true;
 
 				cookies.set('session_id', cookieId, {
