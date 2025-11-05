@@ -40,8 +40,12 @@
 	//let quantity = $state(1);
 
 	let activeFilter = $state({
-		category: ''
+		category: '',
+		searchTerm: ''
 	});
+
+	let searchTerm = $state('');
+	let searchDebounceTimer: ReturnType<typeof setTimeout>;
 
 	// Pagination
 	let currentPage = $state(1);
@@ -55,6 +59,24 @@
 		return numbers;
 	});
 
+	const debounceSearch = (event: Event) => {
+		const target = event.target as HTMLInputElement;
+		searchTerm = target.value;
+
+		clearTimeout(searchDebounceTimer);
+
+		if (searchTerm.trim() === '') {
+			onFilterReset();
+			return;
+		}
+
+		searchDebounceTimer = setTimeout(() => {
+			const form = document.getElementById('searchForm') as HTMLFormElement;
+			if (form) {
+				form.requestSubmit();
+			}
+		}, 1000);
+	};
 	// const goToPage = (page: number) => {
 	// 	currentPage = page;
 	// 	const skipItems = (currentPage - 1) * itemsPerPage;
@@ -79,12 +101,14 @@
 	const onFilterReset = () => {
 		invalidateAll();
 		resetActive = false;
-		//prodList = getTable || [];
+			searchTerm = '';
+		prodList = getTable || [];
 		//prodList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
-		prodList = prodList.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+		// prodList = prodList.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
 		activeFilter = {
-			category: ''
+			category: '',
+			searchTerm: ''
 		};
 		//quantity = 1;
 
@@ -92,7 +116,7 @@
 		// const accordionList = ['accordion1', 'accordion2', 'accordion3', 'accordion4'];
 		// accordionList.forEach((item) => (document.getElementById(item).checked = false));
 		// document.getElementById('accordion1').checked = false;
-		sortItems('recent');
+		// sortItems('recent');
 		count = itemCount;
 		currentPage = 1;
 	};
@@ -100,6 +124,7 @@
 	const onClickFilterCategory = async (categorySelected) => {
 		currentPage = 1;
 		resetActive = true;
+		searchTerm = '';
 		activeFilter.category = categorySelected;
 		//prodList = getTable;
 		//console.log('cat', categorySelected);
@@ -179,6 +204,14 @@
 					count = payload.itemCount;
 					currentPage = payload.currentPage;
 					activeFilter.category = payload.category;
+					resetActive = true;
+				} else if (action == 'searchName') {
+					prodList = payload.getTable;
+					count = payload.itemCount;
+					currentPage = payload.currentPage;
+					activeFilter.searchTerm = payload.searchTerm;
+					activeFilter.category = '';
+					resetActive = true;
 				} else {
 					prodList = getTable;
 					resetActive = false;
@@ -234,6 +267,52 @@
 
 				<!-- Filter Body -->
 				<div class="p-4">
+					<div class="mb-6">
+						<div class="flex items-center justify-between mb-3">
+							<h3 class="font-medium flex items-center gap-2">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="18"
+									height="18"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									class="text-primary"
+								>
+									<circle cx="11" cy="11" r="8"></circle>
+									<path d="m21 21-4.35-4.35"></path>
+								</svg>
+								Cerca prodotto
+							</h3>
+						</div>
+						<form id="searchForm" method="POST" action="?/searchName" use:enhance={formSubmit}>
+							<div class="relative">
+								<input
+									type="text"
+									name="searchTerm"
+									bind:value={searchTerm}
+									oninput={debounceSearch}
+									placeholder="Cerca per prodotto"
+									class="input input-bordered w-full pr-10"
+								/>
+								{#if searchTerm}
+									<button
+										type="button"
+										onclick={() => {
+											searchTerm = '';
+											onFilterReset();
+										}}
+										class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+									>
+										<CircleX size={18} />
+									</button>
+								{/if}
+							</div>
+						</form>
+					</div>
 					<form id="filterForm" method="POST" action="?/filter" use:enhance={formSubmit}>
 						<!-- Category Filter -->
 						<div class="mb-6">
@@ -297,14 +376,21 @@
 	{:else}
 		<section class="col-span-12 xl:col-span-10 bg-base-100 rounded-lg">
 			<div class="flex items-center p-4">
-				<div class="btn btn-sm rounded-md cursor-default {count > 0 ? 'bg-green-300 hover:bg-green-300' : 'bg-red-300 hover:bg-red-300'}">
-					Prodotti disponibili: {activeFilter.category}
-					<div class="badge rounded-md flex justify-center">
-						<!-- {#if activeFilter.category}
+				<!-- <div class="btn btn-sm rounded-md cursor-default {count > 0 ? 'bg-green-300 hover:bg-green-300' : 'bg-red-300 hover:bg-red-300'}"> -->
+				<!-- Prodotti disponibili: {activeFilter.category} -->
+				<!-- <div class="badge rounded-md flex justify-center"> -->
+				<!-- {#if activeFilter.category}
 							<strong class="">{count}</strong>
 						{:else}
 							<strong class="">{count}</strong>
 						{/if} -->
+				<!-- <strong class="">{count}</strong> -->
+				<!-- </div> -->
+				<!-- </div> -->
+
+				<div class="btn btn-sm rounded-md cursor-default {count > 0 ? 'bg-green-300 hover:bg-green-300' : 'bg-red-300 hover:bg-red-300'}">
+					Prodotti disponibili: {activeFilter.category || activeFilter.searchTerm || 'Tutti'}
+					<div class="badge rounded-md flex justify-center">
 						<strong class="">{count}</strong>
 					</div>
 				</div>
@@ -382,6 +468,11 @@
 						{#if activeFilter.category.length > 0}
 							<div class="badge badge-accent rounded-md">
 								Categoria: <strong class="pl-1">{activeFilter.category}</strong>
+							</div>
+						{/if}
+						{#if activeFilter.searchTerm}
+							<div class="badge badge-info rounded-md">
+								Ricerca: <strong class="pl-1">{activeFilter.searchTerm}</strong>
 							</div>
 						{/if}
 					</div>

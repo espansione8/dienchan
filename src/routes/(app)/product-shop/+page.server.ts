@@ -180,6 +180,75 @@ export const actions: Actions = {
 			return fail(500, { action: 'filter', success: false, message: 'Error product filter' });
 		}
 	},
+
+	searchName: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const searchTerm = formData.get('searchTerm') as string;
+
+		try {
+			// Count filtered items
+			const countFetch = fetch(`${BASE_URL}/api/mongo/count`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'product',
+					query: {
+						status: 'enabled',
+						type: 'product',
+						title: { $regex: searchTerm, $options: 'i' }
+					},
+					option: { hint: { prodId: 1 } },
+				}),
+				headers: { 'Content-Type': 'application/json' }
+			});
+
+			// Get items
+			const productFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'product',
+					query: {
+						status: 'enabled',
+						type: 'product',
+						title: { $regex: searchTerm, $options: 'i' }
+					},
+					sort: { title: 1 },
+					projection: { _id: 0 },
+					limit: 20,
+					skip: 0
+				}),
+				headers: { 'Content-Type': 'application/json' }
+			});
+
+			const [countRes, productRes] = await Promise.all([countFetch, productFetch]);
+
+			if (!countRes.ok) {
+				const errorText = await countRes.text();
+				console.error('Search count fetch failed', countRes.status, errorText);
+				return fail(400, { action: 'searchName', success: false, message: `countRes: ${errorText}` });
+			}
+			const itemCount = await countRes.json();
+
+			if (!productRes.ok) {
+				const errorText = await productRes.text();
+				console.error('Search product fetch failed', productRes.status, errorText);
+				return fail(400, { action: 'searchName', success: false, message: `productRes: ${errorText}` });
+			}
+
+			const getTable = await productRes.json();
+
+			return {
+				action: 'searchName',
+				success: true,
+				payload: { getTable, itemCount, currentPage: 1, searchTerm }
+			};
+		} catch (e) {
+			console.error('Error product search:', e);
+			return fail(500, { action: 'searchName', success: false, message: 'Error product search' });
+		}
+	},
+
 	changePage: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const navigation = formData.get('navigation') as string;

@@ -146,7 +146,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		getUser: locals.user,
 		itemCount,
 		totalPendingApprovals,
-			pendingApprovalsList
+		pendingApprovalsList
 	};
 }
 
@@ -311,7 +311,31 @@ export const actions: Actions = {
 			}
 			const result = await res.json();
 
-			return { action: 'modify', success: true, message: result.message };
+			// Ricarica l'utente modificato
+			const userFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user',
+					query: { userId },
+					projection: { _id: 0, password: 0 },
+					sort: { createdAt: -1 },
+					limit: 1,
+					skip: 0
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (!userFetch.ok) {
+				const errorText = await userFetch.text();
+				console.error('user fetch failed', userFetch.status, errorText);
+				return fail(400, { action: 'modify', success: false, message: errorText });
+			}
+			const user = await userFetch.json();
+
+			return { action: 'modify', success: true, message: result.message, payload: user };
 
 		} catch (error) {
 			console.error('Error user modify:', error);

@@ -356,6 +356,19 @@
 						} else {
 							tableList = getTable;
 						}
+					} else if (action == 'modify') {
+						notification.info(message);
+						if (resetActive) {
+							// Aggiorna solo l'utente modificato nella lista filtrata esistente
+							const index = tableList.findIndex((u) => u.userId === payload[0].userId);
+							if (index !== -1) {
+								tableList[index] = payload[0];
+								tableList = [...tableList]; // forza reattività Svelte
+							}
+						} else {
+							tableList = getTable;
+						}
+						onCloseModal();
 					} else if (action == 'approveTraining') {
 						await invalidateAll(); // Ricarica tutti i dati
 						tableList = getTable;
@@ -451,7 +464,7 @@
 				{#if pendingApprovalsCount > 0}
 					<button class="btn btn-warning rounded-md text-white relative" onclick={() => onClickModal('pendingApprovals', null)}>
 						<BookText />
-						
+
 						<span
 							class="absolute -top-2 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full"
 						>
@@ -1434,65 +1447,60 @@
 				<div class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-4">
 					{#each trainingHistory as training, index}
 						<div class="col-span-4 p-4 rounded-box shadow-md bg-base-200 flex flex-col gap-y-4">
-    <!-- Header -->
-    <div class="flex items-start justify-between gap-4 flex-wrap lg:flex-nowrap">
-        <span class="font-bold text-lg text-primary flex-1 break-words">{training.description || 'N/A'}</span>
-        
-        <div class="flex items-center gap-2 flex-shrink-0">
-            <div
-                class="badge badge-lg"
-                class:badge-success={training.approved}
-                class:badge-warning={!training.approved}
-            >
-                {training.approved ? 'Approvato' : 'In attesa'}
-            </div>
+							<!-- Header -->
+							<div class="flex items-start justify-between gap-4 flex-wrap lg:flex-nowrap">
+								<span class="font-bold text-lg text-primary flex-1 break-words">{training.description || 'N/A'}</span>
 
-            <form method="POST" action={postAction} use:enhance={formSubmit}>
-                <input type="hidden" name="userId" value={userId} />
-                <input type="hidden" name="trainingIndex" value={index} />
-                <input type="hidden" name="approved" value={!training.approved} />
+								<div class="flex items-center gap-2 flex-shrink-0">
+									<div class="badge badge-lg" class:badge-success={training.approved} class:badge-warning={!training.approved}>
+										{training.approved ? 'Approvato' : 'In attesa'}
+									</div>
 
-                <button
-                    type="submit"
-                    class="btn btn-xs whitespace-nowrap"
-                    class:btn-success={!training.approved}
-                    class:btn-error={training.approved}
-                    aria-label={training.approved ? 'Revoca approvazione' : 'Approva'}
-                >
-                    {training.approved ? '✕ Revoca' : '✓ Approva'}
-                </button>
-            </form>
-        </div>
-    </div>
+									<form method="POST" action={postAction} use:enhance={formSubmit}>
+										<input type="hidden" name="userId" value={userId} />
+										<input type="hidden" name="trainingIndex" value={index} />
+										<input type="hidden" name="approved" value={!training.approved} />
 
-    <!-- Info -->
-    <div class="flex flex-wrap gap-x-6 gap-y-2">
-        <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold">Ore:</span>
-            <span class="text-info-content">{training.hours}h</span>
-        </div>
-        <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold">Data:</span>
-            <span class="text-info-content">
-                {new Date(training.date).toLocaleDateString('it-IT', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                })}
-            </span>
-        </div>
-    </div>
+										<button
+											type="submit"
+											class="btn btn-xs whitespace-nowrap"
+											class:btn-success={!training.approved}
+											class:btn-error={training.approved}
+											aria-label={training.approved ? 'Revoca approvazione' : 'Approva'}
+										>
+											{training.approved ? '✕ Revoca' : '✓ Approva'}
+										</button>
+									</form>
+								</div>
+							</div>
 
-    {#if training.fileUrl}
-        <div class="flex items-center gap-2 mt-2">
-            <span class="text-sm font-semibold">File:</span>
-            <a href={training.fileUrl} target="_blank" rel="noopener noreferrer" class="link link-primary truncate">
-                {training.fileName}
-            </a>
-        </div>
-    {/if}
-</div>
+							<!-- Info -->
+							<div class="flex flex-wrap gap-x-6 gap-y-2">
+								<div class="flex items-center gap-2">
+									<span class="text-sm font-semibold">Ore:</span>
+									<span class="text-info-content">{training.hours}h</span>
+								</div>
+								<div class="flex items-center gap-2">
+									<span class="text-sm font-semibold">Data:</span>
+									<span class="text-info-content">
+										{new Date(training.date).toLocaleDateString('it-IT', {
+											day: '2-digit',
+											month: '2-digit',
+											year: 'numeric'
+										})}
+									</span>
+								</div>
+							</div>
 
+							{#if training.fileUrl}
+								<div class="flex items-center gap-2 mt-2">
+									<span class="text-sm font-semibold">File:</span>
+									<a href={training.fileUrl} target="_blank" rel="noopener noreferrer" class="link link-primary truncate">
+										{training.fileName}
+									</a>
+								</div>
+							{/if}
+						</div>
 					{/each}
 				</div>
 			{:else}
