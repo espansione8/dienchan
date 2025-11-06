@@ -267,8 +267,6 @@ export const actions: Actions = {
 							"membership.membershipStatus": paymentIntentId ? true : false,
 							extraFieldText1: howDidYouKnow,
 							extraFieldText2: eventDetails,
-
-
 						},
 						returnObj: true
 					}),
@@ -284,7 +282,7 @@ export const actions: Actions = {
 
 				// TODO verificare se questa modifica funziona!
 
-				if (paymentIntentId) {
+				if (resNewUser.ok && paymentIntentId) {
 					const now = new Date();
 					const expiry = new Date();
 					expiry.setFullYear(expiry.getFullYear() + 1);
