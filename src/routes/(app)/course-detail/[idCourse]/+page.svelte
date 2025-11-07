@@ -568,7 +568,7 @@
 
 		// 	form.appendChild(hiddenInput);
 		// }
-
+console.log('BEFORE', formEl, typeof formEl);
 		//const form = event.target as HTMLFormElement;
 		//form.requestSubmit();
 		if (formEl) {

@@ -62,6 +62,69 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 }
 
 export const actions: Actions = {
+	createPaymentIntent: async ({ request, locals }) => {
+		try {
+			const formData = await request.formData();
+			const totalValue = formData.get('totalValue') as string;
+			const email = formData.get('email')?.toString().toLowerCase().trim();
+			const name = formData.get('name') as string;
+			const surname = formData.get('surname') as string;
+
+			if (!totalValue || !email) {
+				return fail(400, {
+					action: 'createPaymentIntent',
+					success: false,
+					message: 'Dati mancanti'
+				});
+			}
+
+			const amountInCents = Math.round(Number(totalValue) * 100);
+
+			// Create PaymentIntent WITHOUT confirming
+			const paymentIntent = await stripe.paymentIntents.create({
+				amount: amountInCents,
+				currency: 'eur',
+				automatic_payment_methods: {
+					enabled: true
+				},
+				metadata: {
+					email,
+					name: `${name.trim()} ${surname.trim()}`
+				},
+				// Request 3DS when needed
+				payment_method_options: {
+					card: {
+						request_three_d_secure: 'automatic'
+					}
+				}
+			});
+			// 	In the context of Stripe's API, request_three_d_secure can be set to:
+			// 'any' – for trying 3DS with a preference for a frictionless or challenge flow.
+			// 'challenge' – explicitly requesting an active challenge flow.
+			// 'automatic' – letting Stripe decide dynamically based on risk.
+			// 'off' – explicitly avoiding 3DS authentication.
+
+			// console.log('paymentIntent.id', paymentIntent.id);
+			// console.log('paymentIntent.client_secret', paymentIntent.client_secret);
+
+			return {
+				action: 'createPaymentIntent',
+				success: true,
+				payload: {
+					clientSecret: paymentIntent.client_secret,
+					paymentIntentId: paymentIntent.id
+				}
+			};
+		} catch (err: any) {
+			console.error('PaymentIntent creation error:', err);
+			return fail(400, {
+				action: 'createPaymentIntent',
+				success: false,
+				message: `Errore creazione pagamento: ${err.message}`
+			});
+		}
+	},
+
 	new: async ({ request, fetch, locals, cookies }) => {
 		const formData = await request.formData();
 		const name = formData.get('name');
@@ -82,7 +145,7 @@ export const actions: Actions = {
 		const paymentMethodId = formData.get('paymentMethodId') as string | null;
 		const howDidYouKnow = formData.get('howDidYouKnow') || '';
 		const eventDetails = formData.get('eventDetails') || '';
-
+	
 		// const cart = formData.get('cart');
 		// const cartItem = JSON.parse(String(cart)) || null;
 
@@ -458,6 +521,8 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const payment = formData.get('payment');
 		const paymentMethodId = formData.get('paymentMethodId') as string | null;
+
+
 
 		let newExpire = new Date()
 

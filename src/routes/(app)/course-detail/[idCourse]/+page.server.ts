@@ -379,6 +379,19 @@ export const actions: Actions = {
 				}
 			});
 
+		const mail12massaggi = (email, order) =>
+			fetch(`${BASE_URL}/api/mailer/new-order-12massaggi`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					email,
+					order
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
 
 
 		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || !cart || !cartItem) {
@@ -551,7 +564,7 @@ export const actions: Actions = {
 				totalVAT: 0,
 				browser: '',
 				orderIp: '',
-				orderNotes: finalNotes, 
+				orderNotes: finalNotes,
 				type: 'course',
 				invoicing: {
 					name,
@@ -719,7 +732,12 @@ export const actions: Actions = {
 
 				//const mailArray = [...cartItem.notificationEmail, email]; // mail amministrazione dienchan?
 				const mailArray = [email]; // mail amministrazione dienchan?
-				const mailRes = await mailFetch(mailArray, order);
+				let mailRes;
+				if (cartItem.prodId === 'CQ112QCNK') { // prodId 12 massaggi mattutini CQ112QCNK
+					mailRes = await mailFetch(mailArray, order);
+				} else {
+					mailRes = await mail12massaggi(mailArray, order);
+				}
 
 				if (!mailRes.ok) {
 					// return fail(400, {

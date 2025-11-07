@@ -5,6 +5,7 @@
 	import { enhance } from '$app/forms';
 	import { Image } from '@unpic/svelte';
 	import Modal from '$lib/components/Modal.svelte';
+	import { tick } from 'svelte';
 	import { notification } from '$lib/stores/notifications';
 	import { cartProducts, addToCart, removeFromCart, emptyCart } from '$lib/stores/cart';
 	import Loader from '$lib/components/Loader.svelte';
@@ -39,12 +40,15 @@
 	const { data } = $props();
 	const { userData, auth, stripePublishableKey } = $derived(data);
 
+	let formEl: HTMLFormElement;
 	// Stripe state
 	let stripe: Stripe | null = $state(null);
 	let elements: StripeElements | null = $state(null);
 	let cardElement: any;
 	let stripeError = $state<string | null>(null);
-	let paymentMethodId = $state<string | null>(null);
+	// let paymentMethodId = $state<string | null>(null);
+	let clientSecret = $state<string | null>(null);
+	let paymentIntentId = $state<string | null>(null);
 
 	let password1 = $state('');
 	let password2 = $state('');
@@ -246,52 +250,52 @@
 		}
 	};
 
-	const getStripeId = async () => {
-		if (formData.paymentType === 'Carta di credito') {
-			stripeError = null;
+	// const getStripeId = async () => {
+	// 	if (formData.paymentType === 'Carta di credito') {
+	// 		stripeError = null;
 
-			if (!stripe || !elements || !cardElement) {
-				stripeError = 'Stripe non è stato inizializzato correttamente. Riprova.';
-				notification.error(stripeError);
-				loading = false;
-			}
+	// 		if (!stripe || !elements || !cardElement) {
+	// 			stripeError = 'Stripe non è stato inizializzato correttamente. Riprova.';
+	// 			notification.error(stripeError);
+	// 			loading = false;
+	// 		}
 
-			// get PaymentMethod  Stripe.js
-			const { paymentMethod, error } = await stripe.createPaymentMethod({
-				type: 'card',
-				card: cardElement,
-				billing_details: {
-					name: `${userData?.name || 'nome'} ${userData?.surname || 'cognome'}`,
-					email: userData?.email || 'email@example.com',
-					phone: formData.phone,
-					address: {
-						city: formData.city,
-						country: formData.country === 'Italy' ? 'IT' : formData.country,
-						line1: formData.address,
-						postal_code: formData.postalCode,
-						state: formData.county
-					}
-				}
-			});
+	// 		// get PaymentMethod  Stripe.js
+	// 		const { paymentMethod, error } = await stripe.createPaymentMethod({
+	// 			type: 'card',
+	// 			card: cardElement,
+	// 			billing_details: {
+	// 				name: `${userData?.name || 'nome'} ${userData?.surname || 'cognome'}`,
+	// 				email: userData?.email || 'email@example.com',
+	// 				phone: formData.phone,
+	// 				address: {
+	// 					city: formData.city,
+	// 					country: formData.country === 'Italy' ? 'IT' : formData.country,
+	// 					line1: formData.address,
+	// 					postal_code: formData.postalCode,
+	// 					state: formData.county
+	// 				}
+	// 			}
+	// 		});
 
-			if (error) {
-				stripeError = error.message;
-				notification.error(stripeError);
-				console.error('Stripe.js error:', error);
-				loading = false;
-			}
+	// 		if (error) {
+	// 			stripeError = error.message;
+	// 			notification.error(stripeError);
+	// 			console.error('Stripe.js error:', error);
+	// 			loading = false;
+	// 		}
 
-			if (paymentMethod) {
-				paymentMethodId = paymentMethod.id;
-				//alert(`paymentMethodId created: ${paymentMethod.id}`);
-			} else {
-				// Edge case: no error but also no paymentMethod (shouldn't happen with Stripe API)
-				stripeError = 'Impossibile creare il metodo di pagamento. Riprova.';
-				notification.error(stripeError);
-				loading = false;
-			}
-		}
-	};
+	// 		if (paymentMethod) {
+	// 			paymentMethodId = paymentMethod.id;
+	// 			//alert(`paymentMethodId created: ${paymentMethod.id}`);
+	// 		} else {
+	// 			// Edge case: no error but also no paymentMethod (shouldn't happen with Stripe API)
+	// 			stripeError = 'Impossibile creare il metodo di pagamento. Riprova.';
+	// 			notification.error(stripeError);
+	// 			loading = false;
+	// 		}
+	// 	}
+	// };
 
 	const testPass = () => {
 		checkPass = password1.length >= 8;
@@ -333,7 +337,9 @@
 			elements = null;
 			stripe = null;
 			stripeError = null;
-			paymentMethodId = null;
+			// paymentMethodId = null;
+			clientSecret = null;
+			paymentIntentId = null;
 		}
 		initializeStripe();
 	};
@@ -396,6 +402,145 @@
 		currentModal = '';
 	};
 
+	// NEW: Create PaymentIntent and get client secret
+	const createPaymentIntent = async () => {
+		if (formData.paymentType !== 'Carta di credito' || clientSecret) {
+			return true;
+		}
+
+		loading = true;
+		stripeError = null;
+
+		try {
+			const response = await fetch('?/createPaymentIntent', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded'
+				},
+				body: new URLSearchParams({
+					totalValue: subTotal().toString(),
+					email: formData.email,
+					name: formData.name,
+					surname: formData.surname
+				})
+			});
+			// const formDataToSend = new FormData();
+			// formDataToSend.append('totalValue', subTotal.toString());
+			// formDataToSend.append('email', formData.email);
+			// formDataToSend.append('name', formData.name);
+			// formDataToSend.append('surname', formData.surname);
+
+			// const response = await fetch('?/createPaymentIntent', {
+			// 	method: 'POST',
+			// 	body: formDataToSend
+			// });
+			const result = await response.json();
+			//console.log('createPaymentIntent result:', result);
+
+			// Check if action was successful
+			if (result.type === 'success' && result.data) {
+				const dataArray: any[] = JSON.parse(result.data);
+				const resSecret = dataArray?.[4];
+				const resIntent = dataArray?.[5];
+				//console.log(resSecret, resIntent);
+
+				if (resSecret && resIntent) {
+					clientSecret = resSecret;
+					paymentIntentId = resIntent;
+					//console.log('PaymentIntent created:', paymentIntentId);
+					loading = false;
+					return true;
+				} else {
+					stripeError = 'Errore durante la creazione del pagamento (1)';
+					notification.error(stripeError);
+					loading = false;
+					return false;
+				}
+			} else if (result.type === 'failure') {
+				stripeError = 'Errore durante la creazione del pagamento (2)';
+				notification.error(stripeError);
+				loading = false;
+				return false;
+			} else {
+				stripeError = 'Errore durante la creazione del pagamento';
+				notification.error(stripeError);
+				loading = false;
+				return false;
+			}
+		} catch (error: any) {
+			console.error('createPaymentIntent error:', error);
+			stripeError = `Errore: ${error.message}`;
+			notification.error(stripeError);
+			loading = false;
+			return false;
+		}
+	};
+
+	// NEW: Confirm payment with 3DS using Stripe.js
+	const confirmPaymentWith3DS = async () => {
+		if (formData.paymentType !== 'Carta di credito' || !clientSecret) {
+			return true;
+		}
+
+		loading = true;
+		stripeError = null;
+
+		if (!stripe || !cardElement) {
+			stripeError = 'Stripe non è stato inizializzato correttamente. Riprova.';
+			notification.error(stripeError);
+			loading = false;
+			return false;
+		}
+
+		try {
+			// Use confirmCardPayment which handles 3DS automatically
+			const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+				payment_method: {
+					card: cardElement,
+					billing_details: {
+						name: `${formData.name} ${formData.surname}`,
+						email: formData.email,
+						phone: formData.phone,
+						address: {
+							city: formData.city,
+							country: formData.country === 'Italy' ? 'IT' : formData.country,
+							line1: formData.address,
+							postal_code: formData.postalCode,
+							state: formData.county
+						}
+					}
+				}
+			});
+
+			//console.log('3DpaymentIntent', paymentIntent);
+			//console.log('error', error);
+
+			if (error) {
+				stripeError = error.message;
+				notification.error(stripeError || 'Errore durante il pagamento');
+				loading = false;
+				return false;
+			}
+
+			if (paymentIntent && paymentIntent.status === 'succeeded') {
+				paymentIntentId = paymentIntent.id;
+				//console.log('id', paymentIntent.id, paymentIntentId);
+				loading = false;
+				return true;
+			} else {
+				stripeError = `Pagamento non completato: ${paymentIntent?.status || 'unknown'}`;
+				notification.error(stripeError);
+				loading = false;
+				return false;
+			}
+		} catch (err: any) {
+			stripeError = err.message || 'Errore sconosciuto';
+			notification.error(stripeError);
+			loading = false;
+			return false;
+		}
+	};
+
 	const formSubmit = () => {
 		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
@@ -441,6 +586,63 @@
 	onMount(() => {
 		initializeStripe();
 	});
+
+	// Handle final submission with payment confirmation
+	const handleFinalSubmit = async (event: Event) => {
+		//event.preventDefault();
+		loading = true;
+
+		// if (!formData.name || !formData.surname || formData.email || !formData.address || !formData.city  || !formData.country || !formData.county) {
+		// 	notification.error('Dati mancanti');
+		// 		loading = false;
+		// 	return;
+		// }
+
+
+		// if (!isCurrentStepValid()) {
+		// 	notification.error('Completa tutti i campi richiesti');
+		// 	return;
+		// }
+
+		// Step 1: Create PaymentIntent if credit card
+		if (formData.paymentType === 'Carta di credito' && !clientSecret) {
+			const intentCreated = await createPaymentIntent();
+			//console.log('FINAL intentCreated', intentCreated, paymentIntentId);
+			if (!intentCreated) {
+				return;
+			}
+		}
+
+		// Step 2: Confirm payment with 3DS
+		if (formData.paymentType === 'Carta di credito') {
+			const paymentConfirmed = await confirmPaymentWith3DS();
+			//console.log('FINAL 3DS paymentConfirmed', paymentConfirmed, paymentIntentId);
+			if (!paymentConfirmed) {
+				return;
+			}
+		}
+		// console.log('FINAL paymentIntentId', paymentIntentId);
+		// Step 3: Submit the form
+		await tick();
+
+		// let hiddenInput;
+		// if (paymentIntentId) {
+		// 	console.log('INPUT paymentIntentId', paymentIntentId);
+		// 	hiddenInput = document.createElement('input');
+		// 	hiddenInput.type = 'hidden';
+		// 	hiddenInput.name = 'paymentIntentId';
+		// 	hiddenInput.value = paymentIntentId;
+
+		// 	form.appendChild(hiddenInput);
+		// }
+
+		//const form = event.target as HTMLFormElement;
+		//form.requestSubmit();
+		if (formEl) {
+			
+			formEl.requestSubmit();
+		}
+	};
 </script>
 
 <svelte:head>
@@ -1110,7 +1312,28 @@
 									</div>
 								</div>
 								<!-- {/if} -->
-								<div class="card bg-base-100 shadow-xl p-6 w-full" class:hidden={formData.paymentType !== 'Carta di credito'}>
+
+								<div class="card bg-base-100 shadow-xl p-6" class:hidden={formData.paymentType !== 'Carta di credito'}>
+									<h3 class="text-xl font-semibold mb-4">Informazioni sulla carta di credito</h3>
+									<div class="form-control">
+										<div id="card-element" class="border border-base-300 p-3 rounded-md"></div>
+										{#if stripeError}
+											<p class="text-error text-sm mt-2">{stripeError}</p>
+										{/if}
+									</div>
+									<p class="text-sm text-gray-500 mt-2">
+										<Lock size={14} class="inline-block mr-1" /> Le tue informazioni di pagamento sono protette e crittografate con 3D Secure.
+									</p>
+									<div class="alert alert-info mt-4">
+										<Lock size={14} class="inline-block mr-1" />
+										<span
+											>Il pagamento sarà elaborato con 3D Secure per la massima sicurezza. Potresti essere reindirizzato alla tua banca per
+											l'autenticazione.</span
+										>
+									</div>
+								</div>
+
+								<!-- <div class="card bg-base-100 shadow-xl p-6 w-full" class:hidden={formData.paymentType !== 'Carta di credito'}>
 									<h3 class="text-xl font-semibold mb-4">Informazioni sulla carta di credito</h3>
 									<div class="form-control">
 										<div id="card-element" class="border border-base-300 p-3 rounded-md"></div>
@@ -1126,7 +1349,7 @@
 									{:else}
 										<div class="btn btn-primary mt-4">CARTA OK <CircleCheckBig /></div>
 									{/if}
-								</div>
+								</div> -->
 								{#if formData.paymentType === 'Bonifico bancario' && grandTotal() > 0}
 									<div class="card bg-base-100 shadow-xl p-6">
 										<h3 class="text-xl font-semibold mb-4">Dettagli Bonifico Bancario</h3>
@@ -1468,7 +1691,8 @@
 					<div class="card bg-base-100 shadow-xl p-6">
 						<h3 class="text-xl font-semibold mb-4">Pagamento:</h3>
 
-						{#if paymentMethodId}
+						<!-- {#if paymentMethodId} -->
+						{#if paymentIntentId}
 							<div class="alert alert-success">
 								<Check size={20} />
 								<span>Carta verificata</span>
@@ -1537,7 +1761,7 @@
 						</label>
 					</div>
 				</div> -->
-			<form method="POST" action={postAction} use:enhance={formSubmit} class="">
+			<form method="POST" action={postAction} use:enhance={formSubmit} class="" bind:this={formEl}>
 				<input type="hidden" name="name" value={formData.name} />
 				<input type="hidden" name="surname" value={formData.surname} />
 				<input type="hidden" name="email" value={formData.email} />
@@ -1560,7 +1784,8 @@
 				<input type="hidden" name="usedPoints" value={pointsDiscount()} />
 				<input type="hidden" name="usePoint" value={formData.usePoint} />
 				<input type="hidden" name="storePickUp" value={formData.storePickUp} />
-				<input type="hidden" name="paymentMethodId" value={paymentMethodId || null} />
+				<!-- <input type="hidden" name="paymentMethodId" value={paymentMethodId || null} /> -->
+				<input type="hidden" name="paymentIntentId" value={paymentIntentId} />
 				<input type="hidden" name="shippingName" value={shippingName} />
 				<input type="hidden" name="shippingSurname" value={shippingSurname} />
 				<input type="hidden" name="shippingEmail" value={shippingEmail} />
@@ -1586,7 +1811,16 @@
 				<div class="modal-action">
 					<button type="button" class="btn btn-outline btn-error" onclick={onCloseModal}> Annulla </button>
 
-					<button type="submit" class="btn btn-primary" disabled={loading || (formData.paymentType === 'Carta di credito' && !paymentMethodId)}>
+					<!-- <button type="submit" class="btn btn-primary" disabled={loading || (formData.paymentType === 'Carta di credito' && !paymentMethodId)}>
+						{#if loading}
+							<span class="loading loading-spinner"></span>
+							Elaborazione...
+						{:else}
+							Conferma Acquisto
+						{/if}
+					</button> -->
+
+					<button type="button" class="btn btn-primary" onclick={handleFinalSubmit} disabled={loading}>
 						{#if loading}
 							<span class="loading loading-spinner"></span>
 							Elaborazione...

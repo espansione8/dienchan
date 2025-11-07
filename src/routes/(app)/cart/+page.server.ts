@@ -31,52 +31,52 @@ const calculateItemDiscount = (
 	let totalDiscount = 0;
 
 	// Gestione sconto QUANTITÀ
-if (selectedApplicability === 'prodId' && discount.qty && discount.qty > 1) {
-	cartArray.forEach((item: CartItem) => {
-		if (item.prodId === discount.prodId) {
-			const itemQty = typeof item.orderQuantity === 'number' && item.orderQuantity > 0 
-				? item.orderQuantity 
-				: 1;
+	if (selectedApplicability === 'prodId' && discount.qty && discount.qty > 1) {
+		cartArray.forEach((item: CartItem) => {
+			if (item.prodId === discount.prodId) {
+				const itemQty = typeof item.orderQuantity === 'number' && item.orderQuantity > 0
+					? item.orderQuantity
+					: 1;
 
-			// Verifica se la quantità nel carrello soddisfa la soglia minima
-			if (itemQty >= discount.qty) {
-				const numericPrice = Number(item.price);
-				if (!Number.isFinite(numericPrice)) {
-					throw new Error('Errore calcolo prezzo non valido');
+				// Verifica se la quantità nel carrello soddisfa la soglia minima
+				if (itemQty >= discount.qty) {
+					const numericPrice = Number(item.price);
+					if (!Number.isFinite(numericPrice)) {
+						throw new Error('Errore calcolo prezzo non valido');
+					}
+
+					let itemDiscount = 0;
+
+					if (type === 'amount') {
+						// Quante volte si applica la soglia
+						const times = Math.floor(itemQty / discount.qty);
+						itemDiscount = value * times;
+					} else if (type === 'percent') {
+						// Sconto percentuale sul totale dei prodotti
+						const totalValue = numericPrice * itemQty;
+						itemDiscount = (totalValue * value) / 100;
+					}
+
+					totalDiscount += itemDiscount;
 				}
-
-				let itemDiscount = 0;
-
-				if (type === 'amount') {
-					// Quante volte si applica la soglia
-					const times = Math.floor(itemQty / discount.qty);
-					itemDiscount = value * times;
-				} else if (type === 'percent') {
-					// Sconto percentuale sul totale dei prodotti
-					const totalValue = numericPrice * itemQty;
-					itemDiscount = (totalValue * value) / 100;
-				}
-
-				totalDiscount += itemDiscount;
 			}
-		}
-	});
-}
+		});
+	}
 
 	// Gestione sconto PRODOTTO SINGOLO (senza qty)
 	else if (selectedApplicability === 'prodId' && (!discount.qty || discount.qty <= 1)) {
 		cartArray.forEach((item: CartItem) => {
 			if (item.prodId === discount.prodId) {
-				const itemQty = typeof item.orderQuantity === 'number' && item.orderQuantity > 0 
-					? item.orderQuantity 
+				const itemQty = typeof item.orderQuantity === 'number' && item.orderQuantity > 0
+					? item.orderQuantity
 					: 1;
 				let itemDiscount = 0;
 				const numericPrice = Number(item.price);
-				
+
 				if (!Number.isFinite(numericPrice)) {
 					throw new Error('Errore calcolo');
 				}
-				
+
 				if (type === 'amount') {
 					itemDiscount = value * itemQty;
 				} else if (type === 'percent') {
@@ -107,7 +107,7 @@ if (selectedApplicability === 'prodId' && discount.qty && discount.qty > 1) {
 				totalDiscount += itemDiscount;
 			}
 		});
-	} 
+	}
 	else if (selectedApplicability === 'email' || selectedApplicability === 'membershipLevel' || selectedApplicability === 'riflessologo') {
 		if (type === 'amount') {
 			totalDiscount = value;
@@ -118,11 +118,75 @@ if (selectedApplicability === 'prodId' && discount.qty && discount.qty > 1) {
 	else if (selectedApplicability === 'referral') {
 		totalDiscount = (originalTotal * discount.refDiscount) / 100;
 	}
-	
+
 	return totalDiscount;
 }
 
 export const actions: Actions = {
+
+	createPaymentIntent: async ({ request, locals }) => {
+		try {
+			const formData = await request.formData();
+			const totalValue = formData.get('totalValue') as string;
+			const email = formData.get('email')?.toString().toLowerCase().trim();
+			const name = formData.get('name') as string;
+			const surname = formData.get('surname') as string;
+
+			if (!totalValue || !email) {
+				return fail(400, {
+					action: 'createPaymentIntent',
+					success: false,
+					message: 'Dati mancanti'
+				});
+			}
+
+			const amountInCents = Math.round(Number(totalValue) * 100);
+
+			// Create PaymentIntent WITHOUT confirming
+			const paymentIntent = await stripe.paymentIntents.create({
+				amount: amountInCents,
+				currency: 'eur',
+				automatic_payment_methods: {
+					enabled: true
+				},
+				metadata: {
+					email,
+					name: `${name.trim()} ${surname.trim()}`
+				},
+				// Request 3DS when needed
+				payment_method_options: {
+					card: {
+						request_three_d_secure: 'automatic'
+					}
+				}
+			});
+			// 	In the context of Stripe's API, request_three_d_secure can be set to:
+			// 'any' – for trying 3DS with a preference for a frictionless or challenge flow.
+			// 'challenge' – explicitly requesting an active challenge flow.
+			// 'automatic' – letting Stripe decide dynamically based on risk.
+			// 'off' – explicitly avoiding 3DS authentication.
+
+			// console.log('paymentIntent.id', paymentIntent.id);
+			// console.log('paymentIntent.client_secret', paymentIntent.client_secret);
+
+			return {
+				action: 'createPaymentIntent',
+				success: true,
+				payload: {
+					clientSecret: paymentIntent.client_secret,
+					paymentIntentId: paymentIntent.id
+				}
+			};
+		} catch (err: any) {
+			console.error('PaymentIntent creation error:', err);
+			return fail(400, {
+				action: 'createPaymentIntent',
+				success: false,
+				message: `Errore creazione pagamento: ${err.message}`
+			});
+		}
+	},
+
 	new: async ({ request, fetch, locals, cookies }) => {
 		const formData = await request.formData();
 		const name = formData.get('name');
@@ -148,7 +212,8 @@ export const actions: Actions = {
 		const newPointsBalance = Number(formData.get('newPointsBalance'));
 		const usedPoints = Number(formData.get('usedPoints')) || 0;
 		const usePoint = formData.get('usePoint') === 'true' // 'true' make it boolean
-		const paymentMethodId = formData.get('paymentMethodId') as string | null;
+		// const paymentMethodId = formData.get('paymentMethodId') as string | null;
+		const paymentIntentId = formData.get('paymentIntentId') as string | null; // Changed from paymentMethodId
 		const storePickUp = formData.get('storePickUp') === 'true' // 'true' make it boolean
 		const orderNotes = formData.get('orderNotes') as string | null;
 		const shippingName = formData.get('shippingName');
@@ -161,6 +226,8 @@ export const actions: Actions = {
 		const shippingCounty = formData.get('shippingCounty');
 		const shippingPostalCode = formData.get('shippingPostalCode');
 		const shippingCountry = formData.get('shippingCountry');
+
+
 
 		if (usePoint && newPointsBalance < 0) {
 			return fail(400, { action: 'new', success: false, message: 'Saldo punti insufficiente' });
@@ -260,12 +327,13 @@ export const actions: Actions = {
 		}
 
 		// Stripe payment processing
-		let paymentIntentId: string | null = null;
+		// let paymentIntentId: string | null = null;
 		const amountInCents = Math.round(Number(totalValue) * 100);
-
+		let paymentVerified = false;
 		if (payment === 'Carta di credito') {
 
-			if (!paymentMethodId) {
+			// if (!paymentMethodId) {
+			if (!paymentIntentId) {
 				return fail(400, {
 					action: 'new',
 					success: false,
@@ -281,33 +349,54 @@ export const actions: Actions = {
 				});
 			}
 
+			// try {
+			// 	const paymentIntent = await stripe.paymentIntents.create({
+			// 		amount: amountInCents,
+			// 		currency: 'eur',
+			// 		payment_method: paymentMethodId,
+			// 		confirm: true,
+			// 		automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
+			// 	});
+			// 	// console.log('paymentIntent.status', paymentIntent.status)
+			// 	// paymentIntentId = paymentIntent.id;
+			// 	if (paymentIntent.status === 'succeeded') {
+			// 		paymentIntentId = paymentIntent.id;
+			// 	} else {
+			// 		return fail(400, {
+			// 			action: 'new',
+			// 			success: false,
+			// 			message: `Pagamento fallito: ${paymentIntent.status}`
+			// 		});
+			// 	}
+			// } catch (err: any) {
+			// 	console.error('Stripe error:', err);
+			// 	return fail(400, {
+			// 		action: 'new',
+			// 		success: false,
+			// 		message: `Pagamento fallito: ${err.message}`
+			// 	});
+			// }
+
 			try {
-				const paymentIntent = await stripe.paymentIntents.create({
-					amount: amountInCents,
-					currency: 'eur',
-					payment_method: paymentMethodId,
-					confirm: true,
-					automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
-				});
-				// console.log('paymentIntent.status', paymentIntent.status)
-				// paymentIntentId = paymentIntent.id;
-				if (paymentIntent.status === 'succeeded') {
-					paymentIntentId = paymentIntent.id;
-				} else {
+				const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+				if (paymentIntent.status !== 'succeeded') {
 					return fail(400, {
 						action: 'new',
 						success: false,
-						message: `Pagamento fallito: ${paymentIntent.status}`
+						message: `Pagamento non completato: ${paymentIntent.status}`
 					});
 				}
+				paymentVerified = true;
 			} catch (err: any) {
-				console.error('Stripe error:', err);
+				console.error('PaymentIntent verification error:', err);
 				return fail(400, {
 					action: 'new',
 					success: false,
-					message: `Pagamento fallito: ${err.message}`
+					message: `Errore verifica pagamento: ${err.message}`
 				});
 			}
+
 		}
 
 		if (!locals.auth) {
@@ -726,7 +815,7 @@ export const actions: Actions = {
 				});
 			}
 
-			
+
 			// check: Prevent more than one 'referral' discount
 			const countReferral = discountGroup.filter(d => d.selectedApplicability === 'referral').length;
 			if (discountItem.selectedApplicability === 'referral' && countReferral > 1) {
@@ -800,18 +889,18 @@ export const actions: Actions = {
 			}
 
 			// Validazione quantità per sconti qty
-if (discountItem.selectedApplicability === 'prodId' && discountItem.qty && discountItem.qty > 1) {
-    const productInCart = cartArray.find(item => item.prodId === discountItem.prodId);
-    const currentQty = productInCart?.orderQuantity || 0;
-    
-    if (currentQty < discountItem.qty) {
-        return fail(400, {
-            action: 'applyDiscount',
-            success: false,
-            message: `Quantità insufficiente. Servono almeno ${discountItem.qty} pezzi per applicare questo sconto (attualmente: ${currentQty})`
-        });
-    }
-}
+			if (discountItem.selectedApplicability === 'prodId' && discountItem.qty && discountItem.qty > 1) {
+				const productInCart = cartArray.find(item => item.prodId === discountItem.prodId);
+				const currentQty = productInCart?.orderQuantity || 0;
+
+				if (currentQty < discountItem.qty) {
+					return fail(400, {
+						action: 'applyDiscount',
+						success: false,
+						message: `Quantità insufficiente. Servono almeno ${discountItem.qty} pezzi per applicare questo sconto (attualmente: ${currentQty})`
+					});
+				}
+			}
 
 			// Calculate all discounts
 			const discountApplied = () => {
