@@ -16,7 +16,9 @@
 		Layers,
 		BookOpen,
 		Package,
-		CreditCard, ShoppingBag
+		CreditCard,
+		ShoppingBag,
+		ShieldCheck
 	} from 'lucide-svelte';
 
 	const { user, auth } = $props();
@@ -60,180 +62,202 @@
 
 				<!-- Desktop  -->
 				<div class="hidden md:flex md:items-center md:gap-1">
-					<a href="/membership-new" class={`btn btn-sm ${isActive('/membership-new') ? 'btn-primary' : 'btn-ghost'}`}>
+					<!-- <a href="/membership-new" class={`btn btn-sm ${isActive('/membership-new') ? 'btn-primary' : 'btn-ghost'}`}>
 						<Megaphone size={16} />
 						<span>Tesseramento</span>
-					</a>
-
-					<a href="/course-shop" class={`btn btn-sm ${isActive('/course-shop') ? 'btn-primary' : 'btn-ghost'}`}>
-						<BookOpen size={16} />
-						<span>Corsi ed eventi</span>
-					</a>
-
-					<a href="/product-shop" class={`btn btn-sm ${isActive('/product-shop') ? 'btn-primary' : 'btn-ghost'}`}>
-						<Package size={16} />
-						<span>Prodotti</span>
-					</a>
-
-					<a href="/user-list" class={`btn btn-sm ${isActive('/user-list') ? 'btn-primary' : 'btn-ghost'}`}>
-						<IdCard size={16} />
-						<span>Albo Riflessologi</span>
-					</a>
-
-					<a href="/cart" class={`btn btn-sm ${isActive('/cart') ? 'btn-primary' : 'btn-ghost'} relative`}>
-						<ShoppingCart size={16} />
-						<span>Carrello</span>
-						{#if $cartProducts.length > 0}
-							<span class="absolute -top-2 -right-2 badge badge-sm badge-primary">{$cdata.q1}</span>
-						{/if}
-					</a>
+					</a> -->
 
 					<div class="dropdown dropdown-end">
-						<button class="btn btn-sm btn-ghost">
-							<Layers size={16} />
-							<span>Tutorial</span>
-							<ChevronDown size={14} />
-						</button>
+						<div class="dropdown dropdown-end">
+							<button tabindex="0" class="btn btn-sm btn-ghost">
+								<Megaphone size={16} />
+								<span>Iscrizioni</span>
+								<ChevronDown size={14} />
+							</button>
 
-						<ul class="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2">
-							<li>
-								<a href="https://vimeo.com/1122482609/8966f3df8f" target="_blank" rel="noopener noreferrer">
-									<BookOpen size={16} />
-									Cambio Password
-								</a>
-							</li>
-							<li>
-								<a href="https://vimeo.com/1122482599/f7528712a6" target="_blank" rel="noopener noreferrer">
-									<BookOpen size={16} />
-									Iscrizione nuovo socio
-								</a>
-							</li>
-							<li>
-								<a href="https://vimeo.com/1122482586/fc96d35bd6" target="_blank" rel="noopener noreferrer">
-									<BookOpen size={16} />
-									Ricerca e acquisto corso
-								</a>
-							</li>
-							{#if isFormatore || level === 'superadmin' || level === 'admin'}
-								<li>
-									<a href="https://vimeo.com/1122734353/d6cd2c1d38" target="_blank" rel="noopener noreferrer">
-										<BookOpen size={16} />
-										Panoramica pannello riflessologi
-									</a>
-								</li>
-								<li>
-									<a href="https://vimeo.com/1122734367/669c906f77" target="_blank" rel="noopener noreferrer">
-										<BookOpen size={16} />
-										Creazione corso da modello
-									</a>
-								</li>
-								<li>
-									<a href="https://vimeo.com/1124119351/25a552cc7f" target="_blank" rel="noopener noreferrer">
-										<BookOpen size={16} />
-										Gestione corso
-									</a>
-								</li>
+							<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+								<li><a href="/membership-new"><IdCard size={16} /> Tesseramento</a></li>
+								{#if auth}
+								<!-- <li><a href="/insurance-new"><ShieldCheck size={16} /> Assicurazione</a></li> -->
+								<li><a href="#"><ShieldCheck size={16} /> Assicurazione (in progress)</a></li>
+								{/if}
+							</ul>
+						</div>
+						<a href="/course-shop" class={`btn btn-sm ${isActive('/course-shop') ? 'btn-primary' : 'btn-ghost'}`}>
+							<BookOpen size={16} />
+							<span>Corsi ed eventi</span>
+						</a>
+
+						<a href="/product-shop" class={`btn btn-sm ${isActive('/product-shop') ? 'btn-primary' : 'btn-ghost'}`}>
+							<Package size={16} />
+							<span>Prodotti</span>
+						</a>
+
+						<a href="/user-list" class={`btn btn-sm ${isActive('/user-list') ? 'btn-primary' : 'btn-ghost'}`}>
+							<IdCard size={16} />
+							<span>Albo Riflessologi</span>
+						</a>
+
+						<a href="/cart" class={`btn btn-sm ${isActive('/cart') ? 'btn-primary' : 'btn-ghost'} relative`}>
+							<ShoppingCart size={16} />
+							<span>Carrello</span>
+							{#if $cartProducts.length > 0}
+								<span class="absolute -top-2 -right-2 badge badge-sm badge-primary">{$cdata.q1}</span>
 							{/if}
-						</ul>
+						</a>
+
+						<div class="dropdown dropdown-end">
+							<button class="btn btn-sm btn-ghost">
+								<Layers size={16} />
+								<span>Tutorial</span>
+								<ChevronDown size={14} />
+							</button>
+
+							<ul class="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2">
+								<li>
+									<a href="https://vimeo.com/1122482609/8966f3df8f" target="_blank" rel="noopener noreferrer">
+										<BookOpen size={16} />
+										Cambio Password
+									</a>
+								</li>
+								<li>
+									<a href="https://vimeo.com/1122482599/f7528712a6" target="_blank" rel="noopener noreferrer">
+										<BookOpen size={16} />
+										Iscrizione nuovo socio
+									</a>
+								</li>
+								<li>
+									<a href="https://vimeo.com/1122482586/fc96d35bd6" target="_blank" rel="noopener noreferrer">
+										<BookOpen size={16} />
+										Ricerca e acquisto corso
+									</a>
+								</li>
+								{#if isFormatore || level === 'superadmin' || level === 'admin'}
+									<li>
+										<a href="https://vimeo.com/1122734353/d6cd2c1d38" target="_blank" rel="noopener noreferrer">
+											<BookOpen size={16} />
+											Panoramica pannello riflessologi
+										</a>
+									</li>
+									<li>
+										<a href="https://vimeo.com/1122734367/669c906f77" target="_blank" rel="noopener noreferrer">
+											<BookOpen size={16} />
+											Creazione corso da modello
+										</a>
+									</li>
+									<li>
+										<a href="https://vimeo.com/1124119351/25a552cc7f" target="_blank" rel="noopener noreferrer">
+											<BookOpen size={16} />
+											Gestione corso
+										</a>
+									</li>
+								{/if}
+							</ul>
+						</div>
+
+						{#if auth}
+							<a href="/profile-area" class={`btn btn-sm ${isActive('/profile-area') ? 'btn-primary' : 'btn-ghost'}`}>
+								<User size={16} />
+								<span>Area personale</span>
+							</a>
+
+							{#if auth && (level === 'superadmin' || level === 'admin' || isFormatore)}
+								<div class="dropdown dropdown-end">
+									<button class="btn btn-sm btn-ghost">
+										<Layers size={16} />
+										<span>Gestione</span>
+										<ChevronDown size={14} />
+									</button>
+
+									<ul class="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2">
+										<li>
+											<a href="/course-table" class={isActive('/course-table') ? 'active' : ''}>
+												<BookOpen size={16} />
+												Corsi
+											</a>
+										</li>
+
+										<li>
+											<a href="/kit-materiale-formatori" class={isActive('/kit-materiale-formatori') ? 'active' : ''}>
+												<ShoppingBag size={16} />
+												Materiale Kit Formatori
+											</a>
+										</li>
+
+										{#if level === 'superadmin' || level === 'admin'}
+											<li>
+												<a href="/membership-table" class={isActive('/membership-table') ? 'active' : ''}>
+													<CreditCard size={16} />
+													Membership
+												</a>
+											</li>
+
+											<li>
+												<a href="/layout-table" class={isActive('/layout-table') ? 'active' : ''}>
+													<Layers size={16} />
+													Modelli corsi
+												</a>
+											</li>
+											<li>
+												<a href="/order-table" class={isActive('/order-table') ? 'active' : ''}>
+													<ShoppingCart size={16} />
+													Ordini
+												</a>
+											</li>
+											<li>
+												<a href="/product-table" class={isActive('/product-table') ? 'active' : ''}>
+													<Package size={16} />
+													Prodotti
+												</a>
+											</li>
+
+											<li>
+												<a href="/discount-table" class={isActive('/discount-table') ? 'active' : ''}>
+													<Megaphone size={16} />
+													Sconti
+												</a>
+											</li>
+
+											<li>
+												<a href="/user-table" class={isActive('/user-table') ? 'active' : ''}>
+													<User size={16} />
+													Utenti
+												</a>
+											</li>
+										{/if}
+									</ul>
+								</div>
+							{/if}
+
+							<form method="POST" action="/api/logout/" use:enhance={handleLogout}>
+								<button type="submit" class="btn btn-sm btn-outline btn-error">
+									<LogOut size={16} />
+									<span>Logout</span>
+								</button>
+							</form>
+						{:else}
+							<a href="/login" class="btn btn-sm btn-primary">
+								<LogIn size={16} />
+								<span>Login</span>
+							</a>
+						{/if}
 					</div>
 
-					{#if auth}
-						<a href="/profile-area" class={`btn btn-sm ${isActive('/profile-area') ? 'btn-primary' : 'btn-ghost'}`}>
-							<User size={16} />
-							<span>Area personale</span>
-						</a>
-
-						{#if auth && (level === 'superadmin' || level === 'admin' || isFormatore)}
-							<div class="dropdown dropdown-end">
-								<button class="btn btn-sm btn-ghost">
-									<Layers size={16} />
-									<span>Gestione</span>
-									<ChevronDown size={14} />
-								</button>
-
-								<ul class="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2">
-									<li>
-										<a href="/course-table" class={isActive('/course-table') ? 'active' : ''}>
-											<BookOpen size={16} />
-											Corsi
-										</a>
-									</li>
-
-									<li>
-										<a href="/kit-materiale-formatori" class={isActive('/kit-materiale-formatori') ? 'active' : ''}>
-											<ShoppingBag size={16} />
-											Materiale Kit Formatori
-										</a>
-									</li>
-
-									{#if level === 'superadmin' || level === 'admin'}
-										<li>
-											<a href="/membership-table" class={isActive('/membership-table') ? 'active' : ''}>
-												<CreditCard size={16} />
-												Membership
-											</a>
-										</li>
-
-										<li>
-											<a href="/layout-table" class={isActive('/layout-table') ? 'active' : ''}>
-												<Layers size={16} />
-												Modelli corsi
-											</a>
-										</li>
-										<li>
-											<a href="/order-table" class={isActive('/order-table') ? 'active' : ''}>
-												<ShoppingCart size={16} />
-												Ordini
-											</a>
-										</li>
-										<li>
-											<a href="/product-table" class={isActive('/product-table') ? 'active' : ''}>
-												<Package size={16} />
-												Prodotti
-											</a>
-										</li>
-
-										<li>
-											<a href="/discount-table" class={isActive('/discount-table') ? 'active' : ''}>
-												<Megaphone size={16} />
-												Sconti
-											</a>
-										</li>
-
-										<li>
-											<a href="/user-table" class={isActive('/user-table') ? 'active' : ''}>
-												<User size={16} />
-												Utenti
-											</a>
-										</li>
-									{/if}
-								</ul>
-							</div>
-						{/if}
-
-						<form method="POST" action="/api/logout/" use:enhance={handleLogout}>
-							<button type="submit" class="btn btn-sm btn-outline btn-error">
-								<LogOut size={16} />
-								<span>Logout</span>
-							</button>
-						</form>
-					{:else}
-						<a href="/login" class="btn btn-sm btn-primary">
-							<LogIn size={16} />
-							<span>Login</span>
-						</a>
-					{/if}
-				</div>
-
-				<!-- Mobile menu button -->
-				<div class="flex md:hidden">
-					<button class="btn btn-sm btn-ghost" onclick={toggleMenu} aria-label={menuActive ? 'Chiudi menu' : 'Apri menu'} aria-expanded={menuActive}>
-						{#if menuActive}
-							<X size={20} />
-						{:else}
-							<Menu size={20} />
-						{/if}
-					</button>
+					<!-- Mobile menu button -->
+					<div class="flex md:hidden">
+						<button
+							class="btn btn-sm btn-ghost"
+							onclick={toggleMenu}
+							aria-label={menuActive ? 'Chiudi menu' : 'Apri menu'}
+							aria-expanded={menuActive}
+						>
+							{#if menuActive}
+								<X size={20} />
+							{:else}
+								<Menu size={20} />
+							{/if}
+						</button>
+					</div>
 				</div>
 			</div>
 		</nav>
@@ -273,12 +297,26 @@
 		<div class="md:hidden bg-base-100 border-t border-base-200">
 			<div class="container mx-auto px-4 py-4">
 				<ul class="menu w-full gap-2">
-					<li>
-						<!-- class={`btn btn-sm ${isActive('/membership-new') ? 'btn-primary' : 'btn-ghost'}`} -->
+					<!-- class={`btn btn-sm ${isActive('/membership-new') ? 'btn-primary' : 'btn-ghost'}`} -->
+					<!-- <li>
 						<a href="/membership-new" class={`btn btn-sm ${isActive('/membership-new') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
 							<Megaphone size={18} />
 							Tesseramento
 						</a>
+					</li> -->
+					<li>
+						<div class="dropdown w-full">
+							<button tabindex="0" class="btn btn-sm btn-ghost w-full">
+								<Megaphone size={16} />
+								<span>Iscrizioni</span>
+								<ChevronDown size={14} />
+							</button>
+
+							<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+								<li><a href="/membership-new" onclick={toggleMenu}>Tesseramento</a></li>
+								<li><a href="/insurance-new" onclick={toggleMenu}>Assicurazione</a></li>
+							</ul>
+						</div>
 					</li>
 
 					<li>

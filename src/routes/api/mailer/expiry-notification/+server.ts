@@ -25,7 +25,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	try {
 		// PARTE 1: Disattivazione tessere scadute
-		
+
 		const resExpiredFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -122,7 +122,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 		// PARTE 2: Notifica tessere in scadenza (tra 2 settimane)
-		
+
 		const resExpiringFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -195,7 +195,38 @@ export const POST: RequestHandler = async ({ request }) => {
 			}
 		}
 
-		return json({ 
+		// PARTE 3: Fai scadere le assicurazioni al 31/12, fine anno corrente (metti false insurance.status)
+
+		// Verifica se oggi è il 1° gennaio
+		const isJanuary1st = now.getMonth() === 0 && now.getDate() === 1;
+
+		if (isJanuary1st) {
+			try {
+				// Disattiva TUTTE le assicurazioni (tutti gli utenti)
+				await fetch(`${BASE_URL}/api/mongo/update`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'user',
+						query: {}, // Query vuota = tutti gli utenti
+						update: {
+							$set: {
+								'insurance.insuranceStatus': false
+							}
+						},
+						options: { upsert: false },
+						multi: true // IMPORTANTE: true per aggiornare tutti
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+			} catch (err) {
+				console.error('Error deactivating insurances on January 1st:', err);
+			}
+		}
+
+		return json({
 			message: `Process completed successfully`,
 			expired: {
 				count: expiredCount,

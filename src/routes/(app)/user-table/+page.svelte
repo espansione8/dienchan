@@ -74,6 +74,8 @@
 	let membershipExpiry = $state('');
 	let membershipStatus = $state(false);
 	let trainingHistory: any[] = [];
+	let insuranceExpiry = $state('');
+	let insuranceStatus = $state(false);
 
 	// Pagination
 	let currentPage = $state(1);
@@ -238,6 +240,8 @@
 		pointsHistory = [];
 		pointsType = 'add';
 		membershipStatus = false;
+		insuranceExpiry = '';
+		insuranceStatus = false;
 	};
 
 	const onClickModal = (type: string, item: any) => {
@@ -282,6 +286,9 @@
 			countryPublic = item.countryPublic;
 			phonePublic = item.phonePublic;
 			mobilePhonePublic = item.mobilePhonePublic;
+
+			insuranceExpiry = item.insurance.insuranceExpiry ? new Date(item.insurance.insuranceExpiry).toISOString().split('T')[0] : '';
+			insuranceStatus = item.insurance.insuranceStatus;
 		}
 		if (type == 'delete') {
 			postAction = `?/delete`;
@@ -487,7 +494,7 @@
 					<th>Punti</th>
 					<th>Formazione</th>
 					<th>Status</th>
-					<th>Praticante</th>
+					<th>Assicurazione</th>
 					<th>Azione</th>
 				</tr>
 			</thead>
@@ -587,21 +594,26 @@
 						</td>
 						<!-- Insurance -->
 						<td>
-							<form method="POST" action={`?/changeInsurance`} use:enhance={formSubmit}>
-								<input type="hidden" name="userId" value={row.userId} />
-								<input type="hidden" name="insuranceStatus" value={row.insurance.insuranceStatus} />
-								<input type="hidden" name="insuranceDate" value={row.insurance.insuranceDate} />
-								{#if row.insurance.insuranceStatus == true}
-									<span class="flex items-center">{row.insurance.insuranceDate.substring(0, 10)}</span>
+							<div class="flex flex-col gap-1">
+								{#if row.insurance.insuranceStatus}
+									<!-- Attiva - Bollino Verde -->
+									<div class="badge badge-success badge-sm gap-1">
+										<div class="w-2 h-2 rounded-full bg-white"></div>
+										Attiva
+									</div>
+									<!-- {#if row.insurance.insuranceExpiry}
+										<span class="text-xs text-gray-600">
+											Scad: {new Date(row.insurance.insuranceExpiry).toLocaleDateString('it-IT')}
+										</span>
+									{/if} -->
+								{:else}
+									<!-- Inattiva - Bollino Rosso -->
+									<div class="badge badge-error badge-sm gap-1">
+										<div class="w-2 h-2 rounded-full bg-white"></div>
+										Inattiva
+									</div>
 								{/if}
-								<span class="flex items-center">
-									{#if row.insurance.insuranceStatus == true}
-										<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleRight color="darkgreen" /> </button>
-									{:else}
-										<button type="submit" class="btn btn-ghost btn-sm font-semibold"><ToggleLeft color="darkred" /></button>
-									{/if}
-								</span>
-							</form>
+							</div>
 						</td>
 						<!-- Action -->
 						<td class="flex items-center justify-center space-x-4">
@@ -1165,6 +1177,47 @@
 							class="radio radio-error mr-2"
 							checked={membershipStatus === false}
 							onchange={() => (membershipStatus = false)}
+						/>
+						<span class="text-sm">Inattiva</span>
+					</label>
+				</div>
+			</div>
+
+			<!-- Scadenza Assicurazione -->
+			<div class="form-control col-span-12 md:col-span-6">
+				<label for="insuranceExpiry" class="form-label">
+					<p class="font-bold mb-2">Scadenza Assicurazione</p>
+				</label>
+				<input type="date" id="insuranceExpiry" name="insuranceExpiry" class="input input-bordered w-full" bind:value={insuranceExpiry} />
+			</div>
+
+			<!-- Status Assicurazione -->
+			<div class="form-control col-span-12 md:col-span-6">
+				<label class="form-label">
+					<div class="flex items-center justify-between gap-4">
+						<span class="label-text font-bold">Status Assicurazione</span>
+					</div>
+				</label>
+				<div class="flex gap-4 mt-2">
+					<label class="flex items-center cursor-pointer">
+						<input
+							type="radio"
+							name="insuranceStatus"
+							value="true"
+							class="radio radio-success mr-2"
+							checked={insuranceStatus === true}
+							onchange={() => (insuranceStatus = true)}
+						/>
+						<span class="text-sm">Attiva</span>
+					</label>
+					<label class="flex items-center cursor-pointer">
+						<input
+							type="radio"
+							name="insuranceStatus"
+							value="false"
+							class="radio radio-error mr-2"
+							checked={insuranceStatus === false}
+							onchange={() => (insuranceStatus = false)}
 						/>
 						<span class="text-sm">Inattiva</span>
 					</label>

@@ -252,6 +252,9 @@ export const actions: Actions = {
 		const membershipStatus = formData.get('membershipStatus') as string;
 		const membershipLevel = formData.get('membershipLevel') as string;
 
+		const insuranceExpiry = formData.get('insuranceExpiry') as string;
+		const insuranceStatus = formData.get('insuranceStatus') || '';
+
 		const riflessologoLevels = new Set(['riflessologo', 'formatore base', 'master', 'formatore avanzato']);
 		const isRiflessologo = !!level && riflessologoLevels.has(level.toLowerCase());
 
@@ -292,6 +295,8 @@ export const actions: Actions = {
 						'membership.membershipExpiry': membershipExpiry,
 						'membership.membershipStatus': membershipStatus,
 						'membership.membershipLevel': membershipLevel,
+						'insurance.insuranceExpiry': insuranceExpiry,
+						'insurance.insuranceStatus': insuranceStatus,
 					}
 				},
 				options: { upsert: false },
