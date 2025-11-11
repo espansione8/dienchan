@@ -110,8 +110,13 @@
 
 			if (flatOrder.createdAt) flatOrder.createdAt = (flatOrder.createdAt as string).substring(0, 10);
 			// if (flatOrder.birthdate) flatOrder.birthdate = (flatOrder.birthdate as string).substring(0, 10);
-
+			const orderNotes = flatOrder.orderNotes || '';
+			const totalValue = flatOrder.totalValue || 0;
 			$orderKeysToDelete.forEach((key: string) => delete (flatOrder as any)[key]);
+
+			flatOrder.orderNotes = orderNotes;
+			flatOrder.totalValue = totalValue;
+
 			return flatOrder;
 		});
 
@@ -142,393 +147,400 @@
 	};
 
 	const createPDFReceipt = (order: Order) => {
-	if (!order) {
-		notification.error('Dati ordine mancanti');
-		return;
-	}
-
-	const pdfFonts = {
-		Roboto: {
-			normal: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Regular.ttf',
-			bold: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Medium.ttf',
-			italics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Italic.ttf',
-			bolditalics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-MediumItalic.ttf'
-		}
-	};
-
-	// Prepara i dati del carrello per la tabella
-	const cartTableBody = [
-		[
-			{ text: 'Descrizione', style: 'tableHeader' },
-			{ text: 'Quantità', style: 'tableHeader', alignment: 'center' },
-			{ text: 'Prezzo Unit.', style: 'tableHeader', alignment: 'right' },
-			{ text: 'Totale', style: 'tableHeader', alignment: 'right' }
-		]
-	];
-
-	order.cart.forEach((item) => {
-		let description = '';
-		let quantity = 1;
-		let unitPrice = 0;
-		let total = 0;
-
-		if (item.type === 'course' || item.type === 'event') {
-			description = item.layoutView?.title || item.title || 'N/A';
-			unitPrice = item.layoutView?.price || item.price || 0;
-			total = unitPrice;
-		} else if (item.type === 'membership') {
-			description = item.title || 'N/A';
-			unitPrice = item.price || 0;
-			total = unitPrice;
-		} else {
-			description = item.title || 'N/A';
-			quantity = item.orderQuantity || 1;
-			unitPrice = item.price || 0;
-			total = unitPrice * quantity;
+		if (!order) {
+			notification.error('Dati ordine mancanti');
+			return;
 		}
 
-		cartTableBody.push([
-			{ text: description, style: 'tableData' },
-			{ text: quantity.toString(), style: 'tableData', alignment: 'center' },
-			{ text: `€ ${unitPrice.toFixed(2)}`, style: 'tableData', alignment: 'right' },
-			{ text: `€ ${total.toFixed(2)}`, style: 'tableData', alignment: 'right' }
-		]);
-	});
+		const pdfFonts = {
+			Roboto: {
+				normal: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Regular.ttf',
+				bold: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Medium.ttf',
+				italics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Italic.ttf',
+				bolditalics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-MediumItalic.ttf'
+			}
+		};
 
-	const doc = {
-		compress: true,
-		pageSize: 'A4',
-		pageOrientation: 'portrait',
-		pageMargins: [40, 120, 40, 60],
-
-		header: {
-			margin: [40, 20, 40, 0],
-			stack: [
-				{ text: 'DIENCHAN ITALIA', style: 'companyName', alignment: 'center' },
-				{ text: 'Via Example 123', style: 'companyInfo', alignment: 'center' },
-				{ text: 'Milano, MI 20100', style: 'companyInfo', alignment: 'center' },
-				{ text: 'P.IVA: 12345678901', style: 'companyInfo', alignment: 'center' },
-				{ text: 'info@dienchan.it', style: 'companyInfo', alignment: 'center' }
+		// Prepara i dati del carrello per la tabella
+		const cartTableBody = [
+			[
+				{ text: 'Descrizione', style: 'tableHeader' },
+				{ text: 'Quantità', style: 'tableHeader', alignment: 'center' },
+				{ text: 'Prezzo Unit.', style: 'tableHeader', alignment: 'right' },
+				{ text: 'Totale', style: 'tableHeader', alignment: 'right' }
 			]
-		},
+		];
 
-		content: [
-			{
-				text: "RICEVUTA D'ORDINE",
-				style: 'mainHeader',
-				alignment: 'center',
-				margin: [0, 0, 0, 20]
+		order.cart.forEach((item) => {
+			let description = '';
+			let quantity = 1;
+			let unitPrice = 0;
+			let total = 0;
+
+			if (item.type === 'course' || item.type === 'event') {
+				description = item.layoutView?.title || item.title || 'N/A';
+				unitPrice = item.layoutView?.price || item.price || 0;
+				total = unitPrice;
+			} else if (item.type === 'membership') {
+				description = item.title || 'N/A';
+				unitPrice = item.price || 0;
+				total = unitPrice;
+			} else {
+				description = item.title || 'N/A';
+				quantity = item.orderQuantity || 1;
+				unitPrice = item.price || 0;
+				total = unitPrice * quantity;
+			}
+
+			cartTableBody.push([
+				{ text: description, style: 'tableData' },
+				{ text: quantity.toString(), style: 'tableData', alignment: 'center' },
+				{ text: `€ ${unitPrice.toFixed(2)}`, style: 'tableData', alignment: 'right' },
+				{ text: `€ ${total.toFixed(2)}`, style: 'tableData', alignment: 'right' }
+			]);
+		});
+
+		const doc = {
+			compress: true,
+			pageSize: 'A4',
+			pageOrientation: 'portrait',
+			pageMargins: [40, 120, 40, 60],
+
+			header: {
+				margin: [40, 20, 40, 0],
+				stack: [
+					{ text: 'DIENCHAN ITALIA', style: 'companyName', alignment: 'center' },
+					{ text: 'Via Example 123', style: 'companyInfo', alignment: 'center' },
+					{ text: 'Milano, MI 20100', style: 'companyInfo', alignment: 'center' },
+					{ text: 'P.IVA: 12345678901', style: 'companyInfo', alignment: 'center' },
+					{ text: 'info@dienchan.it', style: 'companyInfo', alignment: 'center' }
+				]
 			},
 
-			// Informazioni ordine
-			{
-				columns: [
-					{
-						width: '50%',
-						stack: [
-							{ text: 'DATI ORDINE', style: 'sectionHeader', margin: [0, 0, 0, 10] },
-							{
-								text: [
-									{ text: 'N° Ordine: ', style: 'labelBold' },
-									{ text: order.orderId || 'N/A', style: 'valueText' }
-								]
-							},
-							{
-								text: [
-									{ text: 'Data: ', style: 'labelBold' },
-									{ text: new Date(order.orderDate).toLocaleDateString('it-IT'), style: 'valueText' }
-								],
-								margin: [0, 5, 0, 0]
-							},
-							{
-								text: [
-									{ text: 'Tipo: ', style: 'labelBold' },
-									{ text: order.type?.toUpperCase() || 'N/A', style: 'valueText' }
-								],
-								margin: [0, 5, 0, 0]
-							}
-						]
-					},
-					{
-						width: '50%',
-						stack: [
-							{ text: 'CLIENTE', style: 'sectionHeader', margin: [0, 0, 0, 10] },
-							{
-								text: `${order.shipping?.name || ''} ${order.shipping?.surname || ''}`,
-								style: 'valueText'
-							},
-							{
-								text: order.shipping?.email || 'N/A',
-								style: 'valueText',
-								margin: [0, 5, 0, 0]
-							},
-							{
-								text: order.shipping?.phone || order.shipping?.mobile || 'N/A',
-								style: 'valueText',
-								margin: [0, 5, 0, 0]
-							}
-						]
-					}
-				],
-				margin: [0, 0, 0, 20]
-			},
-
-			// Indirizzo di spedizione
-			{
-				text: 'INDIRIZZO DI SPEDIZIONE',
-				style: 'sectionHeader',
-				margin: [0, 10, 0, 10]
-			},
-			{
-				text: [
-					{ text: `${order.shipping?.address || 'N/A'}\n`, style: 'valueText' },
-					{ text: `${order.shipping?.postalCode || ''} ${order.shipping?.city || ''} (${order.shipping?.county || ''})\n`, style: 'valueText' },
-					{ text: `${order.shipping?.country || 'Italia'}`, style: 'valueText' }
-				],
-				margin: [0, 0, 0, 20]
-			},
-
-			// Indirizzo di fatturazione (se presente)
-			...(order.invoicing?.businessName || order.invoicing?.name ? [
+			content: [
 				{
-					text: 'INDIRIZZO DI FATTURAZIONE',
+					text: "RICEVUTA D'ORDINE",
+					style: 'mainHeader',
+					alignment: 'center',
+					margin: [0, 0, 0, 20]
+				},
+
+				// Informazioni ordine
+				{
+					columns: [
+						{
+							width: '50%',
+							stack: [
+								{ text: 'DATI ORDINE', style: 'sectionHeader', margin: [0, 0, 0, 10] },
+								{
+									text: [
+										{ text: 'N° Ordine: ', style: 'labelBold' },
+										{ text: order.orderId || 'N/A', style: 'valueText' }
+									]
+								},
+								{
+									text: [
+										{ text: 'Data: ', style: 'labelBold' },
+										{ text: new Date(order.orderDate).toLocaleDateString('it-IT'), style: 'valueText' }
+									],
+									margin: [0, 5, 0, 0]
+								},
+								{
+									text: [
+										{ text: 'Tipo: ', style: 'labelBold' },
+										{ text: order.type?.toUpperCase() || 'N/A', style: 'valueText' }
+									],
+									margin: [0, 5, 0, 0]
+								}
+							]
+						},
+						{
+							width: '50%',
+							stack: [
+								{ text: 'CLIENTE', style: 'sectionHeader', margin: [0, 0, 0, 10] },
+								{
+									text: `${order.shipping?.name || ''} ${order.shipping?.surname || ''}`,
+									style: 'valueText'
+								},
+								{
+									text: order.shipping?.email || 'N/A',
+									style: 'valueText',
+									margin: [0, 5, 0, 0]
+								},
+								{
+									text: order.shipping?.phone || order.shipping?.mobile || 'N/A',
+									style: 'valueText',
+									margin: [0, 5, 0, 0]
+								}
+							]
+						}
+					],
+					margin: [0, 0, 0, 20]
+				},
+
+				// Indirizzo di spedizione
+				{
+					text: 'INDIRIZZO DI SPEDIZIONE',
 					style: 'sectionHeader',
 					margin: [0, 10, 0, 10]
 				},
 				{
 					text: [
-						...(order.invoicing.businessName ? [
-							{ text: `${order.invoicing.businessName}\n`, style: 'valueText', bold: true },
-							...(order.invoicing.vatNumber ? [{ text: `P.IVA: ${order.invoicing.vatNumber}\n`, style: 'valueText' }] : [])
-						] : []),
-						...(order.invoicing.name || order.invoicing.surname ? [
-							{ text: `${order.invoicing.name || ''} ${order.invoicing.surname || ''}\n`, style: 'valueText' }
-						] : []),
-						{ text: `${order.invoicing?.address || 'N/A'}\n`, style: 'valueText' },
-						{ text: `${order.invoicing?.postalCode || ''} ${order.invoicing?.city || ''} ${order.invoicing?.county ? `(${order.invoicing.county})` : ''}\n`, style: 'valueText' },
-						{ text: `${order.invoicing?.country || 'Italia'}`, style: 'valueText' }
+						{ text: `${order.shipping?.address || 'N/A'}\n`, style: 'valueText' },
+						{ text: `${order.shipping?.postalCode || ''} ${order.shipping?.city || ''} (${order.shipping?.county || ''})\n`, style: 'valueText' },
+						{ text: `${order.shipping?.country || 'Italia'}`, style: 'valueText' }
 					],
 					margin: [0, 0, 0, 20]
-				}
-			] : []),
-
-			// Tabella prodotti
-			{
-				text: 'DETTAGLIO ORDINE',
-				style: 'sectionHeader',
-				margin: [0, 10, 0, 10]
-			},
-			{
-				table: {
-					headerRows: 1,
-					widths: ['*', '15%', '20%', '20%'],
-					body: cartTableBody
 				},
-				layout: {
-					fillColor: function (rowIndex) {
-						return rowIndex === 0 ? '#2E5BBA' : rowIndex % 2 === 0 ? '#F2F2F2' : null;
+
+				// Indirizzo di fatturazione (se presente)
+				...(order.invoicing?.businessName || order.invoicing?.name
+					? [
+							{
+								text: 'INDIRIZZO DI FATTURAZIONE',
+								style: 'sectionHeader',
+								margin: [0, 10, 0, 10]
+							},
+							{
+								text: [
+									...(order.invoicing.businessName
+										? [
+												{ text: `${order.invoicing.businessName}\n`, style: 'valueText', bold: true },
+												...(order.invoicing.vatNumber ? [{ text: `P.IVA: ${order.invoicing.vatNumber}\n`, style: 'valueText' }] : [])
+											]
+										: []),
+									...(order.invoicing.name || order.invoicing.surname
+										? [{ text: `${order.invoicing.name || ''} ${order.invoicing.surname || ''}\n`, style: 'valueText' }]
+										: []),
+									{ text: `${order.invoicing?.address || 'N/A'}\n`, style: 'valueText' },
+									{
+										text: `${order.invoicing?.postalCode || ''} ${order.invoicing?.city || ''} ${order.invoicing?.county ? `(${order.invoicing.county})` : ''}\n`,
+										style: 'valueText'
+									},
+									{ text: `${order.invoicing?.country || 'Italia'}`, style: 'valueText' }
+								],
+								margin: [0, 0, 0, 20]
+							}
+						]
+					: []),
+
+				// Tabella prodotti
+				{
+					text: 'DETTAGLIO ORDINE',
+					style: 'sectionHeader',
+					margin: [0, 10, 0, 10]
+				},
+				{
+					table: {
+						headerRows: 1,
+						widths: ['*', '15%', '20%', '20%'],
+						body: cartTableBody
 					},
-					hLineWidth: function (i, node) {
-						return 1;
-					},
-					vLineWidth: function (i, node) {
-						return 1;
-					},
-					hLineColor: function (i, node) {
-						return '#CCCCCC';
-					},
-					vLineColor: function (i, node) {
-						return '#CCCCCC';
+					layout: {
+						fillColor: function (rowIndex) {
+							return rowIndex === 0 ? '#2E5BBA' : rowIndex % 2 === 0 ? '#F2F2F2' : null;
+						},
+						hLineWidth: function (i, node) {
+							return 1;
+						},
+						vLineWidth: function (i, node) {
+							return 1;
+						},
+						hLineColor: function (i, node) {
+							return '#CCCCCC';
+						},
+						vLineColor: function (i, node) {
+							return '#CCCCCC';
+						}
 					}
+				},
+
+				// Totali
+				{
+					columns: [
+						{ width: '*', text: '' },
+						{
+							width: '40%',
+							stack: [
+								{
+									columns: [
+										{ text: 'Subtotale:', style: 'totalLabel', alignment: 'right' },
+										{ text: `€ ${order.totalValue.toFixed(2)}`, style: 'totalValue', alignment: 'right' }
+									],
+									margin: [0, 10, 0, 5]
+								},
+								{
+									columns: [
+										{ text: 'Sconto:', style: 'totalLabel', alignment: 'right' },
+										{ text: `€ ${order.totalDiscount?.toFixed(2) || '0.00'}`, style: 'totalValue', alignment: 'right' }
+									],
+									margin: [0, 0, 0, 5]
+								},
+								{
+									columns: [
+										{ text: 'IVA:', style: 'totalLabel', alignment: 'right' },
+										{ text: `€ ${order.totalVAT?.toFixed(2) || '0.00'}`, style: 'totalValue', alignment: 'right' }
+									],
+									margin: [0, 0, 0, 10]
+								},
+								{
+									canvas: [
+										{
+											type: 'line',
+											x1: 0,
+											y1: 0,
+											x2: 515,
+											y2: 0,
+											lineWidth: 1
+										}
+									],
+									margin: [0, 0, 0, 10]
+								},
+								{
+									columns: [
+										{ text: 'TOTALE:', style: 'totalLabelBold', alignment: 'right' },
+										{ text: `€ ${order.totalValue.toFixed(2)}`, style: 'totalValueBold', alignment: 'right' }
+									]
+								}
+							]
+						}
+					]
+				},
+
+				// Informazioni pagamento
+				{
+					text: 'INFORMAZIONI PAGAMENTO',
+					style: 'sectionHeader',
+					margin: [0, 20, 0, 10]
+				},
+				{
+					columns: [
+						{
+							width: '50%',
+							stack: [
+								{
+									text: [
+										{ text: 'Metodo: ', style: 'labelBold' },
+										{ text: order.payment?.method || 'N/A', style: 'valueText' }
+									]
+								},
+								{
+									text: [
+										{ text: 'Stato: ', style: 'labelBold' },
+										{
+											text:
+												order.payment?.statusPayment === 'done' ? 'PAGATO' : order.payment?.statusPayment === 'pending' ? 'IN ATTESA' : 'CANCELLATO',
+											style: order.payment?.statusPayment === 'done' ? 'statusPaid' : 'statusPending'
+										}
+									],
+									margin: [0, 5, 0, 0]
+								}
+							]
+						},
+						{ width: '50%', text: '' }
+					]
+				},
+
+				// Note
+				order.orderNotes
+					? {
+							text: 'NOTE',
+							style: 'sectionHeader',
+							margin: [0, 20, 0, 10]
+						}
+					: {},
+				order.orderNotes
+					? {
+							text: order.orderNotes,
+							style: 'valueText'
+						}
+					: {},
+
+				// Footer
+				{
+					text: `Ricevuta generata il ${new Date().toLocaleDateString('it-IT')} alle ${new Date().toLocaleTimeString('it-IT')}`,
+					style: 'footer',
+					alignment: 'center',
+					margin: [0, 30, 0, 0]
 				}
-			},
+			],
 
-			// Totali
-			{
-				columns: [
-					{ width: '*', text: '' },
-					{
-						width: '40%',
-						stack: [
-							{
-								columns: [
-									{ text: 'Subtotale:', style: 'totalLabel', alignment: 'right' },
-									{ text: `€ ${order.totalValue.toFixed(2)}`, style: 'totalValue', alignment: 'right' }
-								],
-								margin: [0, 10, 0, 5]
-							},
-							{
-								columns: [
-									{ text: 'Sconto:', style: 'totalLabel', alignment: 'right' },
-									{ text: `€ ${order.totalDiscount?.toFixed(2) || '0.00'}`, style: 'totalValue', alignment: 'right' }
-								],
-								margin: [0, 0, 0, 5]
-							},
-							{
-								columns: [
-									{ text: 'IVA:', style: 'totalLabel', alignment: 'right' },
-									{ text: `€ ${order.totalVAT?.toFixed(2) || '0.00'}`, style: 'totalValue', alignment: 'right' }
-								],
-								margin: [0, 0, 0, 10]
-							},
-							{
-								canvas: [
-									{
-										type: 'line',
-										x1: 0,
-										y1: 0,
-										x2: 515,
-										y2: 0,
-										lineWidth: 1
-									}
-								],
-								margin: [0, 0, 0, 10]
-							},
-							{
-								columns: [
-									{ text: 'TOTALE:', style: 'totalLabelBold', alignment: 'right' },
-									{ text: `€ ${order.totalValue.toFixed(2)}`, style: 'totalValueBold', alignment: 'right' }
-								]
-							}
-						]
-					}
-				]
-			},
-
-			// Informazioni pagamento
-			{
-				text: 'INFORMAZIONI PAGAMENTO',
-				style: 'sectionHeader',
-				margin: [0, 20, 0, 10]
-			},
-			{
-				columns: [
-					{
-						width: '50%',
-						stack: [
-							{
-								text: [
-									{ text: 'Metodo: ', style: 'labelBold' },
-									{ text: order.payment?.method || 'N/A', style: 'valueText' }
-								]
-							},
-							{
-								text: [
-									{ text: 'Stato: ', style: 'labelBold' },
-									{
-										text:
-											order.payment?.statusPayment === 'done' ? 'PAGATO' : order.payment?.statusPayment === 'pending' ? 'IN ATTESA' : 'CANCELLATO',
-										style: order.payment?.statusPayment === 'done' ? 'statusPaid' : 'statusPending'
-									}
-								],
-								margin: [0, 5, 0, 0]
-							}
-						]
-					},
-					{ width: '50%', text: '' }
-				]
-			},
-
-			// Note
-			order.orderNotes
-				? {
-						text: 'NOTE',
-						style: 'sectionHeader',
-						margin: [0, 20, 0, 10]
-					}
-				: {},
-			order.orderNotes
-				? {
-						text: order.orderNotes,
-						style: 'valueText'
-					}
-				: {},
-
-			// Footer
-			{
-				text: `Ricevuta generata il ${new Date().toLocaleDateString('it-IT')} alle ${new Date().toLocaleTimeString('it-IT')}`,
-				style: 'footer',
-				alignment: 'center',
-				margin: [0, 30, 0, 0]
+			styles: {
+				companyName: {
+					fontSize: 14,
+					bold: true,
+					color: '#2E5BBA'
+				},
+				companyInfo: {
+					fontSize: 9,
+					color: '#555555'
+				},
+				mainHeader: {
+					fontSize: 20,
+					bold: true,
+					color: '#2E5BBA'
+				},
+				sectionHeader: {
+					fontSize: 12,
+					bold: true,
+					color: '#2E5BBA'
+				},
+				labelBold: {
+					fontSize: 10,
+					bold: true,
+					color: '#333333'
+				},
+				valueText: {
+					fontSize: 10,
+					color: '#555555'
+				},
+				tableHeader: {
+					fontSize: 10,
+					bold: true,
+					color: 'white'
+				},
+				tableData: {
+					fontSize: 9,
+					color: '#333333'
+				},
+				totalLabel: {
+					fontSize: 10,
+					color: '#333333'
+				},
+				totalValue: {
+					fontSize: 10,
+					color: '#333333'
+				},
+				totalLabelBold: {
+					fontSize: 12,
+					bold: true,
+					color: '#2E5BBA'
+				},
+				totalValueBold: {
+					fontSize: 12,
+					bold: true,
+					color: '#2E5BBA'
+				},
+				statusPaid: {
+					fontSize: 10,
+					bold: true,
+					color: '#008000'
+				},
+				statusPending: {
+					fontSize: 10,
+					bold: true,
+					color: '#FF6600'
+				},
+				footer: {
+					fontSize: 8,
+					italics: true,
+					color: '#888888'
+				}
 			}
-		],
+		};
 
-		styles: {
-			companyName: {
-				fontSize: 14,
-				bold: true,
-				color: '#2E5BBA'
-			},
-			companyInfo: {
-				fontSize: 9,
-				color: '#555555'
-			},
-			mainHeader: {
-				fontSize: 20,
-				bold: true,
-				color: '#2E5BBA'
-			},
-			sectionHeader: {
-				fontSize: 12,
-				bold: true,
-				color: '#2E5BBA'
-			},
-			labelBold: {
-				fontSize: 10,
-				bold: true,
-				color: '#333333'
-			},
-			valueText: {
-				fontSize: 10,
-				color: '#555555'
-			},
-			tableHeader: {
-				fontSize: 10,
-				bold: true,
-				color: 'white'
-			},
-			tableData: {
-				fontSize: 9,
-				color: '#333333'
-			},
-			totalLabel: {
-				fontSize: 10,
-				color: '#333333'
-			},
-			totalValue: {
-				fontSize: 10,
-				color: '#333333'
-			},
-			totalLabelBold: {
-				fontSize: 12,
-				bold: true,
-				color: '#2E5BBA'
-			},
-			totalValueBold: {
-				fontSize: 12,
-				bold: true,
-				color: '#2E5BBA'
-			},
-			statusPaid: {
-				fontSize: 10,
-				bold: true,
-				color: '#008000'
-			},
-			statusPending: {
-				fontSize: 10,
-				bold: true,
-				color: '#FF6600'
-			},
-			footer: {
-				fontSize: 8,
-				italics: true,
-				color: '#888888'
-			}
-		}
+		pdfMake.createPdf(doc, null, pdfFonts).download(`Ricevuta_${order.orderId}_${new Date().toISOString().split('T')[0]}.pdf`);
 	};
-
-	pdfMake.createPdf(doc, null, pdfFonts).download(`Ricevuta_${order.orderId}_${new Date().toISOString().split('T')[0]}.pdf`);
-};
 
 	const resetFields = () => {
 		modalTitle = '';
