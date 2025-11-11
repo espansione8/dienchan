@@ -598,7 +598,6 @@
 		// 	return;
 		// }
 
-
 		// if (!isCurrentStepValid()) {
 		// 	notification.error('Completa tutti i campi richiesti');
 		// 	return;
@@ -639,7 +638,6 @@
 		//const form = event.target as HTMLFormElement;
 		//form.requestSubmit();
 		if (formEl) {
-			
 			formEl.requestSubmit();
 		}
 	};
@@ -1687,11 +1685,17 @@
 					</div>
 				{/if}
 
-				{#if formData.paymentType === 'Carta di credito'}
+				{#if stripeError}
+					<div class="card bg-base-100 shadow-xl p-6">
+						<h3 class="text-xl font-semibold mb-4">ERRORE PAGAMENTO:</h3>
+						<p class="text-error text-sm mt-2">{stripeError}</p>
+					</div>
+				{/if}
+
+				<!-- {#if formData.paymentType === 'Carta di credito'}
 					<div class="card bg-base-100 shadow-xl p-6">
 						<h3 class="text-xl font-semibold mb-4">Pagamento:</h3>
 
-						<!-- {#if paymentMethodId} -->
 						{#if paymentIntentId}
 							<div class="alert alert-success">
 								<Check size={20} />
@@ -1702,10 +1706,9 @@
 								<CircleX size={20} />
 								<span>Devi verificare la carta per procedere con l'ordine.</span>
 							</div>
-							<!-- <CircleX /> Carta non verificata -->
 						{/if}
 					</div>
-				{/if}
+				{/if} -->
 			</div>
 
 			<!-- <div class="space-y-4">

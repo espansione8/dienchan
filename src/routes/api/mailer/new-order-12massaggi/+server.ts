@@ -133,29 +133,11 @@ export const POST: RequestHandler = async ({ request }) => {
                                 <th class="table-cell-style text-right">Quantità</th>
                                 <th class="table-cell-style text-right">Prezzo</th>
                             </tr>
-                            ${type === 'course' ?
-                cart
-                    .map(
-                        (item) => `
-                                            <tr>
-                                                <td class="table-cell-style text-left">${item.type == 'course' ? item.layoutView.title : item.title}</td>
-                                                <td class="table-cell-style text-right">${item.orderQuantity || 1}</td>
-                                                <td class="table-cell-style text-right"></td>
+                             <tr>
+                                                <td class="table-cell-style text-left"> Workshop: 12 Massaggi mattutini </td>
+                                                <td class="table-cell-style text-right"> 1 </td>
+                                                <td class="table-cell-style text-right"> 0 €</td>
                                             </tr>
-                                        `
-                    ).join('')
-                :
-                cart
-                    .map(
-                        (item) => `
-                                            <tr>
-                                                <td class="table-cell-style text-left">${item.type == 'course' ? item.layoutView.title : item.title}</td>
-                                                <td class="table-cell-style text-right">${item.orderQuantity || 1}</td>
-                                                <td class="table-cell-style text-right">${item.price.toFixed(2)}€</td>
-                                            </tr>
-                                        `
-                    ).join('')
-            }
                           <tr>
     <td colspan="2" class="table-cell-style text-right font-bold">Spedizione</td>
     <td class="table-cell-style text-right font-bold">
@@ -188,7 +170,7 @@ export const POST: RequestHandler = async ({ request }) => {
                         <h4 class="margin-top-lg text-black">Note ordine :</h4>
                         <p style="margin-top: 0.5em;">${orderNotes}</p>
 
-                 : ''}
+                
 
                         <p class="margin-top-lg">
                             Puoi visualizzare i dettagli completi del tuo ordine in qualsiasi momento

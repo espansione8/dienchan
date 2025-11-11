@@ -65,7 +65,8 @@ const UserSchema = new mongoose.Schema(
 			membershipStatus: { type: Boolean, default: false }
 		},
 		insurance: {
-			insuranceDate: { type: Date, default: Date.now },
+			insuranceDate: { type: Date, default: null },
+			insuranceExpiry: { type: Date, default: null },
 			insuranceStatus: { type: Boolean, default: false }
 		},
 		codeSales: { type: String, default: null },
