@@ -78,8 +78,8 @@
 							<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
 								<li><a href="/membership-new"><IdCard size={16} /> Tesseramento</a></li>
 								{#if auth}
-								<!-- <li><a href="/insurance-new"><ShieldCheck size={16} /> Assicurazione</a></li> -->
-								<li><a href="#"><ShieldCheck size={16} /> Assicurazione (in progress)</a></li>
+									<!-- <li><a href="/insurance-new"><ShieldCheck size={16} /> Assicurazione</a></li> -->
+									<li><a href="#"><ShieldCheck size={16} /> Assicurazione (in progress)</a></li>
 								{/if}
 							</ul>
 						</div>
@@ -242,22 +242,16 @@
 							</a>
 						{/if}
 					</div>
-
-					<!-- Mobile menu button -->
-					<div class="flex md:hidden">
-						<button
-							class="btn btn-sm btn-ghost"
-							onclick={toggleMenu}
-							aria-label={menuActive ? 'Chiudi menu' : 'Apri menu'}
-							aria-expanded={menuActive}
-						>
-							{#if menuActive}
-								<X size={20} />
-							{:else}
-								<Menu size={20} />
-							{/if}
-						</button>
-					</div>
+				</div>
+				<!-- Mobile menu button -->
+				<div class="flex md:hidden">
+					<button class="btn btn-sm btn-ghost" onclick={toggleMenu} aria-label={menuActive ? 'Chiudi menu' : 'Apri menu'} aria-expanded={menuActive}>
+						{#if menuActive}
+							<X size={20} />
+						{:else}
+							<Menu size={20} />
+						{/if}
+					</button>
 				</div>
 			</div>
 		</nav>

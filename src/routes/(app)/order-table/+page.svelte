@@ -54,7 +54,7 @@
 		content.forEach((item) => {
 			delete item.userView;
 		});
-		console.log('content', content);
+		//console.log('content', content);
 
 		const flattenObject = (obj, prefix = '') => {
 			let result = {};
