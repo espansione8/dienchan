@@ -142,10 +142,11 @@ export const actions: Actions = {
 		const password1: any = formData.get('password1') || '';
 		const password2 = formData.get('password2') || '';
 		const totalValue = formData.get('totalValue');
-		const paymentMethodId = formData.get('paymentMethodId') as string | null;
+		// const paymentMethodId = formData.get('paymentMethodId') as string | null;
+		const paymentIntentId = formData.get('paymentIntentId') as string | null; // Changed from paymentMethodId
 		const howDidYouKnow = formData.get('howDidYouKnow') || '';
 		const eventDetails = formData.get('eventDetails') || '';
-	
+
 		// const cart = formData.get('cart');
 		// const cartItem = JSON.parse(String(cart)) || null;
 
@@ -237,9 +238,11 @@ export const actions: Actions = {
 		}
 
 		// Stripe payment processing
-		let paymentIntentId: string | null = null;
+		// let paymentIntentId: string | null = null;
+		let paymentVerified = false;
 		if (payment === 'Carta di credito') {
-			if (!paymentMethodId) {
+			// if (!paymentMethodId) {
+			if (!paymentIntentId) {
 				return fail(400, {
 					action: 'new',
 					success: false,
@@ -247,37 +250,59 @@ export const actions: Actions = {
 				});
 			}
 
-			const amountInCents = Math.round(Number(totalValue) * 100);
+			// const amountInCents = Math.round(Number(totalValue) * 100);
+
+			// try {
+			// 	const paymentIntent = await stripe.paymentIntents.create({
+			// 		amount: amountInCents,
+			// 		currency: 'eur',
+			// 		payment_method: paymentMethodId,
+			// 		confirm: true,
+			// 		automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
+			// 	});
+			// 	// console.log('paymentIntent.status', paymentIntent.status)
+			// 	//paymentIntentId = paymentIntent.id;
+
+			// 	if (paymentIntent.status === 'succeeded') {
+			// 		paymentIntentId = paymentIntent.id;
+			// 	} else {
+			// 		return fail(400, {
+			// 			action: 'new',
+			// 			success: false,
+			// 			message: `Pagamento fallito: ${paymentIntent.status}`
+			// 		});
+			// 	}
+
+			// } catch (err: any) {
+			// 	console.error('Stripe error:', err);
+			// 	return fail(400, {
+			// 		action: 'new',
+			// 		success: false,
+			// 		message: `Pagamento fallito: ${err.message}`
+			// 	});
+			// }
+
 
 			try {
-				const paymentIntent = await stripe.paymentIntents.create({
-					amount: amountInCents,
-					currency: 'eur',
-					payment_method: paymentMethodId,
-					confirm: true,
-					automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
-				});
-				// console.log('paymentIntent.status', paymentIntent.status)
-				//paymentIntentId = paymentIntent.id;
+				const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
-				if (paymentIntent.status === 'succeeded') {
-					paymentIntentId = paymentIntent.id;
-				} else {
+				if (paymentIntent.status !== 'succeeded') {
 					return fail(400, {
 						action: 'new',
 						success: false,
-						message: `Pagamento fallito: ${paymentIntent.status}`
+						message: `Pagamento non completato: ${paymentIntent.status}`
 					});
 				}
-
+				paymentVerified = true;
 			} catch (err: any) {
-				console.error('Stripe error:', err);
+				console.error('PaymentIntent verification error:', err);
 				return fail(400, {
 					action: 'new',
 					success: false,
-					message: `Pagamento fallito: ${err.message}`
+					message: `Errore verifica pagamento: ${err.message}`
 				});
 			}
+
 		}
 
 		try {
@@ -520,13 +545,15 @@ export const actions: Actions = {
 
 		const formData = await request.formData();
 		const payment = formData.get('payment');
-		const paymentMethodId = formData.get('paymentMethodId') as string | null;
+		// const paymentMethodId = formData.get('paymentMethodId') as string | null;
+		const paymentIntentId = formData.get('paymentIntentId') as string | null;
 
-
+		console.log('arrivato prima del return');
 
 		let newExpire = new Date()
 
-		let paymentIntentId: string | null = null;
+		// let paymentIntentId: string | null = null;
+
 
 		if (!userData.name || !userData.surname || !userData.email || !userData.address ||
 			!userData.city || !userData.county[0] || !userData.postalCode || !userData.country) {
@@ -679,10 +706,12 @@ export const actions: Actions = {
 				return fail(400, { action: 'renew', success: false, message: await resMembership.text() });
 			}
 			const membership = await resMembership.json();
+			let paymentVerified = false;
 
 			// Stripe payment processing
 			if (payment === 'Carta di credito') {
-				if (!paymentMethodId) {
+				// if (!paymentMethodId) {
+				if (!paymentIntentId) {
 					return fail(400, {
 						action: 'renew',
 						success: false,
@@ -690,31 +719,52 @@ export const actions: Actions = {
 					});
 				}
 
-				const amountInCents = Math.round(Number(membership[0]?.price) * 100);
+				// const amountInCents = Math.round(Number(membership[0]?.price) * 100);
+
+
+				// try {
+				// 	const paymentIntent = await stripe.paymentIntents.create({
+				// 		amount: amountInCents,
+				// 		currency: 'eur',
+				// 		payment_method: paymentMethodId,
+				// 		confirm: true,
+				// 		automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
+				// 	});
+				// 	if (paymentIntent.status === 'succeeded') {
+				// 		paymentIntentId = paymentIntent.id;
+				// 	} else {
+				// 		return fail(400, {
+				// 			action: 'renew',
+				// 			success: false,
+				// 			message: `Pagamento fallito: ${paymentIntent.status}`
+				// 		});
+				// 	}
+				// } catch (err: any) {
+				// 	console.error('Stripe error:', err);
+				// 	return fail(400, {
+				// 		action: 'renew',
+				// 		success: false,
+				// 		message: `Pagamento fallito: ${err.message}`
+				// 	});
+				// }
 
 				try {
-					const paymentIntent = await stripe.paymentIntents.create({
-						amount: amountInCents,
-						currency: 'eur',
-						payment_method: paymentMethodId,
-						confirm: true,
-						automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
-					});
-					if (paymentIntent.status === 'succeeded') {
-						paymentIntentId = paymentIntent.id;
-					} else {
+					const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+					if (paymentIntent.status !== 'succeeded') {
 						return fail(400, {
-							action: 'renew',
+							action: 'new',
 							success: false,
-							message: `Pagamento fallito: ${paymentIntent.status}`
+							message: `Pagamento non completato: ${paymentIntent.status}`
 						});
 					}
+					paymentVerified = true;
 				} catch (err: any) {
-					console.error('Stripe error:', err);
+					console.error('PaymentIntent verification error:', err);
 					return fail(400, {
-						action: 'renew',
+						action: 'new',
 						success: false,
-						message: `Pagamento fallito: ${err.message}`
+						message: `Errore verifica pagamento: ${err.message}`
 					});
 				}
 			}
