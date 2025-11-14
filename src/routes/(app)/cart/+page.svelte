@@ -418,7 +418,7 @@
 					'Content-Type': 'application/x-www-form-urlencoded'
 				},
 				body: new URLSearchParams({
-					totalValue: subTotal().toString(),
+					totalValue: grandTotal().toString(),
 					email: formData.email,
 					name: formData.name,
 					surname: formData.surname

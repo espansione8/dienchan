@@ -352,13 +352,12 @@
 		loading = true;
 		stripeError = null;
 		let total = '';
-		
+
 		if (formData.membershipLevel == 'Socio vitalizio') {
 			total = '390';
 		} else {
 			total = '25';
 		}
-		
 
 		try {
 			const response = await fetch('?/createPaymentIntent', {
@@ -534,7 +533,6 @@
 	const handleFinalSubmit = async (event: Event) => {
 		//event.preventDefault();
 		loading = true;
-
 
 		if (!isCurrentStepValid()) {
 			notification.error('Completa tutti i campi richiesti');
