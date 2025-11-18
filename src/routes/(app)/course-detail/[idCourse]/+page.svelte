@@ -568,7 +568,7 @@
 
 		// 	form.appendChild(hiddenInput);
 		// }
-console.log('BEFORE', formEl, typeof formEl);
+		console.log('BEFORE', formEl, typeof formEl);
 		//const form = event.target as HTMLFormElement;
 		//form.requestSubmit();
 		if (formEl) {
@@ -708,10 +708,10 @@ console.log('BEFORE', formEl, typeof formEl);
 									<form method="POST" action={discountRadio === 'discountCode' ? '?/applyDiscount' : '?/applyEmailRef'} use:enhance={formSubmit}>
 										<label class="form-control">
 											<div class="label mb-4">
-												<span class="label-text font-medium">Codice sconto</span>
+												<span class="label-text font-bold text-lg text-black">Codice sconto</span>
 												<input type="radio" name="radio-discount" class="radio radio-primary" bind:group={discountRadio} value={'discountCode'} />
 
-												<span class="label-text font-medium"> Email amico</span>
+												<span class="label-text font-bold text-lg text-black"> Email amico</span>
 												<input
 													type="radio"
 													name="radio-discount"
@@ -989,9 +989,9 @@ console.log('BEFORE', formEl, typeof formEl);
 						{:else}
 							<div class="flex justify-between items-center w-full">
 								<span>Registrazione</span>
-								<button class="btn btn-sm btn-outline" onclick={gotoLogin}>Sei già un utente?</button>
+								<button class="btn btn-lg btn-success font-bold" onclick={gotoLogin}>Sei già un utente?</button>
 							</div>
-							<!-- <span>Registrazione</span> -->
+							<!-- <span>Registrazione</span> 
 						{/if}
 					</div>
 
