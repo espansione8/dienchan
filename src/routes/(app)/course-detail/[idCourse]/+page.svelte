@@ -36,6 +36,8 @@
 	let elements: StripeElements | null = $state(null);
 	let cardElement: any;
 	let stripeError = $state<string | null>(null);
+
+		console.log('stripe error', stripeError)
 	//let paymentMethodId = $state<string | null>(null);
 	let clientSecret = $state<string | null>(null);
 	let paymentIntentId = $state<string | null>(null);
@@ -359,8 +361,12 @@
 			stripeError = `Errore: ${error.message}`;
 			notification.error(stripeError);
 			loading = false;
+			
+		console.log('stripe error', stripeError)
 			return false;
 		}
+
+		
 	};
 
 	// NEW: Confirm payment with 3DS using Stripe.js
@@ -575,6 +581,13 @@
 			formEl.requestSubmit();
 		}
 	};
+
+	// $effect (() => {
+
+	// 	if (stripeError) {console.log('stripeError:', stripeError);
+
+
+	// }});
 </script>
 
 <svelte:head>
@@ -991,7 +1004,7 @@
 								<span>Registrazione</span>
 								<button class="btn btn-lg btn-success font-bold" onclick={gotoLogin}>Sei già un utente?</button>
 							</div>
-							<!-- <span>Registrazione</span> 
+							<!-- <span>Registrazione</span> -->
 						{/if}
 					</div>
 
@@ -1134,7 +1147,7 @@
 					</div>
 				</div>
 			</div>
-
+			
 			<!-- Step 2 -->
 			<div class={currentStep === 2 ? 'block' : 'hidden'}>
 				<div class="card bg-base-100 shadow-sm border border-base-200 p-4 rounded-lg mt-4">
@@ -1416,13 +1429,14 @@
 							class="btn btn-success"
 							disabled={!isCurrentStepValid() || (!paymentMethodId && formData.payment === 'Carta di credito')}
 						> -->
-						<button type="button" class="btn btn-success" onclick={handleFinalSubmit} disabled={!isCurrentStepValid() || loading}>
+						<button type="button" class="btn btn-success" onclick={handleFinalSubmit} disabled={!isCurrentStepValid() || loading || stripeError != null}>
 							{getCourse.type === 'course' ? 'Conferma Acquisto' : 'Conferma Partecipazione'}
 						</button>
 					{/if}
 				</div>
 			</div>
 		</form>
+		
 	</Modal>
 {/if}
 

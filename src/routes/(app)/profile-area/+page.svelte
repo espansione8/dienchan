@@ -833,6 +833,9 @@
 			postAction = `?/changePassword`;
 			modalTitle = 'Cambio password';
 		}
+		if (type == 'points') {
+			modalTitle = 'Storico Punti';
+		}
 	};
 
 	const onCloseModal = () => {
@@ -1132,6 +1135,11 @@
 								<span class="text-3xl font-bold text-primary">{userData.pointsBalance || 0}</span>
 								<div class="text-base-content/80 text-sm mt-1">Punti disponibili</div>
 							</div>
+							<button
+									type="button"
+									class="btn btn-sm btn-primary mt-2"
+									onclick={() => onClickModal('points', null)}>Storico Punti</button
+								>
 						</div>
 
 						<!-- Card: Prossima Formazione -->
@@ -2285,6 +2293,39 @@
 					Completa Profilo
 				</button>
 			</div>
+		</div>
+	</Modal>
+{/if}
+
+
+{#if currentModal == 'points'}
+	<Modal isOpen={openModal} header={modalTitle}>
+		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
+		{#if loading}
+			<Loader />
+		{/if}
+		
+
+		<div class="grid grid-cols-4 bg-base-100 grid-col gap-y-3 p-4 lg:gap-x-4 lg:p-4">
+			{#each userData?.pointsHistory || [] as item}
+			<!-- {#each [...(pointsHistory || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) as item} -->
+				<div
+					class="col-span-4
+                           p-3
+                           rounded-box
+                           shadow-md
+                           bg-base-200
+                           flex flex-wrap
+                           gap-x-1 gap-y-1
+                           items-center
+                           justify-between
+                           "
+				>
+					<span class="font-bold text-lg text-primary"> punti: {item.points}</span>
+					<span class="text-sm text-base-content">{item.note}</span>
+					<div class="w-full"><span class="text-sm text-base-content">{new Date(item.date).toLocaleString()}</span></div>
+				</div>
+			{/each}
 		</div>
 	</Modal>
 {/if}

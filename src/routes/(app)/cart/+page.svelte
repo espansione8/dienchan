@@ -1823,7 +1823,7 @@
 						{/if}
 					</button> -->
 
-					<button type="button" class="btn btn-primary" onclick={handleFinalSubmit} disabled={loading}>
+					<button type="button" class="btn btn-primary" onclick={handleFinalSubmit} disabled={ loading || stripeError != null}>
 						{#if loading}
 							<span class="loading loading-spinner"></span>
 							Elaborazione...

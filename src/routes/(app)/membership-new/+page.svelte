@@ -578,6 +578,13 @@
 			formEl.requestSubmit();
 		}
 	};
+
+
+	$effect(() => {
+		if (stripeError) {
+			console.log('stripeError:', stripeError);
+		}
+	});
 </script>
 
 <svelte:head>
@@ -1370,7 +1377,9 @@
 						<button type="button" class="btn btn-primary" onclick={nextStep} disabled={!isCurrentStepValid()}> Continua </button>
 					{:else}
 						<!-- <button type="submit" class="btn btn-success" disabled={!isCurrentStepValid()}> Conferma Acquisto </button> -->
-						<button type="button" class="btn btn-success" onclick={handleFinalSubmit} disabled={!isCurrentStepValid()}> Conferma Acquisto</button>
+						<button type="button" class="btn btn-success" onclick={handleFinalSubmit} disabled={!isCurrentStepValid() || loading || stripeError != null}>
+							Conferma Acquisto</button
+						>
 					{/if}
 				</div>
 			</div>
@@ -1733,7 +1742,7 @@
 						<button type="button" class="btn btn-primary" onclick={nextStep} disabled={!isCurrentStepValid()}> Continua </button>
 					{:else}
 						<!-- <button type="submit" class="btn btn-success" disabled={!isCurrentStepValid()}> Conferma Acquisto </button> -->
-						<button type="button" class="btn btn-success" onclick={handleFinalSubmit} disabled={!isCurrentStepValid()}> Conferma Acquisto</button>
+						<button type="button" class="btn btn-success" onclick={handleFinalSubmit} disabled={!isCurrentStepValid() || loading || stripeError != null}> Conferma Acquisto</button>
 					{/if}
 				</div>
 			</div>

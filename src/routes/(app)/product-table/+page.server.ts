@@ -581,4 +581,85 @@ export const actions: Actions = {
 		}
 	},
 
+	productSalesByMonth: async ({ fetch }) => {
+	const currentYear = new Date().getFullYear();
+
+	try {
+		const orderFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'order',
+				query: {},
+				projection: { _id: 0, orderDate: 1, cart: 1 },
+				sort: { orderDate: 1 },
+				limit: 0,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		if (!orderFetch.ok) {
+			const errorText = await orderFetch.text();
+			console.error('order fetch failed', orderFetch.status, errorText);
+			return fail(400, { action: 'productSalesByMonth', success: false, message: errorText });
+		}
+
+		const orders = await orderFetch.json();
+
+		// Filter orders for current year
+		const yearOrders = orders.filter(order => {
+			const orderYear = new Date(order.orderDate).getFullYear();
+			return orderYear === currentYear;
+		});
+
+		// Initialize product map
+		const productSales: Record<string, { title: string; months: number[] }> = {};
+
+		// Process each order
+		yearOrders.forEach(order => {
+			const orderMonth = new Date(order.orderDate).getMonth(); // 0-11
+
+			order.cart.forEach(item => {
+				if (item.type === 'product') {
+					const prodId = item.prodId;
+					const title = item.title;
+					const quantity = item.orderQuantity || 1;
+
+					if (!productSales[prodId]) {
+						productSales[prodId] = {
+							title: title,
+							months: new Array(12).fill(0)
+						};
+					}
+
+					productSales[prodId].months[orderMonth] += quantity;
+				}
+			});
+		});
+
+		// Convert to array
+		const payload = Object.entries(productSales).map(([prodId, data]) => ({
+			prodId,
+			title: data.title,
+			months: data.months
+		}));
+
+		// Sort by prodId
+		payload.sort((a, b) => a.prodId.localeCompare(b.prodId));
+
+		return { 
+			action: 'productSalesByMonth', 
+			success: true, 
+			message: 'Dati recuperati', 
+			payload 
+		};
+
+	} catch (error) {
+		console.error('Error productSalesByMonth:', error);
+		return fail(400, { action: 'productSalesByMonth', success: false, message: 'Error fetching data' });
+	}
+}
 } satisfies Actions;

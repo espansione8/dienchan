@@ -147,6 +147,8 @@ export const actions: Actions = {
 		const howDidYouKnow = formData.get('howDidYouKnow') || '';
 		const eventDetails = formData.get('eventDetails') || '';
 
+			// return;
+
 		// const cart = formData.get('cart');
 		// const cartItem = JSON.parse(String(cart)) || null;
 
@@ -548,7 +550,8 @@ export const actions: Actions = {
 		// const paymentMethodId = formData.get('paymentMethodId') as string | null;
 		const paymentIntentId = formData.get('paymentIntentId') as string | null;
 
-		console.log('arrivato prima del return');
+		
+			// return;
 
 		let newExpire = new Date()
 

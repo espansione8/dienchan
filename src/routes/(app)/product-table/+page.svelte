@@ -132,10 +132,62 @@
 		const link = document.createElement('a'); //
 		link.href = URL.createObjectURL(blob);
 		link.download = `Export_products_${new Date().toLocaleDateString()}.csv`;
+
 		document.body.appendChild(link);
 		link.click();
 
 		// Release the URL object
+		document.body.removeChild(link);
+		URL.revokeObjectURL(link.href);
+	};
+
+	const createProductSalesByMonthCSV = (data: any[]) => {
+		const currentYear = new Date().getFullYear();
+		const monthNames = [
+			'Gennaio',
+			'Febbraio',
+			'Marzo',
+			'Aprile',
+			'Maggio',
+			'Giugno',
+			'Luglio',
+			'Agosto',
+			'Settembre',
+			'Ottobre',
+			'Novembre',
+			'Dicembre'
+		];
+
+		const dataToExport = data.map((item) => {
+			const row: any = {
+				prodId: item.prodId,
+				Titolo: item.title
+			};
+
+			monthNames.forEach((monthName, index) => {
+				row[monthName] = item.months[index];
+			});
+
+			return row;
+		});
+
+		// CSV UNPARSE
+		const csv = Papa.unparse(dataToExport, {
+			quotes: false,
+			quoteChar: '"',
+			escapeChar: '"',
+			delimiter: ';',
+			header: true,
+			skipEmptyLines: false
+		});
+
+		// DOWNLOAD file
+		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+		const link = document.createElement('a');
+		link.href = URL.createObjectURL(blob);
+		link.download = `Vendite_Prodotti_${currentYear}.csv`;
+		document.body.appendChild(link);
+		link.click();
 		document.body.removeChild(link);
 		URL.revokeObjectURL(link.href);
 	};
@@ -243,6 +295,8 @@
 							tableList = getTable;
 						}
 						currentPage = payload.currentPage;
+					} else if (action == 'productSalesByMonth') {
+						createProductSalesByMonthCSV(payload);
 					} else {
 						tableList = getTable;
 						resetActive = false;
@@ -340,6 +394,11 @@
 			<button aria-label="uploadCSV" class="btn btn-info text-white w-full sm:w-auto" onclick={() => onClickModal('uploadCsv', null)}>
 				<FileUp />CSV Update
 			</button>
+			<form method="POST" action="?/productSalesByMonth" use:enhance={formSubmit}>
+				<button type="submit" class="btn btn-info text-white w-full sm:w-auto">
+					<FileDown />Report Vendite {new Date().getFullYear()}
+				</button>
+			</form>
 		</div>
 	</div>
 
@@ -934,7 +993,7 @@
 					<option value="Martelli">Martelli</option>
 					<option value="Materiale didattico">Materiale didattico</option>
 					<option value="Materiale formatori">Materiale formatori</option>
-						<option value="Materiale riflessologi">Materiale riflessologi</option>
+					<option value="Materiale riflessologi">Materiale riflessologi</option>
 					<option value="Pettini">Pettini</option>
 					<option value="Rulli">Rulli</option>
 					<option value="Vietmassage">Vietmassage</option>
