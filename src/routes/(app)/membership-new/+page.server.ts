@@ -147,7 +147,7 @@ export const actions: Actions = {
 		const howDidYouKnow = formData.get('howDidYouKnow') || '';
 		const eventDetails = formData.get('eventDetails') || '';
 
-			// return;
+		// return;
 
 		// const cart = formData.get('cart');
 		// const cartItem = JSON.parse(String(cart)) || null;
@@ -550,8 +550,8 @@ export const actions: Actions = {
 		// const paymentMethodId = formData.get('paymentMethodId') as string | null;
 		const paymentIntentId = formData.get('paymentIntentId') as string | null;
 
-		
-			// return;
+
+		// return;
 
 		let newExpire = new Date()
 
@@ -591,105 +591,9 @@ export const actions: Actions = {
 			},
 		});
 
-		const orderFetch = (membership) => fetch(`${BASE_URL}/api/mongo/create`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'order', //product | order | user | layout | discount
-				newDoc: {
-					orderId: nanoid(),
-					orderCode: crypto.randomUUID(),
-					userId: userData.userId,
-					status: 'requested',
-					type: 'membership',
-					orderDate: new Date(),
-					orderConfirmDate: null,
-					promotionId: '',
-					promotionName: '',
-					promoterId: '',
-					agencyId: '',
-					orderConfirmed: false,
-					totalPoints: 0,
-					totalValue: Number(membership[0]?.price),
-					totalVAT: 0,
-					browser: '',
-					orderIp: '',
-					orderNotes: '',
-					invoicing: {
-						name: userData.name,
-						surname: userData.surname,
-						businessName: '',
-						vatNumber: '',
-						address: userData.address,
-						city: userData.city,
-						county: userData.county[0],
-						postalCode: userData.postalCode,
-						state: '',
-						region: '',
-						country: userData.country,
-						invoiceNotes: '',
-						email: userData.email,
-						phone: userData.phone,
-						mobilePhone: userData.mobilePhone
-					},
-					shipping: {
-						name: userData.name,
-						surname: userData.surname,
-						address: userData.address,
-						city: userData.city,
-						county: userData.county[0],
-						postalCode: userData.postalCode,
-						state: '',
-						region: '',
-						country: userData.country,
-						deliveryNotes: '',
-						email: userData.email,
-						phone: userData.phone,
-						mobilePhone: userData.mobilePhone,
-						// tracking: {
-						// 	company: '',
-						// 	trackingNumber: '',
-						// 	trackingLink: '',
-						// 	status: '',
-						// 	estimatedDelivery: new Date()
-						// }
-					},
-					payment: {
-						method: payment,
-						statusPayment: paymentIntentId ? 'done' : 'pending',
-						transactionId: paymentIntentId || '',
-						points: '',
-						value: ''
-					},
-					cart: membership
-				},
-				returnObj: true
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
 
-		const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'user', //product | order | user | layout | discount
-				query: { userId: userId },
-				update: {
-					$set: {
-						'membership.membershipLevel': 'Socio ordinario',
-						'membership.membershipExpiry': newExpire,
-						'membership.membershipStatus': paymentIntentId ? true : false,
-					}
-				},
-				options: { upsert: false },
-				multi: false
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
+
+
 
 		const mailFetch = (email, order) => fetch(`${BASE_URL}/api/mailer/new-order`, {
 			method: 'POST',
@@ -709,7 +613,7 @@ export const actions: Actions = {
 				return fail(400, { action: 'renew', success: false, message: await resMembership.text() });
 			}
 			const membership = await resMembership.json();
-			let paymentVerified = false;
+			//let paymentVerified = false;
 
 			// Stripe payment processing
 			if (payment === 'Carta di credito') {
@@ -722,35 +626,6 @@ export const actions: Actions = {
 					});
 				}
 
-				// const amountInCents = Math.round(Number(membership[0]?.price) * 100);
-
-
-				// try {
-				// 	const paymentIntent = await stripe.paymentIntents.create({
-				// 		amount: amountInCents,
-				// 		currency: 'eur',
-				// 		payment_method: paymentMethodId,
-				// 		confirm: true,
-				// 		automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
-				// 	});
-				// 	if (paymentIntent.status === 'succeeded') {
-				// 		paymentIntentId = paymentIntent.id;
-				// 	} else {
-				// 		return fail(400, {
-				// 			action: 'renew',
-				// 			success: false,
-				// 			message: `Pagamento fallito: ${paymentIntent.status}`
-				// 		});
-				// 	}
-				// } catch (err: any) {
-				// 	console.error('Stripe error:', err);
-				// 	return fail(400, {
-				// 		action: 'renew',
-				// 		success: false,
-				// 		message: `Pagamento fallito: ${err.message}`
-				// 	});
-				// }
-
 				try {
 					const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
@@ -761,7 +636,7 @@ export const actions: Actions = {
 							message: `Pagamento non completato: ${paymentIntent.status}`
 						});
 					}
-					paymentVerified = true;
+					//paymentVerified = true;
 				} catch (err: any) {
 					console.error('PaymentIntent verification error:', err);
 					return fail(400, {
@@ -772,12 +647,211 @@ export const actions: Actions = {
 				}
 			}
 
-			const orderFetchRes = await orderFetch(membership);
+			const orderFetchRes = await fetch(`${BASE_URL}/api/mongo/create`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'order', //product | order | user | layout | discount
+					newDoc: {
+						orderId: nanoid(),
+						orderCode: crypto.randomUUID(),
+						userId: userData.userId,
+						status: 'requested',
+						type: 'membership',
+						orderDate: new Date(),
+						orderConfirmDate: null,
+						promotionId: '',
+						promotionName: '',
+						promoterId: '',
+						agencyId: '',
+						orderConfirmed: false,
+						totalPoints: 0,
+						totalValue: Number(membership[0]?.price),
+						totalVAT: 0,
+						browser: '',
+						orderIp: '',
+						orderNotes: '',
+						invoicing: {
+							name: userData.name,
+							surname: userData.surname,
+							businessName: '',
+							vatNumber: '',
+							address: userData.address,
+							city: userData.city,
+							county: userData.county[0],
+							postalCode: userData.postalCode,
+							state: '',
+							region: '',
+							country: userData.country,
+							invoiceNotes: '',
+							email: userData.email,
+							phone: userData.phone,
+							mobilePhone: userData.mobilePhone
+						},
+						shipping: {
+							name: userData.name,
+							surname: userData.surname,
+							address: userData.address,
+							city: userData.city,
+							county: userData.county[0],
+							postalCode: userData.postalCode,
+							state: '',
+							region: '',
+							country: userData.country,
+							deliveryNotes: '',
+							email: userData.email,
+							phone: userData.phone,
+							mobilePhone: userData.mobilePhone,
+							// tracking: {
+							// 	company: '',
+							// 	trackingNumber: '',
+							// 	trackingLink: '',
+							// 	status: '',
+							// 	estimatedDelivery: new Date()
+							// }
+						},
+						payment: {
+							method: payment,
+							statusPayment: paymentIntentId ? 'done' : 'pending',
+							transactionId: paymentIntentId || '',
+							points: '',
+							value: ''
+						},
+						cart: membership
+					},
+					returnObj: true
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			// const orderFetch = (membership) => fetch(`${BASE_URL}/api/mongo/create`, {
+			// 	method: 'POST',
+			// 	body: JSON.stringify({
+			// 		apiKey: APIKEY,
+			// 		schema: 'order', //product | order | user | layout | discount
+			// 		newDoc: {
+			// 			orderId: nanoid(),
+			// 			orderCode: crypto.randomUUID(),
+			// 			userId: userData.userId,
+			// 			status: 'requested',
+			// 			type: 'membership',
+			// 			orderDate: new Date(),
+			// 			orderConfirmDate: null,
+			// 			promotionId: '',
+			// 			promotionName: '',
+			// 			promoterId: '',
+			// 			agencyId: '',
+			// 			orderConfirmed: false,
+			// 			totalPoints: 0,
+			// 			totalValue: Number(membership[0]?.price),
+			// 			totalVAT: 0,
+			// 			browser: '',
+			// 			orderIp: '',
+			// 			orderNotes: '',
+			// 			invoicing: {
+			// 				name: userData.name,
+			// 				surname: userData.surname,
+			// 				businessName: '',
+			// 				vatNumber: '',
+			// 				address: userData.address,
+			// 				city: userData.city,
+			// 				county: userData.county[0],
+			// 				postalCode: userData.postalCode,
+			// 				state: '',
+			// 				region: '',
+			// 				country: userData.country,
+			// 				invoiceNotes: '',
+			// 				email: userData.email,
+			// 				phone: userData.phone,
+			// 				mobilePhone: userData.mobilePhone
+			// 			},
+			// 			shipping: {
+			// 				name: userData.name,
+			// 				surname: userData.surname,
+			// 				address: userData.address,
+			// 				city: userData.city,
+			// 				county: userData.county[0],
+			// 				postalCode: userData.postalCode,
+			// 				state: '',
+			// 				region: '',
+			// 				country: userData.country,
+			// 				deliveryNotes: '',
+			// 				email: userData.email,
+			// 				phone: userData.phone,
+			// 				mobilePhone: userData.mobilePhone,
+			// 				// tracking: {
+			// 				// 	company: '',
+			// 				// 	trackingNumber: '',
+			// 				// 	trackingLink: '',
+			// 				// 	status: '',
+			// 				// 	estimatedDelivery: new Date()
+			// 				// }
+			// 			},
+			// 			payment: {
+			// 				method: payment,
+			// 				statusPayment: paymentIntentId ? 'done' : 'pending',
+			// 				transactionId: paymentIntentId || '',
+			// 				points: '',
+			// 				value: ''
+			// 			},
+			// 			cart: membership
+			// 		},
+			// 		returnObj: true
+			// 	}),
+			// 	headers: {
+			// 		'Content-Type': 'application/json'
+			// 	}
+			// });
+
+			//const orderFetchRes = await orderFetch(membership);
 			if (!orderFetchRes.ok) {
 				return fail(400, { action: 'renew', success: false, message: await orderFetchRes.text() });
 			}
 
-			const resUpdate = await updateFetch;
+			const resUpdate = await fetch(`${BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user', //product | order | user | layout | discount
+					query: { userId: userId },
+					update: {
+						$set: {
+							'membership.membershipLevel': 'Socio ordinario',
+							'membership.membershipExpiry': newExpire,
+							'membership.membershipStatus': paymentIntentId ? true : false,
+						}
+					},
+					options: { upsert: false },
+					multi: false
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			// const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			// 	method: 'POST',
+			// 	body: JSON.stringify({
+			// 		apiKey: APIKEY,
+			// 		schema: 'user', //product | order | user | layout | discount
+			// 		query: { userId: userId },
+			// 		update: {
+			// 			$set: {
+			// 				'membership.membershipLevel': 'Socio ordinario',
+			// 				'membership.membershipExpiry': newExpire,
+			// 				'membership.membershipStatus': paymentIntentId ? true : false,
+			// 			}
+			// 		},
+			// 		options: { upsert: false },
+			// 		multi: false
+			// 	}),
+			// 	headers: {
+			// 		'Content-Type': 'application/json'
+			// 	}
+			// });
+
+			//const resUpdate = await updateFetch;
 			if (!resUpdate.ok) {
 				return fail(400, { action: 'renew', success: false, message: await resUpdate.text() });
 			}
