@@ -216,11 +216,11 @@
 			header: {
 				margin: [40, 20, 40, 0],
 				stack: [
-					{ text: 'DIENCHAN ITALIA', style: 'companyName', alignment: 'center' },
-					{ text: 'Via Example 123', style: 'companyInfo', alignment: 'center' },
-					{ text: 'Milano, MI 20100', style: 'companyInfo', alignment: 'center' },
-					{ text: 'P.IVA: 12345678901', style: 'companyInfo', alignment: 'center' },
-					{ text: 'info@dienchan.it', style: 'companyInfo', alignment: 'center' }
+					{ text: 'Associazione DIEN CHAN - BQC - ITALIA', style: 'companyName', alignment: 'center' },
+					{ text: 'Via Ticino, 12F 25015', style: 'companyInfo', alignment: 'center' },
+					{ text: 'Desenzano del Garda - Brescia', style: 'companyInfo', alignment: 'center' },
+					{ text: 'C.F. 94016070172', style: 'companyInfo', alignment: 'center' },
+					{ text: 'info@riflessologiadienchan.it', style: 'companyInfo', alignment: 'center' }
 				]
 			},
 

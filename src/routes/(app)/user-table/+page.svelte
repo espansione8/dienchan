@@ -516,12 +516,14 @@
 						<!-- Level, MembreshipLevel, Expire Date -->
 						<td>
 							{row.level}
-							<br /><br />
+							<br />
 							{row.membership.membershipLevel}
-							<br /><br />
+							<br />
 							<span>Scadenza:</span>
 							<strong>{row.membership.membershipExpiry.substring(0, 10)}</strong>
-						</td>
+							<br />
+							<span>Status tessera:</span>
+						<span class="badge badge-xs {row.membership.membershipStatus === true ? 'badge-success' : 'badge-error'}"></span></td>
 						<!-- Addres  -->
 						<td>
 							<ul class="">
@@ -1123,7 +1125,7 @@
 			</div>
 
 			<!-- expire -->
-			<div class="form-control col-span-12 md:col-span-6">
+			<div class="form-control col-span-12 md:col-span-6 ">
 				<label for="membershipExpiry" class="form-label">
 					<p class="font-bold mb-2">Scadenza iscrizione Membership</p>
 				</label>
@@ -1151,7 +1153,7 @@
 				</select>
 			</div>
 
-			<div class="form-control col-span-12">
+			<div class="form-control col-span-12 md:col-span-6 mx-auto">
 				<label class="form-label">
 					<div class="flex items-center justify-between gap-4">
 						<span class="label-text font-bold">Status Tessera</span>
@@ -1192,7 +1194,7 @@
 			</div>
 
 			<!-- Status Assicurazione -->
-			<div class="form-control col-span-12 md:col-span-6">
+			<div class="form-control col-span-12 md:col-span-6 mx-auto">
 				<label class="form-label">
 					<div class="flex items-center justify-between gap-4">
 						<span class="label-text font-bold">Status Assicurazione</span>
