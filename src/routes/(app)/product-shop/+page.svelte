@@ -101,7 +101,7 @@
 	const onFilterReset = () => {
 		invalidateAll();
 		resetActive = false;
-			searchTerm = '';
+		searchTerm = '';
 		prodList = getTable || [];
 		//prodList.sort((a, b) => new Date(b.eventStartDate) - new Date(a.eventStartDate));
 		// prodList = prodList.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -492,7 +492,7 @@
 				{#each prodList as productData, i}
 					<div
 						class="card overflow-hidden bg-base-100 rounded-xl shadow-lg border
-	border-base-200 hover:shadow-xl transition-shadow duration-300 flex flex-col w-full sm:w-80 h-128"
+border-base-200 hover:shadow-xl transition-shadow duration-300 flex flex-col w-full sm:w-80 h-128"
 					>
 						<div class="relative px-6 pt-6 pb-2 bg-base-200/30 space-y-0">
 							<a href="/product-detail/{productData.prodId}">
@@ -543,11 +543,11 @@
 							</div>
 							<!-- memo for 2 inline items  -->
 							<!-- <div class="flex items-center gap-2 mb-2 text-sm">
-							<Calendar size={16} class="text-primary flex-shrink-0" />
-							<span class="font-medium">{productData.eventStartDate}</span>
-							<Clock size={16} class="text-primary flex-shrink-0 ml-2" />
-							<span>Dalle <b>{productData.timeStartDate}</b></span>
-						</div> -->
+						<Calendar size={16} class="text-primary flex-shrink-0" />
+						<span class="font-medium">{productData.eventStartDate}</span>
+						<Clock size={16} class="text-primary flex-shrink-0 ml-2" />
+						<span>Dalle <b>{productData.timeStartDate}</b></span>
+					</div> -->
 						</div>
 
 						<div class="px-5 pb-4 pt-0">
@@ -557,7 +557,7 @@
 									<Info size={16} />
 									Dettagli
 								</a>
-								{#if auth && user.membership.membershipStatus}
+								{#if auth && user?.membership?.membershipStatus}
 									{#if productData.stockQty > 0}
 										{#if checkCart(productData.prodId)}
 											<div class="join join-vertical flex-1">

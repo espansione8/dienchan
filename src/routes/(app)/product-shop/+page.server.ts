@@ -2,6 +2,8 @@ import type { PageServerLoad, Actions } from './$types'
 import { BASE_URL, APIKEY } from '$env/static/private';
 import { fail, error } from '@sveltejs/kit';
 
+const idRemove = ["VEM139CGQ", "CL9USQKDE"];
+
 export const load: PageServerLoad = async ({ fetch, locals }) => {
 	let getTable = [];
 	let getCategories = {};
@@ -15,7 +17,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			body: JSON.stringify({
 				apiKey: APIKEY,
 				schema: 'product', //product | order | user | layout | discount
-				query: { type: 'product', status: 'enabled' },
+				query: { type: 'product', status: 'enabled', prodId: { $nin: idRemove } },
 				option: { hint: { prodId: 1 } },// optional:use index            
 			}),
 			headers: {
@@ -32,7 +34,8 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 				schema: 'product',
 				query: {
 					status: 'enabled',
-					type: 'product'
+					type: 'product',
+					prodId: { $nin: idRemove }
 				},
 				projection: { _id: 0 },
 				sort: { title: 1 },
@@ -53,7 +56,8 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 				apiKey: APIKEY,
 				schema: 'product',
 				pipeline: [
-					{ "$match": { "status": "enabled", "type": "product", "category": { "$exists": true, "$ne": null } } },
+					{ "$match": { "status": "enabled", "type": "product", "category": { "$exists": true, "$ne": null }, "prodId": { "$nin": idRemove } } },
+					//{ "$match": { "status": "enabled", "type": "product", "category": { "$exists": true, "$ne": null } } },
 					{ "$unwind": "$category" }, // Deconstructs the category array field from the input documents to output a document for each element.
 					{ "$group": { "_id": "$category", "count": { "$sum": 1 } } }, // Group by category and count
 					{ "$sort": { "_id": 1 } } // Sort by category name alphabetically
@@ -78,7 +82,11 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			console.error('Product find failed', productRes.status, errorText);
 			throw error(400, `Product find failed: ${errorText}`);
 		}
-		getTable = await productRes.json();
+		const resTable = await productRes.json();
+		const filteredArray = resTable.filter(
+			(object) => !idRemove.includes(object.prodId)
+		);
+		getTable = filteredArray
 
 		if (!AggregateRes.ok) {
 			const errorText = await AggregateRes.text();
@@ -127,7 +135,8 @@ export const actions: Actions = {
 					query: {
 						status: 'enabled',
 						type: 'product',
-						category: category
+						category: category,
+						prodId: { $nin: idRemove }
 					},
 					option: { hint: { prodId: 1 } }, // optional: define index to use { hint: { prodId: 1 } }
 				}),
@@ -144,6 +153,7 @@ export const actions: Actions = {
 						status: 'enabled',
 						type: 'product',
 						category: category,
+						prodId: { $nin: idRemove }
 					},
 					sort: { title: 1 },
 					projection: { _id: 0 },
@@ -195,7 +205,8 @@ export const actions: Actions = {
 					query: {
 						status: 'enabled',
 						type: 'product',
-						title: { $regex: searchTerm, $options: 'i' }
+						title: { $regex: searchTerm, $options: 'i' },
+						prodId: { $nin: idRemove }
 					},
 					option: { hint: { prodId: 1 } },
 				}),
@@ -211,7 +222,8 @@ export const actions: Actions = {
 					query: {
 						status: 'enabled',
 						type: 'product',
-						title: { $regex: searchTerm, $options: 'i' }
+						title: { $regex: searchTerm, $options: 'i' },
+						prodId: { $nin: idRemove }
 					},
 					sort: { title: 1 },
 					projection: { _id: 0 },
@@ -238,10 +250,16 @@ export const actions: Actions = {
 
 			const getTable = await productRes.json();
 
+			const filteredArray = getTable.filter(
+				(object) => !idRemove.includes(object.prodId)
+			);
+			//console.log('filteredArray', filteredArray);
+
+
 			return {
 				action: 'searchName',
 				success: true,
-				payload: { getTable, itemCount, currentPage: 1, searchTerm }
+				payload: { getTable: filteredArray, itemCount, currentPage: 1, searchTerm }
 			};
 		} catch (e) {
 			console.error('Error product search:', e);

@@ -12,8 +12,8 @@ export const POST: RequestHandler = async ({ request }) => {
         order
     } = body;
 
-    const { orderId, createdAt, totalValue, invoicing, payment, cart, type, totalDiscount, orderNotes = '' } = order;
-    const { name, surname, address, city, county, postalCode, country } = invoicing
+    const { orderId, createdAt, totalValue, invoicing, shipping, payment, cart, type, totalDiscount, orderNotes = '' } = order;
+    //const { name, surname, address, city, county, postalCode, country } = invoicing
 
     if (apiKey !== APIKEY) {
         return json({ message: 'api error' }, { status: 401 });
@@ -105,7 +105,7 @@ export const POST: RequestHandler = async ({ request }) => {
                     <td valign="top" class="bg_white text-center padding-top-sm padding-x-lg">
                         <a href="https://associazione.riflessologiadienchan.it" class="logo-link">
                             <img src="https://riflessologiadienchan.it/wp-content/uploads/2025/06/Associazione_Dien_Chan_BQC_LOGO.png" alt="logo" class="logo-img">
-                            <h2>Ciao ${name} ${surname},</h2>
+                            <h2>Ciao ${invoicing.name} ${invoicing.surname},</h2>
                             <h1 class="logo-title">Il tuo Ordine ${orderId} è Confermato! 🎉</h1>
                         </a>
                     </td>
@@ -119,6 +119,13 @@ export const POST: RequestHandler = async ({ request }) => {
                             <li><strong>Data dell'ordine:</strong> ${createdAt.substring(0, 10)}</li>
                             <li><strong>Totale ordine:</strong> ${totalValue.toFixed(2)}€</li>
                             <li style="margin-bottom: 0.5em;"><strong>Metodo di pagamento:</strong> ${payment.method}</li>
+                        </ul>
+                        <h4 class="margin-top-lg text-black">Indirizzo ricevuta:</h4>
+                        <ul class="list-address">
+                            <li style="margin-bottom: 0.5em;">${invoicing.name} ${invoicing.surname}</li>
+                            <li style="margin-bottom: 0.5em;">${invoicing.address}</li>
+                            <li style="margin-bottom: 0.5em;">${invoicing.postalCode} ${invoicing.city} ${invoicing.county}</li>
+                            <li style="margin-bottom: 0.5em;">${invoicing.country}</li>
                         </ul>
                         <h4 class="margin-top-lg text-black">Prodotti acquistati:</h4>
                         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="margin-bottom-sm">
@@ -153,13 +160,12 @@ export const POST: RequestHandler = async ({ request }) => {
                           <tr>
     <td colspan="2" class="table-cell-style text-right font-bold">Spedizione</td>
     <td class="table-cell-style text-right font-bold">
-     ${
-      totalValue === 0
-        ? 'Gratuita'
-        : (type === 'product' && (totalValue + totalDiscount) < 100)
-          ? '9.00 €'
-          : 'Gratuita'
-    }
+     ${totalValue === 0
+                ? 'Gratuita'
+                : (type === 'product' && (totalValue + totalDiscount) < 100)
+                    ? '9.00 €'
+                    : 'Gratuita'
+            }
     </td>
 </tr>
                             <tr>
@@ -174,10 +180,10 @@ export const POST: RequestHandler = async ({ request }) => {
 
                         <h4 class="margin-top-lg text-black">Indirizzo di spedizione:</h4>
                         <ul class="list-address">
-                            <li style="margin-bottom: 0.5em;">${name} ${surname}</li>
-                            <li style="margin-bottom: 0.5em;">${address}</li>
-                            <li style="margin-bottom: 0.5em;">${postalCode} ${city} ${county}</li>
-                            <li style="margin-bottom: 0.5em;">${country}</li>
+                            <li style="margin-bottom: 0.5em;">${shipping.name} ${shipping.surname}</li>
+                            <li style="margin-bottom: 0.5em;">${shipping.address}</li>
+                            <li style="margin-bottom: 0.5em;">${shipping.postalCode} ${shipping.city} ${shipping.county}</li>
+                            <li style="margin-bottom: 0.5em;">${shipping.country}</li>
                         </ul>
 
                         <h4 class="margin-top-lg text-black">Note ordine :</h4>
