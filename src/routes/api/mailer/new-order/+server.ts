@@ -184,6 +184,8 @@ export const POST: RequestHandler = async ({ request }) => {
                             <li style="margin-bottom: 0.5em;">${shipping.address}</li>
                             <li style="margin-bottom: 0.5em;">${shipping.postalCode} ${shipping.city} ${shipping.county}</li>
                             <li style="margin-bottom: 0.5em;">${shipping.country}</li>
+                            <li style="margin-bottom: 0.5em;">${shipping.email}</li>
+                            <li style="margin-bottom: 0.5em;">${shipping.phone} - ${shipping.mobilePhone}</li>
                         </ul>
 
                         <h4 class="margin-top-lg text-black">Note ordine :</h4>
