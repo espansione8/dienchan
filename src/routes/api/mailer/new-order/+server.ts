@@ -1,8 +1,9 @@
 // `${BASE_URL}/api/mailer/new-order`
 import type { RequestHandler } from '@sveltejs/kit';
-import { APIKEY, MAILER_HOST, MAILER_PORT, MAILER_SECURE, MAILER_USER, MAILER_PASS } from '$env/static/private';
+import { APIKEY, MAILER_HOST, MAILER_PORT, MAILER_SECURE, MAILER_USER, MAILER_PASS, BASE_URL} from '$env/static/private';
 import { json } from '@sveltejs/kit';
 import nodemailer from 'nodemailer';
+
 
 export const POST: RequestHandler = async ({ request }) => {
     const body = await request.json();
@@ -142,12 +143,12 @@ export const POST: RequestHandler = async ({ request }) => {
                 <td class="table-cell-style text-right"></td>
             </tr>
         `).join('')
-                : type === 'product' ?
+                : type === 'product' || type === 'membership' ?
                     cart.map(item => `
             <tr>
                 <td class="table-cell-style text-left">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <img src="${item.imageUrl || 'https://riflessologiadienchan.it/images/placeholder.jpg'}" 
+                        <img src="${BASE_URL}${item.uploadfiles[0].fileUrl || 'https://riflessologiadienchan.it/images/placeholder.jpg'}" 
                              alt="${item.title}" 
                              width="80" 
                              height="80" 
