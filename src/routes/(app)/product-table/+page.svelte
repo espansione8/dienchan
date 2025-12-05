@@ -161,7 +161,8 @@
 		const dataToExport = data.map((item) => {
 			const row: any = {
 				prodId: item.prodId,
-				Titolo: item.title
+				Titolo: item.title,
+				Prezzo: item.price
 			};
 
 			monthNames.forEach((monthName, index) => {
