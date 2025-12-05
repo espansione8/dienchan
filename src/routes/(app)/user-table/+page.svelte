@@ -523,7 +523,8 @@
 							<strong>{row.membership.membershipExpiry.substring(0, 10)}</strong>
 							<br />
 							<span>Status tessera:</span>
-						<span class="badge badge-xs {row.membership.membershipStatus === true ? 'badge-success' : 'badge-error'}"></span></td>
+							<span class="badge badge-xs {row.membership.membershipStatus === true ? 'badge-success' : 'badge-error'}"></span></td
+						>
 						<!-- Addres  -->
 						<td>
 							<ul class="">
@@ -1125,7 +1126,7 @@
 			</div>
 
 			<!-- expire -->
-			<div class="form-control col-span-12 md:col-span-6 ">
+			<div class="form-control col-span-12 md:col-span-6">
 				<label for="membershipExpiry" class="form-label">
 					<p class="font-bold mb-2">Scadenza iscrizione Membership</p>
 				</label>

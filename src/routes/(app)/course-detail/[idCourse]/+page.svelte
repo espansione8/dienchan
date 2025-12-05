@@ -37,7 +37,7 @@
 	let cardElement: any;
 	let stripeError = $state<string | null>(null);
 
-		console.log('stripe error', stripeError)
+	//console.log('stripe error', stripeError);
 	//let paymentMethodId = $state<string | null>(null);
 	let clientSecret = $state<string | null>(null);
 	let paymentIntentId = $state<string | null>(null);
@@ -278,7 +278,9 @@
 	const onClickModal = (type: string, item: any) => {
 		currentModal = type;
 		openModal = true;
-		initializeStripe();
+		//initializeStripe();
+		// Wait for DOM to update before initializing Stripe
+		tick().then(() => initializeStripe());
 		if (type == 'new') {
 			postAction = `?/new`;
 			modalTitle = 'Acquista il Corso';
@@ -361,12 +363,10 @@
 			stripeError = `Errore: ${error.message}`;
 			notification.error(stripeError);
 			loading = false;
-			
-		console.log('stripe error', stripeError)
+
+			console.log('stripe error', stripeError);
 			return false;
 		}
-
-		
 	};
 
 	// NEW: Confirm payment with 3DS using Stripe.js
@@ -540,6 +540,7 @@
 
 		if (!isCurrentStepValid()) {
 			notification.error('Completa tutti i campi richiesti');
+			loading = false;
 			return;
 		}
 
@@ -574,7 +575,7 @@
 
 		// 	form.appendChild(hiddenInput);
 		// }
-		console.log('BEFORE', formEl, typeof formEl);
+		//console.log('BEFORE', formEl, typeof formEl);
 		//const form = event.target as HTMLFormElement;
 		//form.requestSubmit();
 		if (formEl) {
@@ -585,7 +586,6 @@
 	// $effect (() => {
 
 	// 	if (stripeError) {console.log('stripeError:', stripeError);
-
 
 	// }});
 </script>
@@ -1147,7 +1147,7 @@
 					</div>
 				</div>
 			</div>
-			
+
 			<!-- Step 2 -->
 			<div class={currentStep === 2 ? 'block' : 'hidden'}>
 				<div class="card bg-base-100 shadow-sm border border-base-200 p-4 rounded-lg mt-4">
@@ -1273,7 +1273,14 @@
 								class:border-primary={formData.payment === 'Bonifico bancario'}
 								class:bg-base-200={formData.payment === 'Bonifico bancario'}
 							>
-								<input type="radio" name="payment" value="Bonifico bancario" class="hidden" bind:group={formData.payment} />
+								<input
+									type="radio"
+									name="payment"
+									value="Bonifico bancario"
+									class="hidden"
+									bind:group={formData.payment}
+									onclick={() => (stripeError = null)}
+								/>
 								<Landmark class="h-8 w-8 text-primary" />
 								<span class="text-center font-medium">Bonifico Bancario</span>
 							</label>
@@ -1283,7 +1290,14 @@
 								class:border-primary={formData.payment === 'Contanti'}
 								class:bg-base-200={formData.payment === 'Contanti'}
 							>
-								<input type="radio" name="payment" value="Contanti" class="hidden" bind:group={formData.payment} />
+								<input
+									type="radio"
+									name="payment"
+									value="Contanti"
+									class="hidden"
+									bind:group={formData.payment}
+									onclick={() => (stripeError = null)}
+								/>
 								<HandCoins class="h-8 w-8 text-primary" />
 								<span class="text-center font-medium"> Contanti (all'inizio corso) </span>
 							</label>
@@ -1429,14 +1443,18 @@
 							class="btn btn-success"
 							disabled={!isCurrentStepValid() || (!paymentMethodId && formData.payment === 'Carta di credito')}
 						> -->
-						<button type="button" class="btn btn-success" onclick={handleFinalSubmit} disabled={!isCurrentStepValid() || loading || stripeError != null}>
+						<button
+							type="button"
+							class="btn btn-success"
+							onclick={handleFinalSubmit}
+							disabled={!isCurrentStepValid() || loading || stripeError != null}
+						>
 							{getCourse.type === 'course' ? 'Conferma Acquisto' : 'Conferma Partecipazione'}
 						</button>
 					{/if}
 				</div>
 			</div>
 		</form>
-		
 	</Modal>
 {/if}
 

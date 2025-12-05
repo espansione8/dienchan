@@ -409,6 +409,16 @@
 									Corsi
 								</a>
 							</li>
+							<li>
+								<a
+									href="/kit-materiale-formatori"
+									class={`btn btn-sm ${isActive('/kit-materiale-formatori') ? 'btn-primary' : 'btn-ghost'}`}
+									onclick={toggleMenu}
+								>
+									<ShoppingBag size={16} />
+									Materiale Kit Formatori
+								</a>
+							</li>
 
 							{#if level === 'superadmin' || level === 'admin'}
 								<li>
