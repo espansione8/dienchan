@@ -580,8 +580,31 @@ export const actions: Actions = {
 
 			const order = await res.json();
 
+
+			const cartWithFullUrls = cartItem.map(item => {
+				let fullImageUrl = item.imageUrl || '/images/placeholder.jpg';
+
+				// Se l'URL non inizia con http, aggiungi il dominio base
+				if (!fullImageUrl.startsWith('http')) {
+					// const cleanPath = fullImageUrl.startsWith('/') ? fullImageUrl.slice(1) : fullImageUrl;
+					// ho tolto lo / cosi il percorso è giusto altrimenti anche la soluzione sopra può andare bene però bisogna mettere cleanPath al posto di fullImageUrl
+					fullImageUrl = `${BASE_URL}${fullImageUrl}`;
+				}
+
+				return {
+					...item,
+					imageUrl: fullImageUrl
+				};
+			});
+
+			// Passa il cart con URL completi alla mail
+			const orderForEmail = {
+				...order,
+				cart: cartWithFullUrls
+			};
+
 			const mailArray = ['powerperformance.vn@gmail.com', email]
-			const mailRes = await mailFetch(mailArray, order);
+			const mailRes = await mailFetch(mailArray, orderForEmail);
 			if (!mailRes.ok) {
 				console.error('Mail sending failed:', await mailRes.text());
 			}

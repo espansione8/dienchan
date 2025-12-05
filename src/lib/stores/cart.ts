@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
+import { imgCheck } from '$lib/tools/tools'; 
 
 const storedCart = JSON.parse(browser && localStorage.getItem('cartProducts')) || [];
 //export const cartProducts = writable(browser && storedCart);
@@ -19,6 +20,9 @@ export const addToCart = async (cart, item, openCart) => {
 	if (openCart) {
 		cartStatus.set(Math.random());
 	}
+
+
+	const imageUrl = imgCheck.single(item.uploadfiles || [], 'product-primary');
 
 	//cartTotalQuantity.update(n => n + 1);
 	// const checkParamType = Object.values(listAPI).includes(queryParam);
@@ -41,6 +45,7 @@ export const addToCart = async (cart, item, openCart) => {
 	} else {
 		//console.log('add item', item.prodId);
 		item.orderQuantity = 1;
+		item.imageUrl = imageUrl;
 		newCart = [item, ...cart];
 		cartProducts.set(newCart);
 		// cartProducts.update(product => {

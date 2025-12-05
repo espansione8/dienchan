@@ -127,56 +127,67 @@ export const POST: RequestHandler = async ({ request }) => {
                             <li style="margin-bottom: 0.5em;">${invoicing.postalCode} ${invoicing.city} ${invoicing.county}</li>
                             <li style="margin-bottom: 0.5em;">${invoicing.country}</li>
                         </ul>
-                        <h4 class="margin-top-lg text-black">Prodotti acquistati:</h4>
-                        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="margin-bottom-sm">
-                            <tr>
-                                <th class="table-cell-style text-left">Prodotto</th>
-                                <th class="table-cell-style text-right">Quantità</th>
-                                <th class="table-cell-style text-right">Prezzo</th>
-                            </tr>
-                            ${type === 'course' ?
-                cart
-                    .map(
-                        (item) => `
-                                            <tr>
-                                                <td class="table-cell-style text-left">${item.type == 'course' ? item.layoutView.title : item.title}</td>
-                                                <td class="table-cell-style text-right">${item.orderQuantity || 1}</td>
-                                                <td class="table-cell-style text-right"></td>
-                                            </tr>
-                                        `
-                    ).join('')
-                :
-                cart
-                    .map(
-                        (item) => `
-                                            <tr>
-                                                <td class="table-cell-style text-left">${item.type == 'course' ? item.layoutView.title : item.title}</td>
-                                                <td class="table-cell-style text-right">${item.orderQuantity || 1}</td>
-                                                <td class="table-cell-style text-right">${item.price.toFixed(2)}€</td>
-                                            </tr>
-                                        `
-                    ).join('')
+                     <h4 class="margin-top-lg text-black">Prodotti acquistati:</h4>
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="margin-bottom-sm">
+    <tr>
+        <th class="table-cell-style text-left" width="50%">Prodotto</th>
+        <th class="table-cell-style text-right" width="25%">Quantità</th>
+        <th class="table-cell-style text-right" width="25%">Prezzo</th>
+    </tr>
+    ${type === 'course' ?
+                cart.map(item => `
+            <tr>
+                <td class="table-cell-style text-left">${item.type == 'course' ? item.layoutView.title : item.title}</td>
+                <td class="table-cell-style text-right">${item.orderQuantity || 1}</td>
+                <td class="table-cell-style text-right"></td>
+            </tr>
+        `).join('')
+                : type === 'product' ?
+                    cart.map(item => `
+            <tr>
+                <td class="table-cell-style text-left">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <img src="${item.imageUrl || 'https://riflessologiadienchan.it/images/placeholder.jpg'}" 
+                             alt="${item.title}" 
+                             width="80" 
+                             height="80" 
+                             style="width: 80px; height: 80px; object-fit: contain; border-radius: 4px; border: 1px solid #e0e0e0; flex-shrink: 0;">
+                        <span>${item.title}</span>
+                    </div>
+                </td>
+                <td class="table-cell-style text-right">${item.orderQuantity || 1}</td>
+                <td class="table-cell-style text-right">${item.price.toFixed(2)}€</td>
+            </tr>
+        `).join('')
+                    :
+                    cart.map(item => `
+            <tr>
+                <td class="table-cell-style text-left">${item.type == 'course' ? item.layoutView.title : item.title}</td>
+                <td class="table-cell-style text-right">${item.orderQuantity || 1}</td>
+                <td class="table-cell-style text-right">${item.price.toFixed(2)}€</td>
+            </tr>
+        `).join('')
             }
-                          <tr>
-    <td colspan="2" class="table-cell-style text-right font-bold">Spedizione</td>
-    <td class="table-cell-style text-right font-bold">
-     ${totalValue === 0
+    <tr>
+        <td colspan="2" class="table-cell-style text-right font-bold">Spedizione</td>
+        <td class="table-cell-style text-right font-bold">
+            ${totalValue === 0
                 ? 'Gratuita'
                 : (type === 'product' && (totalValue + totalDiscount) < 100)
                     ? '9.00 €'
                     : 'Gratuita'
             }
-    </td>
-</tr>
-                            <tr>
-                                <td colspan="2" class="table-cell-style text-right font-bold">Sconti</td>
-                                <td class="table-cell-style text-right font-bold">${totalDiscount > 0 ? totalDiscount.toFixed(2) : '0'} €</td>
-                            </tr>
-                            <tr>
-                                <td colspan="2" class="table-cell-style text-right font-bold">Totale</td>
-                                <td class="table-cell-style text-right font-bold">${totalValue.toFixed(2)} €</td>
-                            </tr>
-                        </table>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2" class="table-cell-style text-right font-bold">Sconti</td>
+        <td class="table-cell-style text-right font-bold">${totalDiscount > 0 ? totalDiscount.toFixed(2) : '0'} €</td>
+    </tr>
+    <tr>
+        <td colspan="2" class="table-cell-style text-right font-bold">Totale</td>
+        <td class="table-cell-style text-right font-bold">${totalValue.toFixed(2)} €</td>
+    </tr>
+</table>
 
                         <h4 class="margin-top-lg text-black">Indirizzo di spedizione:</h4>
                         <ul class="list-address">
