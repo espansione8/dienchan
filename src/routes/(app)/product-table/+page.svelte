@@ -210,6 +210,7 @@
 		invalidateAll();
 		resetFields();
 		resetActive = false;
+		currentPage = 1;
 		tableList = getTable;
 		notification.info('Pagina aggiornata');
 	};
@@ -283,6 +284,7 @@
 					const { action, success, message, payload } = result.data; // { action, success, message, payload }
 					if (action == 'filter') {
 						resetActive = true;
+						currentPage = 1;
 						tableList = payload;
 						notification.info(message);
 					} else if (action == 'downloadCsv') {
@@ -515,6 +517,7 @@
 			<button type="submit" id="prev" class="join-item btn" name="navigation" value="prev" disabled={currentPage <= 1}> « </button>
 			<button type="button" class="join-item btn cursor-default">Pagina {currentPage}</button>
 			<button type="submit" id="next" class="join-item btn" name="navigation" value="next" disabled={tableList.length < itemsPerPage}>» </button>
+
 			<input type="hidden" name="itemsPerPage" value={itemsPerPage} />
 			<input type="hidden" name="currentPage" value={currentPage} />
 

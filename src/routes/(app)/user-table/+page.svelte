@@ -203,6 +203,7 @@
 		invalidateAll();
 		resetFields();
 		resetActive = false;
+		currentPage = 1;
 		tableList = getTable;
 		notification.info('Pagina ricaricata');
 		level = '';
@@ -344,6 +345,7 @@
 					const { action, message, payload, totalPending, approved } = result.data; // { action, success, message, payload }
 					if (action == 'filter') {
 						resetActive = true;
+						currentPage = 1;
 						tableList = payload;
 						notification.info(message);
 					} else if (action == 'downloadCsv') {

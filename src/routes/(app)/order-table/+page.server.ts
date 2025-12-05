@@ -17,7 +17,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			query: {},
 			projection: { _id: 0, password: 0 },
 			sort: { createdAt: -1 },
-			limit: 1000,
+			limit: 50,
 			skip: 0
 		}),
 		headers: {
@@ -502,7 +502,7 @@ export const actions: Actions = {
 				},
 				projection: { _id: 0, password: 0 },
 				sort: { createdAt: -1 },
-				limit: 1000,
+				limit: 50,
 				skip: 0
 			}),
 			headers: {
@@ -525,6 +525,96 @@ export const actions: Actions = {
 		} catch (error) {
 			console.error('Error filter:', error);
 			return { action: 'filter', success: false, message: 'Error order filter' };
+		}
+	},
+
+	changePage: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const navigation = formData.get('navigation');
+		const itemsPerPage = Number(formData.get('itemsPerPage'));
+		let currentPage = Number(formData.get('currentPage'));
+
+		const orderId = formData.get('orderId');
+		const userId = formData.get('userId');
+		const surname = formData.get('surname');
+		const email = formData.get('email');
+		const paymentMethod = formData.get('paymentMethod');
+		const status = formData.get('status');
+		const statusPayment = formData.get('statusPayment');
+		const type = formData.get('type');
+		const courseId = formData.get('courseId');
+
+		if (navigation === 'prev') {
+			currentPage = Math.max(1, currentPage - 1);
+		} else if (navigation === 'next') {
+			currentPage += 1;
+		} else if (navigation === 'reset') {
+			currentPage = 1;
+		}
+
+		const skipItems = (currentPage - 1) * itemsPerPage;
+
+		try {
+			const res = await fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'order',
+					query: {
+						// Applica tutti i filtri se presenti
+						...(orderId && { orderId }),
+						...(userId && { userId }),
+						...(surname && { 'shipping.surname': { $regex: `.*${surname}.*`, $options: 'i' } }),
+						...(email && { 'shipping.email': { $regex: `.*${email}.*`, $options: 'i' } }),
+						...(paymentMethod && { 'payment.method': paymentMethod }),
+						...(status && { status }),
+						...(statusPayment && { 'payment.statusPayment': statusPayment }),
+						...(type && { 'type': type }),
+						...(courseId && {
+							'cart': {
+								$elemMatch: {
+									type: { $in: ['course', 'event'] },
+									prodId: courseId
+								}
+							}
+						}),
+					},
+					projection: { _id: 0, password: 0 },
+					sort: { orderDate: -1 },
+					limit: itemsPerPage,
+					skip: skipItems
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('order changePage failed', res.status, errorText);
+				return fail(400, {
+					action: 'changePage',
+					success: false,
+					message: `changePage Error: ${errorText}`
+				});
+			}
+
+			const result = await res.json();
+
+			return {
+				action: 'changePage',
+				success: true,
+				message: 'Pagina caricata',
+				payload: { result, currentPage }
+			};
+
+		} catch (error) {
+			console.error('Error changePage:', error);
+			return fail(400, {
+				action: 'changePage',
+				success: false,
+				message: 'Error changePage'
+			});
 		}
 	}
 } satisfies Actions;

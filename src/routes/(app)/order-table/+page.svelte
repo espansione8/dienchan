@@ -9,6 +9,7 @@
 	import { imgCheck } from '$lib/tools/tools.js';
 	import { enhance } from '$app/forms';
 	import Loader from '$lib/components/Loader.svelte';
+	import { tick } from 'svelte';
 	import {
 		Funnel,
 		CircleX,
@@ -20,7 +21,8 @@
 		FileCog,
 		Handshake,
 		BanknoteArrowUp,
-		BanknoteX
+		BanknoteX,
+		House
 	} from 'lucide-svelte';
 	import type { Order, TableNames, Product } from '$lib/types';
 	import * as pdfMake from 'pdfmake/build/pdfmake';
@@ -45,6 +47,10 @@
 	let type = $state('');
 	let surname = $state('');
 	let email = $state('');
+
+	// Pagination
+	let currentPage = $state(1);
+	const itemsPerPage = 50;
 
 	let loading = $state(false);
 	//modal detail
@@ -547,18 +553,22 @@
 		postAction = '?/';
 		orderId = '';
 		userId = '';
-		paymentMethod = '';
-		type = '';
+		// paymentMethod = '';
+		// type = '';
 		status = '';
-		statusPayment = '';
+		// statusPayment = '';
 		surname = '';
 		email = '';
 	};
 
 	const refresh = () => {
+		paymentMethod = '';
+		statusPayment = '';
+		type = '';
 		invalidateAll();
 		resetFields();
 		resetActive = false;
+		currentPage = 1;
 		tableList = getTable;
 		notification.info('Pagina ricaricata');
 	};
@@ -607,12 +617,22 @@
 				const { action, message, payload } = result.data; // { action, success, message, payload }
 				if (action == 'filter') {
 					resetActive = true;
+					currentPage = 1;
 					tableList = payload;
+					notification.info(message);
+				} else if (action == 'changePage') {
+					if (payload.result.length > 0) {
+						tableList = payload.result;
+					} else {
+						tableList = getTable;
+					}
+					currentPage = payload.currentPage;
 				} else {
-					resetActive = false;
 					tableList = getTable;
+					resetActive = false;
+					notification.info(message);
 				}
-				notification.info(message);
+
 				onCloseModal();
 			}
 			if (result.type === 'failure') {
@@ -627,6 +647,17 @@
 			loading = false;
 		};
 	};
+
+	$effect(() => {
+		if (currentPage && Array.isArray(tableList)) {
+			tick().then(() => {
+				const element = document.getElementById('top');
+				if (element) {
+					element.scrollIntoView({ behavior: 'instant' });
+				}
+			});
+		}
+	});
 </script>
 
 <svelte:head>
@@ -646,7 +677,7 @@
 	<Loader />
 {/if}
 
-<div class="overflow-x-auto mt-5 px-4 mb-5">
+<div id="top" class="overflow-x-auto mt-5 px-4 mb-5">
 	<div class="flex flex-col gap-4 mb-4">
 		<h1 class="text-2xl font-bold text-gray-700 text-center mb-4">Ordini</h1>
 		<div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:justify-start items-center">
@@ -840,6 +871,67 @@
 			</div>
 		</div>
 	{/if}
+
+	<div class="join flex justify-center mt-5">
+		<form method="POST" action="?/changePage" use:enhance={formSubmit}>
+			{#if currentPage > 1}
+				<button 
+                type="submit" 
+                id="reset" 
+                class="join-item btn" 
+                name="navigation" 
+                value="reset"
+                disabled={loading}
+                style="pointer-events: auto;"
+            >
+                <House class="pointer-events-none" />
+            </button>
+			{/if}
+
+			
+        <button 
+            type="submit" 
+            id="prev" 
+            class="join-item btn" 
+            name="navigation" 
+            value="prev" 
+            disabled={currentPage <= 1 || loading}
+            style="pointer-events: auto;"
+        >
+            <span class="pointer-events-none">«</span>
+        </button>
+
+			<button type="button" class="join-item btn cursor-default">
+				Pagina {currentPage}
+			</button>
+
+			<button
+				type="submit"
+				id="next"
+				class="join-item btn"
+				name="navigation"
+				value="next"
+				disabled={tableList.length < itemsPerPage || loading}
+				style="pointer-events: auto;"
+			>
+				<span class="pointer-events-none">»</span>
+			</button>
+
+			<input type="hidden" name="itemsPerPage" value={itemsPerPage} />
+			<input type="hidden" name="currentPage" value={currentPage} />
+
+			<!-- USA le variabili dirette -->
+			<input type="hidden" name="orderId" value={orderId} />
+			<input type="hidden" name="userId" value={userId} />
+			<input type="hidden" name="surname" value={surname} />
+			<input type="hidden" name="email" value={email} />
+			<input type="hidden" name="paymentMethod" value={paymentMethod} />
+			<input type="hidden" name="status" value={status} />
+			<input type="hidden" name="statusPayment" value={statusPayment} />
+			<input type="hidden" name="type" value={type} />
+			<!-- <input type="hidden" name="courseId" value={courseId} /> -->
+		</form>
+	</div>
 </div>
 
 {#if currentModal == 'modify'}
@@ -1160,10 +1252,10 @@
 							bind:value={paymentMethod}
 							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 						>
-							<option value="">Scegli un metodo</option>
-							<option value="bonifico">Bonifico</option>
-							<option value="paypal">Paypal</option>
-							<option value="contanti">Contanti</option>
+							<option disabled value="">Scegli un metodo</option>
+							<option value="Bonifico bancario">Bonifico</option>
+							<option value="Carta di credito">Carta di credito</option>
+							<option value="Contanti">Contanti</option>
 						</select>
 					</div>
 					<!-- <div class="w-full md:w-1/2 px-2 mb-4">
