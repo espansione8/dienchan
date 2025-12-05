@@ -43,6 +43,8 @@
 		const browser = getBrowser();
 
 		switch (browser.name) {
+			case 'Edge':
+				return browser.version >= MIN_VERSIONS.Edge;
 			case 'Chrome':
 				return browser.version >= MIN_VERSIONS.Chrome;
 			case 'Safari':
