@@ -31,7 +31,7 @@
 	const userSurname = $derived(user?.surname || '');
 
 	const formatoreLevels = new Set(['riflessologo', 'formatore base', 'master', 'formatore avanzato']);
-	const isFormatore = formatoreLevels.has(level.toLowerCase());
+	const isFormatore = $derived(formatoreLevels.has(level.toLowerCase()));
 
 	const toggleMenu = () => {
 		menuActive = !menuActive;
@@ -49,6 +49,16 @@
 			}
 		};
 	};
+
+// 	$effect(() => {
+//     console.log('DEBUG NAVBAR:', {
+//         level: level,
+//         levelLower: level.toLowerCase(),
+//         isFormatore: isFormatore,
+//         auth: auth,
+//         userName: userName
+//     });
+// });
 </script>
 
 <header class="sticky top-0 z-50 w-full bg-base-100 shadow-sm">

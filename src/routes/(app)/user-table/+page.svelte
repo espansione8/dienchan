@@ -357,6 +357,7 @@
 					} else if (action == 'logUser') {
 						goto('/profile-area');
 						notification.success(message);
+						// window.location.href = '/profile-area';
 					} else if (action == 'changeStatus') {
 						notification.success(message);
 						if (resetActive) {
