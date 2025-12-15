@@ -627,6 +627,13 @@
 						tableList = getTable;
 					}
 					currentPage = payload.currentPage;
+				} else if (action == 'modify') {
+					notification.info(message);
+					if (resetActive) {
+						tableList = payload;
+					} else {
+						tableList = getTable;
+					}
 				} else {
 					tableList = getTable;
 					resetActive = false;
@@ -717,7 +724,7 @@
 		<!-- body -->
 		<tbody>
 			<!-- row -->
-			{#if tableList.length == 0}
+			{#if tableList?.length == 0}
 				<tr class="hover:bg-gray-100">
 					<td>no record</td>
 				</tr>
@@ -775,6 +782,16 @@
 											<input type="hidden" name="promoterId" value={row.promoterId} />
 											<input type="hidden" name="cart" value={JSON.stringify(row.cart)} class="hidden" />
 										{/if}
+
+										<input type="hidden" name="filterOrderId" value={orderId} />
+										<input type="hidden" name="filterUserId" value={userId} />
+										<input type="hidden" name="filterSurname" value={surname} />
+										<input type="hidden" name="filterEmail" value={email} />
+										<input type="hidden" name="filterPaymentMethod" value={paymentMethod} />
+										<input type="hidden" name="filterStatus" value={status} />
+										<input type="hidden" name="filterStatusPayment" value={statusPayment} />
+										<input type="hidden" name="filterType" value={type} />
+
 										<button type="submit" class="btn btn-success btn-sm">
 											<BanknoteArrowUp />
 										</button>
@@ -788,6 +805,14 @@
 											<input type="hidden" name="type" value={row.type} />
 											<input type="hidden" name="cart" value={JSON.stringify(row.cart)} class="hidden" />
 										{/if}
+										<input type="hidden" name="filterOrderId" value={orderId} />
+										<input type="hidden" name="filterUserId" value={userId} />
+										<input type="hidden" name="filterSurname" value={surname} />
+										<input type="hidden" name="filterEmail" value={email} />
+										<input type="hidden" name="filterPaymentMethod" value={paymentMethod} />
+										<input type="hidden" name="filterStatus" value={status} />
+										<input type="hidden" name="filterStatusPayment" value={statusPayment} />
+										<input type="hidden" name="filterType" value={type} />
 										<button type="submit" class="btn btn-error btn-sm">
 											<BanknoteX />
 										</button>
@@ -875,31 +900,22 @@
 	<div class="join flex justify-center mt-5">
 		<form method="POST" action="?/changePage" use:enhance={formSubmit}>
 			{#if currentPage > 1}
-				<button 
-                type="submit" 
-                id="reset" 
-                class="join-item btn" 
-                name="navigation" 
-                value="reset"
-                disabled={loading}
-                style="pointer-events: auto;"
-            >
-                <House class="pointer-events-none" />
-            </button>
+				<button type="submit" id="reset" class="join-item btn" name="navigation" value="reset" disabled={loading} style="pointer-events: auto;">
+					<House class="pointer-events-none" />
+				</button>
 			{/if}
 
-			
-        <button 
-            type="submit" 
-            id="prev" 
-            class="join-item btn" 
-            name="navigation" 
-            value="prev" 
-            disabled={currentPage <= 1 || loading}
-            style="pointer-events: auto;"
-        >
-            <span class="pointer-events-none">«</span>
-        </button>
+			<button
+				type="submit"
+				id="prev"
+				class="join-item btn"
+				name="navigation"
+				value="prev"
+				disabled={currentPage <= 1 || loading}
+				style="pointer-events: auto;"
+			>
+				<span class="pointer-events-none">«</span>
+			</button>
 
 			<button type="button" class="join-item btn cursor-default">
 				Pagina {currentPage}

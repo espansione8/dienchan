@@ -290,6 +290,7 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const county = formData.get('county');
 		const layoutId = formData.get('layoutId');
+		const prodId = formData.get('courseid');
 		let userId: any;
 
 		if (locals.user.level == 'admin' || locals.user.level == 'superadmin') {
@@ -305,6 +306,7 @@ export const actions: Actions = {
 			// ...(countryState && { countryState }),
 			...(county && { county: { $in: [county] } }),
 			...(layoutId && { layoutId }),
+			...(prodId && { prodId }),
 			...(userId && { userId }),
 			//...(locals.user.level === 'formatore' && { userId: localUserId }),
 			//...(title && { title: { $regex: `.*${title}.*`, $options: 'i' } }),

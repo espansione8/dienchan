@@ -102,6 +102,18 @@ export const actions: Actions = {
 		const cartItem = cart ? JSON.parse(String(cart)) : null;
 		const type = formData.get('type') as string;
 
+		const filterOrderId = formData.get('filterOrderId') as string;
+		const filterUserId = formData.get('filterUserId') as string;
+		const filterSurname = formData.get('filterSurname') as string;
+		const filterEmail = formData.get('filterEmail') as string;
+		const filterPaymentMethod = formData.get('filterPaymentMethod') as string;
+		const filterStatus = formData.get('filterStatus') as string;
+		const filterStatusPayment = formData.get('filterStatusPayment') as string;
+		const filterType = formData.get('filterType') as string;
+
+		const hasFilters = filterOrderId || filterUserId || filterSurname || filterEmail ||
+			filterPaymentMethod || filterStatus || filterStatusPayment || filterType;
+
 		if (!orderId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
 		}
@@ -320,6 +332,39 @@ export const actions: Actions = {
 						console.error('user update failed', res.status, errorText);
 						return fail(400, { action: 'modify', success: false, message: errorText });
 					}
+				}
+			}
+
+			// FUORI DA TUTTI GLI IF - Riapplica i filtri se presenti
+			if (hasFilters) {
+				const filteredRes = await fetch(`${BASE_URL}/api/mongo/find`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'order',
+						query: {
+							...(filterOrderId && { orderId: filterOrderId }),
+							...(filterUserId && { userId: filterUserId }),
+							...(filterSurname && { 'shipping.surname': { $regex: `.*${filterSurname}.*`, $options: 'i' } }),
+							...(filterEmail && { 'shipping.email': { $regex: `.*${filterEmail}.*`, $options: 'i' } }),
+							...(filterPaymentMethod && { 'payment.method': filterPaymentMethod }),
+							...(filterStatus && { status: filterStatus }),
+							...(filterStatusPayment && { 'payment.statusPayment': filterStatusPayment }),
+							...(filterType && { type: filterType })
+						},
+						projection: { _id: 0, password: 0 },
+						sort: { createdAt: -1 },
+						limit: 50,
+						skip: 0
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+
+				if (filteredRes.ok) {
+					const payload = await filteredRes.json();
+					return { action: 'modify', success: true, message: result.message, payload };
 				}
 			}
 

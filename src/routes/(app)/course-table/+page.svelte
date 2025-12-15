@@ -1008,6 +1008,7 @@
 		{/if}
 	</div>
 {/if}
+
 {#if currentModal == 'modify' || currentModal == 'new'}
 	<Modal isOpen={openModal} header={modalTitle} cssClass="max-w-4xl">
 		{#if currentModal == 'modify'}
@@ -1476,6 +1477,14 @@
 		{/if}
 		<form method="POST" action={postAction} use:enhance={formSubmit} class="p-6 space-y-6">
 			<div class="space-y-4">
+
+<div>
+<label for="courseid" class="block text-sm font-medium text-gray-700 mb-1">ID corso</label>
+						
+				<input class="input input-bordered w-full" id="courseid" name="courseid" type="text" placeholder="ID corso" bind:value={prodId} />
+				
+</div>
+
 				{#if userData.level === 'admin' || userData.level === 'superadmin'}
 					<div>
 						<label for="county" class="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
