@@ -17,7 +17,13 @@
 		CircleCheckBig,
 		CreditCard,
 		ArrowLeft,
-		ShieldCheck
+		ShieldCheck,
+		Users,
+		Building2,
+		FileText,
+		Download,
+		Receipt,
+		Info
 	} from 'lucide-svelte';
 
 	const { data } = $props();
@@ -47,7 +53,7 @@
 
 	let openModal = $state(false);
 	let postAction = $state('?/new');
-	let modalTitle = $state('Acquisto Assicurazione');
+	let modalTitle = $state('Acquisto Contributo Socio Praticante');
 	let loading = $state(false);
 
 	let currentStep = $state(1);
@@ -352,8 +358,8 @@
 </script>
 
 <svelte:head>
-	<title>Acquisto Assicurazione</title>
-	<meta name="description" content="Acquista l'assicurazione" />
+	<title>Contributo Socio Praticante</title>
+	<meta name="description" content="Acquista il contributo socio praticante per godere delle agevolazioni dell'associazione" />
 </svelte:head>
 
 <noscript>
@@ -364,20 +370,20 @@
 		}
 	</style>
 </noscript>
-
+ 
 <!-- Hero Section -->
 <section class="bg-gradient-to-b from-blue-50 to-teal-50 py-16 px-4 md:py-24">
 	<div class="container mx-auto">
 		{#if !auth}
 			<!-- Messaggio per utenti non loggati -->
 			<div class="text-center">
-				<h1 class="text-4xl md:text-5xl font-bold text-blue-900 mb-6">Assicurazione </h1>
+				<h1 class="text-4xl md:text-5xl font-bold text-blue-900 mb-6">Contributo Socio Praticante</h1>
 				<div class="alert alert-warning shadow-lg max-w-2xl mx-auto">
 					<div class="flex items-center gap-4">
 						<ShieldCheck class="h-6 w-6" />
 						<div>
 							<h3 class="font-bold">Accesso Richiesto</h3>
-							<div class="text-sm">Devi essere loggato e avere una membership attiva per acquistare l'assicurazione.</div>
+							<div class="text-sm">Devi essere loggato e avere una membership attiva per acquistare il contributo socio praticante.</div>
 						</div>
 					</div>
 				</div>
@@ -388,24 +394,70 @@
 			</div>
 		{:else}
 			<!-- Contenuto per utenti loggati -->
-			<div class="flex flex-col md:flex-row items-center justify-between gap-8">
+			<div class="flex flex-col md:flex-row items-start justify-between gap-8">
 				<div class="md:w-1/2">
-					<h1 class="text-4xl md:text-5xl font-bold text-blue-900 mb-6">Assicurazione </h1>
-					<p class="text-lg text-blue-800 mb-8">
-						Descrizione assicurazione.
+					<h1 class="text-4xl md:text-5xl font-bold text-blue-900 mb-6">Contributo Socio Praticante</h1>
+					<p class="text-lg text-blue-800 mb-6 leading-relaxed">
+						Il presente contributo permette a un socio praticante di godere di alcune agevolazioni quali utilizzo delle sale dell'associazione con tariffa agevolata e inclusione della polizza di copertura RC dell'associazione.
 					</p>
 					<div class="flex flex-wrap gap-4">
-						<button class="btn btn-primary btn-lg" onclick={onClickModal}> Acquista Ora </button>
+						<button class="btn btn-primary btn-lg" onclick={onClickModal}>
+							Acquista Ora
+						</button>
 					</div>
 				</div>
+				
+				<!-- Agevolazioni Incluse - Compatta -->
 				<div class="md:w-1/2">
-					<Image
-						layout="constrained"
-						aspectRatio={1}
-						src="/images/riflessologo_dienchan.jpg"
-						alt="Assicurazione Professionale"
-						class="rounded-lg shadow-xl max-w-full h-auto"
-					/>
+					<div class="bg-white rounded-xl p-6 shadow-lg">
+						<h2 class="text-2xl font-bold text-blue-900 mb-6 flex items-center gap-2">
+							<CircleCheckBig class="text-blue-600 h-6 w-6" />
+							Agevolazioni Incluse
+						</h2>
+						
+						<div class="space-y-4">
+							<div class="flex items-start gap-3">
+								<div class="bg-blue-100 p-2 rounded-lg flex-shrink-0">
+									<Building2 class="text-blue-600 h-5 w-5" />
+								</div>
+								<div>
+									<h3 class="font-semibold text-blue-900 mb-1">Utilizzo Sale Associazione</h3>
+									<p class="text-sm text-blue-700">Accesso con tariffa agevolata riservata ai soci praticanti</p>
+								</div>
+							</div>
+
+							<div class="divider my-2"></div>
+
+							<div class="flex items-start gap-3">
+								<div class="bg-blue-100 p-2 rounded-lg flex-shrink-0">
+									<ShieldCheck class="text-blue-600 h-5 w-5" />
+								</div>
+								<div>
+									<h3 class="font-semibold text-blue-900 mb-1">Copertura RC</h3>
+									<p class="text-sm text-blue-700">Polizza Responsabilità Civile dell'associazione inclusa</p>
+								</div>
+							</div>
+
+							<div class="divider my-2"></div>
+
+							<div class="flex items-start gap-3">
+								<div class="bg-blue-100 p-2 rounded-lg flex-shrink-0">
+									<Users class="text-blue-600 h-5 w-5" />
+								</div>
+								<div>
+									<h3 class="font-semibold text-blue-900 mb-1">Supporto Associativo</h3>
+									<p class="text-sm text-blue-700">Accesso alle attività riservate ai soci praticanti</p>
+								</div>
+							</div>
+						</div>
+
+						<!-- <div class="mt-6 pt-4 border-t border-blue-100">
+							<div class="text-center">
+								<span class="text-3xl font-bold text-blue-600">70€</span>
+								<span class="text-blue-700 ml-2">/ anno</span>
+							</div>
+						</div> -->
+					</div>
 				</div>
 			</div>
 		{/if}
@@ -414,19 +466,19 @@
 
 <!-- Benefits Section -->
 {#if auth}
-	<section class="py-16 px-4 bg-white">
+	<!-- <section class="py-16 px-4 bg-white">
 		<div class="container mx-auto">
-			<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-12">Vantaggi dell'Assicurazione</h2>
+			<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-12">Agevolazioni Incluse</h2>
 
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 				<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
 					<div class="flex items-start gap-4">
 						<div class="bg-blue-100 p-3 rounded-full">
-							<CircleCheckBig class="text-blue-600 h-6 w-6" />
+							<Building2 class="text-blue-600 h-6 w-6" />
 						</div>
 						<div>
-							<h3 class="font-semibold text-lg text-blue-900 mb-2">Copertura Completa</h3>
-							<p class="text-blue-800">Protezione completa per la tua attività professionale di riflessologo.</p>
+							<h3 class="font-semibold text-lg text-blue-900 mb-2">Utilizzo Sale Associazione</h3>
+							<p class="text-blue-800">Accesso alle sale dell'associazione con tariffa agevolata riservata ai soci praticanti.</p>
 						</div>
 					</div>
 				</div>
@@ -434,11 +486,11 @@
 				<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
 					<div class="flex items-start gap-4">
 						<div class="bg-blue-100 p-3 rounded-full">
-							<CircleCheckBig class="text-blue-600 h-6 w-6" />
+							<ShieldCheck class="text-blue-600 h-6 w-6" />
 						</div>
 						<div>
-							<h3 class="font-semibold text-lg text-blue-900 mb-2">Validità 12 Mesi</h3>
-							<p class="text-blue-800">Assicurazione valida per 12 mesi dalla data di acquisto.</p>
+							<h3 class="font-semibold text-lg text-blue-900 mb-2">Copertura RC</h3>
+							<p class="text-blue-800">Inclusione nella polizza di copertura Responsabilità Civile dell'associazione.</p>
 						</div>
 					</div>
 				</div>
@@ -446,27 +498,27 @@
 				<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
 					<div class="flex items-start gap-4">
 						<div class="bg-blue-100 p-3 rounded-full">
-							<CircleCheckBig class="text-blue-600 h-6 w-6" />
+							<Users class="text-blue-600 h-6 w-6" />
 						</div>
 						<div>
-							<h3 class="font-semibold text-lg text-blue-900 mb-2">Responsabilità Civile</h3>
-							<p class="text-blue-800">Copertura della responsabilità civile professionale.</p>
+							<h3 class="font-semibold text-lg text-blue-900 mb-2">Supporto Associativo</h3>
+							<p class="text-blue-800">Accesso al supporto e alle attività riservate ai soci praticanti dell'associazione.</p>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-	</section>
+	</section> -->
 
-	<!-- Insurance Details Section -->
+	<!-- Contribution Details Section -->
 	<section class="py-16 px-4 bg-gradient-to-b from-teal-50 to-blue-50">
 		<div class="container mx-auto">
-			<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-12">Dettagli Assicurazione</h2>
+			<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-12">Dettagli Contributo</h2>
 
 			<div class="flex justify-center">
 				<div class="bg-white rounded-xl overflow-hidden shadow-lg transition-all hover:shadow-2xl w-full md:w-96">
 					<div class="bg-blue-600 p-4 text-white text-center">
-						<h3 class="text-xl font-bold">ASSICURAZIONE ANNUALE</h3>
+						<h3 class="text-xl font-bold">CONTRIBUTO SOCIO PRATICANTE</h3>
 					</div>
 					<div class="p-6 flex flex-col">
 						<div class="text-center mb-6">
@@ -481,16 +533,16 @@
 
 						<ul class="mb-8 space-y-3 flex-grow">
 							<li class="flex items-center">
-								<CircleCheckBig class="text-blue-600 h-4 w-4 mr-2" />
-								<span>Copertura professionale completa</span>
+								<CircleCheckBig class="text-blue-600 h-4 w-4 mr-2 flex-shrink-0" />
+								<span>Utilizzo sale con tariffa agevolata</span>
 							</li>
 							<li class="flex items-center">
-								<CircleCheckBig class="text-blue-600 h-4 w-4 mr-2" />
-								<span>Validità 12 mesi</span>
+								<CircleCheckBig class="text-blue-600 h-4 w-4 mr-2 flex-shrink-0" />
+								<span>Polizza RC associazione inclusa</span>
 							</li>
 							<li class="flex items-center">
-								<CircleCheckBig class="text-blue-600 h-4 w-4 mr-2" />
-								<span>Protezione responsabilità civile</span>
+								<CircleCheckBig class="text-blue-600 h-4 w-4 mr-2 flex-shrink-0" />
+								<span>Supporto e attività riservate</span>
 							</li>
 						</ul>
 						<div class="mt-auto">
@@ -503,6 +555,77 @@
 	</section>
 {/if}
 
+<!-- Resources Section -->
+{#if auth}
+	<section class="py-16 px-4 bg-white">
+		<div class="container mx-auto">
+			<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-4">Risorse da Consultare</h2>
+			<p class="text-center text-blue-700 mb-12 max-w-2xl mx-auto">
+				Scarica e consulta i documenti informativi per comprendere meglio i vantaggi e le modalità del contributo socio praticante
+			</p>
+
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+				<!-- PDF 1 -->
+				<div class="group bg-gradient-to-br from-sky-50 to-sky-100 rounded-2xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+					<div class="flex flex-col items-center text-center h-full">
+						<div class="bg-sky-500 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
+							<FileText class="h-12 w-12 text-white" />
+						</div>
+						<h3 class="font-bold text-xl text-sky-900 mb-3">Tutela legale</h3>
+						<p class="text-sky-800 text-sm mb-6 flex-grow">
+							Tutela legale DESCRIZIONE
+						</p>
+						<a href="/Tutelalegale.pdf" download class="btn btn-primary w-full bg-sky-500 hover:bg-sky-600 border-sky-500 transition-colors">
+							<Download class="h-5 w-5 mr-2" />
+							Scarica PDF
+						</a>
+					</div>
+				</div>
+
+				<!-- PDF 2 -->
+				<div class="group bg-gradient-to-br from-sky-50 to-sky-100 rounded-2xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+					<div class="flex flex-col items-center text-center h-full">
+						<div class="bg-sky-500 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
+							<ShieldCheck class="h-12 w-12 text-white" />
+						</div>
+						<h3 class="font-bold text-xl text-sky-900 mb-3">Set informativo Unipol Mondo Professionista Professioni Sanitarie</h3>
+						<p class="text-sky-800 text-sm mb-6 flex-grow">
+							Set informativo Unipol Mondo Professionista Professioni Sanitarie
+						</p>
+						<a href="/2231_7SetinformativoUnipolMondoProfessionistaProfessioniSanitarie.pdf" download class="btn btn-primary w-full bg-sky-500 hover:bg-sky-600 border-sky-500 transition-colors">
+							<Download class="h-5 w-5 mr-2" />
+							Scarica PDF
+						</a>
+					</div>
+				</div>
+
+				<!-- PDF 3 -->
+				<div class="group bg-gradient-to-br from-sky-50 to-sky-100 rounded-2xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+					<div class="flex flex-col items-center text-center h-full">
+						<div class="bg-sky-500 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
+							<Receipt class="h-12 w-12 text-white" />
+						</div>
+						<h3 class="font-bold text-xl text-sky-900 mb-3">Testo aggiuntivo</h3>
+						<p class="text-sky-800 text-sm mb-6 flex-grow">
+							Testo aggiuntivo descrizione
+						</p>
+						<a href="/Allegatotestoaggiuntivo.pdf" download class="btn btn-primary w-full bg-sky-500 hover:bg-sky-600 border-sky-500 transition-colors">
+							<Download class="h-5 w-5 mr-2" />
+							Scarica PDF
+						</a>
+					</div>
+				</div>
+			</div>
+
+			<div class="mt-12 text-center">
+				<div class="inline-flex items-center gap-2 bg-sky-50 px-6 py-3 rounded-full">
+					<Info class="h-5 w-5 text-sky-600" />
+					<span class="text-sky-900 font-medium">Per ulteriori informazioni contatta la segreteria dell'associazione</span>
+				</div>
+			</div>
+		</div>
+	</section>
+{/if}
 <!-- Modal -->
 {#if auth}
 	<Modal isOpen={openModal} header={modalTitle} cssClass={'bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto'}>
@@ -641,11 +764,6 @@
 							<input id="country" type="text" class="input input-bordered w-full" readonly value={formData.country} />
 						</div>
 					</div>
-
-					<!-- <div class="alert alert-info mt-4">
-						<ShieldCheck class="h-5 w-5" />
-						<span>L'assicurazione avrà validità di 12 mesi dalla data di acquisto</span>
-					</div> -->
 				</div>
 			</div>
 
@@ -716,7 +834,7 @@
 						<h3 class="font-bold text-lg mb-2">Riepilogo Ordine</h3>
 
 						<div class="flex justify-between items-center py-2 border-b border-base-300">
-							<span class="text-base-content/80 font-medium">Assicurazione Professionale Annuale</span>
+							<span class="text-base-content/80 font-medium">Contributo Socio Praticante Annuale</span>
 							<span class="font-semibold">€ 70.00</span>
 						</div>
 

@@ -93,8 +93,7 @@ export const actions: Actions = {
 
 	if (!payment) {
 		return fail(400, { action: 'new', success: false, message: 'Metodo di pagamento mancante' });
-	}
-
+	}	
 	// Calcola la data di scadenza (oggi + 1 anno)
 	// const insuranceExpiry = new Date();
 	// insuranceExpiry.setFullYear(insuranceExpiry.getFullYear() + 1);
@@ -113,7 +112,8 @@ export const actions: Actions = {
 
 	try {
 		const insuranceProduct = {
-			title: 'Assicurazione',
+			title: 'Contributo Socio Praticante',
+			description: 'Il presente contributo permette a un socio praticante di godere di alcune agevolazioni quali utilizzo delle sale dell\'associazione con tariffa agevolata e inclusione della polizza di copertura RC dell\'associazione',
 			price: 70,
 			type: 'insurance'
 		};
@@ -208,7 +208,7 @@ export const actions: Actions = {
 				query: { userId: userId },
 				update: {
 					$set: {
-						// 'insurance.insuranceExpiry': insuranceExpiry,
+					// 'insurance.insuranceExpiry': insuranceExpiry,
 						'insurance.insuranceStatus': false // Sempre false anche con pagamento carta
 					}
 				},
