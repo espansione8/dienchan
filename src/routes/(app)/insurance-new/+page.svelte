@@ -573,9 +573,9 @@
 						</div>
 						<h3 class="font-bold text-xl text-sky-900 mb-3">Tutela legale</h3>
 						<p class="text-sky-800 text-sm mb-6 flex-grow">
-							Tutela legale DESCRIZIONE
+							Tutela legale 
 						</p>
-						<a href="/Tutelalegale.pdf" download class="btn btn-primary w-full bg-sky-500 hover:bg-sky-600 border-sky-500 transition-colors">
+						<a href="/Tutela legale.pdf" download class="btn btn-primary w-full bg-sky-500 hover:bg-sky-600 border-sky-500 transition-colors">
 							<Download class="h-5 w-5 mr-2" />
 							Scarica PDF
 						</a>
@@ -605,11 +605,11 @@
 						<div class="bg-sky-500 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
 							<Receipt class="h-12 w-12 text-white" />
 						</div>
-						<h3 class="font-bold text-xl text-sky-900 mb-3">Testo aggiuntivo</h3>
+						<h3 class="font-bold text-xl text-sky-900 mb-3">Allegato testo aggiuntivo</h3>
 						<p class="text-sky-800 text-sm mb-6 flex-grow">
-							Testo aggiuntivo descrizione
+							Allegato testo aggiuntivo 
 						</p>
-						<a href="/Allegatotestoaggiuntivo.pdf" download class="btn btn-primary w-full bg-sky-500 hover:bg-sky-600 border-sky-500 transition-colors">
+						<a href="/Allegato testo aggiuntivo.pdf" download class="btn btn-primary w-full bg-sky-500 hover:bg-sky-600 border-sky-500 transition-colors">
 							<Download class="h-5 w-5 mr-2" />
 							Scarica PDF
 						</a>

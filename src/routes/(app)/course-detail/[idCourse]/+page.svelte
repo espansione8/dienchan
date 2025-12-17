@@ -561,7 +561,7 @@
 				return;
 			}
 		}
-		console.log('FINAL paymentIntentId', paymentIntentId);
+		// console.log('FINAL paymentIntentId', paymentIntentId);
 		// Step 3: Submit the form
 		await tick();
 

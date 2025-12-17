@@ -47,7 +47,7 @@
 	let type = $state('');
 	let surname = $state('');
 	let email = $state('');
-
+	let courseId = $state('');
 	// Pagination
 	let currentPage = $state(1);
 	const itemsPerPage = 50;
@@ -559,12 +559,14 @@
 		// statusPayment = '';
 		surname = '';
 		email = '';
+		//  courseId = '';
 	};
 
 	const refresh = () => {
 		paymentMethod = '';
 		statusPayment = '';
 		type = '';
+		courseId = '';
 		invalidateAll();
 		resetFields();
 		resetActive = false;
@@ -791,6 +793,7 @@
 										<input type="hidden" name="filterStatus" value={status} />
 										<input type="hidden" name="filterStatusPayment" value={statusPayment} />
 										<input type="hidden" name="filterType" value={type} />
+										<input type="hidden" name="filterCourseId" value={courseId} />
 
 										<button type="submit" class="btn btn-success btn-sm">
 											<BanknoteArrowUp />
@@ -813,6 +816,7 @@
 										<input type="hidden" name="filterStatus" value={status} />
 										<input type="hidden" name="filterStatusPayment" value={statusPayment} />
 										<input type="hidden" name="filterType" value={type} />
+										<input type="hidden" name="filterCourseId" value={courseId} />
 										<button type="submit" class="btn btn-error btn-sm">
 											<BanknoteX />
 										</button>
@@ -887,7 +891,7 @@
 			{/each}
 		</tbody>
 	</table>
-	{#if tableList.length == 0}
+	{#if tableList?.length == 0}
 		<div class="alert alert-warning shadow-lg flex item-center text-center justify-center rounded-md mt-3 mx-auto w-full max-w-lg">
 			<div>
 				<ShieldAlert />
@@ -927,7 +931,7 @@
 				class="join-item btn"
 				name="navigation"
 				value="next"
-				disabled={tableList.length < itemsPerPage || loading}
+				disabled={tableList?.length < itemsPerPage || loading}
 				style="pointer-events: auto;"
 			>
 				<span class="pointer-events-none">»</span>
@@ -944,7 +948,7 @@
 			<input type="hidden" name="paymentMethod" value={paymentMethod} />
 			<input type="hidden" name="status" value={status} />
 			<input type="hidden" name="statusPayment" value={statusPayment} />
-			<input type="hidden" name="type" value={type} />
+			<input type="hidden" name="courseId" value={courseId} />
 			<!-- <input type="hidden" name="courseId" value={courseId} /> -->
 		</form>
 	</div>
@@ -1324,6 +1328,7 @@
 							type="text"
 							name="courseId"
 							placeholder="Inserisci l'ID del corso"
+							bind:value={courseId}
 							class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 						/>
 					</div>

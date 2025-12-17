@@ -30,7 +30,8 @@
 		Handshake,
 		Link,
 		ToggleRight,
-		ToggleLeft
+		ToggleLeft,
+		UserRoundX
 	} from 'lucide-svelte';
 
 	// PDF maker
@@ -790,6 +791,11 @@
 			certificationStatus = item.certificationStatus;
 			postAction = `?/createCertification`;
 		}
+		if (type == 'resetCert') {
+			postAction = `?/resetCertifications`;
+			modalTitle = 'Conferma Reset Certificazioni';
+			prodId = item.prodId;
+		}
 	};
 
 	const onCloseModal = () => {
@@ -806,6 +812,16 @@
 
 	const formSubmit = () => {
 		loading = true;
+
+		// DEBUG: Log prima dell'invio
+		console.log('=== DEBUG FORM SUBMIT ===');
+		console.log('currentModal:', currentModal);
+		console.log('postAction:', postAction);
+		if (currentModal === 'subscribers' && postAction === '?/createCertification') {
+			console.log('selectedSubscriber:', selectedSubscriber);
+			console.log('Numero utenti selezionati:', selectedSubscriber.length);
+		}
+		console.log('========================');
 		//return async ({ result }: { result: ActionResult }) => {
 		//await invalidateAll();
 		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
@@ -971,6 +987,12 @@
 											{/if}
 										</span>
 									</form>
+
+									{#if row.certificationStatus}
+										<button type="button" class="btn btn-warning btn-xs" onclick={() => onClickModal('resetCert', row)}>
+											<UserRoundX size={14} /> Annulla Certificati
+										</button>
+									{/if}
 								</td>
 							{/if}
 							<td class="flex items-center space-x-4">
@@ -1477,13 +1499,11 @@
 		{/if}
 		<form method="POST" action={postAction} use:enhance={formSubmit} class="p-6 space-y-6">
 			<div class="space-y-4">
+				<div>
+					<label for="courseid" class="block text-sm font-medium text-gray-700 mb-1">ID corso</label>
 
-<div>
-<label for="courseid" class="block text-sm font-medium text-gray-700 mb-1">ID corso</label>
-						
-				<input class="input input-bordered w-full" id="courseid" name="courseid" type="text" placeholder="ID corso" bind:value={prodId} />
-				
-</div>
+					<input class="input input-bordered w-full" id="courseid" name="courseid" type="text" placeholder="ID corso" bind:value={prodId} />
+				</div>
 
 				{#if userData.level === 'admin' || userData.level === 'superadmin'}
 					<div>
@@ -1577,20 +1597,24 @@
 					{/if}
 				</form>
 			{/if}
-			<div class="mb-6 flex justify-between items-center">
-				{#if currentObj.type !== 'event'}
-					<button
-						type="button"
-						class="btn"
-						class:btn-error={showCheckboxes}
-						aria-pressed={showCheckboxes}
-						onclick={toggleCheckboxes}
-						disabled={certificationStatus}
-					>
-						{showCheckboxes ? 'Annulla' : 'Genera Attestati'}
-					</button>
-				{/if}
-				<form method="POST" action="?/coursePdf" use:enhance={formSubmit} class="">
+
+			<div class="mb-6 flex justify-between items-center gap-2">
+				<div class="flex gap-2">
+					{#if currentObj.type !== 'event'}
+						<button
+							type="button"
+							class="btn"
+							class:btn-error={showCheckboxes}
+							aria-pressed={showCheckboxes}
+							onclick={toggleCheckboxes}
+							disabled={certificationStatus}
+						>
+							{showCheckboxes ? 'Annulla' : 'Genera Attestati'}
+						</button>
+					{/if}
+				</div>
+
+				<form method="POST" action="?/coursePdf" use:enhance={formSubmit}>
 					<input type="hidden" name="prodId" value={prodId} />
 					<input type="hidden" name="subscribers" value={JSON.stringify(subscribers)} />
 					<button type="submit" class="btn btn-info text-white" disabled={!subscribers || subscribers.length === 0}>
@@ -1647,5 +1671,45 @@
 				{/each}
 			</div>
 		</div>
+	</Modal>
+{/if}
+
+{#if currentModal == 'resetCert'}
+	<Modal isOpen={openModal} header={modalTitle}>
+		<button type="button" class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
+		{#if loading}
+			<Loader />
+		{/if}
+		<form
+			method="POST"
+			action={postAction}
+			use:enhance={formSubmit}
+			class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-8"
+		>
+			<input type="hidden" name="prodId" value={prodId} />
+
+			<div class="col-span-4">
+				<div class="alert alert-warning">
+					<ShieldAlert />
+					<div>
+						<h3 class="font-bold">Attenzione!</h3>
+						<p class="text-sm">Questa azione resetterà:</p>
+						<ul class="list-disc list-inside text-sm mt-2">
+							<li>Lo stato di certificazione del corso</li>
+							<li>Lo stato di certificazione di tutti i partecipanti</li>
+							<li>Luogo e data di certificazione</li>
+						</ul>
+						<p class="text-sm mt-2 font-semibold">Sarà possibile rigenerare i certificati successivamente.</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-span-4 mt-5 flex justify-center">
+				<div class="bg-gray-50 flex justify-center">
+					<button type="button" class="btn btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
+					<button type="submit" class="btn btn-warning btn-sm mx-2"> Conferma Reset </button>
+				</div>
+			</div>
+		</form>
 	</Modal>
 {/if}

@@ -27,6 +27,8 @@
 
 	const pointsBalance = $derived(user?.pointsBalance || 0);
 	const level = $derived(user?.level || '');
+	const membershipStatus = $derived(user?.membership?.membershipStatus || false);
+
 	const userName = $derived(user?.name || '');
 	const userSurname = $derived(user?.surname || '');
 
@@ -50,15 +52,15 @@
 		};
 	};
 
-// 	$effect(() => {
-//     console.log('DEBUG NAVBAR:', {
-//         level: level,
-//         levelLower: level.toLowerCase(),
-//         isFormatore: isFormatore,
-//         auth: auth,
-//         userName: userName
-//     });
-// });
+	// 	$effect(() => {
+	//     console.log('DEBUG NAVBAR:', {
+	//         level: level,
+	//         levelLower: level.toLowerCase(),
+	//         isFormatore: isFormatore,
+	//         auth: auth,
+	//         userName: userName
+	//     });
+	// });
 </script>
 
 <header class="sticky top-0 z-50 w-full bg-base-100 shadow-sm">
@@ -87,8 +89,8 @@
 
 							<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
 								<li><a href="/membership-new"><IdCard size={16} /> Tesseramento</a></li>
-								{#if auth && (level === 'superadmin' || level === 'admin' )}
-									<li><a href="/insurance-new"><ShieldCheck size={16} /> Assicurazione</a></li>
+								{#if auth && membershipStatus}
+									<li><a href="/insurance-new"><ShieldCheck size={16} />Contributo praticante</a></li>
 									<!-- <li><a href="#"><ShieldCheck size={16} /> Assicurazione (in progress)</a></li> -->
 								{/if}
 							</ul>
@@ -318,7 +320,9 @@
 
 							<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
 								<li><a href="/membership-new" onclick={toggleMenu}>Tesseramento</a></li>
-								<li><a href="/insurance-new" onclick={toggleMenu}>Assicurazione</a></li>
+								{#if auth && membershipStatus}
+									<li><a href="/insurance-new" onclick={toggleMenu}>Contributo praticante</a></li>
+								{/if}
 							</ul>
 						</div>
 					</li>

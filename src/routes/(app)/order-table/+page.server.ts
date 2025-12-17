@@ -110,9 +110,10 @@ export const actions: Actions = {
 		const filterStatus = formData.get('filterStatus') as string;
 		const filterStatusPayment = formData.get('filterStatusPayment') as string;
 		const filterType = formData.get('filterType') as string;
+		const filterCourseId = formData.get('filterCourseId') as string;
 
 		const hasFilters = filterOrderId || filterUserId || filterSurname || filterEmail ||
-			filterPaymentMethod || filterStatus || filterStatusPayment || filterType;
+			filterPaymentMethod || filterStatus || filterStatusPayment || filterType || filterCourseId;
 
 		if (!orderId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
@@ -350,7 +351,15 @@ export const actions: Actions = {
 							...(filterPaymentMethod && { 'payment.method': filterPaymentMethod }),
 							...(filterStatus && { status: filterStatus }),
 							...(filterStatusPayment && { 'payment.statusPayment': filterStatusPayment }),
-							...(filterType && { type: filterType })
+							...(filterType && { type: filterType }),
+							...(filterCourseId && {
+								'cart': {
+									$elemMatch: {
+										type: { $in: ['course', 'event'] },
+										prodId: filterCourseId
+									}
+								}
+							}),
 						},
 						projection: { _id: 0, password: 0 },
 						sort: { createdAt: -1 },

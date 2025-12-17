@@ -607,6 +607,79 @@ export const actions: Actions = {
 			console.error('Error coursePdf:', error);
 			return { action: 'coursePdf', success: false, message: 'Error coursePdf' };
 		}
-	}
+	},
+	resetCertifications: async ({ request, fetch, locals }) => {
+    const formData = await request.formData();
+    const prodId = formData.get('prodId');
+
+    if (!prodId) {
+        return fail(400, {
+            action: 'resetCertifications',
+            success: false,
+            message: 'ID corso mancante'
+        });
+    }
+
+    // Verifica che l'utente sia admin o superadmin
+    if (locals.user.level !== 'admin' && locals.user.level !== 'superadmin') {
+        return fail(403, {
+            action: 'resetCertifications',
+            success: false,
+            message: 'Permessi insufficienti'
+        });
+    }
+
+    const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+        method: 'POST',
+        body: JSON.stringify({
+            apiKey: APIKEY,
+            schema: 'product',
+            query: { prodId, type: { $in: ['course', 'event'] } },
+            update: {
+                $set: {
+                    certificationStatus: false
+                },
+                $unset: {
+                    "listSubscribers.$[].certificationStatus": "",
+                    "listSubscribers.$[].certificationDate": "",
+                    "listSubscribers.$[].certificationPlace": ""
+                }
+            },
+            options: { upsert: false },
+            multi: false
+        }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+
+    try {
+        const res = await resFetch;
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error('resetCertifications failed', res.status, errorText);
+            return fail(400, {
+                action: 'resetCertifications',
+                success: false,
+                message: errorText
+            });
+        }
+        const result = await res.json();
+
+        return {
+            action: 'resetCertifications',
+            success: true,
+            message: 'Certificazioni resettate con successo. È possibile rigenerare i certificati.'
+        };
+
+    } catch (error) {
+        console.error('Error resetCertifications:', error);
+        return {
+            action: 'resetCertifications',
+            success: false,
+            message: 'Errore durante il reset delle certificazioni'
+        };
+    }
+},
 
 } satisfies Actions;
