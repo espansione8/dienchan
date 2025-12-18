@@ -98,7 +98,7 @@ export const actions: Actions = {
 	// const insuranceExpiry = new Date();
 	// insuranceExpiry.setFullYear(insuranceExpiry.getFullYear() + 1);
 
-	const mailFetch = (email, order) => fetch(`${BASE_URL}/api/mailer/new-order`, {
+	const mailFetch = (email, order) => fetch(`${BASE_URL}/api/mailer/new-insurance`, {
 		method: 'POST',
 		body: JSON.stringify({
 			apiKey: APIKEY,

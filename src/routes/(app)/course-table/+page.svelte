@@ -47,6 +47,10 @@
 		},
 		Albatros: {
 			normal: `${PUBLIC_BASE_URL}/font/albatros.ttf`
+		},
+
+		Montserrat: {
+			normal: `${PUBLIC_BASE_URL}/font/Montserrat-SemiBold.ttf`,
 		}
 	};
 
@@ -60,7 +64,7 @@
 	let selectedSubscriber = $state<string[]>([]);
 	let certificationStatus = $state(false);
 	const toggleCheckboxes = () => {
-		showCheckboxes = !showCheckboxes;
+		showCheckboxes = !showCheckboxes;  
 		if (!showCheckboxes) {
 			selectedSubscriber = [];
 		}
@@ -144,7 +148,7 @@
 			content: [
 				{
 					text: `${user.name} ${user.surname}`,
-					font: 'Albatros',
+					font: 'Montserrat',
 					style: ['header', { color: '#333333' }, { fontSize: 55 }, { alignment: 'center' }]
 				},
 				{
@@ -169,7 +173,7 @@
 						{
 							width: pdfLayout.formatoreWidth,
 							text: `${item.name} ${item.surname}`,
-							font: 'Albatros',
+							font: 'Montserrat',
 							style: [{ color: '#333333' }, { fontSize: 34 }, { alignment: 'left' }]
 						},
 						{ width: pdfLayout.centerWidth, text: '' },
