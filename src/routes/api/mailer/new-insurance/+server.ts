@@ -127,7 +127,7 @@ export const POST: RequestHandler = async ({ request }) => {
                         </div>
                         
                         <div class="step-box">
-                            <p style="margin: 0;"><span class="step-number">4.</span> <strong>Invia il modulo firmato</strong> via email a: <a href="mailto:info@riflessologiadienchan.it" style="color: #0b5ed7; font-weight: 700;">info@riflessologiadienchan.it</a></p>
+                            <p style="margin: 0;"><span class="step-number">4.</span> <strong>Invia il modulo firmato</strong> via email a: <a href="mailto:amministrazionedienchan@gmail.com" style="color: #0b5ed7; font-weight: 700;">amministrazionedienchan@gmail.com</a></p>
                         </div>
 
                         <div class="alert-box" style="background: #f8d7da; border-color: #dc3545;">
