@@ -1789,16 +1789,16 @@
 				<input type="hidden" name="storePickUp" value={formData.storePickUp} />
 				<!-- <input type="hidden" name="paymentMethodId" value={paymentMethodId || null} /> -->
 				<input type="hidden" name="paymentIntentId" value={paymentIntentId} />
-				<input type="hidden" name="shippingName" value={shippingName} />
-				<input type="hidden" name="shippingSurname" value={shippingSurname} />
-				<input type="hidden" name="shippingEmail" value={shippingEmail} />
-				<input type="hidden" name="shippingPhone" value={shippingPhone} />
-				<input type="hidden" name="shippingMobilePhone" value={shippingMobilePhone} />
-				<input type="hidden" name="shippingAddress" value={shippingAddress} />
-				<input type="hidden" name="shippingCity" value={shippingCity} />
-				<input type="hidden" name="shippingCounty" value={shippingCounty} />
-				<input type="hidden" name="shippingPostalCode" value={shippingPostalCode} />
-				<input type="hidden" name="shippingCountry" value={shippingCountry} />
+				<input type="hidden" name="shippingName" value={formData.storePickUp ? '' : shippingName} />
+				<input type="hidden" name="shippingSurname" value={formData.storePickUp ? '' : shippingSurname} />
+				<input type="hidden" name="shippingEmail" value={formData.storePickUp ? '' : shippingEmail} />
+				<input type="hidden" name="shippingPhone" value={formData.storePickUp ? '' : shippingPhone} />
+				<input type="hidden" name="shippingMobilePhone" value={formData.storePickUp ? '' : shippingMobilePhone} />
+				<input type="hidden" name="shippingAddress" value={formData.storePickUp ? 'Ritiro in sede' : shippingAddress} />
+				<input type="hidden" name="shippingCity" value={formData.storePickUp ? '' : shippingCity} />
+				<input type="hidden" name="shippingCounty" value={formData.storePickUp ? '' : shippingCounty} />
+				<input type="hidden" name="shippingPostalCode" value={formData.storePickUp ? '' : shippingPostalCode} />
+				<input type="hidden" name="shippingCountry" value={formData.storePickUp ? '' : shippingCountry} />
 
 				<label for="orderNotes" class="label">
 					<span class="label-text font-medium">Note per l'ordine (opzionale)</span>
@@ -1823,7 +1823,7 @@
 						{/if}
 					</button> -->
 
-					<button type="button" class="btn btn-primary" onclick={handleFinalSubmit} disabled={ loading || stripeError != null}>
+					<button type="button" class="btn btn-primary" onclick={handleFinalSubmit} disabled={loading || stripeError != null}>
 						{#if loading}
 							<span class="loading loading-spinner"></span>
 							Elaborazione...

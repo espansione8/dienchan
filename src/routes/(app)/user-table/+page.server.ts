@@ -295,8 +295,8 @@ export const actions: Actions = {
 						'membership.membershipExpiry': membershipExpiry,
 						'membership.membershipStatus': membershipStatus,
 						'membership.membershipLevel': membershipLevel,
-						...(insuranceStatus === 'true' && { ['insurance.insuranceExpiry']: insuranceExpiry }),
-						...(insuranceStatus === 'true' && { ['insurance.insuranceStatus']: true }),
+						'insurance.insuranceStatus': insuranceStatus === 'true',
+						...(insuranceStatus === 'true' && insuranceExpiry && { 'insurance.insuranceExpiry': insuranceExpiry }),
 						// 'insurance.insuranceExpiry': insuranceExpiry !== null ? insuranceExpiry : null,
 						// 'insurance.insuranceStatus': insuranceStatus === 'true' ? true : false,
 					}
@@ -975,12 +975,12 @@ export const actions: Actions = {
 	approveTraining: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const userId = formData.get('userId');
-		const trainingIndex = formData.get('trainingIndex');
+		const trainingDate = formData.get('trainingDate');
+		const trainingFileName = formData.get('trainingFileName');
 		const approved = formData.get('approved') === 'true';
 
-		// console.log('approveTraining', { userId, trainingIndex, approved });
 
-		if (!userId || trainingIndex === null) {
+		if (!userId || !trainingDate || !trainingFileName) {
 			return fail(400, { action: 'approveTraining', success: false, message: 'Dati mancanti' });
 		}
 
@@ -989,10 +989,18 @@ export const actions: Actions = {
 			body: JSON.stringify({
 				apiKey: APIKEY,
 				schema: 'user',
-				query: { userId },
+				query: {
+					userId,
+					'trainingHistory': {
+						$elemMatch: {
+							date: trainingDate,
+							fileName: trainingFileName
+						}
+					}
+				},
 				update: {
 					$set: {
-						[`trainingHistory.${trainingIndex}.approved`]: approved
+						'trainingHistory.$.approved': approved
 					}
 				},
 				options: { upsert: false },
@@ -1003,48 +1011,114 @@ export const actions: Actions = {
 			}
 		});
 
-		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'user',
-				query: { userId },
-				projection: { _id: 0, password: 0 },
-				sort: { createdAt: -1 },
-				limit: 1,
-				skip: 0
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
 		try {
 			const res = await updateFetch;
-			const resUser = await userFetch;
 
 			if (!res.ok) {
 				const errorText = await res.text();
-				console.error('approveTraining update failed', res.status, errorText);
 				return fail(400, { action: 'approveTraining', success: false, message: errorText });
 			}
+
 			const result = await res.json();
 
-			if (!resUser.ok) {
-				const errorText = await resUser.text();
-				console.error('user fetch failed', resUser.status, errorText);
+			const userFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user',
+					query: { userId },
+					projection: { _id: 0, password: 0 },
+					sort: { createdAt: -1 },
+					limit: 1,
+					skip: 0
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (!userFetch.ok) {
+				const errorText = await userFetch.text();
 				return fail(400, { action: 'approveTraining', success: false, message: errorText });
 			}
-			const user = await resUser.json();
 
-			return { action: 'approveTraining', success: true, message: result.message, payload: user, approved };
+			const user = await userFetch.json();
+
+			return {
+				action: 'approveTraining',
+				success: true,
+				message: result.message,
+				payload: user,
+				approved
+			};
 
 		} catch (error) {
-			console.error('Error approveTraining:', error);
 			return fail(400, { action: 'approveTraining', success: false, message: 'Error approveTraining' });
 		}
-	}
+	},
 
+	delTraining: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const userId = formData.get('userId');
+		const fileName = formData.get('fileName');
+		const trainingDate = formData.get('trainingDate');
 
+		if (!userId || !fileName) {
+			return fail(400, { action: 'delTraining', success: false, message: 'Dati mancanti' });
+		}
+
+		try {
+			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user',
+					query: { userId },
+					update: {
+						$pull: {
+							trainingHistory: {
+								fileName,
+								...(trainingDate && { date: trainingDate }), // 🆕 Usa date se disponibile
+								fileUrl: `/uploads/user/${userId}/${fileName}`
+							}
+						}
+					},
+					options: { upsert: false },
+					multi: false
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (!res.ok) {
+				return fail(400, { action: 'delTraining', success: false, message: await res.text() });
+			}
+
+			const response = await res.json();
+
+			// Elimina il file fisico
+			const responseDelete = await fetch(`${BASE_URL}/api/uploads/files`, {
+				method: 'DELETE',
+				body: JSON.stringify({
+					dir: `user/${userId}`,
+					fileName
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (!responseDelete.ok) {
+				return fail(400, { action: 'delTraining', success: false, message: await responseDelete.text() });
+			}
+
+			return { action: 'delTraining', success: true, message: response.message };
+
+		} catch (error) {
+			console.error('Error delTraining:', error);
+			return fail(400, { action: 'delTraining', success: false, message: 'Errore rimozione' });
+		}
+	},
 
 } satisfies Actions;

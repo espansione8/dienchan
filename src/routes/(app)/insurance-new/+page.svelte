@@ -23,11 +23,15 @@
 		FileText,
 		Download,
 		Receipt,
-		Info
+		Info,
+		Clock,
+		CheckCircle2,
+		AlertCircle,
+		Calendar
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { userData, auth, stripePublishableKey } = $derived(data);
+	const { userData, auth, stripePublishableKey, insuranceOrders } = $derived(data);
 
 	let formEl: HTMLFormElement;
 	let stripe: Stripe | null = $state(null);
@@ -58,6 +62,56 @@
 
 	let currentStep = $state(1);
 	let totalSteps = $state(3);
+
+	// ===== LOGICA STATO ASSICURAZIONE =====
+	
+	// Verifica se ci sono ordini insurance in elaborazione 
+	// (filtrati dal server: status='requested', orderConfirmed=false, statusPayment='pending' o 'done')
+	const hasPendingInsuranceOrder = $derived(
+		insuranceOrders && insuranceOrders.length > 0
+	);
+
+	// Verifica se l'assicurazione è attiva
+	const hasActiveInsurance = $derived(userData?.insurance?.insuranceStatus === true);
+
+	// Calcola i giorni rimanenti alla scadenza
+	const daysUntilExpiry = $derived.by(() => {
+		if (!userData?.insurance?.insuranceExpiry) return null;
+		const expiry = new Date(userData.insurance.insuranceExpiry);
+		const today = new Date();
+		const diffTime = expiry.getTime() - today.getTime();
+		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+		return diffDays;
+	});
+
+	// Mostra bottone rinnova se mancano meno di 14 giorni alla scadenza
+	const showRenewButton = $derived(
+		hasActiveInsurance && daysUntilExpiry !== null && daysUntilExpiry <= 14 && daysUntilExpiry > 0
+	);
+
+	// Nasconde il bottone acquista se c'è assicurazione attiva o ordine pendente
+	const hideAcquistaButton = $derived(hasActiveInsurance || hasPendingInsuranceOrder);
+
+	// Formatta la data di scadenza
+	const formatExpiryDate = (dateString: string) => {
+		const date = new Date(dateString);
+		return date.toLocaleDateString('it-IT', { 
+			day: '2-digit', 
+			month: 'long', 
+			year: 'numeric' 
+		});
+	};
+
+	// Trova l'ordine pendente più recente (già filtrato dal server)
+	const pendingOrder = $derived.by(() => {
+		if (!hasPendingInsuranceOrder || !insuranceOrders || insuranceOrders.length === 0) return null;
+		// Ordina per data decrescente e prendi il più recente
+		return [...insuranceOrders].sort((a, b) => 
+			new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()
+		)[0];
+	});
+
+	// ===== FINE LOGICA STATO ASSICURAZIONE =====
 
 	const initializeStripe = async () => {
 		loading = true;
@@ -400,14 +454,63 @@
 					<p class="text-lg text-blue-800 mb-6 leading-relaxed">
 						Il presente contributo permette a un socio praticante di godere di alcune agevolazioni quali utilizzo delle sale dell'associazione con tariffa agevolata e inclusione della polizza di copertura RC dell'associazione.
 					</p>
-					<div class="flex flex-wrap gap-4">
-						<button class="btn btn-primary btn-lg" onclick={onClickModal}>
-							Acquista Ora
-						</button>
-					</div>
+
+					<!-- Status Cards -->
+					{#if hasActiveInsurance}
+						<!-- Assicurazione Attiva -->
+						<div class="alert alert-success shadow-lg mb-4">
+							<div class="flex items-start gap-3">
+								<CheckCircle2 class="h-6 w-6 flex-shrink-0" />
+								<div class="flex-1">
+									<h3 class="font-bold text-lg">Assicurazione Attiva</h3>
+									<p class="text-sm">La tua copertura è attiva e operativa</p>
+									{#if userData?.insurance?.insuranceExpiry}
+										<div class="mt-2 flex items-center gap-2 text-sm">
+											<Calendar class="h-4 w-4" />
+											<span>Scadenza: <strong>{formatExpiryDate(userData.insurance.insuranceExpiry)}</strong></span>
+										</div>
+										<!-- {#if daysUntilExpiry !== null}
+											<div class="mt-1 flex items-center gap-2 text-sm">
+												<Clock class="h-4 w-4" />
+												<span>
+													{#if daysUntilExpiry > 0}
+														Giorni rimanenti: <strong>{daysUntilExpiry}</strong>
+													{:else}
+														<strong class="text-error">Assicurazione scaduta</strong>
+													{/if}
+												</span>
+											</div>
+										{/if} -->
+									{/if}
+								</div>
+							</div>
+						</div>
+
+						{#if showRenewButton}
+							<div class="alert alert-warning shadow-lg mb-4">
+								<div class="flex items-start gap-3">
+									<AlertCircle class="h-6 w-6 flex-shrink-0" />
+									<div class="flex-1">
+										<h3 class="font-bold">Rinnovo Disponibile</h3>
+										<p class="text-sm">La tua assicurazione scade tra meno di 2 settimane. Rinnova ora per continuare a godere delle agevolazioni!</p>
+									</div>
+								</div>
+							</div>
+							<button class="btn btn-warning btn-lg w-full md:w-auto" onclick={onClickModal}>
+								Rinnova Assicurazione
+							</button>
+						{/if}
+					{:else if !hasPendingInsuranceOrder}
+						<!-- Nessuna Assicurazione - Mostra solo se NON c'è ordine pendente -->
+						<div class="flex flex-wrap gap-4">
+							<button class="btn btn-primary btn-lg" onclick={onClickModal}>
+								Acquista Ora
+							</button>
+						</div>
+					{/if}
 				</div>
 				
-				<!-- Agevolazioni Incluse - Compatta -->
+				<!-- Agevolazioni Incluse -->
 				<div class="md:w-1/2">
 					<div class="bg-white rounded-xl p-6 shadow-lg">
 						<h2 class="text-2xl font-bold text-blue-900 mb-6 flex items-center gap-2">
@@ -450,13 +553,6 @@
 								</div>
 							</div>
 						</div>
-
-						<!-- <div class="mt-6 pt-4 border-t border-blue-100">
-							<div class="text-center">
-								<span class="text-3xl font-bold text-blue-600">70€</span>
-								<span class="text-blue-700 ml-2">/ anno</span>
-							</div>
-						</div> -->
 					</div>
 				</div>
 			</div>
@@ -464,53 +560,110 @@
 	</div>
 </section>
 
-<!-- Benefits Section -->
-{#if auth}
-	<!-- <section class="py-16 px-4 bg-white">
-		<div class="container mx-auto">
-			<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-12">Agevolazioni Incluse</h2>
-
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-				<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
-					<div class="flex items-start gap-4">
-						<div class="bg-blue-100 p-3 rounded-full">
-							<Building2 class="text-blue-600 h-6 w-6" />
+<!-- Sezione Ordine in Elaborazione (solo ordini con pagamento pending e assicurazione NON attiva) -->
+{#if auth && hasPendingInsuranceOrder && !hasActiveInsurance}
+	<section class="py-16 px-4 bg-white">
+		<div class="container mx-auto max-w-4xl">
+			<div class="bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-2xl shadow-xl p-8">
+				<div class="flex items-start gap-4 mb-6">
+					<div class="flex-shrink-0">
+						<div class="bg-blue-500 rounded-full p-4 shadow-lg">
+							<Clock class="h-8 w-8 text-white" />
+						</div>
+					</div>
+					
+					<div class="flex-1">
+						<div class="flex items-center gap-3 mb-3">
+							<h2 class="font-bold text-3xl text-blue-900">Ordine in Elaborazione</h2>
+						</div>
+						<!-- <div class="inline-flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full">
+							<span class="relative flex h-2.5 w-2.5">
+								<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+								<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
+							</span>
+							<span class="text-sm font-semibold text-blue-700">In attesa di documentazione</span>
+						</div> -->
+					</div>
+				</div>
+				
+				<div class="bg-white/90 backdrop-blur rounded-xl p-5 mb-6 border border-blue-100 shadow-sm">
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div>
+							<p class="text-sm text-gray-600 mb-1">Numero ordine</p>
+							<p class="font-bold text-2xl text-blue-900">#{pendingOrder?.orderId}</p>
 						</div>
 						<div>
-							<h3 class="font-semibold text-lg text-blue-900 mb-2">Utilizzo Sale Associazione</h3>
-							<p class="text-blue-800">Accesso alle sale dell'associazione con tariffa agevolata riservata ai soci praticanti.</p>
+							<p class="text-sm text-gray-600 mb-1">Data ricezione</p>
+							<p class="font-semibold text-lg text-gray-800">
+								{new Date(pendingOrder?.orderDate).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })}
+							</p>
 						</div>
 					</div>
 				</div>
-
-				<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
-					<div class="flex items-start gap-4">
-						<div class="bg-blue-100 p-3 rounded-full">
-							<ShieldCheck class="text-blue-600 h-6 w-6" />
+				
+				<div class="bg-white rounded-xl p-6 shadow-md mb-6">
+					<div class="flex items-center gap-3 mb-6 pb-4 border-b-2 border-blue-100">
+						<div class="bg-blue-100 rounded-lg p-2.5">
+							<FileText class="h-6 w-6 text-blue-600" />
 						</div>
-						<div>
-							<h3 class="font-semibold text-lg text-blue-900 mb-2">Copertura RC</h3>
-							<p class="text-blue-800">Inclusione nella polizza di copertura Responsabilità Civile dell'associazione.</p>
+						<h3 class="font-bold text-xl text-blue-900">Passi per completare l'attivazione</h3>
+					</div>
+					
+					<div class="space-y-5">
+						<div class="flex items-start gap-4">
+							<span class="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white text-base font-bold flex-shrink-0 mt-1 shadow-md">1</span>
+							<div class="flex-1 pt-1">
+								<p class="text-base font-semibold text-gray-900 mb-1">Scarica il modulo di adesione</p>
+								<p class="text-sm text-gray-600">Troverai il modulo allegato all'email di conferma che hai ricevuto.</p>
+							</div>
+						</div>
+						
+						<div class="flex items-start gap-4">
+							<span class="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white text-base font-bold flex-shrink-0 mt-1 shadow-md">2</span>
+							<div class="flex-1 pt-1">
+								<p class="text-base font-semibold text-gray-900 mb-1">Compila e firma il modulo</p>
+								<p class="text-sm text-gray-600">Completa tutte le sezioni indicate nel documento.</p>
+							</div>
+						</div>
+						
+						<div class="flex items-start gap-4">
+							<span class="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white text-base font-bold flex-shrink-0 mt-1 shadow-md">3</span>
+							<div class="flex-1 pt-1">
+								<p class="text-base font-semibold text-gray-900 mb-2">Invia il modulo firmato via email</p>
+								<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-3">
+									<div class="flex items-center gap-2 mb-2">
+										<Mail class="h-5 w-5 text-blue-600" />
+										<p class="text-sm font-semibold text-blue-900">Indirizzo email:</p>
+									</div>
+									<a href="mailto:amministrazionedienchan@gmail.com" class="text-blue-600 hover:text-blue-700 font-semibold text-base break-all">
+										amministrazionedienchan@gmail.com
+									</a>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
-
-				<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
-					<div class="flex items-start gap-4">
-						<div class="bg-blue-100 p-3 rounded-full">
-							<Users class="text-blue-600 h-6 w-6" />
+				
+				<div class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-5 shadow-sm">
+					<div class="flex items-start gap-3">
+						<div class="bg-green-100 rounded-lg p-2.5 flex-shrink-0">
+							<CheckCircle2 class="h-6 w-6 text-green-600" />
 						</div>
 						<div>
-							<h3 class="font-semibold text-lg text-blue-900 mb-2">Supporto Associativo</h3>
-							<p class="text-blue-800">Accesso al supporto e alle attività riservate ai soci praticanti dell'associazione.</p>
+							<p class="text-base font-bold text-green-900 mb-2">Attivazione</p>
+							<p class="text-sm text-green-700">
+								La tua assicurazione sarà attivata dopo aver ricevuto il modulo firmato. 
+							</p>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-	</section> -->
+	</section>
+{/if}
 
-	<!-- Contribution Details Section -->
+<!-- Contribution Details Section -->
+{#if auth && !hideAcquistaButton}
 	<section class="py-16 px-4 bg-gradient-to-b from-teal-50 to-blue-50">
 		<div class="container mx-auto">
 			<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-12">Dettagli Contributo</h2>
@@ -626,6 +779,7 @@
 		</div>
 	</section>
 {/if}
+
 <!-- Modal -->
 {#if auth}
 	<Modal isOpen={openModal} header={modalTitle} cssClass={'bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto'}>
@@ -863,7 +1017,13 @@
 					{#if currentStep < totalSteps}
 						<button type="button" class="btn btn-primary" onclick={nextStep} disabled={!isCurrentStepValid()}> Continua </button>
 					{:else}
-						<button type="button" class="btn btn-success" onclick={handleFinalSubmit} disabled={!isCurrentStepValid()}> Conferma Acquisto</button>
+						<button type="button" class="btn btn-success" onclick={handleFinalSubmit} disabled={!isCurrentStepValid()}> 
+							{#if showRenewButton}
+								Conferma Rinnovo
+							{:else}
+								Conferma Acquisto
+							{/if}
+						</button>
 					{/if}
 				</div>
 			</div>

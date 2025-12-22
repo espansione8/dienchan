@@ -739,9 +739,9 @@
 					<!-- ID ordine-->
 					<td>{row.orderId}</td>
 					<!-- Email-->
-					<td>{row.shipping?.email}</td>
+					<td>{row.invoicing?.email}</td>
 					<!-- Nome-->
-					<td>{row.shipping?.name} {row.shipping?.surname}</td>
+					<td>{row.invoicing?.name} {row.invoicing?.surname}</td>
 					<!-- cart -->
 					<td>
 						<div class="flex flex-col space-y-1">

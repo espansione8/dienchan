@@ -381,6 +381,7 @@
 						onCloseModal();
 					} else if (action == 'approveTraining') {
 						await invalidateAll(); // Ricarica tutti i dati
+						await tick();
 						tableList = getTable;
 						pendingList = pendingApprovalsList;
 						resetActive = false;
@@ -1508,26 +1509,34 @@
 						<div class="col-span-4 p-4 rounded-box shadow-md bg-base-200 flex flex-col gap-y-4">
 							<!-- Header -->
 							<div class="flex items-start justify-between gap-4 flex-wrap lg:flex-nowrap">
-								<span class="font-bold text-lg text-primary flex-1 break-words">{training.description || 'N/A'}</span>
+								<span class="font-bold text-lg text-primary flex-1 break-words">
+									{training.description || 'N/A'}
+								</span>
 
 								<div class="flex items-center gap-2 flex-shrink-0">
+									<!-- Badge Status -->
 									<div class="badge badge-lg" class:badge-success={training.approved} class:badge-warning={!training.approved}>
 										{training.approved ? 'Approvato' : 'In attesa'}
 									</div>
+ 
+									{#if !training.approved}
+										<form method="POST" action={`?/approveTraining`} use:enhance={formSubmit}>
+											<input type="hidden" name="userId" value={userId} />
+											<input type="hidden" name="trainingDate" value={training.date} />
+											<input type="hidden" name="trainingFileName" value={training.fileName} />
+											<input type="hidden" name="approved" value="true" />
 
-									<form method="POST" action={postAction} use:enhance={formSubmit}>
+											<button type="submit" class="btn btn-xs btn-success whitespace-nowrap" aria-label="Approva training"> ✓ Approva </button>
+										</form>
+									{/if}
+ 
+									<form method="POST" action={`?/delTraining`} use:enhance={formSubmit}>
 										<input type="hidden" name="userId" value={userId} />
-										<input type="hidden" name="trainingIndex" value={index} />
-										<input type="hidden" name="approved" value={!training.approved} />
+										<input type="hidden" name="fileName" value={training.fileName} />
+										<input type="hidden" name="trainingDate" value={training.date} />
 
-										<button
-											type="submit"
-											class="btn btn-xs whitespace-nowrap"
-											class:btn-success={!training.approved}
-											class:btn-error={training.approved}
-											aria-label={training.approved ? 'Revoca approvazione' : 'Approva'}
-										>
-											{training.approved ? '✕ Revoca' : '✓ Approva'}
+										<button type="submit" class="btn btn-xs btn-error" aria-label="Elimina training">
+											<Trash2 size={16} />
 										</button>
 									</form>
 								</div>

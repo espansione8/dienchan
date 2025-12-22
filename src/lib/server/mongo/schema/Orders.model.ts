@@ -1,4 +1,3 @@
-// SCHEMA SAMPLE
 import mongoose, { Schema, Types } from 'mongoose';
 
 const orderSchema = new Schema(

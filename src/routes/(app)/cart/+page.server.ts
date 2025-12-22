@@ -227,7 +227,29 @@ export const actions: Actions = {
 		const shippingPostalCode = formData.get('shippingPostalCode');
 		const shippingCountry = formData.get('shippingCountry');
 
-
+		const finalShippingData = storePickUp ? {
+			name: '',
+			surname: '',
+			email: '',
+			phone: '',
+			mobilePhone: '',
+			address: 'Ritiro in sede',
+			city: '',
+			county: '',
+			postalCode: '',
+			country: ''
+		} : {
+			name: shippingName,
+			surname: shippingSurname,
+			email: shippingEmail,
+			phone: shippingPhone,
+			mobilePhone: shippingMobilePhone,
+			address: shippingAddress,
+			city: shippingCity,
+			county: shippingCounty,
+			postalCode: shippingPostalCode,
+			country: shippingCountry
+		};
 
 		if (usePoint && newPointsBalance < 0) {
 			return fail(400, { action: 'new', success: false, message: 'Saldo punti insufficiente' });
@@ -530,26 +552,19 @@ export const actions: Actions = {
 					mobilePhone
 				},
 				shipping: {
-					name: shippingName,
-					surname: shippingSurname,
-					address: shippingAddress,
-					city: shippingCity,
-					county: shippingCounty,
-					postalCode: shippingPostalCode,
+					name: finalShippingData.name,
+					surname: finalShippingData.surname,
+					address: finalShippingData.address,
+					city: finalShippingData.city,
+					county: finalShippingData.county,
+					postalCode: finalShippingData.postalCode,
 					state: '',
 					region: '',
-					country: shippingCountry,
+					country: finalShippingData.country,
 					deliveryNotes: '',
-					email: shippingEmail,
-					phone: shippingPhone,
-					mobilePhone: shippingMobilePhone,
-					// tracking: {
-					// 	company: '',
-					// 	trackingNumber: '',
-					// 	trackingLink: '',
-					// 	status: '',
-					// 	estimatedDelivery: new Date()
-					// }
+					email: finalShippingData.email,
+					phone: finalShippingData.phone,
+					mobilePhone: finalShippingData.mobilePhone,
 				},
 				storePickUp,
 				payment: {

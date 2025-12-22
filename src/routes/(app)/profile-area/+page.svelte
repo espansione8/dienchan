@@ -299,28 +299,35 @@
 				},
 
 				// Indirizzo di fatturazione (se presente)
-			...(order.invoicing?.businessName || order.invoicing?.name ? [
-				{
-					text: 'INDIRIZZO DI FATTURAZIONE',
-					style: 'sectionHeader',
-					margin: [0, 10, 0, 10]
-				},
-				{
-					text: [
-						...(order.invoicing.businessName ? [
-							{ text: `${order.invoicing.businessName}\n`, style: 'valueText', bold: true },
-							...(order.invoicing.vatNumber ? [{ text: `P.IVA: ${order.invoicing.vatNumber}\n`, style: 'valueText' }] : [])
-						] : []),
-						...(order.invoicing.name || order.invoicing.surname ? [
-							{ text: `${order.invoicing.name || ''} ${order.invoicing.surname || ''}\n`, style: 'valueText' }
-						] : []),
-						{ text: `${order.invoicing?.address || 'N/A'}\n`, style: 'valueText' },
-						{ text: `${order.invoicing?.postalCode || ''} ${order.invoicing?.city || ''} ${order.invoicing?.county ? `(${order.invoicing.county})` : ''}\n`, style: 'valueText' },
-						{ text: `${order.invoicing?.country || 'Italia'}`, style: 'valueText' }
-					],
-					margin: [0, 0, 0, 20]
-				}
-			] : []),
+				...(order.invoicing?.businessName || order.invoicing?.name
+					? [
+							{
+								text: 'INDIRIZZO DI FATTURAZIONE',
+								style: 'sectionHeader',
+								margin: [0, 10, 0, 10]
+							},
+							{
+								text: [
+									...(order.invoicing.businessName
+										? [
+												{ text: `${order.invoicing.businessName}\n`, style: 'valueText', bold: true },
+												...(order.invoicing.vatNumber ? [{ text: `P.IVA: ${order.invoicing.vatNumber}\n`, style: 'valueText' }] : [])
+											]
+										: []),
+									...(order.invoicing.name || order.invoicing.surname
+										? [{ text: `${order.invoicing.name || ''} ${order.invoicing.surname || ''}\n`, style: 'valueText' }]
+										: []),
+									{ text: `${order.invoicing?.address || 'N/A'}\n`, style: 'valueText' },
+									{
+										text: `${order.invoicing?.postalCode || ''} ${order.invoicing?.city || ''} ${order.invoicing?.county ? `(${order.invoicing.county})` : ''}\n`,
+										style: 'valueText'
+									},
+									{ text: `${order.invoicing?.country || 'Italia'}`, style: 'valueText' }
+								],
+								margin: [0, 0, 0, 20]
+							}
+						]
+					: []),
 
 				{
 					text: 'DETTAGLIO ORDINE',
@@ -433,7 +440,6 @@
 							]
 						},
 						{ width: '50%', text: '' }
-						
 					]
 				},
 
@@ -1135,11 +1141,7 @@
 								<span class="text-3xl font-bold text-primary">{userData.pointsBalance || 0}</span>
 								<div class="text-base-content/80 text-sm mt-1">Punti disponibili</div>
 							</div>
-							<button
-									type="button"
-									class="btn btn-sm btn-primary mt-2"
-									onclick={() => onClickModal('points', null)}>Storico Punti</button
-								>
+							<button type="button" class="btn btn-sm btn-primary mt-2" onclick={() => onClickModal('points', null)}>Storico Punti</button>
 						</div>
 
 						<!-- Card: Prossima Formazione -->
@@ -1817,7 +1819,7 @@
 														€ {order.totalValue.toFixed(2)}
 													</div>
 												</div>
-												
+
 												<div
 													class="badge"
 													class:badge-accent={order.type === 'membership'}
@@ -1950,11 +1952,11 @@
 															</div>
 														</div>
 														<div class="flex justify-end pt-3">
-													<button class="btn btn-sm btn-primary" onclick={() => createPDFReceipt(order)}>
-														<FileDown size={16} />
-														Scarica Ricevuta
-													</button>
-												</div>
+															<button class="btn btn-sm btn-primary" onclick={() => createPDFReceipt(order)}>
+																<FileDown size={16} />
+																Scarica Ricevuta
+															</button>
+														</div>
 														{#if order.totalDiscount > 0}
 															<div class="flex justify-between items-center pt-3 border-t border-base-200">
 																<div class="font-medium">Totale sconti</div>
@@ -2130,6 +2132,7 @@
 													<form method="POST" action={`?/delTraining`} use:enhance={formSubmit}>
 														<input type="hidden" name="userId" value={userData.userId} />
 														<input type="hidden" name="fileName" value={entry.fileName} />
+														<input type="hidden" name="trainingDate" value={entry.date} />													
 														<button class="btn btn-ghost btn-circle text-error btn-sm" type="submit" aria-label="Delete training entry">
 															<Trash2 size="18" />
 														</button>
@@ -2297,18 +2300,16 @@
 	</Modal>
 {/if}
 
-
 {#if currentModal == 'points'}
 	<Modal isOpen={openModal} header={modalTitle}>
 		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
 		{/if}
-		
 
 		<div class="grid grid-cols-4 bg-base-100 grid-col gap-y-3 p-4 lg:gap-x-4 lg:p-4">
 			{#each userData?.pointsHistory || [] as item}
-			<!-- {#each [...(pointsHistory || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) as item} -->
+				<!-- {#each [...(pointsHistory || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) as item} -->
 				<div
 					class="col-span-4
                            p-3
