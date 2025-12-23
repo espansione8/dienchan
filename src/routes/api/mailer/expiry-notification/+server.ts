@@ -198,7 +198,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		// PARTE 3: Fai scadere le assicurazioni al 31/12, fine anno corrente (metti false insurance.status)
 
 		// Verifica se oggi è il 1° gennaio
-		const isJanuary1st = now.getMonth() === 0 && now.getDate() === 1;
+		const isJanuary1st = now.getMonth() === 0 && now.getDate() === 15;
 
 		if (isJanuary1st) {
 			try {

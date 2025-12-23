@@ -50,7 +50,7 @@
 		},
 
 		Montserrat: {
-			normal: `${PUBLIC_BASE_URL}/font/Montserrat-SemiBold.ttf`,
+			normal: `${PUBLIC_BASE_URL}/font/Montserrat-SemiBold.ttf`
 		}
 	};
 
@@ -64,7 +64,7 @@
 	let selectedSubscriber = $state<string[]>([]);
 	let certificationStatus = $state(false);
 	const toggleCheckboxes = () => {
-		showCheckboxes = !showCheckboxes;  
+		showCheckboxes = !showCheckboxes;
 		if (!showCheckboxes) {
 			selectedSubscriber = [];
 		}
@@ -148,7 +148,7 @@
 			content: [
 				{
 					text: `${user.name} ${user.surname}`,
-					font: 'Montserrat',
+					font: 'Albatros',
 					style: ['header', { color: '#333333' }, { fontSize: 55 }, { alignment: 'center' }]
 				},
 				{
@@ -173,7 +173,7 @@
 						{
 							width: pdfLayout.formatoreWidth,
 							text: `${item.name} ${item.surname}`,
-							font: 'Montserrat',
+							font: 'Albatros',
 							style: [{ color: '#333333' }, { fontSize: 34 }, { alignment: 'left' }]
 						},
 						{ width: pdfLayout.centerWidth, text: '' },
@@ -818,14 +818,14 @@
 		loading = true;
 
 		// DEBUG: Log prima dell'invio
-		console.log('=== DEBUG FORM SUBMIT ===');
-		console.log('currentModal:', currentModal);
-		console.log('postAction:', postAction);
-		if (currentModal === 'subscribers' && postAction === '?/createCertification') {
-			console.log('selectedSubscriber:', selectedSubscriber);
-			console.log('Numero utenti selezionati:', selectedSubscriber.length);
-		}
-		console.log('========================');
+		// console.log('=== DEBUG FORM SUBMIT ===');
+		// console.log('currentModal:', currentModal);
+		// console.log('postAction:', postAction);
+		// if (currentModal === 'subscribers' && postAction === '?/createCertification') {
+		// 	console.log('selectedSubscriber:', selectedSubscriber);
+		// 	console.log('Numero utenti selezionati:', selectedSubscriber.length);
+		// }
+		// console.log('========================');
 		//return async ({ result }: { result: ActionResult }) => {
 		//await invalidateAll();
 		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {

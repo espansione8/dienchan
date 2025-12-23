@@ -53,7 +53,7 @@ const UserSchema = new mongoose.Schema(
 				default: 'Socio ordinario'
 			},
 			membershipSignUp: { type: Date, default: Date.now }, // La prima volta che è stato attivato
-			membershipActivation: { type: Date, default: Date.now }, // la data del ultima attivazione - rinnovi
+			membershipActivation: { type: Date, default: null }, // la data del ultima attivazione - rinnovi
 			//membershipExpiry: { type: Date, default: () => new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) }, // quando scade
 			membershipExpiry: {
 				type: Date, default: () => {

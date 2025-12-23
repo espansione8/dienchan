@@ -510,7 +510,7 @@ export const actions: Actions = {
 								password: hash(password1, SALT),
 								cookieId,
 								// "membership.membershipLevel": 'Socio ordinario',
-								// "membership.membershipSignUp": new Date(),
+								"membership.membershipSignUp": new Date(),
 								// "membership.membershipActivation": new Date(),
 								// "membership.membershipExpiry": new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
 								//"membership.membershipStatus": paymentIntentId ? true : false,
