@@ -138,9 +138,6 @@ export const actions: Actions = {
 		const newPass = nanoid();
 		const hashed = hash(newPass, SALT);
 
-		//console.log('newPass', resetEmail, newPass, hashed);
-
-
 		if (!resetEmail) {
 			return fail(400, { action: 'resetPassword', success: false, message: 'L\'email è obbligatoria.' });
 		}
@@ -149,44 +146,12 @@ export const actions: Actions = {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
-				schema: 'user', //product | order | user | layout | discount
+				schema: 'user',
 				query: { email: resetEmail },
-				projection: { email: 1 }, // 0: exclude | 1: include
-				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+				projection: { email: 1 },
+				sort: { createdAt: -1 },
 				limit: 1,
 				skip: 0
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
-		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'user', //product | order | user | layout | discount
-				query: { email: resetEmail },
-				update: {
-					$set: {
-						password: hashed,
-						cookieId: '',
-					}
-				},
-				options: { upsert: false },
-				multi: false
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
-		const mailFetch = fetch(`${BASE_URL}/api/mailer/recover-password`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				email: resetEmail,
-				password: newPass
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -196,30 +161,67 @@ export const actions: Actions = {
 		try {
 			const userRes = await userFetch;
 			if (!userRes.ok) {
-				return fail(400, { action: 'resetPassword', success: false, message: "Errore controllo utente" });
+				// Restituisco comunque messaggio generico
+				return { action: 'resetPassword', success: true, message: 'Se l\'email è registrata, riceverai le istruzioni per il reset' };
 			}
 			const user = await userRes.json();
 
+			// Se l'utente NON esiste, restituisco lo stesso messaggio generico
 			if (user.length == 0 || user[0].email != resetEmail) {
-				return fail(400, { action: 'resetPassword', success: false, message: "Utente non trovato" });
+				return { action: 'resetPassword', success: true, message: 'Se l\'email è registrata, riceverai le istruzioni per il reset' };
 			}
+
+			// Solo se l'utente esiste, eseguo update e invio email
+			const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user',
+					query: { email: resetEmail },
+					update: {
+						$set: {
+							password: hashed,
+							cookieId: '',
+						}
+					},
+					options: { upsert: false },
+					multi: false
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			const mailFetch = fetch(`${BASE_URL}/api/mailer/recover-password`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					email: resetEmail,
+					password: newPass
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
 
 			const res = await resFetch;
 			if (!res.ok) {
-				return fail(400, { action: 'resetPassword', success: false, message: 'Errore reset password' });
+				// Anche in caso di errore, messaggio generico
+				return { action: 'resetPassword', success: true, message: 'Se l\'email è registrata, riceverai le istruzioni per il reset' };
 			}
 
 			const mailRes = await mailFetch;
 			if (!mailRes.ok) {
-				return fail(400, { action: 'resetPassword', success: false, message: "Errore invio Email" });
+				// Anche in caso di errore invio mail, messaggio generico
+				return { action: 'resetPassword', success: true, message: 'Se l\'email è registrata, riceverai le istruzioni per il reset' };
 			}
-			//const getMailer = await mailRes.json();
 
-			return { action: 'resetPassword', success: true, message: 'Nuova password inviata. Controllate l\'email' };
+			return { action: 'resetPassword', success: true, message: 'Se l\'email è registrata, riceverai le istruzioni per il reset' };
 
 		} catch (err: any) {
 			console.error('Password reset error:', err);
-			return fail(500, { resetEmail, error: 'Errore del server. Riprova più tardi.', form: 'resetPassword' }); // [cite: 21, 22]
+			// Anche per errori del server, messaggio generico
+			return { action: 'resetPassword', success: true, message: 'Se l\'email è registrata, riceverai le istruzioni per il reset' };
 		}
 	}
 };

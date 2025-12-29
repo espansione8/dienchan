@@ -317,4 +317,61 @@ export const actions: Actions = {
 			return { action: 'changePage', success: false, message: 'Error changePage' };
 		}
 	},
+	downloadCatalog: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const category = formData.get('category') as string;
+		const searchTerm = formData.get('searchTerm') as string;
+
+		// Costruisci query dinamica
+		const query: any = {
+			status: 'enabled',
+			type: 'product',
+			stockQty: { $gt: 0 },
+			prodId: { $nin: idRemove }
+		};
+
+		// Aggiungi filtri se presenti
+		if (category) {
+			query.category = category;
+		}
+		if (searchTerm) {
+			query.title = { $regex: searchTerm, $options: 'i' };
+		}
+
+		try {
+			const productFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'product',
+					query,
+					projection: { _id: 0 },
+					sort: { title: 1 },
+					limit: 10000,
+					skip: 0
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (!productFetch.ok) {
+				const errorText = await productFetch.text();
+				console.error('Product fetch failed', productFetch.status, errorText);
+				return fail(400, { action: 'downloadCatalog', success: false, message: errorText });
+			}
+
+			const products = await productFetch.json();
+
+			return {
+				action: 'downloadCatalog',
+				success: true,
+				message: 'Catalogo generato',
+				payload: products
+			};
+		} catch (error) {
+			console.error('Error downloadCatalog:', error);
+			return fail(500, { action: 'downloadCatalog', success: false, message: 'Error downloadCatalog' });
+		}
+	}
 } satisfies Actions;
