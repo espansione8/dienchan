@@ -1,6 +1,6 @@
 // `${BASE_URL}/api/mailer/new-insurance`
 import type { RequestHandler } from '@sveltejs/kit';
-import { APIKEY, MAILER_HOST, MAILER_PORT, MAILER_SECURE, MAILER_USER, MAILER_PASS, BASE_URL} from '$env/static/private';
+import { APIKEY, MAILER_HOST, MAILER_PORT, MAILER_SECURE, MAILER_USER, MAILER_PASS, BASE_URL } from '$env/static/private';
 import { json } from '@sveltejs/kit';
 import nodemailer from 'nodemailer';
 import path from 'path';
@@ -336,18 +336,10 @@ export const POST: RequestHandler = async ({ request }) => {
     </tr>
 </table>
 
-                        <h4 class="margin-top-lg text-black">Indirizzo di spedizione:</h4>
-                        <ul class="list-address">
-                            <li style="margin-bottom: 0.5em;">${shipping.name} ${shipping.surname}</li>
-                            <li style="margin-bottom: 0.5em;">${shipping.address}</li>
-                            <li style="margin-bottom: 0.5em;">${shipping.postalCode} ${shipping.city} ${shipping.county}</li>
-                            <li style="margin-bottom: 0.5em;">${shipping.country}</li>
-                            <li style="margin-bottom: 0.5em;">${shipping.email}</li>
-                            <li style="margin-bottom: 0.5em;">${shipping.phone} - ${shipping.mobilePhone}</li>
-                        </ul>
 
-                        <h4 class="margin-top-lg text-black">Note ordine :</h4>
-                        <p style="margin-top: 0.5em;">${orderNotes}</p>
+
+                        <h4 class="margin-top-lg text-black">IMPORTANTE: scaricare il MODULO DI ADESIONE da questo <a href="http://riflessologiadienchan.it/wp-content/uploads/2025/12/MODULO-ADESIONE-CON-TUTELA-1.docx">LINK</a> </h4>
+                        <h4 class="margin-top-lg text-black">e inviarlo compilato a amministrazionedienchan@gmail.com</h4>
 
                         <h4 class="margin-top-lg text-black">Metodo di pagamento:</h4>
                         <p style="margin-top: 0.5em;">${payment.method}</p>
@@ -383,30 +375,30 @@ export const POST: RequestHandler = async ({ request }) => {
         const mailOptions: any = {
             from: '"Notifiche Dienchan" <no-reply@riflessologiadienchan.it>',
             to: email,
-            subject: type === 'insurance' 
-                ? `Richiesta Contributo Socio Praticante #${orderId} - Modulo da Firmare Allegato 📋`
+            subject: type === 'insurance'
+                ? `Richiesta Contributo Socio Praticante #${orderId} con Modulo da Firmare`
                 : `Il tuo Ordine #${orderId} è Confermato! 🎉`,
             html: emailContentHtml
         };
 
         // Aggiungi allegato solo per tipo insurance
-        if (type === 'insurance') {
-            const attachmentPath = path.join(process.cwd(), 'static', 'MODULO ADESIONE CON TUTELA.pdf');
-            
-            // Verifica che il file esista
-            if (fs.existsSync(attachmentPath)) {
-                mailOptions.attachments = [
-                    {
-                        filename: 'MODULO ADESIONE CON TUTELA.pdf',
-                        path: attachmentPath,
-                        contentType: 'application/pdf'
-                    }
-                ];
-            } else {
-                console.error('ATTENZIONE: File MODULO ADESIONE CON TUTELA.pdf non trovato in /static');
-                // Continua comunque con l'invio dell'email anche se manca l'allegato
-            }
-        }
+        // if (type === 'insurance') {
+        //     const attachmentPath = path.join(process.cwd(), 'static', 'MODULO ADESIONE CON TUTELA.pdf');
+
+        //     // Verifica che il file esista
+        //     if (fs.existsSync(attachmentPath)) {
+        //         mailOptions.attachments = [
+        //             {
+        //                 filename: 'MODULO ADESIONE CON TUTELA.pdf',
+        //                 path: attachmentPath,
+        //                 contentType: 'application/pdf'
+        //             }
+        //         ];
+        //     } else {
+        //         console.error('ATTENZIONE: File MODULO ADESIONE CON TUTELA.pdf non trovato in /static');
+        //         // Continua comunque con l'invio dell'email anche se manca l'allegato
+        //     }
+        // }
 
         const checkMail = await transporter.sendMail(mailOptions);
         if (!checkMail.messageId) return json({ message: 'New order mailing error', status: 400 });

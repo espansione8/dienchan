@@ -103,45 +103,47 @@
 						<span class="text-success">&nbsp;{getProduct.stockQty} in stock</span>
 					{:else}
 						<Boxes size="20" color="red" />
-						<span class="text-error">&nbsp;out of stock</span>
+						<span class="text-error">&nbsp;esaurito</span>
 					{/if}
 				</div>
 
 				<div class="divider my-2"></div>
 
 				<div class="flex flex-col">
-					{#if auth}
-						{#if !thisProd}
-							<button class="btn btn-primary" onclick={() => addToCart($cartProducts, getProduct, false)}
-								>+ <ShoppingCart /> aggiungi al carrello</button
-							>
-						{:else}
-							<div class="join join-vertical">
-								{#if $cartProducts.find((item) => item.prodId === getProduct.prodId)?.orderQuantity < thisProd.stockQty}
-									<button class="btn btn-primary join-item" onclick={() => addToCart($cartProducts, getProduct, false)}
-										>+ <ShoppingCart /> aggiungi al carrello</button
-									>
-								{:else}
-									<button class="btn join-item"><CircleX />Quantità limite</button>
-								{/if}
-								<!-- <button
+					{#if getProduct.stockQty > 0}
+						{#if auth}
+							{#if !thisProd}
+								<button class="btn btn-primary" onclick={() => addToCart($cartProducts, getProduct, false)}
+									>+ <ShoppingCart /> aggiungi al carrello</button
+								>
+							{:else}
+								<div class="join join-vertical">
+									{#if $cartProducts.find((item) => item.prodId === getProduct.prodId)?.orderQuantity < thisProd.stockQty}
+										<button class="btn btn-primary join-item" onclick={() => addToCart($cartProducts, getProduct, false)}
+											>+ <ShoppingCart /> aggiungi al carrello</button
+										>
+									{:else}
+										<button class="btn join-item"><CircleX />Quantità limite</button>
+									{/if}
+									<!-- <button
 									class="btn btn-primary join-item"
 									onclick={() => addToCart($cartProducts, getProduct, false)}
 									>+ <ShoppingCart /> aggiungi al carrello</button
 								> -->
-								<input
-									type="text"
-									value={$cartProducts.find((item) => item.prodId === getProduct.prodId)?.orderQuantity}
-									class="input join-item text-center w-full"
-									readonly
-								/>
-								<button class="btn join-item" onclick={() => removeFromCart($cartProducts, getProduct)}
-									>- <ShoppingCart /> rimuovi dal carrello</button
-								>
-							</div>
+									<input
+										type="text"
+										value={$cartProducts.find((item) => item.prodId === getProduct.prodId)?.orderQuantity}
+										class="input join-item text-center w-full"
+										readonly
+									/>
+									<button class="btn join-item" onclick={() => removeFromCart($cartProducts, getProduct)}
+										>- <ShoppingCart /> rimuovi dal carrello</button
+									>
+								</div>
+							{/if}
+						{:else}
+							<button class="btn btn-error flex-1 sm:flex-none sm:min-w-[200px]"><ShoppingCart />Riservato agli associati</button>
 						{/if}
-					{:else}
-						<button class="btn btn-error flex-1 sm:flex-none sm:min-w-[200px]"><ShoppingCart />Riservato agli associati</button>
 					{/if}
 				</div>
 

@@ -148,8 +148,8 @@
 			content: [
 				{
 					text: `${user.name} ${user.surname}`,
-					font: 'Albatros',
-					style: ['header', { color: '#333333' }, { fontSize: 55 }, { alignment: 'center' }]
+					font: 'Montserrat',
+					style: ['header', { color: '#333333' }, { fontSize: 23 }, { alignment: 'center' }]
 				},
 				{
 					text: '',
@@ -160,7 +160,7 @@
 					columns: [
 						{ width: 200, text: '' },
 						{ width: pdfLayout.placeCenterWidth, text: '' },
-						{ width: 200, text: user.certificationPlace, style: [{ color: '#333333' }, { fontSize: 20 }, { alignment: 'left' }] }
+						{ width: 200, text: user.certificationPlace, font: 'Montserrat', style: [{ color: '#333333' }, { fontSize: 17 }, { alignment: 'left' }] }
 					]
 				},
 				{
@@ -173,11 +173,16 @@
 						{
 							width: pdfLayout.formatoreWidth,
 							text: `${item.name} ${item.surname}`,
-							font: 'Albatros',
-							style: [{ color: '#333333' }, { fontSize: 34 }, { alignment: 'left' }]
+							font: 'Montserrat',
+							style: [{ color: '#333333' }, { fontSize: 17 }, { alignment: 'left' }]
 						},
 						{ width: pdfLayout.centerWidth, text: '' },
-						{ width: pdfLayout.dateWidth, text: `${day} / ${month} / ${year}`, style: [{ color: '#333333' }, { fontSize: 24 }] }
+						{
+							width: pdfLayout.dateWidth,
+							text: `${day} / ${month} / ${year}`,
+							font: 'Montserrat',
+							style: [{ color: '#333333' }, { fontSize: 17 }, { alignment: 'center' }]
+						}
 					]
 				}
 			],

@@ -64,12 +64,10 @@
 	let totalSteps = $state(3);
 
 	// ===== LOGICA STATO ASSICURAZIONE =====
-	
-	// Verifica se ci sono ordini insurance in elaborazione 
+
+	// Verifica se ci sono ordini insurance in elaborazione
 	// (filtrati dal server: status='requested', orderConfirmed=false, statusPayment='pending' o 'done')
-	const hasPendingInsuranceOrder = $derived(
-		insuranceOrders && insuranceOrders.length > 0
-	);
+	const hasPendingInsuranceOrder = $derived(insuranceOrders && insuranceOrders.length > 0);
 
 	// Verifica se l'assicurazione è attiva
 	const hasActiveInsurance = $derived(userData?.insurance?.insuranceStatus === true);
@@ -85,9 +83,7 @@
 	});
 
 	// Mostra bottone rinnova se mancano meno di 14 giorni alla scadenza
-	const showRenewButton = $derived(
-		hasActiveInsurance && daysUntilExpiry !== null && daysUntilExpiry <= 14 && daysUntilExpiry > 0
-	);
+	const showRenewButton = $derived(hasActiveInsurance && daysUntilExpiry !== null && daysUntilExpiry <= 14 && daysUntilExpiry > 0);
 
 	// Nasconde il bottone acquista se c'è assicurazione attiva o ordine pendente
 	const hideAcquistaButton = $derived(hasActiveInsurance || hasPendingInsuranceOrder);
@@ -95,10 +91,10 @@
 	// Formatta la data di scadenza
 	const formatExpiryDate = (dateString: string) => {
 		const date = new Date(dateString);
-		return date.toLocaleDateString('it-IT', { 
-			day: '2-digit', 
-			month: 'long', 
-			year: 'numeric' 
+		return date.toLocaleDateString('it-IT', {
+			day: '2-digit',
+			month: 'long',
+			year: 'numeric'
 		});
 	};
 
@@ -106,9 +102,7 @@
 	const pendingOrder = $derived.by(() => {
 		if (!hasPendingInsuranceOrder || !insuranceOrders || insuranceOrders.length === 0) return null;
 		// Ordina per data decrescente e prendi il più recente
-		return [...insuranceOrders].sort((a, b) => 
-			new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()
-		)[0];
+		return [...insuranceOrders].sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime())[0];
 	});
 
 	// ===== FINE LOGICA STATO ASSICURAZIONE =====
@@ -424,7 +418,7 @@
 		}
 	</style>
 </noscript>
- 
+
 <!-- Hero Section -->
 <section class="bg-gradient-to-b from-blue-50 to-teal-50 py-16 px-4 md:py-24">
 	<div class="container mx-auto">
@@ -452,7 +446,8 @@
 				<div class="md:w-1/2">
 					<h1 class="text-4xl md:text-5xl font-bold text-blue-900 mb-6">Contributo Socio Praticante</h1>
 					<p class="text-lg text-blue-800 mb-6 leading-relaxed">
-						Il presente contributo permette a un socio praticante di godere di alcune agevolazioni quali utilizzo delle sale dell'associazione con tariffa agevolata e inclusione della polizza di copertura RC dell'associazione.
+						Il presente contributo permette a un socio praticante di godere di alcune agevolazioni quali utilizzo delle sale dell'associazione con
+						tariffa agevolata e inclusione della polizza di copertura RC dell'associazione.
 					</p>
 
 					<!-- Status Cards -->
@@ -496,20 +491,16 @@
 									</div>
 								</div>
 							</div>
-							<button class="btn btn-warning btn-lg w-full md:w-auto" onclick={onClickModal}>
-								Rinnova Assicurazione
-							</button>
+							<button class="btn btn-warning btn-lg w-full md:w-auto" onclick={onClickModal}> Rinnova Assicurazione </button>
 						{/if}
 					{:else if !hasPendingInsuranceOrder}
 						<!-- Nessuna Assicurazione - Mostra solo se NON c'è ordine pendente -->
 						<div class="flex flex-wrap gap-4">
-							<button class="btn btn-primary btn-lg" onclick={onClickModal}>
-								Acquista Ora
-							</button>
+							<button class="btn btn-primary btn-lg" onclick={onClickModal}> Acquista Ora </button>
 						</div>
 					{/if}
 				</div>
-				
+
 				<!-- Agevolazioni Incluse -->
 				<div class="md:w-1/2">
 					<div class="bg-white rounded-xl p-6 shadow-lg">
@@ -517,7 +508,7 @@
 							<CircleCheckBig class="text-blue-600 h-6 w-6" />
 							Agevolazioni Incluse
 						</h2>
-						
+
 						<div class="space-y-4">
 							<div class="flex items-start gap-3">
 								<div class="bg-blue-100 p-2 rounded-lg flex-shrink-0">
@@ -571,7 +562,7 @@
 							<Clock class="h-8 w-8 text-white" />
 						</div>
 					</div>
-					
+
 					<div class="flex-1">
 						<div class="flex items-center gap-3 mb-3">
 							<h2 class="font-bold text-3xl text-blue-900">Ordine in Elaborazione</h2>
@@ -585,7 +576,7 @@
 						</div> -->
 					</div>
 				</div>
-				
+
 				<div class="bg-white/90 backdrop-blur rounded-xl p-5 mb-6 border border-blue-100 shadow-sm">
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 						<div>
@@ -600,7 +591,7 @@
 						</div>
 					</div>
 				</div>
-				
+
 				<div class="bg-white rounded-xl p-6 shadow-md mb-6">
 					<div class="flex items-center gap-3 mb-6 pb-4 border-b-2 border-blue-100">
 						<div class="bg-blue-100 rounded-lg p-2.5">
@@ -608,26 +599,35 @@
 						</div>
 						<h3 class="font-bold text-xl text-blue-900">Passi per completare l'attivazione</h3>
 					</div>
-					
+
 					<div class="space-y-5">
 						<div class="flex items-start gap-4">
-							<span class="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white text-base font-bold flex-shrink-0 mt-1 shadow-md">1</span>
+							<span
+								class="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white text-base font-bold flex-shrink-0 mt-1 shadow-md"
+								>1</span
+							>
 							<div class="flex-1 pt-1">
 								<p class="text-base font-semibold text-gray-900 mb-1">Scarica il modulo di adesione</p>
 								<p class="text-sm text-gray-600">Troverai il modulo allegato all'email di conferma che hai ricevuto.</p>
 							</div>
 						</div>
-						
+
 						<div class="flex items-start gap-4">
-							<span class="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white text-base font-bold flex-shrink-0 mt-1 shadow-md">2</span>
+							<span
+								class="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white text-base font-bold flex-shrink-0 mt-1 shadow-md"
+								>2</span
+							>
 							<div class="flex-1 pt-1">
 								<p class="text-base font-semibold text-gray-900 mb-1">Compila e firma il modulo</p>
 								<p class="text-sm text-gray-600">Completa tutte le sezioni indicate nel documento.</p>
 							</div>
 						</div>
-						
+
 						<div class="flex items-start gap-4">
-							<span class="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white text-base font-bold flex-shrink-0 mt-1 shadow-md">3</span>
+							<span
+								class="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white text-base font-bold flex-shrink-0 mt-1 shadow-md"
+								>3</span
+							>
 							<div class="flex-1 pt-1">
 								<p class="text-base font-semibold text-gray-900 mb-2">Invia il modulo firmato via email</p>
 								<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-3">
@@ -643,7 +643,7 @@
 						</div>
 					</div>
 				</div>
-				
+
 				<div class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-5 shadow-sm">
 					<div class="flex items-start gap-3">
 						<div class="bg-green-100 rounded-lg p-2.5 flex-shrink-0">
@@ -651,9 +651,7 @@
 						</div>
 						<div>
 							<p class="text-base font-bold text-green-900 mb-2">Attivazione</p>
-							<p class="text-sm text-green-700">
-								La tua assicurazione sarà attivata dopo aver ricevuto il modulo firmato. 
-							</p>
+							<p class="text-sm text-green-700">La tua assicurazione sarà attivata dopo aver ricevuto il modulo firmato.</p>
 						</div>
 					</div>
 				</div>
@@ -719,16 +717,20 @@
 
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 				<!-- PDF 1 -->
-				<div class="group bg-gradient-to-br from-sky-50 to-sky-100 rounded-2xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+				<div
+					class="group bg-gradient-to-br from-sky-50 to-sky-100 rounded-2xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+				>
 					<div class="flex flex-col items-center text-center h-full">
 						<div class="bg-sky-500 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
 							<FileText class="h-12 w-12 text-white" />
 						</div>
 						<h3 class="font-bold text-xl text-sky-900 mb-3">Tutela legale</h3>
-						<p class="text-sky-800 text-sm mb-6 flex-grow">
-							Tutela legale 
-						</p>
-						<a href="/Tutela legale.pdf" download class="btn btn-primary w-full bg-sky-500 hover:bg-sky-600 border-sky-500 transition-colors">
+						<p class="text-sky-800 text-sm mb-6 flex-grow">Tutela legale</p>
+						<a
+							href="http://riflessologiadienchan.it/wp-content/uploads/2025/12/Tutela-legale.pdf"
+							download
+							class="btn btn-primary w-full bg-sky-500 hover:bg-sky-600 border-sky-500 transition-colors"
+						>
 							<Download class="h-5 w-5 mr-2" />
 							Scarica PDF
 						</a>
@@ -736,16 +738,20 @@
 				</div>
 
 				<!-- PDF 2 -->
-				<div class="group bg-gradient-to-br from-sky-50 to-sky-100 rounded-2xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+				<div
+					class="group bg-gradient-to-br from-sky-50 to-sky-100 rounded-2xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+				>
 					<div class="flex flex-col items-center text-center h-full">
 						<div class="bg-sky-500 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
 							<ShieldCheck class="h-12 w-12 text-white" />
 						</div>
 						<h3 class="font-bold text-xl text-sky-900 mb-3">Set informativo Unipol Mondo Professionista Professioni Sanitarie</h3>
-						<p class="text-sky-800 text-sm mb-6 flex-grow">
-							Set informativo Unipol Mondo Professionista Professioni Sanitarie
-						</p>
-						<a href="/2231_7SetinformativoUnipolMondoProfessionistaProfessioniSanitarie.pdf" download class="btn btn-primary w-full bg-sky-500 hover:bg-sky-600 border-sky-500 transition-colors">
+						<p class="text-sky-800 text-sm mb-6 flex-grow">Set informativo Unipol Mondo Professionista Professioni Sanitarie</p>
+						<a
+							href="http://riflessologiadienchan.it/wp-content/uploads/2025/12/2231_7-Set-informativo-Unipol-Mondo-Professionista-Professioni-Sanitarie-Ed01_06_2025.pdf"
+							download
+							class="btn btn-primary w-full bg-sky-500 hover:bg-sky-600 border-sky-500 transition-colors"
+						>
 							<Download class="h-5 w-5 mr-2" />
 							Scarica PDF
 						</a>
@@ -753,16 +759,20 @@
 				</div>
 
 				<!-- PDF 3 -->
-				<div class="group bg-gradient-to-br from-sky-50 to-sky-100 rounded-2xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+				<div
+					class="group bg-gradient-to-br from-sky-50 to-sky-100 rounded-2xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+				>
 					<div class="flex flex-col items-center text-center h-full">
 						<div class="bg-sky-500 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
 							<Receipt class="h-12 w-12 text-white" />
 						</div>
 						<h3 class="font-bold text-xl text-sky-900 mb-3">Allegato testo aggiuntivo</h3>
-						<p class="text-sky-800 text-sm mb-6 flex-grow">
-							Allegato testo aggiuntivo 
-						</p>
-						<a href="/Allegato testo aggiuntivo.pdf" download class="btn btn-primary w-full bg-sky-500 hover:bg-sky-600 border-sky-500 transition-colors">
+						<p class="text-sky-800 text-sm mb-6 flex-grow">Allegato testo aggiuntivo</p>
+						<a
+							href="http://riflessologiadienchan.it/wp-content/uploads/2025/12/Allegato-testo-aggiuntivo.pdf"
+							download
+							class="btn btn-primary w-full bg-sky-500 hover:bg-sky-600 border-sky-500 transition-colors"
+						>
 							<Download class="h-5 w-5 mr-2" />
 							Scarica PDF
 						</a>
@@ -1017,7 +1027,7 @@
 					{#if currentStep < totalSteps}
 						<button type="button" class="btn btn-primary" onclick={nextStep} disabled={!isCurrentStepValid()}> Continua </button>
 					{:else}
-						<button type="button" class="btn btn-success" onclick={handleFinalSubmit} disabled={!isCurrentStepValid()}> 
+						<button type="button" class="btn btn-success" onclick={handleFinalSubmit} disabled={!isCurrentStepValid()}>
 							{#if showRenewButton}
 								Conferma Rinnovo
 							{:else}

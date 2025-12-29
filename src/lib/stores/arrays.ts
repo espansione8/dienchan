@@ -1906,9 +1906,9 @@ export const pdfValue = readable({
     base: {
         layoutId: 'XW7LYV2LG2BU',
         background: `${PUBLIC_BASE_URL}/training/base.jpg`,
-        pageMargins: [20, 67, 20, 0], // [left, top, right, bottom]
-        separatorMargin1: [0, 385, 0, 0], // [left, top, right, bottom]
-        separatorMargin2: [0, 0, 0, 0], // [left, top, right, bottom]
+        pageMargins: [20, 85, 20, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 398, 0, 0], // [left, top, right, bottom]
+        separatorMargin2: [0, 8, 0, 0], // [left, top, right, bottom]
         placeCenterWidth: 375,
         formatoreWidth: 540,
         centerWidth: 0,
@@ -1918,8 +1918,8 @@ export const pdfValue = readable({
         layoutId: '794792843',
         background: `${PUBLIC_BASE_URL}/training/avanzato.jpg`,
         pageMargins: [20, 240, 20, 0], // [left, top, right, bottom]
-        separatorMargin1: [0, 223, 0, 0], // [left, top, right, bottom]
-        separatorMargin2: [0, 0, 0, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 250, 0, 0], // [left, top, right, bottom]
+        separatorMargin2: [0, 8, 0, 0], // [left, top, right, bottom]
         placeCenterWidth: 365,
         formatoreWidth: 540,
         centerWidth: 0,
@@ -1929,8 +1929,8 @@ export const pdfValue = readable({
         layoutId: '3GLAAQRJF2A9',
         background: `${PUBLIC_BASE_URL}/training/Pronto_Soccorso.jpg`,
         pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
-        separatorMargin1: [0, 80, 0, 0],
-        separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 110, 0, 0],
+        separatorMargin2: [0, 20, 0, 0], // [left, top, right, bottom]
         placeCenterWidth: 260,
         formatoreWidth: 390,
         centerWidth: 0,
@@ -1940,8 +1940,8 @@ export const pdfValue = readable({
         layoutId: '24PNXXEGM3YC',
         background: `${PUBLIC_BASE_URL}/training/Difese_Immunitarie.jpg`,
         pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
-        separatorMargin1: [0, 80, 0, 0],
-        separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 110, 0, 0],
+        separatorMargin2: [0, 20, 0, 0], // [left, top, right, bottom]
         placeCenterWidth: 260,
         formatoreWidth: 390,
         centerWidth: 0,
@@ -1951,8 +1951,8 @@ export const pdfValue = readable({
         layoutId: '1BVVLV57EPUG',
         background: `${PUBLIC_BASE_URL}/training/Occhi_Vista.jpg`,
         pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
-        separatorMargin1: [0, 80, 0, 0],
-        separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 110, 0, 0],
+        separatorMargin2: [0, 20, 0, 0], // [left, top, right, bottom]
         placeCenterWidth: 260,
         formatoreWidth: 390,
         centerWidth: 0,
@@ -1962,8 +1962,8 @@ export const pdfValue = readable({
         layoutId: 'L6DEQ457PP44',
         background: `${PUBLIC_BASE_URL}/training/occhi_vista_corso.jpg`,
         pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
-        separatorMargin1: [0, 80, 0, 0],
-        separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 110, 0, 0],
+        separatorMargin2: [0, 20, 0, 0], // [left, top, right, bottom]
         placeCenterWidth: 260,
         formatoreWidth: 390,
         centerWidth: 0,
@@ -1973,8 +1973,8 @@ export const pdfValue = readable({
         layoutId: '71XA84LX1AJ6',
         background: `${PUBLIC_BASE_URL}/training/Bellezza_Viso.jpg`,
         pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
-        separatorMargin1: [0, 80, 0, 0],
-        separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 110, 0, 0],
+        separatorMargin2: [0, 20, 0, 0], // [left, top, right, bottom]
         placeCenterWidth: 260,
         formatoreWidth: 390,
         centerWidth: 0,
@@ -1984,8 +1984,8 @@ export const pdfValue = readable({
         layoutId: 'QZTBKRVHEQYF',
         background: `${PUBLIC_BASE_URL}/training/Bellezza_Pancia.jpg`,
         pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
-        separatorMargin1: [0, 80, 0, 0],
-        separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 110, 0, 0],
+        separatorMargin2: [0, 20, 0, 0], // [left, top, right, bottom]
         placeCenterWidth: 260,
         formatoreWidth: 390,
         centerWidth: 0,
@@ -1995,8 +1995,8 @@ export const pdfValue = readable({
         layoutId: '1PT84785XL3D', // MISSING CERTIFICATION
         background: `${PUBLIC_BASE_URL}/training/MISSING CERTIFICATION.jpg`,
         pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
-        separatorMargin1: [0, 80, 0, 0],
-        separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 110, 0, 0],
+        separatorMargin2: [0, 20, 0, 0], // [left, top, right, bottom]
         placeCenterWidth: 260,
         formatoreWidth: 390,
         centerWidth: 0,
@@ -2006,8 +2006,8 @@ export const pdfValue = readable({
         layoutId: 'D1R6C1TN1VA3', // MISSING CERTIFICATION
         background: `${PUBLIC_BASE_URL}/training/MISSING CERTIFICATION.jpg`,
         pageMargins: [80, 350, 80, 0], // [left, top, right, bottom]
-        separatorMargin1: [0, 80, 0, 0],
-        separatorMargin2: [0, 10, 0, 0], // [left, top, right, bottom]
+        separatorMargin1: [0, 110, 0, 0],
+        separatorMargin2: [0, 20, 0, 0], // [left, top, right, bottom]
         placeCenterWidth: 260,
         formatoreWidth: 390,
         centerWidth: 0,
