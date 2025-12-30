@@ -527,8 +527,8 @@
 									<ShieldCheck class="text-blue-600 h-5 w-5" />
 								</div>
 								<div>
-									<h3 class="font-semibold text-blue-900 mb-1">Copertura RC</h3>
-									<p class="text-sm text-blue-700">Polizza Responsabilità Civile dell'associazione inclusa</p>
+									<h3 class="font-semibold text-blue-900 mb-1">Copertura RC CIVILE e PENALE</h3>
+									<p class="text-sm text-blue-700">Polizza Responsabilità Civile e Penale dell'associazione inclusa</p>
 								</div>
 							</div>
 
