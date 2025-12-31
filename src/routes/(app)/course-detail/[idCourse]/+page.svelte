@@ -955,7 +955,7 @@
 {/if}
 
 {#if currentModal == 'new'}
-	<Modal isOpen={openModal} header={modalTitle} cssClass={'bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto'}>
+	<Modal isOpen={openModal} header={modalTitle} cssClass={'bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[100vh] overflow-y-auto'}>
 		<button class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
@@ -1150,7 +1150,7 @@
 
 			<!-- Step 2 -->
 			<div class={currentStep === 2 ? 'block' : 'hidden'}>
-				<div class="card bg-base-100 shadow-sm border border-base-200 p-4 rounded-lg mt-4">
+				<div class="card bg-base-100 shadow-sm border border-base-200 p-4 rounded-lg mt-4 overflow-visible pb-140">
 					<div class="card-title text-lg font-bold mb-4 pb-2 border-b">
 						{#if auth}
 							<div class="flex justify-between items-center w-full">
@@ -1162,8 +1162,8 @@
 						{/if}
 					</div>
 
-					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<div class="form-control w-full md:col-span-2">
+					<div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+						<div class="form-control w-full md:col-span-3">
 							<label for="address" class="label">
 								<span class="label-text font-medium">Indirizzo</span>
 							</label>
@@ -1179,7 +1179,7 @@
 							/>
 						</div>
 
-						<div class="form-control w-full">
+						<div class="form-control w-full md:col-span-2">
 							<label for="city" class="label">
 								<span class="label-text font-medium">Città</span>
 							</label>
@@ -1195,7 +1195,7 @@
 							/>
 						</div>
 
-						<div class="form-control w-full">
+						<div class="form-control w-full md:col-span-1">
 							<label for="postalcode" class="label">
 								<span class="label-text font-medium">CAP</span>
 							</label>
@@ -1211,7 +1211,7 @@
 							/>
 						</div>
 
-						<div class="form-control w-full">
+						<div class="form-control w-full md:col-span-2">
 							<label for="state" class="label">
 								<span class="label-text font-medium">Provincia</span>
 							</label>
@@ -1230,7 +1230,7 @@
 							{/if}
 						</div>
 
-						<div class="form-control w-full">
+						<div class="form-control w-full md:col-span-2">
 							<label for="country" class="label">
 								<span class="label-text font-medium">Nazione</span>
 							</label>
