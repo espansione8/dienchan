@@ -955,7 +955,7 @@
 {/if}
 
 {#if currentModal == 'new'}
-	<Modal isOpen={openModal} header={modalTitle} cssClass={'bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[100vh] overflow-y-auto'}>
+	<Modal isOpen={openModal} header={modalTitle} cssClass={'bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[100vh] h-full overflow-y-auto'}>
 		<button class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
@@ -1150,7 +1150,7 @@
 
 			<!-- Step 2 -->
 			<div class={currentStep === 2 ? 'block' : 'hidden'}>
-				<div class="card bg-base-100 shadow-sm border border-base-200 p-4 rounded-lg mt-4 overflow-visible pb-140">
+				<div class="card bg-base-100 shadow-sm border border-base-200 p-4 rounded-lg mt-4 overflow-visible">
 					<div class="card-title text-lg font-bold mb-4 pb-2 border-b">
 						{#if auth}
 							<div class="flex justify-between items-center w-full">
@@ -1215,7 +1215,15 @@
 							<label for="state" class="label">
 								<span class="label-text font-medium">Provincia</span>
 							</label>
-							<select id="county" class="select select-bordered w-full" name="county" required disabled={closedInput} bind:value={formData.county}>
+							<select
+								id="county"
+								class="select select-bordered w-full max-h-40 h-40 overflow-y-auto"
+								size="5"
+								name="county"
+								required
+								disabled={closedInput}
+								bind:value={formData.county}
+							>
 								<option value="" disabled selected>Seleziona provincia</option>
 								{#each $province as provincia, i}
 									{#if provincia.title !== 'Online'}
@@ -1234,7 +1242,15 @@
 							<label for="country" class="label">
 								<span class="label-text font-medium">Nazione</span>
 							</label>
-							<select id="country" class="select select-bordered w-full" name="country" required disabled={closedInput} bind:value={formData.country}>
+							<select
+								id="country"
+								class="select select-bordered w-full max-h-40 h-40 overflow-y-auto"
+								size="5"
+								name="country"
+								required
+								disabled={closedInput}
+								bind:value={formData.country}
+							>
 								<option value="" disabled selected>Seleziona nazione</option>
 								{#each $country_list as country}
 									<option value={country}>

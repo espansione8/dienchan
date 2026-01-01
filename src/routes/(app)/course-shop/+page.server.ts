@@ -13,11 +13,16 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 	try {
 		// get courses
-		const currentYear = new Date().getFullYear()
-		//const startOfYear = new Date(currentYear, 0, 1); //from Jan
-		const startOfYear = new Date(currentYear, 2, 1); // from march
-		//const startOfNextYear = new Date(currentYear + 1, 0, 1); // start of 01 Jan
-		const startOfNextYear = new Date(currentYear + 1, 2, 1); // start of 01 march
+		// const currentYear = new Date().getFullYear()
+		// const startOfYear = new Date(currentYear, 2, 1); // from march  //from Jan new Date(currentYear, 0, 1); 
+		// const startOfNextYear = new Date(currentYear + 1, 2, 1); // start of 01 march // start of 01 Jan  new Date(currentYear + 1, 0, 1);
+		const currentYear = new Date().getFullYear();
+		const currentMonth = new Date().getMonth();
+
+		const academicYear = currentMonth < 2 ? currentYear - 1 : currentYear;
+
+		const startOfYear = new Date(academicYear, 2, 1); // March 1st of academic year
+		const startOfNextYear = new Date(academicYear + 1, 2, 1); // March 1st of next academic year
 
 		const resProductsCorso = await fetch(`${baseURL}/api/mongo/find`, {
 			method: 'POST',

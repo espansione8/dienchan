@@ -212,7 +212,11 @@
 			if (result.type === 'success' && result.data) {
 				const { action, payload } = result.data;
 				if (action === 'downloadCatalog') {
-					generateCatalogPDF(payload);
+					//generateCatalogPDF(payload);
+					const link = document.createElement('a');
+					link.href = `data:application/pdf;base64,${payload.pdf}`;
+					link.download = payload.fileName;
+					link.click();
 					notification.success('Catalogo scaricato con successo!');
 				}
 			}
@@ -221,201 +225,6 @@
 			}
 			loading = false;
 		};
-	};
-
-	const generateCatalogPDF = async (products: any[]) => {
-		const currentDate = new Date().toLocaleDateString('it-IT', {
-			day: '2-digit',
-			month: '2-digit',
-			year: 'numeric'
-		});
-		const currentTime = new Date().toLocaleTimeString('it-IT', {
-			hour: '2-digit',
-			minute: '2-digit'
-		});
-
-		// Funzione helper per convertire immagine in base64
-		const getBase64ImageFromURL = async (url: string): Promise<string> => {
-			try {
-				const fullUrl = url.startsWith('http') ? url : `${window.location.origin}${url}`;
-				const response = await fetch(fullUrl);
-				const blob = await response.blob();
-				return new Promise((resolve, reject) => {
-					const reader = new FileReader();
-					reader.onloadend = () => resolve(reader.result as string);
-					reader.onerror = reject;
-					reader.readAsDataURL(blob);
-				});
-			} catch (error) {
-				console.error('Error loading image:', url, error);
-				return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN88/bNfwAJYwPNteQx0wAAAABJRU5ErkJggg==';
-			}
-		};
-
-		// Carica logo
-		const logoBase64 = await getBase64ImageFromURL('/images/logo-dien-chan-new.png');
-
-		const productContent: any[] = [];
-		const productsPerPage = 5;
-
-		// Pre-carica tutte le immagini in base64
-		for (let i = 0; i < products.length; i++) {
-			const product = products[i];
-
-			// URL immagine
-			let imgSrc = product.uploadfiles?.find((f: any) => f.type === 'product-primary')?.fileUrl;
-			if (!imgSrc) imgSrc = '/no_img.jpg';
-
-			// Converti immagine in base64
-			const imageBase64 = await getBase64ImageFromURL(imgSrc);
-
-			// Limita descrizione a 150 caratteri per evitare overflow
-			const description = product.descrLong || product.descrShort || 'Nessuna descrizione disponibile';
-			const truncatedDesc = description.length > 150 ? description.substring(0, 150) + '...' : description;
-
-			// BOX PRODOTTO - LAYOUT FISSO: IMMAGINE SINISTRA, TESTO DESTRA
-			const productBox = {
-				columns: [
-					// IMMAGINE SEMPRE A SINISTRA
-					{
-						image: imageBase64,
-						fit: [100, 100],
-						alignment: 'left',
-						width: 110
-					},
-					// SPAZIO
-					{ width: 10, text: '' },
-					// TESTO SEMPRE A DESTRA
-					{
-						stack: [
-							{
-								text: product.title || 'N/A',
-								fontSize: 12,
-								bold: true,
-								color: '#000000',
-								margin: [0, 0, 0, 5],
-								// Previeni overflow del titolo
-								width: 415
-							},
-							{ text: `Categoria: ${product.category?.[0] || 'N/A'}`, fontSize: 8.5, color: '#333333', margin: [0, 0, 0, 3] },
-							{ text: `Codice Prodotto: ${product.prodId || 'N/A'}`, fontSize: 7.5, color: '#555555', margin: [0, 0, 0, 2] },
-							{ text: `SKU: ${product.sku || 'N/A'}`, fontSize: 7.5, color: '#555555', margin: [0, 0, 0, 2] },
-							{
-								text: `Disponibilità: ${product.stockQty || 0}`,
-								fontSize: 8.5,
-								bold: true,
-								color: product.stockQty > 0 ? '#008000' : '#FF0000',
-								margin: [0, 0, 0, 4]
-							},
-							{ text: `€ ${(product.price || 0).toFixed(2)}`, fontSize: 14, bold: true, color: '#008000', margin: [0, 0, 0, 5] },
-							{
-								text: truncatedDesc,
-								fontSize: 7,
-								color: '#444444',
-								lineHeight: 1.2,
-								// Previeni overflow della descrizione
-								width: 415
-							}
-						],
-						width: '*'
-					}
-				],
-				margin: [0, 6, 0, 6]
-			};
-
-			productContent.push(productBox);
-
-			// LINEA SEPARATRICE TRA PRODOTTI (tranne ultimo della pagina)
-			if ((i + 1) % productsPerPage !== 0 && i < products.length - 1) {
-				productContent.push({
-					canvas: [
-						{
-							type: 'line',
-							x1: 0,
-							y1: 0,
-							x2: 535,
-							y2: 0,
-							lineWidth: 0.5,
-							lineColor: '#000000'
-						}
-					],
-					margin: [0, 6, 0, 6]
-				});
-			}
-
-			// Pagebreak ogni 5 prodotti
-			if ((i + 1) % productsPerPage === 0 && i < products.length - 1) {
-				productContent.push({ text: '', pageBreak: 'after' });
-			}
-		}
-
-		const docDefinition: any = {
-			pageSize: 'A4',
-			pageOrientation: 'portrait',
-			pageMargins: [30, 85, 30, 30],
-			header: function (currentPage: number, pageCount: number) {
-				// HEADER SOLO SULLA PRIMA PAGINA
-				if (currentPage === 1) {
-					return {
-						stack: [
-							// DATA E ORA IN ALTO A SINISTRA
-							{
-								text: `${currentDate} - ${currentTime}`,
-								fontSize: 9,
-								color: '#999999',
-								alignment: 'left',
-								margin: [30, 15, 0, 8]
-							},
-							{
-								columns: [
-									// LOGO A SINISTRA
-									{
-										image: logoBase64,
-										fit: [50, 50],
-										alignment: 'left',
-										width: 70
-									},
-									// TITOLO AL CENTRO
-									{
-										text: 'CATALOGO PRODOTTI',
-										fontSize: 22,
-										bold: true,
-										alignment: 'center',
-										color: '#000000',
-										margin: [0, 10, 0, 0]
-									},
-									// SPAZIO A DESTRA PER BILANCIARE
-									{
-										text: '',
-										width: 70
-									}
-								],
-								margin: [30, 0, 30, 8]
-							},
-							{
-								canvas: [
-									{
-										type: 'line',
-										x1: 30,
-										y1: 0,
-										x2: 565,
-										y2: 0,
-										lineWidth: 1.5,
-										lineColor: '#000000'
-									}
-								],
-								margin: [0, 3, 0, 0]
-							}
-						]
-					};
-				}
-				return null;
-			},
-			content: productContent
-		};
-
-		const fileName = `catalogo_prodotti_${new Date().toISOString().split('T')[0]}.pdf`;
-		pdfMake.createPdf(docDefinition, null, pdfFonts).download(fileName);
 	};
 
 	const formSubmit = () => {
@@ -442,6 +251,13 @@
 					activeFilter.searchTerm = payload.searchTerm;
 					activeFilter.category = '';
 					resetActive = true;
+				} else if (action === 'downloadCatalog') {
+					//generateCatalogPDF(payload);
+					const link = document.createElement('a');
+					link.href = `data:application/pdf;base64,${payload.pdf}`;
+					link.download = payload.fileName;
+					link.click();
+					notification.success('Catalogo scaricato con successo!');
 				} else {
 					prodList = getTable;
 					resetActive = false;
@@ -586,7 +402,7 @@
 					</form>
 
 					<div class="pt-3 border-t border-base-200 mb-3">
-						<form method="POST" action="?/downloadCatalog" use:enhance={formSubmitCatalog}>
+						<form method="POST" action="?/downloadCatalog" use:enhance={formSubmit}>
 							<input type="hidden" name="category" value={activeFilter.category} />
 							<input type="hidden" name="searchTerm" value={activeFilter.searchTerm} />
 							<button type="submit" class="btn btn-success w-full gap-2 group relative overflow-hidden text-white">
