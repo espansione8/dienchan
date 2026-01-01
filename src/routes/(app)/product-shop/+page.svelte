@@ -206,27 +206,6 @@
 	// 	});
 	// });
 
-	const formSubmitCatalog = () => {
-		loading = true;
-		return async ({ result }: { result: ActionResult }) => {
-			if (result.type === 'success' && result.data) {
-				const { action, payload } = result.data;
-				if (action === 'downloadCatalog') {
-					//generateCatalogPDF(payload);
-					const link = document.createElement('a');
-					link.href = `data:application/pdf;base64,${payload.pdf}`;
-					link.download = payload.fileName;
-					link.click();
-					notification.success('Catalogo scaricato con successo!');
-				}
-			}
-			if (result.type === 'failure') {
-				notification.error(result.data.message);
-			}
-			loading = false;
-		};
-	};
-
 	const formSubmit = () => {
 		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
