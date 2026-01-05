@@ -1,6 +1,6 @@
 {
 	"name": "dienchan",
-	"version": "0.0.9",
+	"version": "0.1.10",
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",
@@ -21,7 +21,6 @@
 		"@sveltejs/kit": "^2.27.0",
 		"@sveltejs/vite-plugin-svelte": "^6.1.0",
 		"@tailwindcss/vite": "^4.1.11",
-		"@types/better-sqlite3": "^7.6.13",
 		"@types/eslint": "^9.6.1",
 		"@types/nodemailer": "^6.4.17",
 		"@types/papaparse": "^5.3.16",
@@ -46,10 +45,9 @@
 		"vitest": "^3.2.4"
 	},
 	"dependencies": {
-		"@stripe/stripe-js": "^7.9.0",
+		"@stripe/stripe-js": "8.6.0",
 		"@unpic/svelte": "^1.0.0",
 		"basic-ftp": "^5.0.5",
-		"better-sqlite3": "^12.2.0",
 		"drizzle-orm": "^0.44.5",
 		"jszip": "^3.10.1",
 		"mongoose": "^8.18.0",
@@ -59,7 +57,7 @@
 		"pdfmake": "^0.2.20",
 		"qrcode": "^1.5.4",
 		"sharp": "^0.34.5",
-		"stripe": "^18.5.0",
+		"stripe": "20.1.0",
 		"tesseract.js": "^6.0.1"
 	},
 	"type": "module"
