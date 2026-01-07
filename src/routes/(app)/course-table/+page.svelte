@@ -46,11 +46,11 @@
 			bolditalics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-MediumItalic.ttf'
 		},
 		Albatros: {
-			normal: `${PUBLIC_BASE_URL}/font/albatros.ttf`
+			normal: `${PUBLIC_BASE_URL}/uploads/fonts/albatros.ttf`
 		},
 
 		Montserrat: {
-			normal: `${PUBLIC_BASE_URL}/font/Montserrat-SemiBold.ttf`
+			normal: `${PUBLIC_BASE_URL}/uploads/fonts/Montserrat-SemiBold.ttf`
 		}
 	};
 
@@ -96,6 +96,9 @@
 			case $layoutArray.avanzato:
 				pdfLayout = $pdfValue.avanzato;
 				break;
+			case $layoutArray.accademia:
+				pdfLayout = $pdfValue.accademia;
+				break;
 			case $layoutArray.soccorso:
 				pdfLayout = $pdfValue.soccorso;
 				break;
@@ -126,6 +129,10 @@
 		}
 
 		const dateObject = new Date(user.certificationDate);
+		if (isNaN(dateObject.getTime())) {
+			notification.error('Data di certificazione non valida');
+			return;
+		}
 		const year = dateObject.getFullYear();
 		const month = dateObject.getMonth() + 1; // getMonth() returns 0-11, so add 1 for 1-12
 		const day = dateObject.getDate();
@@ -149,11 +156,24 @@
 				{
 					text: `${user.name} ${user.surname}`,
 					font: 'Montserrat',
-					style: ['header', { color: '#333333' }, { fontSize: 23 }, { alignment: 'center' }]
+					style: ['header', { color: '#333333' }, { fontSize: 30 }, { alignment: 'center' }]
 				},
+				...(layoutId === '5G98NH2XQ' // add extra line for academy layout
+					? [
+							{
+								alignment: 'left',
+								columns: [
+									{ width: 35, text: `${50}`, font: 'Montserrat', style: [{ color: '#333333' }, { fontSize: 22 }, { alignment: 'left' }] },
+									{ width: 85, text: '' },
+									{ width: 200, text: `${year}`, font: 'Montserrat', style: [{ color: '#333333' }, { fontSize: 22 }, { alignment: 'left' }] }
+								],
+								margin: [382, 65, 0, 0]
+							}
+						]
+					: []),
 				{
 					text: '',
-					margin: pdfLayout.separatorMargin1 // [left, top, right, bottom]
+					margin: layoutId === '5G98NH2XQ' ? [0, 160, 0, 0] : pdfLayout.separatorMargin1 // [left, top, right, bottom]
 				},
 				{
 					alignment: 'center',
@@ -172,7 +192,7 @@
 					columns: [
 						{
 							width: pdfLayout.formatoreWidth,
-							text: `${item.name} ${item.surname}`,
+							text: layoutId === '5G98NH2XQ' ? '' : `${item.name} ${item.surname}`, // layout academy
 							font: 'Montserrat',
 							style: [{ color: '#333333' }, { fontSize: 17 }, { alignment: 'left' }]
 						},

@@ -7,6 +7,7 @@ const productSchema = new Schema(
             index: true,
             unique: true
         },
+        academyNumber: { type: Number, default: 0 },
         attribute1: { type: String, default: null },
         attribute10: { type: String, default: null },
         attribute2: { type: String, default: null },
