@@ -370,3 +370,14 @@ export interface Notification {
     type: 'success' | 'error' | 'info';
     duration?: number;
 }
+
+
+export interface Video {
+	videoId: string;
+	status: 'enabled' | 'disabled';
+	title: string;
+	url: string;
+	visibility: string[];
+	createdAt: string;
+	updatedAt: string;
+}

@@ -2,6 +2,8 @@
 	import { page } from '$app/state';
 	import { enhance, applyAction } from '$app/forms';
 	import { cartProducts, emptyCart, cdata } from '$lib/stores/cart';
+	import { getVideosByLevel } from '$lib/remote/video.remote';
+	import { onMount } from 'svelte';
 	import {
 		//Award,
 		LogOut,
@@ -18,12 +20,15 @@
 		Package,
 		CreditCard,
 		ShoppingBag,
-		ShieldCheck
+		ShieldCheck,
+		FileCog,
+		MousePointer2 
 	} from 'lucide-svelte';
 
 	const { user, auth } = $props();
 
 	let menuActive = $state(false);
+	let videos = $state<any[]>([]);
 
 	const pointsBalance = $derived(user?.pointsBalance || 0);
 	const level = $derived(user?.level || '');
@@ -61,6 +66,12 @@
 	//         userName: userName
 	//     });
 	// });
+
+	onMount(async () => {
+		if (auth && level) {
+			videos = await getVideosByLevel(fetch, level);
+		}
+	});
 </script>
 
 <header class="sticky top-0 z-50 w-full bg-base-100 shadow-sm">
@@ -118,7 +129,7 @@
 							{/if}
 						</a>
 
-						<div class="dropdown dropdown-end">
+						<!-- <div class="dropdown dropdown-end">
 							<button class="btn btn-sm btn-ghost">
 								<Layers size={16} />
 								<span>Tutorial</span>
@@ -163,6 +174,29 @@
 											Gestione corso
 										</a>
 									</li>
+								{/if}
+							</ul>
+						</div> -->
+
+						<div class="dropdown dropdown-end">
+							<button class="btn btn-sm btn-ghost">
+								<Layers size={16} />
+								<span>Tutorial</span>
+								<ChevronDown size={14} />
+							</button>
+
+							<ul class="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2">
+								{#if videos.length > 0}
+									{#each videos as video}
+										<li>
+											<a href={video.url} target="_blank" rel="noopener noreferrer">
+												<BookOpen size={16} />
+												{video.title}
+											</a>
+										</li>
+									{/each}
+								{:else}
+									<li><span class="text-sm text-gray-500">Nessun tutorial disponibile</span></li>
 								{/if}
 							</ul>
 						</div>
@@ -234,6 +268,12 @@
 												<a href="/user-table" class={isActive('/user-table') ? 'active' : ''}>
 													<User size={16} />
 													Utenti
+												</a>
+											</li>
+											<li>
+												<a href="/video-table" class={isActive('/video-table') ? 'active' : ''}>
+													<MousePointer2  size={16} />
+													Video Tutorial
 												</a>
 											</li>
 										{/if}
@@ -359,7 +399,7 @@
 							</div>
 						</a>
 					</li>
-					<li>
+					<!-- <li>
 						<div class="dropdown dropdown-end mx-auto">
 							<button class="btn btn-sm btn-ghost">
 								<Layers size={16} />
@@ -397,6 +437,41 @@
 										<a href="https://vimeo.com/1122734367/669c906f77">
 											<BookOpen size={16} />
 											Creazione corso da modello
+										</a>
+									</li>
+								{/if}
+							</ul>
+						</div>
+					</li> -->
+
+					<li>
+						<div class="dropdown dropdown-end mx-auto">
+							<button class="btn btn-sm btn-ghost">
+								<Layers size={16} />
+								<span>Tutorial</span>
+								<ChevronDown size={14} />
+							</button>
+
+							<ul class="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2">
+								{#if videos.length > 0}
+									{#each videos as video}
+										<li>
+											<a href={video.url} target="_blank" rel="noopener noreferrer">
+												<BookOpen size={16} />
+												{video.title}
+											</a>
+										</li>
+									{/each}
+								{:else}
+									<li><span class="text-sm text-gray-500">Nessun tutorial disponibile</span></li>
+								{/if}
+
+								{#if auth && (level === 'superadmin' || level === 'admin')}
+									<div class="divider my-1"></div>
+									<li>
+										<a href="/video-table" onclick={toggleMenu}>
+											<FileCog size={16} />
+											Gestisci Video
 										</a>
 									</li>
 								{/if}
@@ -478,6 +553,12 @@
 									<a href="/discount-table" class={`btn btn-sm ${isActive('/discount-table') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
 										<Megaphone size={18} />
 										Sconti
+									</a>
+								</li>
+								<li>
+									<a href="/video-table" class={isActive('/video-table') ? 'active' : ''}>
+										<BookOpen size={16} />
+										Video Tutorial
 									</a>
 								</li>
 							{/if}

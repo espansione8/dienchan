@@ -6,6 +6,7 @@ import { Order } from '$lib/server/mongo/schema/Orders.model';
 import { User } from '$lib/server/mongo/schema/Users.model';
 import { Layout } from '$lib/server/mongo/schema/ProductLayouts.model';
 import { Discount } from '$lib/server/mongo/schema/Discounts.model';
+import { Video } from '$lib/server/mongo/schema/Videos.model';
 import { timingSafeEqual } from 'crypto';
 import dbConnect from '$lib/server/mongo/database';
 import type { RequestHandler } from '@sveltejs/kit';
@@ -54,6 +55,7 @@ export const POST: RequestHandler = async ({ request }) => {
     else if (schema == 'user') model = User;
     else if (schema == 'layout') model = Layout;
     else if (schema == 'discount') model = Discount;
+    else if (schema == 'video') model = Video;
     else {
         return json({ message: 'Schema not found' }, { status: 400 });
     }

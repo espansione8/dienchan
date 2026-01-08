@@ -1319,6 +1319,7 @@
 							<option value="course">Corso</option>
 							<option value="product">Prodotto</option>
 							<option value="membership">Membership</option>
+							<option value="insurance">Assicurazione</option>
 						</select>
 					</div>
 
