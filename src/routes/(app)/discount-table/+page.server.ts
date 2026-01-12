@@ -225,6 +225,8 @@ export const actions: Actions = {
 		const refDiscount = formData.get('refDiscount');
 		const refPoints = formData.get('refPoints');
 		const qty = formData.get('qty');
+		//console.log("selectedApplicability", selectedApplicability, "selectId", selectId, "code", code, "type", type, "value", value, "qty", qty);
+		//		return
 
 		if (!discountId || !code || !type || !selectedApplicability || !selectId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
@@ -240,23 +242,23 @@ export const actions: Actions = {
 		}
 
 		if (type == 'qty') {
-    // Modifica sconto per quantità
-    const discountValueType = formData.get('discountValueType');
-    if (!qty || !value || !discountValueType) {
-        return fail(400, { action: 'modify', success: false, message: 'Dati mancanti per sconto quantità' });
-    }
-    update = {
-        $set: {
-            code: code,
-            type: discountValueType, // 'percent' o 'amount'
-            value: value,
-            qty: Number(qty),
-            selectedApplicability: selectedApplicability,
-            [selectedApplicability]: selectIdToUse,
-            notes: notes,
-        }
-    }
-} else if (type == 'percent' || type == 'amount') {
+			// Modifica sconto per quantità
+			const discountValueType = formData.get('discountValueType');
+			if (!qty || !value || !discountValueType) {
+				return fail(400, { action: 'modify', success: false, message: 'Dati mancanti per sconto quantità' });
+			}
+			update = {
+				$set: {
+					code: code,
+					type: discountValueType, // 'percent' o 'amount'
+					value: value,
+					qty: Number(qty),
+					selectedApplicability: selectedApplicability,
+					[selectedApplicability]: selectIdToUse,
+					notes: notes,
+				}
+			}
+		} else if (type == 'percent' || type == 'amount') {
 			update = {
 				$set: {
 					code: code,

@@ -789,18 +789,44 @@
 					</fieldset>
 
 					<fieldset class="fieldset col-span-4">
-						<legend class="fieldset-legend">Prodotto</legend>
+						<legend class="fieldset-legend">Target sconto</legend>
 						<div class="join w-full">
 							<div class="join-item btn pointer-events-none"><Tags /></div>
-							<select id="selectId" name="selectId" bind:value={selectedId} class="select join-item flex-1" required>
+							<!-- <select id="selectId" name="selectId" bind:value={selectedId} class="select join-item flex-1" required>
 								<option value="">Scegli prodotto</option>
 								{#each getProduct as option}
 									<option value={option.prodId}>{option.title}</option>
 								{/each}
-							</select>
+							</select> -->
+							{#if selectedApplicability === 'email'}
+								<input type="text" name="selectId" class="input w-full input-bordered" placeholder="Inserisci EMAIL utente" bind:value={selectedId} />
+							{:else if selectedApplicability === 'membershipLevel'}
+								<select name="selectId" bind:value={selectedId} class="select w-full select-bordered">
+									<option disabled value="">Seleziona il livello associato</option>
+									<option value="Socio inattivo">Socio inattivo</option>
+									<option value="Socio ordinario">Socio ordinario</option>
+									<option value="Socio vitalizio">Socio vitalizio</option>
+								</select>
+							{:else if selectedApplicability === 'riflessologo'}
+								<input type="hidden" id="selectId" name="selectId" value="true" />
+							{:else if selectedApplicability === 'prodId'}
+								<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full select-bordered">
+									<option value="">Scegli prodotto</option>
+									{#each getProduct as option}
+										<option value={option.prodId}>{option.title}</option>
+									{/each}
+								</select>
+							{:else if selectedApplicability === 'layoutId'}
+								<select id="selectId" name="selectId" bind:value={selectedId} class="select w-full select-bordered">
+									<option value="">Scegli un tipo</option>
+									{#each getLayout as option}
+										<option value={option.layoutId}>{option.title}</option>
+									{/each}
+								</select>
+							{/if}
 						</div>
 					</fieldset>
-					<input type="hidden" name="applicability" value="prodId" />
+					<input type="hidden" name="applicability" value={selectedApplicability} />
 					<input type="hidden" name="type" value="qty" />
 				{:else}
 					<!-- MODIFICA SCONTO NORMALE -->
