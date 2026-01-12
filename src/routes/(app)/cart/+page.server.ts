@@ -316,7 +316,7 @@ export const actions: Actions = {
 
 		// Fai l'append delle note sconti alle note esistenti
 		const finalNotes = orderNotes && discountNotes
-			? `${orderNotes}\n\n${discountNotes}`
+			? `${orderNotes} - ${discountNotes}`
 			: orderNotes || discountNotes;
 
 		const mailFetch = (email, order) => fetch(`${BASE_URL}/api/mailer/new-order`, {

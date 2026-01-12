@@ -397,7 +397,7 @@ export const actions: Actions = {
 					apiKey: APIKEY,
 					schema: 'order',
 					query: { orderId: orderId },
-					projection: { cart: 1, userEmail: 1, _id: 0 },
+					projection: { cart: 1, userId: 1, invoicing: 1, _id: 0 },
 					sort: {},
 					limit: 1,
 					skip: 0
@@ -414,13 +414,16 @@ export const actions: Actions = {
 			}
 
 			const orderData = await orderFetch.json();
+			//console.log('orderData', orderData);
 
 			if (!orderData || orderData.length === 0) {
 				return fail(400, { action: 'delete', success: false, message: 'Ordine non trovato' });
 			}
 
 			const cartItems = orderData[0].cart;
-			const userEmail = orderData[0].userEmail;
+			const userEmail = orderData[0].invoicing.email;
+			const userId = orderData[0].userId;
+			//console.log(userEmail, userId);
 
 			// Restore stock quantities and remove user from listSubscribers
 			if (cartItems && cartItems.length > 0) {
@@ -473,9 +476,37 @@ export const actions: Actions = {
 								'Content-Type': 'application/json'
 							}
 						});
+						console.log('removeSubscriberRes', removeSubscriberRes);
 
 						if (!removeSubscriberRes.ok) {
 							const errorData = await removeSubscriberRes.json();
+							console.error(`Failed to remove subscriber from ${item.prodId}:`, errorData);
+							throw new Error(`Failed to remove subscriber from ${item.prodId}`);
+						}
+					}
+
+					// Remove course ID from user profile
+					if (item.type === 'course' && userId) {
+						const removeJoinedRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+							method: 'POST',
+							body: JSON.stringify({
+								apiKey: APIKEY,
+								schema: 'user',  //product | order | user | layout | discount
+								query: { userId },
+								update: {
+									$pull: { courseJoined: item.prodId }
+								},
+								options: { upsert: false },
+								multi: false
+							}),
+							headers: {
+								'Content-Type': 'application/json'
+							}
+						});
+						console.log('removeJoinedRes', removeJoinedRes);
+
+						if (!removeJoinedRes.ok) {
+							const errorData = await removeJoinedRes.json();
 							console.error(`Failed to remove subscriber from ${item.prodId}:`, errorData);
 							throw new Error(`Failed to remove subscriber from ${item.prodId}`);
 						}
