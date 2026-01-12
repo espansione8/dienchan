@@ -421,7 +421,7 @@ export const actions: Actions = {
 			}
 
 			const cartItems = orderData[0].cart;
-			const userEmail = orderData[0].invoicing.email;
+			const userEmail = orderData[0].invoicing?.email;
 			const userId = orderData[0].userId;
 			//console.log(userEmail, userId);
 
@@ -476,7 +476,7 @@ export const actions: Actions = {
 								'Content-Type': 'application/json'
 							}
 						});
-						console.log('removeSubscriberRes', removeSubscriberRes);
+						//console.log('removeSubscriberRes', removeSubscriberRes);
 
 						if (!removeSubscriberRes.ok) {
 							const errorData = await removeSubscriberRes.json();
@@ -503,12 +503,12 @@ export const actions: Actions = {
 								'Content-Type': 'application/json'
 							}
 						});
-						console.log('removeJoinedRes', removeJoinedRes);
+						//console.log('removeJoinedRes', removeJoinedRes);
 
 						if (!removeJoinedRes.ok) {
 							const errorData = await removeJoinedRes.json();
-							console.error(`Failed to remove subscriber from ${item.prodId}:`, errorData);
-							throw new Error(`Failed to remove subscriber from ${item.prodId}`);
+							console.error(`Failed to remove courseJoined  from ${userId}:`, errorData);
+							throw new Error(`Failed to remove courseJoined  from ${userId}`);
 						}
 					}
 				});
