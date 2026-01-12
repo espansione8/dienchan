@@ -636,6 +636,9 @@
 					} else {
 						tableList = getTable;
 					}
+				} else if (action == 'downloadCsv') {
+					csvCreate(payload);
+					notification.success(message);
 				} else {
 					tableList = getTable;
 					resetActive = false;
@@ -702,9 +705,14 @@
 					<Funnel class="mt-1" /> Filtra
 				</button>
 			{/if}
-			<button class="btn btn-info text-white w-full sm:w-auto" onclick={() => csvCreate(tableList)}>
-				<FileDown />CSV
-			</button>
+			<form method="POST" action={`?/downloadCsv`} use:enhance={formSubmit}>
+				<button type="submit" class="btn btn-info text-white w-full sm:w-auto">
+					<FileDown />CSV Report
+					{#if loading}
+						<Loader />
+					{/if}
+				</button>
+			</form>
 		</div>
 	</div>
 	<table class="table mt-5 bg-white border-2">

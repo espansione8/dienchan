@@ -670,5 +670,38 @@ export const actions: Actions = {
 				message: 'Error changePage'
 			});
 		}
-	}
+	},
+
+	downloadCsv: async ({ request, fetch }) => {
+		try {
+			const resFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'order', //product | order | user | layout | discount
+					query: {},
+					projection: { _id: 0 }, // 0: exclude | 1: include
+					sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+					limit: 10000,
+					skip: 0
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (!resFetch.ok) {
+				const errorText = await resFetch.text();
+				console.error('downloadCsv fetch failed', resFetch.status, errorText);
+				return fail(400, { action: 'downloadCsv', success: false, message: `resFetch: ${await resFetch.text()}` });
+			}
+			const content = await resFetch.json();
+			//console.log('content', content.length);
+
+			return { action: 'downloadCsv', success: true, message: 'Download report', payload: content };
+
+		} catch (error) {
+			console.error('Errore durante la generazione e il download del CSV:', error);
+			return fail(500, { action: 'downloadCsv', success: false, message: 'Si è verificato un errore durante la generazione del report.' });
+		}
+	},
 } satisfies Actions;
