@@ -44,8 +44,8 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 		}
 		getMembership = await membershipRes.json();
 
-	} catch (error) {
-		console.log('membershipFetch error:', error);
+	} catch (err) {
+		console.log('membershipFetch error:', err);
 		throw error(500, 'Server error');
 	}
 	// if (locals.auth) {

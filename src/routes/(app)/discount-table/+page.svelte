@@ -9,6 +9,7 @@
 	import {
 		CopyPlus,
 		Trash2,
+		CalendarClock,
 		StretchHorizontal,
 		Funnel,
 		Pen,
@@ -35,6 +36,7 @@
 	let user = $state('');
 	let referralEmail = $state('');
 	let notes = $state('');
+	let expiryDate = $state('');
 	let discountId = $state('');
 	let selectedApplicability = $state('email');
 	let refDiscount = $state(0);
@@ -107,6 +109,7 @@
 		notes = '';
 		selectedApplicability = 'email';
 		referralEmail = '';
+		expiryDate = '';
 	};
 
 	const refresh = () => {
@@ -139,6 +142,7 @@
 			selectedApplicability = item.selectedApplicability;
 			selectedId = item[selectedApplicability];
 			notes = item.notes;
+			expiryDate = item.expiryDate ? new Date(item.expiryDate).toISOString().split('T')[0] : '';
 		}
 		if (type == 'delete') {
 			postAction = `?/delete`;
@@ -262,7 +266,22 @@
 								</span>
 							</form>
 						</td>
-						<td>{row.createdAt ? new Date(row.createdAt).toLocaleDateString('it-IT') : '-'}</td>
+						<td>
+							<div class="flex flex-col space-y-1">
+								<span>{row.createdAt ? new Date(row.createdAt).toLocaleDateString('it-IT') : '-'}</span>
+								{#if row.expiryDate}
+									<div class="flex items-center space-x-1">
+										<CalendarClock size={14} class={new Date(row.expiryDate) < new Date() ? 'text-red-600' : 'text-blue-500'} />
+										<span class="text-xs {new Date(row.expiryDate) < new Date() ? 'text-red-600 font-bold' : ''}">
+											{new Date(row.expiryDate).toLocaleDateString('it-IT')}
+										</span>
+										{#if new Date(row.expiryDate) < new Date()}
+											<span class="badge badge-error badge-xs">Scaduto</span>
+										{/if}
+									</div>
+								{/if}
+							</div>
+						</td>
 						<td>{row.discountId}</td>
 						<td>{row.code}</td>
 						<td>{row.type === 'qty' ? 'Quantità' : row.type}</td>
@@ -535,6 +554,29 @@
 					{/if}
 
 					<section class="col-span-4">
+						<label for="expiryDate" class="form-label">
+							<p class="font-bold mb-2 label">
+								Data di scadenza
+								<span class="text-gray-500 text-xs font-normal">(opzionale)</span>
+							</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button type="button" class="join-item bg-primary/20 px-3">
+								<CalendarClock class="text-emerald-500" />
+							</button>
+							<input
+								type="date"
+								id="expiryDate"
+								name="expiryDate"
+								bind:value={expiryDate}
+								min={new Date().toISOString().split('T')[0]}
+								class="input input-bordered join-item w-full"
+							/>
+						</div>
+						<p class="text-xs text-gray-500 mt-1">Lascia vuoto per uno sconto senza scadenza.</p>
+					</section>
+
+					<section class="col-span-4">
 						<label for="categoria" class="form-label">
 							<p class="font-bold mb-2 label">Note</p>
 						</label>
@@ -655,6 +697,31 @@
 								required
 							/>
 						</div>
+					</section>
+
+					<section class="col-span-4">
+						<label for="expiryDate" class="form-label">
+							<p class="font-bold mb-2 label">
+								Data di scadenza
+								<span class="text-gray-500 text-xs font-normal">(opzionale)</span>
+							</p>
+						</label>
+						<div class="join join-horizontal rounded-md w-full">
+							<button type="button" class="join-item bg-primary/20 px-3">
+								<CalendarClock class="text-emerald-500" />
+							</button>
+							<input
+								type="date"
+								id="expiryDate"
+								name="expiryDate"
+								bind:value={expiryDate}
+								min={new Date().toISOString().split('T')[0]}
+								class="input input-bordered join-item w-full"
+							/>
+						</div>
+						<p class="text-xs text-gray-500 mt-1">
+							Lascia vuoto per uno sconto senza scadenza. Gli sconti scaduti vengono disabilitati automaticamente.
+						</p>
 					</section>
 
 					<section class="col-span-4">
@@ -920,6 +987,29 @@
 					</fieldset>
 				{/if}
 
+				<section class="col-span-4">
+					<label for="expiryDate" class="form-label">
+						<p class="font-bold mb-2 label">
+							Data di scadenza
+							<span class="text-gray-500 text-xs font-normal">(opzionale)</span>
+						</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button type="button" class="join-item bg-primary/20 px-3">
+							<CalendarClock class="text-emerald-500" />
+						</button>
+						<input
+							type="date"
+							id="expiryDate"
+							name="expiryDate"
+							bind:value={expiryDate}
+							min={new Date().toISOString().split('T')[0]}
+							class="input input-bordered join-item w-full"
+						/>
+					</div>
+					<p class="text-xs text-gray-500 mt-1">Lascia vuoto per rimuovere la scadenza.</p>
+				</section>
+
 				<fieldset class="col-span-4">
 					<legend class="fieldset-legend">note</legend>
 					<div class="join w-full">
@@ -1046,6 +1136,29 @@
 							required
 						/>
 					</div>
+				</section>
+
+				<section class="col-span-4">
+					<label for="expiryDate" class="form-label">
+						<p class="font-bold mb-2 label">
+							Data di scadenza
+							<span class="text-gray-500 text-xs font-normal">(opzionale)</span>
+						</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button type="button" class="join-item bg-primary/20 px-3">
+							<CalendarClock class="text-emerald-500" />
+						</button>
+						<input
+							type="date"
+							id="expiryDate"
+							name="expiryDate"
+							bind:value={expiryDate}
+							min={new Date().toISOString().split('T')[0]}
+							class="input input-bordered join-item w-full"
+						/>
+					</div>
+					<p class="text-xs text-gray-500 mt-1">Lascia vuoto per rimuovere la scadenza.</p>
 				</section>
 
 				<section class="col-span-4">

@@ -128,6 +128,7 @@ export const actions: Actions = {
 		const refPoints = formData.get('refPoints');
 		const qty = formData.get('qty');
 		const discountValueType = formData.get('discountValueType');
+		const expiryDate = formData.get('expiryDate') as string;
 
 		if (!code || !type || !selectedApplicability || !selectId) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
@@ -155,7 +156,10 @@ export const actions: Actions = {
 				qty: Number(qty),
 				selectedApplicability,
 				[selectedApplicability]: selectIdToUse,
-				notes
+				notes,
+				...(expiryDate && { expiryDate: new Date(expiryDate) }),
+				status: 'enabled'
+
 			}
 		} else if (type == 'percent' || type == 'amount') {
 			newDoc = {
@@ -165,7 +169,9 @@ export const actions: Actions = {
 				value,
 				selectedApplicability,
 				[selectedApplicability]: selectIdToUse,
-				notes
+				notes,
+				...(expiryDate && { expiryDate: new Date(expiryDate) }),
+				status: 'enabled'
 			}
 		} else if (type == 'referral') {
 			newDoc = {
@@ -176,7 +182,9 @@ export const actions: Actions = {
 				refPoints,
 				selectedApplicability,
 				referral: selectIdToUse.toString().toLowerCase().trim(),
-				notes
+				notes,
+				...(expiryDate && { expiryDate: new Date(expiryDate) }),  
+				status: 'enabled'  
 			}
 		} else {
 			return fail(400, { action: 'new', success: false, message: 'no TYPE' });
@@ -225,6 +233,7 @@ export const actions: Actions = {
 		const refDiscount = formData.get('refDiscount');
 		const refPoints = formData.get('refPoints');
 		const qty = formData.get('qty');
+			const expiryDate = formData.get('expiryDate') as string;
 		//console.log("selectedApplicability", selectedApplicability, "selectId", selectId, "code", code, "type", type, "value", value, "qty", qty);
 		//		return
 
@@ -256,6 +265,7 @@ export const actions: Actions = {
 					selectedApplicability: selectedApplicability,
 					[selectedApplicability]: selectIdToUse,
 					notes: notes,
+					...(expiryDate ? { expiryDate: new Date(expiryDate) } : { expiryDate: null })
 				}
 			}
 		} else if (type == 'percent' || type == 'amount') {
@@ -267,6 +277,7 @@ export const actions: Actions = {
 					selectedApplicability: selectedApplicability,
 					[selectedApplicability]: selectIdToUse,
 					notes: notes,
+					...(expiryDate ? { expiryDate: new Date(expiryDate) } : { expiryDate: null })
 				}
 			}
 		} else if (type == 'referral') {
@@ -279,6 +290,7 @@ export const actions: Actions = {
 					selectedApplicability: selectedApplicability,
 					[selectedApplicability]: selectId,
 					notes: notes,
+					...(expiryDate ? { expiryDate: new Date(expiryDate) } : { expiryDate: null })
 				}
 			}
 		} else {
