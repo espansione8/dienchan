@@ -1,6 +1,6 @@
 // `${BASE_URL}/api/mailer/new-order`
 import type { RequestHandler } from '@sveltejs/kit';
-import { APIKEY, MAILER_HOST, MAILER_PORT, MAILER_SECURE, MAILER_USER, MAILER_PASS, BASE_URL} from '$env/static/private';
+import { APIKEY, MAILER_HOST, MAILER_PORT, MAILER_SECURE, MAILER_USER, MAILER_PASS, BASE_URL } from '$env/static/private';
 import { json } from '@sveltejs/kit';
 import nodemailer from 'nodemailer';
 
@@ -138,7 +138,9 @@ export const POST: RequestHandler = async ({ request }) => {
     ${type === 'course' ?
                 cart.map(item => `
             <tr>
-                <td class="table-cell-style text-left">${item.type == 'course' ? item.layoutView.title : item.title}</td>
+                <td class="table-cell-style text-left">${item.type == 'course' ? item.layoutView.title : item.title} 
+                    <br/> ${item.type == 'course' ? new Date(item.eventStartDate).toLocaleDateString('it-IT') : ''}
+                </td>
                 <td class="table-cell-style text-right">${item.orderQuantity || 1}</td>
                 <td class="table-cell-style text-right"></td>
             </tr>

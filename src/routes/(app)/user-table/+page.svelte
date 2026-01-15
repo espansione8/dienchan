@@ -348,6 +348,7 @@
 						currentPage = 1;
 						tableList = payload;
 						notification.info(message);
+						onCloseModal();
 					} else if (action == 'downloadCsv') {
 						csvCreate(payload);
 						notification.success(message);
@@ -379,7 +380,7 @@
 							tableList = getTable;
 						}
 						onCloseModal();
-					} else if (action == 'approveTraining') {
+					} else if (action === 'approveTraining') {
 						await invalidateAll(); // Ricarica tutti i dati
 						await tick();
 						tableList = getTable;
@@ -397,7 +398,7 @@
 						notification.info(message);
 					}
 
-					onCloseModal();
+					//onCloseModal();
 				}
 				if (result.type === 'failure') {
 					notification.error(result.data.message);
@@ -1518,7 +1519,7 @@
 									<div class="badge badge-lg" class:badge-success={training.approved} class:badge-warning={!training.approved}>
 										{training.approved ? 'Approvato' : 'In attesa'}
 									</div>
- 
+
 									{#if !training.approved}
 										<form method="POST" action={`?/approveTraining`} use:enhance={formSubmit}>
 											<input type="hidden" name="userId" value={userId} />
@@ -1529,7 +1530,7 @@
 											<button type="submit" class="btn btn-xs btn-success whitespace-nowrap" aria-label="Approva training"> ✓ Approva </button>
 										</form>
 									{/if}
- 
+
 									<form method="POST" action={`?/delTraining`} use:enhance={formSubmit}>
 										<input type="hidden" name="userId" value={userId} />
 										<input type="hidden" name="fileName" value={training.fileName} />

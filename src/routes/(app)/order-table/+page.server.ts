@@ -151,9 +151,13 @@ export const actions: Actions = {
 				orderCartItems = oldOrder[0].cart;
 			}
 
-			// If payment is being cancelled, restore stock quantities
-			if (statusPayment === 'cancelled' && oldStatusPayment === 'pending') {
+			// If payment is being canceled, restore stock quantities
+			if (statusPayment === 'canceled' && oldStatusPayment === 'pending') {
 				const itemsToRestore = cartItem || orderCartItems;
+
+				//const cartItems = orderData[0].cart;
+				//const userEmail = orderData[0].invoicing?.email;
+				//const userId = orderData[0].userId;
 
 				if (itemsToRestore && itemsToRestore.length > 0) {
 					const restoreQty = itemsToRestore.map(async (item: any) => {
@@ -186,7 +190,63 @@ export const actions: Actions = {
 							console.error(`Failed to restore prodId ${item.prodId}:`, errorData);
 							throw new Error(`Failed to restore stock for ${item.prodId}`);
 						}
-						return restoreQtyRes.json();
+						//return restoreQtyRes.json();
+
+						// Remove user from listSubscribers for courses, events, and memberships
+						if ((item.type === 'course' || item.type === 'event' || item.type === 'membership') && email) {
+							const removeSubscriberRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+								method: 'POST',
+								body: JSON.stringify({
+									apiKey: APIKEY,
+									schema: 'product',
+									query: { prodId: item.prodId },
+									update: {
+										$pull: {
+											listSubscribers: { email: email }
+										}
+									},
+									options: { upsert: false },
+									multi: false
+								}),
+								headers: {
+									'Content-Type': 'application/json'
+								}
+							});
+							//console.log('removeSubscriberRes', removeSubscriberRes);
+
+							if (!removeSubscriberRes.ok) {
+								const errorData = await removeSubscriberRes.json();
+								console.error(`Failed to remove subscriber from ${item.prodId}:`, errorData);
+								throw new Error(`Failed to remove subscriber from ${item.prodId}`);
+							}
+						}
+
+						// Remove course ID from user profile
+						if (item.type === 'course' && userId) {
+							const removeJoinedRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+								method: 'POST',
+								body: JSON.stringify({
+									apiKey: APIKEY,
+									schema: 'user',  //product | order | user | layout | discount
+									query: { userId },
+									update: {
+										$pull: { courseJoined: item.prodId }
+									},
+									options: { upsert: false },
+									multi: false
+								}),
+								headers: {
+									'Content-Type': 'application/json'
+								}
+							});
+							//console.log('removeJoinedRes', removeJoinedRes);
+
+							if (!removeJoinedRes.ok) {
+								const errorData = await removeJoinedRes.json();
+								console.error(`Failed to remove courseJoined  from ${userId}:`, errorData);
+								throw new Error(`Failed to remove courseJoined  from ${userId}`);
+							}
+						}
 					});
 
 					await Promise.all(restoreQty);
