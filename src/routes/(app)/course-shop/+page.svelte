@@ -98,8 +98,23 @@
 	});
 
 	// Creare un array con le informazioni per ogni mese
+	// const informazioniMesi = Object.entries(conteggioMesi).map(([mese, conteggio]) => {
+	// 	return {
+	// 		mese,
+	// 		conteggio
+	// 	};
+	// });
 	const informazioniMesi = Object.entries(conteggioMesi).map(([mese, conteggio]) => {
+		// Find the year for this month from the courses
+		const anno = getTable.find((item) => {
+			const dataEvento = new Date(item.eventStartDate);
+			const meseIndex = dataEvento.getMonth();
+			return nomiMesi[meseIndex] === mese;
+		});
+		const year = anno ? new Date(anno.eventStartDate).getFullYear() : '';
+
 		return {
+			anno: year,
 			mese,
 			conteggio
 		};
@@ -107,6 +122,11 @@
 
 	const meseAttualeInfo = informazioniMesi.find((item) => item.mese === nomiMesi[currentMonthIndex]);
 	const currentMonthName = meseAttualeInfo && meseAttualeInfo?.conteggio > 0 ? nomiMesi[currentMonthIndex] : nomiMesi[(currentMonthIndex + 1) % 12];
+	// const meseAttualeInfo = informazioniMesi.find((item) => item.meseBase === nomiMesi[currentMonthIndex]);
+	// const currentMonthName =
+	// 	meseAttualeInfo && meseAttualeInfo?.conteggio > 0
+	// 		? meseAttualeInfo.mese
+	// 		: informazioniMesi.find((item) => item.meseBase === nomiMesi[(currentMonthIndex + 1) % 12])?.mese || '';
 
 	let filtriAttivi = $state({
 		mese: currentMonthName,
@@ -320,7 +340,7 @@
 					</div>
 					<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto">
 						<ul class="list-none -mx-4 divide-y divide-base-200/70">
-							{#each informazioniMesi as { mese, conteggio }}
+							{#each informazioniMesi as { anno, mese, conteggio }}
 								<li>
 									<button
 										type="button"
@@ -329,7 +349,7 @@
                   {conteggio == 0 ? 'text-gray-400 pointer-events-none opacity-50' : ''}"
 										onclick={() => onClickFilterMonth(mese)}
 									>
-										<span>{mese}</span>
+										<span>{mese} {anno}</span>
 										<div class="flex items-center gap-2">
 											<span class="badge badge-sm badge-ghost">{conteggio}</span>
 											{#if filtriAttivi.mese == mese}

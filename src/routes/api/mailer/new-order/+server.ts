@@ -139,7 +139,7 @@ export const POST: RequestHandler = async ({ request }) => {
                 cart.map(item => `
             <tr>
                 <td class="table-cell-style text-left">${item.type == 'course' ? item.layoutView.title : item.title} 
-                    <br/> ${item.type == 'course' ? new Date(item.eventStartDate).toLocaleDateString('it-IT') : ''}
+                    ${item.type == 'course' && item.eventStartDate ? `<br/>${new Date(item.eventStartDate).toLocaleDateString('it-IT')}` : ''}
                 </td>
                 <td class="table-cell-style text-right">${item.orderQuantity || 1}</td>
                 <td class="table-cell-style text-right"></td>
@@ -150,7 +150,7 @@ export const POST: RequestHandler = async ({ request }) => {
             <tr>
                 <td class="table-cell-style text-left">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <img src="${BASE_URL}${item.uploadfiles[0].fileUrl || 'https://riflessologiadienchan.it/images/placeholder.jpg'}" 
+                        <img src="${BASE_URL}${item.uploadfiles?.[0]?.fileUrl || 'https://riflessologiadienchan.it/images/placeholder.jpg'}" 
                              alt="${item.title}" 
                              width="80" 
                              height="80" 

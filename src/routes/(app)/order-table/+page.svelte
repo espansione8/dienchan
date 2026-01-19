@@ -1140,7 +1140,7 @@
 
 				<input type="hidden" name="cart" value={JSON.stringify(orderDetail.cart)} class="hidden" />
 				<input type="hidden" name="type" value={orderDetail.type} class="hidden" />
-				<input type="hidden" name="userId" value={userId} />
+				<input type="hidden" name="userId" value={orderDetail.userId} />
 
 				{#if orderDetail.promoterId}
 					<input type="hidden" name="promoterId" value={orderDetail.promoterId} />

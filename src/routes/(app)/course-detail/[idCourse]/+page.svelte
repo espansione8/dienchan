@@ -280,7 +280,9 @@
 		openModal = true;
 		//initializeStripe();
 		// Wait for DOM to update before initializing Stripe
-		tick().then(() => initializeStripe());
+		if (getCourse.type !== 'event') {
+			tick().then(() => initializeStripe());
+		}
 		if (type == 'new') {
 			postAction = `?/new`;
 			modalTitle = 'Acquista il Corso';
