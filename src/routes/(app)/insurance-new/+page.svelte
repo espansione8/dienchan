@@ -727,7 +727,7 @@
 						<h3 class="font-bold text-xl text-sky-900 mb-3">Tutela legale</h3>
 						<p class="text-sky-800 text-sm mb-6 flex-grow">Tutela legale</p>
 						<a
-							href="http://riflessologiadienchan.it/wp-content/uploads/2025/12/Tutela-legale.pdf"
+							href="https://riflessologiadienchan.it/wp-content/uploads/2026/01/TUTELA-LEGALE-SPA-449029-coperto-.pdf"
 							download
 							class="btn btn-primary w-full bg-sky-500 hover:bg-sky-600 border-sky-500 transition-colors"
 						>
@@ -748,7 +748,7 @@
 						<h3 class="font-bold text-xl text-sky-900 mb-3">Set informativo Unipol Mondo Professionista Professioni Sanitarie</h3>
 						<p class="text-sky-800 text-sm mb-6 flex-grow">Set informativo Unipol Mondo Professionista Professioni Sanitarie</p>
 						<a
-							href="http://riflessologiadienchan.it/wp-content/uploads/2025/12/2231_7-Set-informativo-Unipol-Mondo-Professionista-Professioni-Sanitarie-Ed01_06_2025.pdf"
+							href="https://riflessologiadienchan.it/wp-content/uploads/2026/01/UNIPOL-210620818-coperto-completo.pdf"
 							download
 							class="btn btn-primary w-full bg-sky-500 hover:bg-sky-600 border-sky-500 transition-colors"
 						>

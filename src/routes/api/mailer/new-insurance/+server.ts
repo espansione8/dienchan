@@ -115,7 +115,7 @@ export const POST: RequestHandler = async ({ request }) => {
                                 <h3 class="margin-top-lg text-black">📝 Cosa devi fare ora:</h3>
 
                                 <div class="step-box">
-                                    <p style="margin: 0;"><span class="step-number">1.</span> <strong>Scarica il modulo da questo <a href="https://riflessologiadienchan.it/wp-content/uploads/2025/12/MODULO_ADESIONE_CON_TUTELA.pdf">LINK</a> </strong> (MODULO ADESIONE CON TUTELA.pdf)</p>
+                                    <p style="margin: 0;"><span class="step-number">1.</span> <strong>Scarica il modulo da questo <a href="https://riflessologiadienchan.it/wp-content/uploads/2026/01/MODULO-ADESIONE-CON-TUTELA.pdf">LINK</a> </strong> (MODULO ADESIONE CON TUTELA.pdf)</p>
                                 </div>
 
                                 <div class="step-box">
