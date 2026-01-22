@@ -73,7 +73,7 @@
 	let resetActive = $state(false);
 	let membershipExpiry = $state('');
 	let membershipStatus = $state(false);
-	let trainingHistory: any[] = [];
+	let trainingHistory = $state<any[]>([]);
 	let insuranceExpiry = $state('');
 	let insuranceStatus = $state(false);
 
@@ -337,6 +337,7 @@
 
 	const formSubmit = () => {
 		loading = true;
+		let shouldResetFields = true;
 		return async ({ result }: { result: ActionResult }) => {
 			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
 			await invalidateAll();
@@ -381,16 +382,27 @@
 						}
 						onCloseModal();
 					} else if (action === 'approveTraining') {
+						shouldResetFields = false;
 						await invalidateAll(); // Ricarica tutti i dati
 						await tick();
 						tableList = getTable;
 						pendingList = pendingApprovalsList;
 						resetActive = false;
 						notification.info(message);
+
+						if (payload && payload[0]) {
+							trainingHistory = payload[0].trainingHistory?.filter((t) => t.approved === false) || [];
+						}
+
+					
 						if (approved === true && pendingApprovalsCount > 0) {
 							pendingApprovalsCount -= 1;
 						} else if (approved === false) {
 							pendingApprovalsCount += 1;
+						}
+
+							if (trainingHistory.length === 0) {
+							onCloseModal();
 						}
 					} else {
 						tableList = getTable;
@@ -409,7 +421,9 @@
 				// 'update()' is called by default by use:enhance
 				//await update(); // if you need to ensure it completes before further client logic.
 			} finally {
-				resetFields();
+				if (shouldResetFields) {
+					resetFields();
+				}
 				loading = false;
 			}
 		};
