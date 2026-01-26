@@ -150,7 +150,7 @@ export const POST: RequestHandler = async ({ request }) => {
             <tr>
                 <td class="table-cell-style text-left">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <img src="${BASE_URL}${item.uploadfiles?.[0]?.fileUrl || 'https://riflessologiadienchan.it/images/placeholder.jpg'}" 
+                        <img src="${BASE_URL}${item.uploadfiles?.[0]?.fileUrl || 'https://associazione.riflessologiadienchan.it/images/placeholder.jpg'}" 
                              alt="${item.title}" 
                              width="80" 
                              height="80" 

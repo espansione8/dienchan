@@ -709,7 +709,7 @@
 <!-- Resources Section -->
 {#if auth}
 	<section class="py-16 px-4 bg-white">
-		<div class="container mx-auto">
+		<div id="risorse" class="container mx-auto">
 			<h2 class="text-3xl md:text-4xl font-bold text-center text-blue-900 mb-4">Risorse da Consultare</h2>
 			<p class="text-center text-blue-700 mb-12 max-w-2xl mx-auto">
 				Scarica e consulta i documenti informativi per comprendere meglio i vantaggi e le modalità del contributo socio praticante
@@ -725,7 +725,7 @@
 							<FileText class="h-12 w-12 text-white" />
 						</div>
 						<h3 class="font-bold text-xl text-sky-900 mb-3">Tutela legale</h3>
-						<p class="text-sky-800 text-sm mb-6 flex-grow">Tutela legale</p>
+						<p class="text-sky-800 text-sm mb-6 flex-grow">Testo completo</p>
 						<a
 							href="https://riflessologiadienchan.it/wp-content/uploads/2026/01/TUTELA-LEGALE-SPA-449029-coperto-.pdf"
 							download
@@ -745,8 +745,8 @@
 						<div class="bg-sky-500 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
 							<ShieldCheck class="h-12 w-12 text-white" />
 						</div>
-						<h3 class="font-bold text-xl text-sky-900 mb-3">Set informativo Unipol Mondo Professionista Professioni Sanitarie</h3>
-						<p class="text-sky-800 text-sm mb-6 flex-grow">Set informativo Unipol Mondo Professionista Professioni Sanitarie</p>
+						<h3 class="font-bold text-xl text-sky-900 mb-3">Set informativo Unipol Mondo</h3>
+						<p class="text-sky-800 text-sm mb-6 flex-grow">Professionista Professioni Sanitarie</p>
 						<a
 							href="https://riflessologiadienchan.it/wp-content/uploads/2026/01/UNIPOL-210620818-coperto-completo.pdf"
 							download
@@ -766,10 +766,10 @@
 						<div class="bg-sky-500 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
 							<Receipt class="h-12 w-12 text-white" />
 						</div>
-						<h3 class="font-bold text-xl text-sky-900 mb-3">Allegato testo aggiuntivo</h3>
-						<p class="text-sky-800 text-sm mb-6 flex-grow">Allegato testo aggiuntivo</p>
+						<h3 class="font-bold text-xl text-sky-900 mb-3">Copertura luoghi pubblici</h3>
+						<p class="text-sky-800 text-sm mb-6 flex-grow">per eventi e fiere</p>
 						<a
-							href="http://riflessologiadienchan.it/wp-content/uploads/2025/12/Allegato-testo-aggiuntivo.pdf"
+							href="https://riflessologiadienchan.it/wp-content/uploads/2026/01/ITAS_M16297317-1.pdf"
 							download
 							class="btn btn-primary w-full bg-sky-500 hover:bg-sky-600 border-sky-500 transition-colors"
 						>
