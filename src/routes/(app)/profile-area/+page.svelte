@@ -1902,11 +1902,19 @@
 																			alt={item.title}
 																			class="w-full h-full object-cover"
 																		/>
+																	{:else if item.type === 'insurance' || item.type === 'membership'}
+																		<Image
+																			layout="constrained"
+																			aspectRatio={1}
+																			src="/images/placeholder.jpg"
+																			alt={item.title}
+																			class="w-full h-full object-cover"
+																		/>
 																	{:else}
 																		<Image
 																			layout="constrained"
 																			aspectRatio={1}
-																			src={imgCheck.single(item.uploadfiles, 'product-primary')}
+																			src={item.uploadfiles ? imgCheck.single(item.uploadfiles, 'product-primary') : '/images/placeholder.jpg'}
 																			alt={item.title}
 																			class="w-full h-full object-cover"
 																		/>

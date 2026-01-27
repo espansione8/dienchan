@@ -5,6 +5,7 @@
 	import { enhance } from '$app/forms';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { notification } from '$lib/stores/notifications';
+	import { deserialize } from '$app/forms';
 	import Loader from '$lib/components/Loader.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import { province, country_list } from '$lib/stores/arrays';
@@ -24,7 +25,8 @@
 		ArrowLeft,
 		Calendar,
 		Users,
-		Clock
+		Clock,
+		ShieldCheck
 	} from 'lucide-svelte';
 
 	const { data } = $props();
@@ -58,6 +60,9 @@
 	// let paymentMethodId = $state<string | null>(null);
 	let clientSecret = $state<string | null>(null);
 	let paymentIntentId = $state<string | null>(null);
+
+	let discountCode = $state('');
+	let promoterId = $state('');
 
 	let cartItem: CartItem = $state();
 	let closedInput = $state(false);
@@ -202,6 +207,25 @@
 		return getMembership.filter((item) => item.title === title)[0];
 	};
 
+	const applyEmailRefSubmit = () => {
+		loading = true;
+		return async ({ result }: { result: ActionResult }) => {
+			await invalidateAll();
+			if (result.type === 'success' && result.data) {
+				const { action, message, payload } = result.data;
+				if (action === 'applyEmailRef') {
+					promoterId = payload || '';
+					discountCode = '';
+				}
+				notification.info(message);
+			}
+			if (result.type === 'failure') {
+				notification.error(result.data.message || 'Errore');
+			}
+			loading = false;
+		};
+	};
+
 	const resetFields = () => {
 		formData.name = userData?.name || '';
 		formData.surname = userData?.surname || '';
@@ -219,6 +243,8 @@
 		password2 = '';
 		formData.howDidYouKnow = '';
 		formData.eventDetails = '';
+		discountCode = '';
+		promoterId = '';
 		if (cardElement) {
 			cardElement.destroy();
 			cardElement = null;
@@ -334,6 +360,11 @@
 			formData.membershipLevel = item;
 			// console.log('onClickModal', formData.membershipLevel);
 		}
+		if (type == 'newWithInsurance') {
+			postAction = `?/newWithInsurance`;
+			modalTitle = 'Tesseramento + Assicurazione';
+			formData.membershipLevel = 'Socio ordinario';
+		}
 	};
 
 	const onCloseModal = () => {
@@ -353,10 +384,12 @@
 		stripeError = null;
 		let total = '';
 
-		if (formData.membershipLevel == 'Socio vitalizio') {
+		if (currentModal === 'newWithInsurance') {
+			total = '95'; // 25 + 70 (scocio ordinario + assicurazione annuale)
+		} else if (formData.membershipLevel == 'Socio vitalizio') {
 			total = '390';
 		} else {
-			total = '25';
+			total = '25'; // socio ordinario
 		}
 
 		try {
@@ -578,7 +611,6 @@
 			formEl.requestSubmit();
 		}
 	};
-
 
 	$effect(() => {
 		if (stripeError) {
@@ -816,6 +848,51 @@
 					</div>
 				</div>
 			</div>
+
+			<!-- Membership + Insurance Card - Solo per utenti non loggati -->
+			{#if !auth}
+				<div class="bg-white rounded-xl overflow-hidden shadow-lg transition-all hover:shadow-2xl w-full md:w-96 relative">
+					<div class="bg-green-600 p-4 text-white text-center">
+						<h3 class="text-xl font-bold">SOCIO ORDINARIO + PRATICANTE</h3>
+					</div>
+					<div class="p-6 flex flex-col flex-1">
+						<div class="text-center mb-6">
+							<p class="text-4xl font-bold text-blue-900">
+								95€ <span class="text-xl text-blue-700">annuali</span>
+							</p>
+							<p class="text-sm text-gray-500 mt-1">25€ tessera + 70€ socio praticate</p>
+						</div>
+
+						<div class="flex justify-center mb-8">
+							<ShieldCheck class="text-green-500 h-32 w-32" />
+						</div>
+
+						<ul class="mb-8 space-y-3">
+							<li class="flex items-center">
+								<CircleCheckBig class="text-green-500 h-4 w-4 mr-2" />
+								<span>Tutti i vantaggi del socio ordinario</span>
+							</li>
+							<li class="flex items-center">
+								<CircleCheckBig class="text-green-500 h-4 w-4 mr-2" />
+								<span>Polizza RC associazione inclusa</span>
+							</li>
+							<li class="flex items-center">
+								<CircleCheckBig class="text-green-500 h-4 w-4 mr-2" />
+								<span>Utilizzo sale con tariffa agevolata</span>
+							</li>
+							<li class="flex items-center">
+								<CircleCheckBig class="text-green-500 h-4 w-4 mr-2" />
+								<span>Supporto e attività riservate</span>
+							</li>
+						</ul>
+						<div class="mt-auto">
+							<button class="btn bg-green-500 hover:bg-green-600 text-white w-full" onclick={() => onClickModal('newWithInsurance', null)}>
+								Diventa Socio + Praticante
+							</button>
+						</div>
+					</div>
+				</div>
+			{/if}
 		</div>
 	</div>
 </section>
@@ -1377,7 +1454,12 @@
 						<button type="button" class="btn btn-primary" onclick={nextStep} disabled={!isCurrentStepValid()}> Continua </button>
 					{:else}
 						<!-- <button type="submit" class="btn btn-success" disabled={!isCurrentStepValid()}> Conferma Acquisto </button> -->
-						<button type="button" class="btn btn-success" onclick={handleFinalSubmit} disabled={!isCurrentStepValid() || loading || stripeError != null}>
+						<button
+							type="button"
+							class="btn btn-success"
+							onclick={handleFinalSubmit}
+							disabled={!isCurrentStepValid() || loading || stripeError != null}
+						>
 							Conferma Acquisto</button
 						>
 					{/if}
@@ -1742,7 +1824,476 @@
 						<button type="button" class="btn btn-primary" onclick={nextStep} disabled={!isCurrentStepValid()}> Continua </button>
 					{:else}
 						<!-- <button type="submit" class="btn btn-success" disabled={!isCurrentStepValid()}> Conferma Acquisto </button> -->
-						<button type="button" class="btn btn-success" onclick={handleFinalSubmit} disabled={!isCurrentStepValid() || loading || stripeError != null}> Conferma Acquisto</button>
+						<button
+							type="button"
+							class="btn btn-success"
+							onclick={handleFinalSubmit}
+							disabled={!isCurrentStepValid() || loading || stripeError != null}
+						>
+							Conferma Acquisto</button
+						>
+					{/if}
+				</div>
+			</div>
+		</form>
+	</Modal>
+{/if}
+
+{#if currentModal == 'newWithInsurance'}
+	<Modal isOpen={openModal} header={modalTitle} cssClass={'bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto'}>
+		<button class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content" onclick={onCloseModal}>✕</button>
+		{#if loading}
+			<Loader />
+		{/if}
+		<form method="POST" action={postAction} use:enhance={formSubmit} class="px-6 pb-6" bind:this={formEl}>
+			<div class="px-6 pt-4">
+				<div class="w-full flex justify-between mb-2">
+					{#each Array(totalSteps) as _, i}
+						<div class="flex flex-col items-center">
+							<div
+								class={`w-10 h-10 rounded-full flex items-center justify-center ${i + 1 === currentStep ? 'bg-primary text-primary-content' : i + 1 < currentStep ? 'bg-success text-success-content' : 'bg-base-200'}`}
+							>
+								{#if i + 1 < currentStep}
+									<CircleCheckBig size={20} />
+								{:else}
+									{i + 1}
+								{/if}
+							</div>
+							<span class="text-xs mt-1">{getStepTitle(i + 1)}</span>
+						</div>
+
+						{#if i < totalSteps - 1}
+							<div class="flex-1 flex items-center mx-2">
+								<div class={`h-1 w-full ${i + 1 < currentStep ? 'bg-success' : 'bg-base-200'}`}></div>
+							</div>
+						{/if}
+					{/each}
+				</div>
+			</div>
+
+			<!-- Step 1 -->
+			<div class={currentStep === 1 ? 'block' : 'hidden'}>
+				<div class="card bg-base-100 shadow-sm border border-base-200 p-4 rounded-lg mt-4">
+					<div class="card-title text-lg font-bold mb-4 pb-2 border-b">
+						<span>Registrazione</span>
+					</div>
+
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div class="form-control w-full">
+							<label for="Name" class="label">
+								<span class="label-text font-medium">Nome</span>
+							</label>
+							<input
+								id="Name"
+								name="name"
+								type="text"
+								class="input input-bordered w-full"
+								placeholder="Inserisci il tuo nome"
+								required
+								bind:value={formData.name}
+							/>
+						</div>
+
+						<div class="form-control w-full">
+							<label for="Surname" class="label">
+								<span class="label-text font-medium">Cognome</span>
+							</label>
+							<input
+								id="Surname"
+								name="surname"
+								type="text"
+								class="input input-bordered w-full"
+								placeholder="Inserisci il tuo cognome"
+								required
+								bind:value={formData.surname}
+							/>
+						</div>
+
+						<div class="form-control w-full md:col-span-2">
+							<label for="Email" class="label">
+								<span class="label-text font-medium">Email</span>
+							</label>
+							<div class="input validator input-bordered flex items-center gap-2 pr-2 w-full">
+								<Mail size={18} class="ml-2" />
+								<input id="Email" name="email" type="email" class="" placeholder="esempio@email.com" required bind:value={formData.email} />
+							</div>
+							<div class="validator-hint hidden">Inserire email valida</div>
+						</div>
+
+						<div class="form-control w-full">
+							<label for="password" class="label">
+								<span class="label-text font-medium">
+									Password <span class="text-xs"> (Almeno 8 caratteri con numeri e lettere) </span>
+								</span>
+							</label>
+							<div class="input validator input-bordered flex items-center gap-2 pr-2">
+								<Lock size={18} class="ml-2" />
+								<input
+									class="flex-1 outline-none bg-transparent"
+									id="password"
+									name="password1"
+									type="password"
+									placeholder="Inserisci la password"
+									aria-label="Password"
+									bind:value={password1}
+									minlength="8"
+									required
+									onblur={checkPasswordsMatch}
+								/>
+							</div>
+							<div class="validator-hint hidden">Inserire password valida</div>
+						</div>
+
+						<div class="form-control w-full">
+							<label for="password2" class="label">
+								<span class="label-text font-medium">
+									Conferma password {#if !passwordsMatch}
+										<span class="text-error text-xs"> (non corrispondente) </span>
+									{/if}</span
+								>
+							</label>
+							<div class="input validator input-bordered flex items-center gap-2 pr-2">
+								<Lock size={18} class="ml-2" color={passwordsMatch ? (password2 ? 'green' : 'currentColor') : 'red'} />
+								<input
+									class="flex-1 outline-none bg-transparent"
+									id="password2"
+									name="password2"
+									type="password"
+									placeholder="Conferma la password"
+									bind:value={password2}
+									minlength="8"
+									required
+									oninput={checkPasswordsMatch}
+								/>
+							</div>
+							<div class="validator-hint hidden">Inserire password valida</div>
+						</div>
+
+						<div class="form-control w-full">
+							<label for="telefono" class="label">
+								<span class="label-text font-medium">Telefono</span>
+							</label>
+							<input
+								id="telefono"
+								name="phone"
+								type="tel"
+								class="input input-bordered w-full"
+								placeholder="+39 01234567"
+								bind:value={formData.phone}
+							/>
+						</div>
+
+						<div class="form-control w-full">
+							<label for="cellulare" class="label">
+								<span class="label-text font-medium">
+									Cellulare <span class="text-xs"> (richiesto) </span>
+								</span>
+							</label>
+							<input
+								id="cellulare"
+								name="mobilePhone"
+								type="tel"
+								class="input input-bordered w-full"
+								placeholder="+39 3331234567"
+								required
+								bind:value={formData.mobilePhone}
+							/>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Step 2 -->
+			<div class={currentStep === 2 ? 'block' : 'hidden'}>
+				<div class="card bg-base-100 shadow-sm border border-base-200 p-4 rounded-lg mt-4">
+					<div class="card-title text-lg font-bold mb-4 pb-2 border-b">
+						<span>Indirizzo di Fatturazione/Spedizione</span>
+					</div>
+
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div class="form-control w-full md:col-span-2">
+							<label for="address" class="label">
+								<span class="label-text font-medium">Indirizzo</span>
+							</label>
+							<input
+								id="address"
+								name="address"
+								type="text"
+								class="input input-bordered w-full"
+								placeholder="Via/Piazza, numero civico"
+								required
+								bind:value={formData.address}
+							/>
+						</div>
+
+						<div class="form-control w-full">
+							<label for="city" class="label">
+								<span class="label-text font-medium">Città</span>
+							</label>
+							<input
+								id="city"
+								name="city"
+								type="text"
+								class="input input-bordered w-full"
+								placeholder="Inserisci la città"
+								required
+								bind:value={formData.city}
+							/>
+						</div>
+
+						<div class="form-control w-full">
+							<label for="postalcode" class="label">
+								<span class="label-text font-medium">CAP</span>
+							</label>
+							<input
+								id="postalCode"
+								name="postalCode"
+								type="text"
+								class="input input-bordered w-full"
+								placeholder="12345"
+								required
+								bind:value={formData.postalCode}
+							/>
+						</div>
+
+						<div class="form-control w-full">
+							<label for="state" class="label">
+								<span class="label-text font-medium">Provincia</span>
+							</label>
+							<select id="county" class="select select-bordered w-full" name="county" required bind:value={formData.county}>
+								<option value="" disabled selected>Seleziona provincia</option>
+								{#each $province as provincia, i}
+									{#if provincia.title !== 'Online'}
+										<option value={provincia.title}>
+											{provincia.title} ({provincia.region})
+										</option>
+									{/if}
+								{/each}
+							</select>
+						</div>
+
+						<div class="form-control w-full">
+							<label for="country" class="label">
+								<span class="label-text font-medium">Nazione</span>
+							</label>
+							<select id="country" class="select select-bordered w-full" name="country" required bind:value={formData.country}>
+								<option value="" disabled selected>Seleziona nazione</option>
+								{#each $country_list as country}
+									<option value={country}>
+										{country}
+									</option>
+								{/each}
+							</select>
+						</div>
+					</div>
+				</div>
+
+				<!-- Come ci hai conosciuto -->
+				<div class="card bg-base-100 shadow-sm border border-base-200 p-4 rounded-lg mt-4">
+					<div class="card-title text-lg font-bold mb-4 pb-2 border-b">
+						<span>Come ci hai conosciuto?</span>
+					</div>
+
+					<div class="grid grid-cols-1 gap-4">
+						<div class="form-control w-full">
+							<label for="howDidYouKnow" class="label">
+								<span class="label-text font-medium">Seleziona un'opzione</span>
+							</label>
+							<select id="howDidYouKnow" class="select select-bordered w-full" name="howDidYouKnow" required bind:value={formData.howDidYouKnow}>
+								<option value="" disabled selected>Seleziona come ci hai conosciuto</option>
+								<option value="amico">Tramite un amico</option>
+								<option value="presentazione">Tramite una presentazione</option>
+								<option value="fiera">Tramite una fiera</option>
+								<option value="ricerca">Motore di ricerca</option>
+								<option value="altro">Altro</option>
+							</select>
+						</div>
+
+						{#if formData.howDidYouKnow === 'presentazione' || formData.howDidYouKnow === 'fiera'}
+							<div class="form-control w-full">
+								<label for="eventDetails" class="label">
+									<span class="label-text font-medium"> Indica l'evento, luogo o fiera </span>
+								</label>
+								<textarea
+									id="eventDetails"
+									name="eventDetails"
+									class="textarea textarea-bordered w-full"
+									placeholder="Descrivi l'evento, il luogo o la fiera..."
+									rows="3"
+									required
+									bind:value={formData.eventDetails}
+								></textarea>
+							</div>
+						{/if}
+					</div>
+				</div>
+
+				<!-- Codice Amico -->
+				<div class="card bg-base-100 shadow-sm border border-base-200 p-4 rounded-lg mt-4">
+					<div class="card-title text-lg font-bold mb-4 pb-2 border-b">
+						<span>Hai un codice amico? (opzionale)</span>
+					</div>
+					{#if promoterId}
+						<div class="alert alert-success">
+							<CircleCheckBig class="h-5 w-5" />
+							<span>Codice amico applicato: <strong>{promoterId}</strong></span>
+						</div>
+					{:else}
+						<div class="flex gap-2">
+							<input type="text" placeholder="Inserisci email del tuo amico" class="input input-bordered flex-1" bind:value={discountCode} />
+							<button
+								type="button"
+								class="btn btn-outline btn-primary"
+								disabled={!discountCode || loading}
+								onclick={async () => {
+									loading = true;
+									const formDataToSend = new FormData();
+									formDataToSend.append('discountCode', discountCode);
+									const response = await fetch('?/applyEmailRef', {
+										method: 'POST',
+										body: formDataToSend
+									});
+									const result = await response.json();
+									console.log('RESULT:', result); // 👈 Aggiungi questo
+									console.log('PARSED DATA:', JSON.parse(result.data)); // 👈 E questo
+									if (result.type === 'success' && result.data) {
+										const dataArray = JSON.parse(result.data);
+										console.log('PAYLOAD:', dataArray?.payload); // 👈 E questo
+										promoterId = dataArray?.[4] || '';
+										discountCode = '';
+										notification.info('Codice amico applicato con successo');
+									} else {
+										notification.error('Codice amico non valido');
+									}
+									loading = false;
+								}}
+							>
+								Applica
+							</button>
+						</div>
+					{/if}
+				</div>
+			</div>
+
+			<!-- Step 3 -->
+			<div class={currentStep === 3 ? 'block' : 'hidden'}>
+				<div class="card bg-base-100 shadow-sm border border-base-200 p-4 rounded-lg mt-4">
+					<div class="card-title text-lg font-bold mb-4 pb-2 border-b">
+						<span>Metodo di Pagamento</span>
+					</div>
+
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+						<label
+							class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
+							class:border-primary={formData.payment === 'Carta di credito'}
+							class:bg-base-200={formData.payment === 'Carta di credito'}
+						>
+							<input type="radio" name="payment" value="Carta di credito" class="hidden" bind:group={formData.payment} />
+							<CreditCard class="h-8 w-8 text-primary" />
+							<span class="text-center font-medium">Carta di Credito</span>
+						</label>
+
+						<label
+							class="card bg-base-100 border-2 hover:border-primary hover:bg-base-200 cursor-pointer transition-all p-4 flex flex-col items-center justify-center gap-2"
+							class:border-primary={formData.payment === 'Bonifico bancario'}
+							class:bg-base-200={formData.payment === 'Bonifico bancario'}
+						>
+							<input type="radio" name="payment" value="Bonifico bancario" class="hidden" bind:group={formData.payment} />
+							<Landmark class="h-8 w-8 text-primary" />
+							<span class="text-center font-medium">Bonifico Bancario</span>
+						</label>
+					</div>
+
+					<div class="card bg-base-100 shadow-xl p-6" class:hidden={formData.payment !== 'Carta di credito'}>
+						<h3 class="text-xl font-semibold mb-4">Informazioni sulla carta di credito</h3>
+						<div class="form-control">
+							<div id="card-element" class="border border-base-300 p-3 rounded-md"></div>
+							{#if stripeError}
+								<p class="text-error text-sm mt-2">{stripeError}</p>
+							{/if}
+						</div>
+						<p class="text-sm text-gray-500 mt-2">
+							<Lock size={14} class="inline-block mr-1" /> Le tue informazioni di pagamento sono protette e crittografate con 3D Secure.
+						</p>
+						<div class="alert alert-info mt-4">
+							<Lock size={14} class="inline-block mr-1" />
+							<span
+								>Il pagamento sarà elaborato con 3D Secure per la massima sicurezza. Potresti essere reindirizzato alla tua banca per
+								l'autenticazione.</span
+							>
+						</div>
+					</div>
+
+					{#if formData.payment === 'Bonifico bancario'}
+						<div class="card bg-base-100 shadow-xl p-6">
+							<h3 class="text-xl font-semibold mb-4">Dettagli Bonifico Bancario</h3>
+							<p>Effettua un bonifico bancario alle seguenti coordinate:</p>
+							<p><strong>IBAN:</strong> IT93 R076 0111 5000 0102 3646 647</p>
+							<p><strong>BIC/SWIFT:</strong> BPPIITRRXXX</p>
+							<p><strong>INTESTATO A:</strong> ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia</p>
+							<p>VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA</p>
+							<br />
+							<p>Si prega di includere il tuo ID ordine nella causale del bonifico. Il tuo ordine sarà elaborato dopo la conferma del pagamento.</p>
+						</div>
+					{/if}
+
+					<!-- Summary -->
+					<div class="card bg-base-200 p-4 rounded-lg">
+						<h3 class="font-bold text-lg mb-2">Riepilogo Ordine</h3>
+
+						<div class="flex justify-between items-center py-2 border-b border-base-300">
+							<span class="text-base-content/80 font-medium">Tessera Socio Ordinario</span>
+							<span class="font-semibold">25.00 €</span>
+						</div>
+
+						<div class="flex justify-between items-center py-2 border-b border-base-300">
+							<span class="text-base-content/80 font-medium">Contributo Socio Praticante (Assicurazione)</span>
+							<span class="font-semibold">70.00 €</span>
+						</div>
+
+						{#if promoterId}
+							<div class="flex justify-between items-center py-2 border-b border-base-300 text-success">
+								<span class="font-medium">Codice amico applicato</span>
+								<span class="font-semibold">{promoterId}</span>
+							</div>
+						{/if}
+
+						<div class="divider my-1"></div>
+
+						<div class="flex justify-between items-center pt-2 text-xl font-bold">
+							<span>Totale Finale</span>
+							<span class="text-primary">€ 95.00</span>
+							<input type="hidden" name="totalValue" value={95} />
+						</div>
+					</div>
+				</div>
+				<input type="hidden" name="paymentIntentId" value={paymentIntentId} />
+				{#if promoterId}
+					<input type="hidden" name="promoterId" value={promoterId} />
+				{/if}
+			</div>
+
+			<!-- Navigation -->
+			<div class="flex justify-between mt-6">
+				<button type="button" class="btn btn-outline" onclick={prevStep} class:hidden={currentStep === 1}>
+					<ArrowLeft size={16} />
+					Indietro
+				</button>
+
+				<div class="flex gap-2 ml-auto">
+					<button type="button" class="btn btn-error btn-outline" onclick={onCloseModal}> Annulla </button>
+
+					{#if currentStep < totalSteps}
+						<button type="button" class="btn btn-primary" onclick={nextStep} disabled={!isCurrentStepValid()}> Continua </button>
+					{:else}
+						<button
+							type="button"
+							class="btn btn-success"
+							onclick={handleFinalSubmit}
+							disabled={!isCurrentStepValid() || loading || stripeError != null}
+						>
+							Conferma Acquisto
+						</button>
 					{/if}
 				</div>
 			</div>
