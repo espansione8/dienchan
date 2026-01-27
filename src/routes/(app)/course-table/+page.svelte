@@ -544,6 +544,7 @@
 	let tagArray: any[] = $state([]);
 	let tag = $state('');
 	let stockQty = $state(1);
+	let academyNumber = $state(0);
 	let notificationEmail = $state([userData.email]);
 	let inputEmail = $state('');
 	let price = $state(1);
@@ -685,6 +686,7 @@
 		startHour = currentHour;
 		startMinute = '00';
 		stockQty = 1;
+		academyNumber = 0;
 		county = '';
 		inputEmail = '';
 		title = '';
@@ -1242,7 +1244,7 @@
 		</div> -->
 			</section>
 			<!-- Numero partecipanti -->
-			<section class="col-span-4 md:col-span-4">
+			<section class="col-span-2 md:col-span-2">
 				<label for="stockQty" class="form-label">
 					<p class="font-bold mb-2">Numero partecipanti</p>
 				</label>
@@ -1261,6 +1263,28 @@
 					/>
 				</div>
 			</section>
+			<!-- {layoutId} Accademia DIEN CHAN -->
+			{#if layoutId === '5G98NH2XQ'}
+				<section class="col-span-2 md:col-span-2">
+					<label for="academyNumber" class="form-label">
+						<p class="font-bold mb-2">Accademia Numero</p>
+					</label>
+					<div class="join join-horizontal rounded-md w-full">
+						<button type="button" class="join-item bg-gray-300 px-3"><Calendar /></button>
+						<input
+							class="input input-bordered join-item w-full"
+							id="academyNumber"
+							name="academyNumber"
+							type="number"
+							placeholder="N."
+							step="1"
+							min="0"
+							bind:value={academyNumber}
+							required
+						/>
+					</div>
+				</section>
+			{/if}
 
 			<!-- Modalità corso -->
 			<section class="col-span-4">

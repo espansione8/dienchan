@@ -127,6 +127,7 @@ export const actions: Actions = {
 		const province = provinceArray.split(",");
 		const location = formData.get('location');
 		const layoutId = formData.get('layoutId');
+		const academyNumber = formData.get('academyNumber');
 		// const tagArray = formData.get('tagArray') as string || '[]';
 		// const tag = tagArray.split(",");
 		const arrayEmail = formData.get('notificationEmail') as string;
@@ -151,6 +152,7 @@ export const actions: Actions = {
 					surname,
 					eventStartDate,
 					stockQty,
+					...(academyNumber && { academyNumber }),
 					county: province,
 					location,
 					notificationEmail,
@@ -190,6 +192,7 @@ export const actions: Actions = {
 		const province = provinceArray.split(",");
 		const location = formData.get('location');
 		const layoutId = formData.get('layoutId');
+		const academyNumber = formData.get('academyNumber');
 		///const tagArray = formData.get('tagArray');
 		const emailArray = formData.get('notificationEmail');
 		const infoExtra = formData.get('infoExtra');
@@ -220,6 +223,7 @@ export const actions: Actions = {
 					$set: {
 						eventStartDate,
 						stockQty,
+						...(academyNumber && { academyNumber }),
 						county: province,
 						location,
 						layoutId,
@@ -609,77 +613,77 @@ export const actions: Actions = {
 		}
 	},
 	resetCertifications: async ({ request, fetch, locals }) => {
-    const formData = await request.formData();
-    const prodId = formData.get('prodId');
+		const formData = await request.formData();
+		const prodId = formData.get('prodId');
 
-    if (!prodId) {
-        return fail(400, {
-            action: 'resetCertifications',
-            success: false,
-            message: 'ID corso mancante'
-        });
-    }
+		if (!prodId) {
+			return fail(400, {
+				action: 'resetCertifications',
+				success: false,
+				message: 'ID corso mancante'
+			});
+		}
 
-    // Verifica che l'utente sia admin o superadmin
-    if (locals.user.level !== 'admin' && locals.user.level !== 'superadmin') {
-        return fail(403, {
-            action: 'resetCertifications',
-            success: false,
-            message: 'Permessi insufficienti'
-        });
-    }
+		// Verifica che l'utente sia admin o superadmin
+		if (locals.user.level !== 'admin' && locals.user.level !== 'superadmin') {
+			return fail(403, {
+				action: 'resetCertifications',
+				success: false,
+				message: 'Permessi insufficienti'
+			});
+		}
 
-    const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
-        method: 'POST',
-        body: JSON.stringify({
-            apiKey: APIKEY,
-            schema: 'product',
-            query: { prodId, type: { $in: ['course', 'event'] } },
-            update: {
-                $set: {
-                    certificationStatus: false
-                },
-                $unset: {
-                    "listSubscribers.$[].certificationStatus": "",
-                    "listSubscribers.$[].certificationDate": "",
-                    "listSubscribers.$[].certificationPlace": ""
-                }
-            },
-            options: { upsert: false },
-            multi: false
-        }),
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
+		const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'product',
+				query: { prodId, type: { $in: ['course', 'event'] } },
+				update: {
+					$set: {
+						certificationStatus: false
+					},
+					$unset: {
+						"listSubscribers.$[].certificationStatus": "",
+						"listSubscribers.$[].certificationDate": "",
+						"listSubscribers.$[].certificationPlace": ""
+					}
+				},
+				options: { upsert: false },
+				multi: false
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 
-    try {
-        const res = await resFetch;
-        if (!res.ok) {
-            const errorText = await res.text();
-            console.error('resetCertifications failed', res.status, errorText);
-            return fail(400, {
-                action: 'resetCertifications',
-                success: false,
-                message: errorText
-            });
-        }
-        const result = await res.json();
+		try {
+			const res = await resFetch;
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('resetCertifications failed', res.status, errorText);
+				return fail(400, {
+					action: 'resetCertifications',
+					success: false,
+					message: errorText
+				});
+			}
+			const result = await res.json();
 
-        return {
-            action: 'resetCertifications',
-            success: true,
-            message: 'Certificazioni resettate con successo. È possibile rigenerare i certificati.'
-        };
+			return {
+				action: 'resetCertifications',
+				success: true,
+				message: 'Certificazioni resettate con successo. È possibile rigenerare i certificati.'
+			};
 
-    } catch (error) {
-        console.error('Error resetCertifications:', error);
-        return {
-            action: 'resetCertifications',
-            success: false,
-            message: 'Errore durante il reset delle certificazioni'
-        };
-    }
-},
+		} catch (error) {
+			console.error('Error resetCertifications:', error);
+			return {
+				action: 'resetCertifications',
+				success: false,
+				message: 'Errore durante il reset delle certificazioni'
+			};
+		}
+	},
 
 } satisfies Actions;
