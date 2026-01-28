@@ -22,7 +22,7 @@
 		ShoppingBag,
 		ShieldCheck,
 		FileCog,
-		MousePointer2 
+		MousePointer2
 	} from 'lucide-svelte';
 
 	const { user, auth } = $props();
@@ -84,45 +84,45 @@
 				</a>
 
 				<!-- Desktop  -->
-				<div class="hidden md:flex md:items-center md:gap-1">
+				<div class="hidden md:flex md:items-center md:gap-0">
 					<!-- <a href="/membership-new" class={`btn btn-sm ${isActive('/membership-new') ? 'btn-primary' : 'btn-ghost'}`}>
-						<Megaphone size={16} />
+						<Megaphone size={14} />
 						<span>Tesseramento</span>
 					</a> -->
 
 					<div class="dropdown dropdown-end">
 						<div class="dropdown dropdown-end">
 							<button tabindex="0" class="btn btn-sm btn-ghost">
-								<Megaphone size={16} />
+								<Megaphone size={14} />
 								<span>Iscrizioni</span>
 								<ChevronDown size={14} />
 							</button>
 
 							<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-								<li><a href="/membership-new"><IdCard size={16} /> Tesseramento</a></li>
+								<li><a href="/membership-new"><IdCard size={14} /> Tesseramento</a></li>
 								{#if auth && membershipStatus}
-									<li><a href="/insurance-new"><ShieldCheck size={16} />Contributo praticante</a></li>
-									<!-- <li><a href="#"><ShieldCheck size={16} /> Assicurazione (in progress)</a></li> -->
+									<li><a href="/insurance-new"><ShieldCheck size={14} />Contributo praticante</a></li>
+									<!-- <li><a href="#"><ShieldCheck size={14} /> Assicurazione (in progress)</a></li> -->
 								{/if}
 							</ul>
 						</div>
 						<a href="/course-shop" class={`btn btn-sm ${isActive('/course-shop') ? 'btn-primary' : 'btn-ghost'}`}>
-							<BookOpen size={16} />
+							<BookOpen size={14} />
 							<span>Corsi ed eventi</span>
 						</a>
 
 						<a href="/product-shop" class={`btn btn-sm ${isActive('/product-shop') ? 'btn-primary' : 'btn-ghost'}`}>
-							<Package size={16} />
+							<Package size={14} />
 							<span>Prodotti</span>
 						</a>
 
 						<a href="/user-list" class={`btn btn-sm ${isActive('/user-list') ? 'btn-primary' : 'btn-ghost'}`}>
-							<IdCard size={16} />
+							<IdCard size={14} />
 							<span>Albo Riflessologi</span>
 						</a>
 
 						<a href="/cart" class={`btn btn-sm ${isActive('/cart') ? 'btn-primary' : 'btn-ghost'} relative`}>
-							<ShoppingCart size={16} />
+							<ShoppingCart size={14} />
 							<span>Carrello</span>
 							{#if $cartProducts.length > 0}
 								<span class="absolute -top-2 -right-2 badge badge-sm badge-primary">{$cdata.q1}</span>
@@ -131,7 +131,7 @@
 
 						<!-- <div class="dropdown dropdown-end">
 							<button class="btn btn-sm btn-ghost">
-								<Layers size={16} />
+								<Layers size={14} />
 								<span>Tutorial</span>
 								<ChevronDown size={14} />
 							</button>
@@ -139,38 +139,38 @@
 							<ul class="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2">
 								<li>
 									<a href="https://vimeo.com/1122482609/8966f3df8f" target="_blank" rel="noopener noreferrer">
-										<BookOpen size={16} />
+										<BookOpen size={14} />
 										Cambio Password
 									</a>
 								</li>
 								<li>
 									<a href="https://vimeo.com/1122482599/f7528712a6" target="_blank" rel="noopener noreferrer">
-										<BookOpen size={16} />
+										<BookOpen size={14} />
 										Iscrizione nuovo socio
 									</a>
 								</li>
 								<li>
 									<a href="https://vimeo.com/1122482586/fc96d35bd6" target="_blank" rel="noopener noreferrer">
-										<BookOpen size={16} />
+										<BookOpen size={14} />
 										Ricerca e acquisto corso
 									</a>
 								</li>
 								{#if isFormatore || level === 'superadmin' || level === 'admin'}
 									<li>
 										<a href="https://vimeo.com/1122734353/d6cd2c1d38" target="_blank" rel="noopener noreferrer">
-											<BookOpen size={16} />
+											<BookOpen size={14} />
 											Panoramica pannello riflessologi
 										</a>
 									</li>
 									<li>
 										<a href="https://vimeo.com/1122734367/669c906f77" target="_blank" rel="noopener noreferrer">
-											<BookOpen size={16} />
+											<BookOpen size={14} />
 											Creazione corso da modello
 										</a>
 									</li>
 									<li>
 										<a href="https://vimeo.com/1124119351/25a552cc7f" target="_blank" rel="noopener noreferrer">
-											<BookOpen size={16} />
+											<BookOpen size={14} />
 											Gestione corso
 										</a>
 									</li>
@@ -180,7 +180,7 @@
 
 						<div class="dropdown dropdown-end">
 							<button class="btn btn-sm btn-ghost">
-								<Layers size={16} />
+								<Layers size={14} />
 								<span>Tutorial</span>
 								<ChevronDown size={14} />
 							</button>
@@ -190,7 +190,7 @@
 									{#each videos as video}
 										<li>
 											<a href={video.url} target="_blank" rel="noopener noreferrer">
-												<BookOpen size={16} />
+												<BookOpen size={14} />
 												{video.title}
 											</a>
 										</li>
@@ -203,14 +203,14 @@
 
 						{#if auth}
 							<a href="/profile-area" class={`btn btn-sm ${isActive('/profile-area') ? 'btn-primary' : 'btn-ghost'}`}>
-								<User size={16} />
+								<User size={14} />
 								<span>Area personale</span>
 							</a>
 
 							{#if auth && (level === 'superadmin' || level === 'admin' || isFormatore)}
 								<div class="dropdown dropdown-end">
 									<button class="btn btn-sm btn-ghost">
-										<Layers size={16} />
+										<Layers size={14} />
 										<span>Gestione</span>
 										<ChevronDown size={14} />
 									</button>
@@ -218,14 +218,14 @@
 									<ul class="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2">
 										<li>
 											<a href="/course-table" class={isActive('/course-table') ? 'active' : ''}>
-												<BookOpen size={16} />
+												<BookOpen size={14} />
 												Corsi
 											</a>
 										</li>
 
 										<li>
 											<a href="/kit-materiale-formatori" class={isActive('/kit-materiale-formatori') ? 'active' : ''}>
-												<ShoppingBag size={16} />
+												<ShoppingBag size={14} />
 												Materiale Kit Formatori
 											</a>
 										</li>
@@ -233,46 +233,46 @@
 										{#if level === 'superadmin' || level === 'admin'}
 											<li>
 												<a href="/membership-table" class={isActive('/membership-table') ? 'active' : ''}>
-													<CreditCard size={16} />
+													<CreditCard size={14} />
 													Membership
 												</a>
 											</li>
 
 											<li>
 												<a href="/layout-table" class={isActive('/layout-table') ? 'active' : ''}>
-													<Layers size={16} />
+													<Layers size={14} />
 													Modelli corsi
 												</a>
 											</li>
 											<li>
 												<a href="/order-table" class={isActive('/order-table') ? 'active' : ''}>
-													<ShoppingCart size={16} />
+													<ShoppingCart size={14} />
 													Ordini
 												</a>
 											</li>
 											<li>
 												<a href="/product-table" class={isActive('/product-table') ? 'active' : ''}>
-													<Package size={16} />
+													<Package size={14} />
 													Prodotti
 												</a>
 											</li>
 
 											<li>
 												<a href="/discount-table" class={isActive('/discount-table') ? 'active' : ''}>
-													<Megaphone size={16} />
+													<Megaphone size={14} />
 													Sconti
 												</a>
 											</li>
 
 											<li>
 												<a href="/user-table" class={isActive('/user-table') ? 'active' : ''}>
-													<User size={16} />
+													<User size={14} />
 													Utenti
 												</a>
 											</li>
 											<li>
 												<a href="/video-table" class={isActive('/video-table') ? 'active' : ''}>
-													<MousePointer2  size={16} />
+													<MousePointer2 size={14} />
 													Video Tutorial
 												</a>
 											</li>
@@ -281,15 +281,15 @@
 								</div>
 							{/if}
 
-							<form method="POST" action="/api/logout/" use:enhance={handleLogout}>
+							<form method="POST" action="/api/logout/" use:enhance={handleLogout} class="inline">
 								<button type="submit" class="btn btn-sm btn-outline btn-error">
-									<LogOut size={16} />
+									<LogOut size={14} />
 									<span>Logout</span>
 								</button>
 							</form>
 						{:else}
 							<a href="/login" class="btn btn-sm btn-primary">
-								<LogIn size={16} />
+								<LogIn size={14} />
 								<span>Login</span>
 							</a>
 						{/if}
@@ -314,12 +314,12 @@
 		<div class="bg-base-200 py-2 px-4">
 			<div class="container mx-auto flex flex-wrap items-center gap-2 text-sm">
 				<div class="flex items-center gap-2">
-					<User size={16} class="text-primary" />
+					<User size={14} class="text-primary" />
 					<span>Buongiorno <strong>{userName} {userSurname}</strong></span>
 				</div>
 
 				<div class="flex items-center gap-2">
-					<CreditCard size={16} class="text-success" />
+					<CreditCard size={14} class="text-success" />
 					<span>Punti: <strong class="text-success">{pointsBalance}</strong></span>
 				</div>
 			</div>
@@ -331,7 +331,7 @@
 		<div class="bg-error/10 py-2">
 			<div class="container mx-auto px-4">
 				<div class="flex items-center gap-2 text-error">
-					<TriangleAlert size={16} />
+					<TriangleAlert size={14} />
 					<p><strong>{notification}</strong></p>
 				</div>
 			</div>
@@ -353,7 +353,7 @@
 					<li>
 						<div class="dropdown w-full">
 							<button tabindex="0" class="btn btn-sm btn-ghost w-full">
-								<Megaphone size={16} />
+								<Megaphone size={14} />
 								<span>Iscrizioni</span>
 								<ChevronDown size={14} />
 							</button>
@@ -383,7 +383,7 @@
 
 					<li>
 						<a href="/user-list" class={`btn btn-sm ${isActive('/user-list') ? 'btn-primary' : 'btn-ghost'}`} onclick={toggleMenu}>
-							<IdCard size={16} />
+							<IdCard size={14} />
 							<span>Albo Riflessologi</span>
 						</a>
 					</li>
@@ -402,7 +402,7 @@
 					<!-- <li>
 						<div class="dropdown dropdown-end mx-auto">
 							<button class="btn btn-sm btn-ghost">
-								<Layers size={16} />
+								<Layers size={14} />
 								<span>Tutorial</span>
 								<ChevronDown size={14} />
 							</button>
@@ -410,32 +410,32 @@
 							<ul class="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2">
 								<li>
 									<a href="https://vimeo.com/1122482609/8966f3df8f">
-										<BookOpen size={16} />
+										<BookOpen size={14} />
 										Cambio Password
 									</a>
 								</li>
 								<li>
 									<a href="https://vimeo.com/1122482599/f7528712a6">
-										<BookOpen size={16} />
+										<BookOpen size={14} />
 										Iscrizione nuovo socio
 									</a>
 								</li>
 								<li>
 									<a href="https://vimeo.com/1122482586/fc96d35bd6">
-										<BookOpen size={16} />
+										<BookOpen size={14} />
 										Ricerca e acquisto corso
 									</a>
 								</li>
 								{#if isFormatore}
 									<li>
 										<a href="https://vimeo.com/1122734353/d6cd2c1d38">
-											<BookOpen size={16} />
+											<BookOpen size={14} />
 											Panoramica pannello riflessologi
 										</a>
 									</li>
 									<li>
 										<a href="https://vimeo.com/1122734367/669c906f77">
-											<BookOpen size={16} />
+											<BookOpen size={14} />
 											Creazione corso da modello
 										</a>
 									</li>
@@ -447,7 +447,7 @@
 					<li>
 						<div class="dropdown dropdown-end mx-auto">
 							<button class="btn btn-sm btn-ghost">
-								<Layers size={16} />
+								<Layers size={14} />
 								<span>Tutorial</span>
 								<ChevronDown size={14} />
 							</button>
@@ -457,7 +457,7 @@
 									{#each videos as video}
 										<li>
 											<a href={video.url} target="_blank" rel="noopener noreferrer">
-												<BookOpen size={16} />
+												<BookOpen size={14} />
 												{video.title}
 											</a>
 										</li>
@@ -470,7 +470,7 @@
 									<div class="divider my-1"></div>
 									<li>
 										<a href="/video-table" onclick={toggleMenu}>
-											<FileCog size={16} />
+											<FileCog size={14} />
 											Gestisci Video
 										</a>
 									</li>
@@ -504,7 +504,7 @@
 									class={`btn btn-sm ${isActive('/kit-materiale-formatori') ? 'btn-primary' : 'btn-ghost'}`}
 									onclick={toggleMenu}
 								>
-									<ShoppingBag size={16} />
+									<ShoppingBag size={14} />
 									Materiale Kit Formatori
 								</a>
 							</li>
@@ -557,7 +557,7 @@
 								</li>
 								<li>
 									<a href="/video-table" class={isActive('/video-table') ? 'active' : ''}>
-										<BookOpen size={16} />
+										<BookOpen size={14} />
 										Video Tutorial
 									</a>
 								</li>

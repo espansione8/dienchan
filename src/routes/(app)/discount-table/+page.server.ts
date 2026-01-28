@@ -120,7 +120,7 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const type = formData.get('type');
 		const selectedApplicability = formData.get('applicability') as string;
-		const selectId = formData.get('selectId').toString().trim()
+		const selectId = formData.get('selectId').toString().trim() ?? '';
 		const code = formData.get('code').toString().toLowerCase().trim()
 		const notes = formData.get('notes') || '';
 		const value = formData.get('value');
@@ -139,8 +139,10 @@ export const actions: Actions = {
 		let selectIdToUse: string | boolean;
 		if (selectedApplicability === 'riflessologo') {
 			selectIdToUse = selectId === 'true';
+		} else if (selectedApplicability === 'layoutId') {
+			selectIdToUse = selectId;
 		} else {
-			selectIdToUse = selectId.toString().trim();
+			selectIdToUse = selectId.toLowerCase();
 		}
 
 		if (type == 'qty') {
@@ -183,8 +185,8 @@ export const actions: Actions = {
 				selectedApplicability,
 				referral: selectIdToUse.toString().toLowerCase().trim(),
 				notes,
-				...(expiryDate && { expiryDate: new Date(expiryDate) }),  
-				status: 'enabled'  
+				...(expiryDate && { expiryDate: new Date(expiryDate) }),
+				status: 'enabled'
 			}
 		} else {
 			return fail(400, { action: 'new', success: false, message: 'no TYPE' });
@@ -227,13 +229,13 @@ export const actions: Actions = {
 		const code = formData.get('code')?.toString().toLowerCase().trim();
 		const type = formData.get('type');
 		const selectedApplicability = formData.get('applicability') as string;
-		const selectId = formData.get('selectId');
+		const selectId = formData.get('selectId').toString().trim() ?? '';
 		const notes = formData.get('notes') || '';
 		const value = formData.get('value');
 		const refDiscount = formData.get('refDiscount');
 		const refPoints = formData.get('refPoints');
 		const qty = formData.get('qty');
-			const expiryDate = formData.get('expiryDate') as string;
+		const expiryDate = formData.get('expiryDate') as string;
 		//console.log("selectedApplicability", selectedApplicability, "selectId", selectId, "code", code, "type", type, "value", value, "qty", qty);
 		//		return
 
@@ -246,8 +248,10 @@ export const actions: Actions = {
 		let selectIdToUse: string | boolean;
 		if (selectedApplicability === 'riflessologo') {
 			selectIdToUse = selectId === 'true';
+		} else if (selectedApplicability === 'layoutId') {
+			selectIdToUse = selectId;
 		} else {
-			selectIdToUse = selectId.toString().toLowerCase().trim();
+			selectIdToUse = selectId.toLowerCase();
 		}
 
 		if (type == 'qty') {

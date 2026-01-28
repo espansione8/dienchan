@@ -855,7 +855,7 @@
 
 							{#if row.promoterId}
 								<div>
-									<span class="badge badge-info font-semibold"><Handshake size={20} />: {row.promoterId}</span>
+									<span class="badge badge-info text-sm"><Handshake size={16} />: {row.promoterId}</span>
 								</div>
 							{/if}
 						</div>

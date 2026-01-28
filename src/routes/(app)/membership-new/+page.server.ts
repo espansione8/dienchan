@@ -542,429 +542,429 @@ export const actions: Actions = {
 	},
 
 	newWithInsurance: async ({ request, fetch, locals, cookies }) => {
-    const formData = await request.formData();
-    const name = formData.get('name');
-    const surname = formData.get('surname');
-    const email = formData.get('email')?.toString().toLowerCase().trim() || '';
-    const address = formData.get('address');
-    const city = formData.get('city');
-    const county = formData.get('county');
-    const postalCode = formData.get('postalCode');
-    const country = formData.get('country');
-    const phone = formData.get('phone') || '';
-    const mobilePhone = formData.get('mobilePhone') || '';
-    const payment = formData.get('payment');
-    const password1: any = formData.get('password1') || '';
-    const password2 = formData.get('password2') || '';
-    const paymentIntentId = formData.get('paymentIntentId') as string | null;
-    const howDidYouKnow = formData.get('howDidYouKnow') || '';
-    const eventDetails = formData.get('eventDetails') || '';
-    const promoterId = formData.get('promoterId') as string | null;
+		const formData = await request.formData();
+		const name = formData.get('name');
+		const surname = formData.get('surname');
+		const email = formData.get('email')?.toString().toLowerCase().trim() || '';
+		const address = formData.get('address');
+		const city = formData.get('city');
+		const county = formData.get('county');
+		const postalCode = formData.get('postalCode');
+		const country = formData.get('country');
+		const phone = formData.get('phone') || '';
+		const mobilePhone = formData.get('mobilePhone') || '';
+		const payment = formData.get('payment');
+		const password1: any = formData.get('password1') || '';
+		const password2 = formData.get('password2') || '';
+		const paymentIntentId = formData.get('paymentIntentId') as string | null;
+		const howDidYouKnow = formData.get('howDidYouKnow') || '';
+		const eventDetails = formData.get('eventDetails') || '';
+		const promoterId = formData.get('promoterId') as string | null;
 
-    const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-        method: 'POST',
-        body: JSON.stringify({
-            apiKey: APIKEY,
-            schema: 'user',
-            query: { email },
-            projection: { email: 1 },
-            sort: { createdAt: -1 },
-            limit: 1,
-            skip: 0
-        }),
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
+		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user',
+				query: { email },
+				projection: { email: 1 },
+				sort: { createdAt: -1 },
+				limit: 1,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 
-    const membershipFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-        method: 'POST',
-        body: JSON.stringify({
-            apiKey: APIKEY,
-            schema: 'product',
-            query: { type: 'membership', title: 'Socio ordinario' },
-            projection: { _id: 0, userView: 0, layoutView: 0 },
-            sort: { createdAt: -1 },
-            limit: 1,
-            skip: 0,
-        }),
-        headers: {
-            'Content-Type': 'application/json'
-        },
-    });
+		const membershipFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'product',
+				query: { type: 'membership', title: 'Socio ordinario' },
+				projection: { _id: 0, userView: 0, layoutView: 0 },
+				sort: { createdAt: -1 },
+				limit: 1,
+				skip: 0,
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			},
+		});
 
-    const mailFetch = (email, membershipOrder, insuranceOrder, userName, userSurname) => fetch(`${BASE_URL}/api/mailer/new-membership-insurance`, {
-        method: 'POST',
-        body: JSON.stringify({
-            apiKey: APIKEY,
-            email,
-            membershipOrder,
-            insuranceOrder,
-            userName,
-            userSurname
-        }),
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
+		const mailFetch = (email, membershipOrder, insuranceOrder, userName, userSurname) => fetch(`${BASE_URL}/api/mailer/new-membership-insurance`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				email,
+				membershipOrder,
+				insuranceOrder,
+				userName,
+				userSurname
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 
-    let currentUserId: string = '';
-    let membership: any[] = [];
+		let currentUserId: string = '';
+		let membership: any[] = [];
 
-    if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !howDidYouKnow) {
-        return fail(400, { action: 'newWithInsurance', success: false, message: 'Dati mancanti' });
-    }
+		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !howDidYouKnow) {
+			return fail(400, { action: 'newWithInsurance', success: false, message: 'Dati mancanti' });
+		}
 
-    if ((howDidYouKnow === 'presentazione' || howDidYouKnow === 'fiera') && !eventDetails) {
-        return fail(400, { action: 'newWithInsurance', success: false, message: 'Specifica i dettagli dell\'evento' });
-    }
+		if ((howDidYouKnow === 'presentazione' || howDidYouKnow === 'fiera') && !eventDetails) {
+			return fail(400, { action: 'newWithInsurance', success: false, message: 'Specifica i dettagli dell\'evento' });
+		}
 
-    if (password1 != password2) {
-        return fail(400, { action: 'newWithInsurance', success: false, message: 'Password non corrispondenti' });
-    }
+		if (password1 != password2) {
+			return fail(400, { action: 'newWithInsurance', success: false, message: 'Password non corrispondenti' });
+		}
 
-    if (password1 == '' || password2 == '') {
-        return fail(400, { action: 'newWithInsurance', success: false, message: 'Password non valide' });
-    }
+		if (password1 == '' || password2 == '') {
+			return fail(400, { action: 'newWithInsurance', success: false, message: 'Password non valide' });
+		}
 
-    // Stripe payment processing
-    let paymentVerified = false;
-    if (payment === 'Carta di credito') {
-        if (!paymentIntentId) {
-            return fail(400, {
-                action: 'newWithInsurance',
-                success: false,
-                message: 'ID metodo di pagamento non valido.'
-            });
-        }
+		// Stripe payment processing
+		let paymentVerified = false;
+		if (payment === 'Carta di credito') {
+			if (!paymentIntentId) {
+				return fail(400, {
+					action: 'newWithInsurance',
+					success: false,
+					message: 'ID metodo di pagamento non valido.'
+				});
+			}
 
-        try {
-            const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+			try {
+				const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
-            if (paymentIntent.status !== 'succeeded') {
-                return fail(400, {
-                    action: 'newWithInsurance',
-                    success: false,
-                    message: `Pagamento non completato: ${paymentIntent.status}`
-                });
-            }
-            paymentVerified = true;
-        } catch (err: any) {
-            console.error('PaymentIntent verification error:', err);
-            return fail(400, {
-                action: 'newWithInsurance',
-                success: false,
-                message: `Errore verifica pagamento: ${err.message}`
-            });
-        }
-    }
+				if (paymentIntent.status !== 'succeeded') {
+					return fail(400, {
+						action: 'newWithInsurance',
+						success: false,
+						message: `Pagamento non completato: ${paymentIntent.status}`
+					});
+				}
+				paymentVerified = true;
+			} catch (err: any) {
+				console.error('PaymentIntent verification error:', err);
+				return fail(400, {
+					action: 'newWithInsurance',
+					success: false,
+					message: `Errore verifica pagamento: ${err.message}`
+				});
+			}
+		}
 
-    try {
-        const membershipRes = await membershipFetch;
-        if (!membershipRes.ok) {
-            return fail(400, { action: 'newWithInsurance', success: false, message: await membershipRes.text() });
-        }
-        membership = await membershipRes.json();
-        if (membership.length < 1) {
-            return fail(400, { action: 'newWithInsurance', success: false, message: "Missing membership" });
-        }
+		try {
+			const membershipRes = await membershipFetch;
+			if (!membershipRes.ok) {
+				return fail(400, { action: 'newWithInsurance', success: false, message: await membershipRes.text() });
+			}
+			membership = await membershipRes.json();
+			if (membership.length < 1) {
+				return fail(400, { action: 'newWithInsurance', success: false, message: "Missing membership" });
+			}
 
-        // Check if user exists
-        const userRes = await userFetch;
-        if (!userRes.ok) {
-            console.error('user fetch failed', userRes.status, await userRes.text());
-            return fail(400, { action: 'newWithInsurance', success: false, message: 'errore database user' });
-        }
-        const response = await userRes.json();
-        if (response.length > 0) {
-            return fail(400, { action: 'newWithInsurance', success: false, message: 'email esistente' });
-        }
+			// Check if user exists
+			const userRes = await userFetch;
+			if (!userRes.ok) {
+				console.error('user fetch failed', userRes.status, await userRes.text());
+				return fail(400, { action: 'newWithInsurance', success: false, message: 'errore database user' });
+			}
+			const response = await userRes.json();
+			if (response.length > 0) {
+				return fail(400, { action: 'newWithInsurance', success: false, message: 'email esistente' });
+			}
 
-        // Create new user - UGUALE ALL'ACTION NEW
-        const cookieId = crypto.randomUUID();
+			// Create new user - UGUALE ALL'ACTION NEW
+			const cookieId = crypto.randomUUID();
 
-        const resNewUser = await fetch(`${BASE_URL}/api/mongo/create`, {
-            method: 'POST',
-            body: JSON.stringify({
-                apiKey: APIKEY,
-                schema: 'user',
-                newDoc: {
-                    userId: nanoid(),
-                    userCode: crypto.randomUUID(),
-                    name,
-                    surname,
-                    email,
-                    address,
-                    postalCode,
-                    city,
-                    county,
-                    country,
-                    phone,
-                    mobilePhone,
-                    password: hash(password1, SALT),
-                    cookieId,
-                    "membership.membershipSignUp": new Date(),
-                    "membership.membershipStatus": paymentIntentId ? true : false,
-                    "insurance.insuranceStatus": false,
-                    extraFieldText1: howDidYouKnow,
-                    extraFieldText2: eventDetails,
-                },
-                returnObj: true
-            }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+			const resNewUser = await fetch(`${BASE_URL}/api/mongo/create`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user',
+					newDoc: {
+						userId: nanoid(),
+						userCode: crypto.randomUUID(),
+						name,
+						surname,
+						email,
+						address,
+						postalCode,
+						city,
+						county,
+						country,
+						phone,
+						mobilePhone,
+						password: hash(password1, SALT),
+						cookieId,
+						"membership.membershipSignUp": new Date(),
+						"membership.membershipStatus": paymentIntentId ? true : false,
+						"insurance.insuranceStatus": false,
+						extraFieldText1: howDidYouKnow,
+						extraFieldText2: eventDetails,
+					},
+					returnObj: true
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
 
-        if (!resNewUser.ok) {
-            return fail(400, { action: 'newWithInsurance', success: false, message: await resNewUser.text() });
-        }
-        const newUser = await resNewUser.json();
-        currentUserId = newUser.userId;
+			if (!resNewUser.ok) {
+				return fail(400, { action: 'newWithInsurance', success: false, message: await resNewUser.text() });
+			}
+			const newUser = await resNewUser.json();
+			currentUserId = newUser.userId;
 
-        // Update membership data if payment successful - UGUALE ALL'ACTION NEW
-        if (resNewUser.ok && paymentIntentId) {
-            const now = new Date();
-            const expiry = new Date();
-            expiry.setFullYear(expiry.getFullYear() + 1);
+			// Update membership data if payment successful - UGUALE ALL'ACTION NEW
+			if (resNewUser.ok && paymentIntentId) {
+				const now = new Date();
+				const expiry = new Date();
+				expiry.setFullYear(expiry.getFullYear() + 1);
 
-            await fetch(`${BASE_URL}/api/mongo/update`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    apiKey: APIKEY,
-                    schema: 'user',
-                    query: { userId: currentUserId },
-                    update: {
-                        $set: {
-                            'membership.membershipLevel': 'Socio ordinario',
-                            'membership.membershipStatus': true,
-                            'membership.membershipSignUp': now,
-                            'membership.membershipActivation': now,
-                            'membership.membershipExpiry': expiry
-                        }
-                    },
-                    options: { upsert: false },
-                    multi: false
-                }),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
+				await fetch(`${BASE_URL}/api/mongo/update`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'user',
+						query: { userId: currentUserId },
+						update: {
+							$set: {
+								'membership.membershipLevel': 'Socio ordinario',
+								'membership.membershipStatus': true,
+								'membership.membershipSignUp': now,
+								'membership.membershipActivation': now,
+								'membership.membershipExpiry': expiry
+							}
+						},
+						options: { upsert: false },
+						multi: false
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+			}
 
-        // Set cookie
-        cookies.set('session_id', cookieId, {
-            httpOnly: true,
-            maxAge: 60 * 60 * 24,
-            sameSite: 'lax',
-            secure: process.env.NODE_ENV === 'production',
-            path: '/'
-        });
+			// Set cookie
+			cookies.set('session_id', cookieId, {
+				httpOnly: true,
+				maxAge: 60 * 60 * 24,
+				sameSite: 'lax',
+				secure: process.env.NODE_ENV === 'production',
+				path: '/'
+			});
 
-        const baseOrderDoc = {
-            userId: currentUserId,
-            status: 'requested',
-            orderDate: new Date(),
-            orderConfirmDate: null,
-            promotionId: '',
-            promotionName: '',
-            promoterId: promoterId ? promoterId.trim() : '',
-            agencyId: '',
-            orderConfirmed: false,
-            totalPoints: 0,
-            totalVAT: 0,
-            browser: '',
-            orderIp: '',
-            orderNotes: '',
-            invoicing: {
-                name,
-                surname,
-                businessName: '',
-                vatNumber: '',
-                address,
-                city,
-                county,
-                postalCode,
-                state: '',
-                region: '',
-                country,
-                invoiceNotes: '',
-                email,
-                phone,
-                mobilePhone
-            },
-            shipping: {
-                name,
-                surname,
-                address,
-                city,
-                county,
-                postalCode,
-                state: '',
-                region: '',
-                country,
-                deliveryNotes: '',
-                email,
-                phone,
-                mobilePhone
-            },
-            payment: {
-                method: payment,
-                statusPayment: paymentIntentId ? 'done' : 'pending',
-                transactionId: paymentIntentId || '',
-                points: '',
-                value: ''
-            },
-        };
+			const baseOrderDoc = {
+				userId: currentUserId,
+				status: 'requested',
+				orderDate: new Date(),
+				orderConfirmDate: null,
+				promotionId: '',
+				promotionName: '',
+				promoterId: promoterId ? promoterId.trim() : '',
+				agencyId: '',
+				orderConfirmed: false,
+				totalPoints: 0,
+				totalVAT: 0,
+				browser: '',
+				orderIp: '',
+				orderNotes: '',
+				invoicing: {
+					name,
+					surname,
+					businessName: '',
+					vatNumber: '',
+					address,
+					city,
+					county,
+					postalCode,
+					state: '',
+					region: '',
+					country,
+					invoiceNotes: '',
+					email,
+					phone,
+					mobilePhone
+				},
+				shipping: {
+					name,
+					surname,
+					address,
+					city,
+					county,
+					postalCode,
+					state: '',
+					region: '',
+					country,
+					deliveryNotes: '',
+					email,
+					phone,
+					mobilePhone
+				},
+				payment: {
+					method: payment,
+					statusPayment: paymentIntentId ? 'done' : 'pending',
+					transactionId: paymentIntentId || '',
+					points: '',
+					value: ''
+				},
+			};
 
-        // Create membership order
-        const resMembership = await fetch(`${BASE_URL}/api/mongo/create`, {
-            method: 'POST',
-            body: JSON.stringify({
-                apiKey: APIKEY,
-                schema: 'order',
-                newDoc: {
-                    orderId: nanoid(),
-                    orderCode: crypto.randomUUID(),
-                    totalValue: Number(membership[0]?.price || 25.00),
-                    ...baseOrderDoc,
-                    type: 'membership',
-                    cart: membership
-                },
-                returnObj: true
-            }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+			// Create membership order
+			const resMembership = await fetch(`${BASE_URL}/api/mongo/create`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'order',
+					newDoc: {
+						orderId: nanoid(),
+						orderCode: crypto.randomUUID(),
+						totalValue: Number(membership[0]?.price || 25.00),
+						...baseOrderDoc,
+						type: 'membership',
+						cart: membership
+					},
+					returnObj: true
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
 
-        if (!resMembership.ok) {
-            return fail(400, { action: 'newWithInsurance', success: false, message: await resMembership.text() });
-        }
+			if (!resMembership.ok) {
+				return fail(400, { action: 'newWithInsurance', success: false, message: await resMembership.text() });
+			}
 
-        const membershipOrder = await resMembership.json();
+			const membershipOrder = await resMembership.json();
 
-        // Create insurance order
-        const insuranceProduct = {
-            title: 'Contributo Socio Praticante',
-            description: 'Il presente contributo permette a un socio praticante di godere di alcune agevolazioni quali utilizzo delle sale dell\'associazione con tariffa agevolata e inclusione della polizza di copertura RC dell\'associazione',
-            price: 70,
-            type: 'insurance',
-            uploadfiles: []
-        };
+			// Create insurance order
+			const insuranceProduct = {
+				title: 'Contributo Socio Praticante',
+				description: 'Il presente contributo permette a un socio praticante di godere di alcune agevolazioni quali utilizzo delle sale dell\'associazione con tariffa agevolata e inclusione della polizza di copertura RC dell\'associazione',
+				price: 70,
+				type: 'insurance',
+				uploadfiles: []
+			};
 
-        const resInsurance = await fetch(`${BASE_URL}/api/mongo/create`, {
-            method: 'POST',
-            body: JSON.stringify({
-                apiKey: APIKEY,
-                schema: 'order',
-                newDoc: {
-                    orderId: nanoid(),
-                    orderCode: crypto.randomUUID(),
-                    totalValue: 70,
-                    ...baseOrderDoc,
-                    type: 'insurance',
-                    cart: [insuranceProduct]
-                },
-                returnObj: true
-            }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+			const resInsurance = await fetch(`${BASE_URL}/api/mongo/create`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'order',
+					newDoc: {
+						orderId: nanoid(),
+						orderCode: crypto.randomUUID(),
+						totalValue: 70,
+						...baseOrderDoc,
+						type: 'insurance',
+						cart: [insuranceProduct]
+					},
+					returnObj: true
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
 
-        if (!resInsurance.ok) {
-            return fail(400, { action: 'newWithInsurance', success: false, message: await resInsurance.text() });
-        }
+			if (!resInsurance.ok) {
+				return fail(400, { action: 'newWithInsurance', success: false, message: await resInsurance.text() });
+			}
 
-        const insuranceOrder = await resInsurance.json();
+			const insuranceOrder = await resInsurance.json();
 
-        // Handle promoter points (15 points for membership+insurance combo)
-        if (promoterId) {
-            try {
-                // Prima verifica se l'utente promoter esiste
-                const checkPromoter = await fetch(`${BASE_URL}/api/mongo/find`, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        apiKey: APIKEY,
-                        schema: 'user',
-                        query: { email: promoterId.trim() },
-                        projection: { userId: 1, email: 1, pointsBalance: 1 },
-                        limit: 1
-                    }),
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
+			// Handle promoter points (15 points for membership+insurance combo)
+			if (promoterId) {
+				try {
+					// Prima verifica se l'utente promoter esiste
+					const checkPromoter = await fetch(`${BASE_URL}/api/mongo/find`, {
+						method: 'POST',
+						body: JSON.stringify({
+							apiKey: APIKEY,
+							schema: 'user',
+							query: { email: promoterId.trim() },
+							projection: { userId: 1, email: 1, pointsBalance: 1 },
+							limit: 1
+						}),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					});
 
-                if (!checkPromoter.ok) {
-                    console.error('Error checking promoter:', await checkPromoter.text());
-                } else {
-                    const promoterData = await checkPromoter.json();
-                    console.log('Promoter found:', promoterData);
+					if (!checkPromoter.ok) {
+						console.error('Error checking promoter:', await checkPromoter.text());
+					} else {
+						const promoterData = await checkPromoter.json();
+						console.log('Promoter found:', promoterData);
 
-                    if (promoterData.length === 0) {
-                        console.error('Promoter email not found in database:', promoterId);
-                    } else {
-                        // Promoter esiste, aggiorna i punti
-                        const userPointsFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
-                            method: 'POST',
-                            body: JSON.stringify({
-                                apiKey: APIKEY,
-                                schema: 'user',
-                                query: { email: promoterId.trim() },
-                                update: {
-                                    $inc: {
-                                        pointsBalance: 15
-                                    },
-                                    $push: {
-                                        pointsHistory: {
-                                            points: 15,
-                                            note: `Commissione Socio + Assicurazione - Ordine ${membershipOrder.orderId}`,
-                                            date: new Date()
-                                        }
-                                    }
-                                },
-                                options: { upsert: false },
-                                multi: false
-                            }),
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
-                        });
+						if (promoterData.length === 0) {
+							console.error('Promoter email not found in database:', promoterId);
+						} else {
+							// Promoter esiste, aggiorna i punti
+							const userPointsFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
+								method: 'POST',
+								body: JSON.stringify({
+									apiKey: APIKEY,
+									schema: 'user',
+									query: { email: promoterId.trim() },
+									update: {
+										$inc: {
+											pointsBalance: 15
+										},
+										$push: {
+											pointsHistory: {
+												points: 15,
+												note: `Commissione Tessera + Assicurazione - Ordine ${membershipOrder.orderId}`,
+												date: new Date()
+											}
+										}
+									},
+									options: { upsert: false },
+									multi: false
+								}),
+								headers: {
+									'Content-Type': 'application/json'
+								}
+							});
 
-                        if (!userPointsFetch.ok) {
-                            console.error('Error updating promoter points:', await userPointsFetch.text());
-                        } else {
-                            const result = await userPointsFetch.json();
-                            console.log('Promoter points updated successfully:', result);
-                        }
-                    }
-                }
-            } catch (err) {
-                console.error('Exception updating promoter points:', err);
-            }
-        }
+							if (!userPointsFetch.ok) {
+								console.error('Error updating promoter points:', await userPointsFetch.text());
+							} else {
+								const result = await userPointsFetch.json();
+								console.log('Promoter points updated successfully:', result);
+							}
+						}
+					}
+				} catch (err) {
+					console.error('Exception updating promoter points:', err);
+				}
+			}
 
-        // Send combined email
-        const mailRes = await mailFetch(email, membershipOrder, insuranceOrder, name, surname);
+			// Send combined email
+			const mailRes = await mailFetch(email, membershipOrder, insuranceOrder, name, surname);
 
-        if (!mailRes.ok) {
-            console.error('Error sending combined email:', await mailRes.text());
-        }
+			if (!mailRes.ok) {
+				console.error('Error sending combined email:', await mailRes.text());
+			}
 
-        return {
-            action: 'newWithInsurance',
-            success: true,
-            message: "Benvenuto! L'ordine è stato inviato. Tra poco verrai reindirizzato sul tuo profilo.",
-            payload: { redirect: true }
-        };
+			return {
+				action: 'newWithInsurance',
+				success: true,
+				message: "Benvenuto! L'ordine è stato inviato. Tra poco verrai reindirizzato sul tuo profilo.",
+				payload: { redirect: true }
+			};
 
-    } catch (error) {
-        console.error('Error creating new order with insurance:', error);
-        return fail(400, { action: 'newWithInsurance', success: false, message: 'Error new order' });
-    }
-},
+		} catch (error) {
+			console.error('Error creating new order with insurance:', error);
+			return fail(400, { action: 'newWithInsurance', success: false, message: 'Error new order' });
+		}
+	},
 
 	applyEmailRef: async ({ request, fetch }) => {
 		const formData = await request.formData();
