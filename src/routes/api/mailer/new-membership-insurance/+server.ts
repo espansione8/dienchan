@@ -142,7 +142,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
                         <div class="step-box">
                             <p style="margin: 0;"><span class="step-number">1</span> <strong>Scarica il modulo di adesione</strong><br>
-                            <span style="margin-left: 38px; color: #475569;">Trovi il modulo in <strong>allegato a questa email</strong> oppure scaricalo da questo <a href="https://riflessologiadienchan.it/wp-content/uploads/2026/01/MODULO-ADESIONE-CON-TUTELA.pdf" style="color: #0b5ed7; font-weight: 600;">LINK</a></span></p>
+                            <span style="margin-left: 38px; color: #475569;">Scaricalo da questo <a href="https://riflessologiadienchan.it/wp-content/uploads/2026/01/MODULO-ADESIONE-CON-TUTELA.pdf" style="color: #0b5ed7; font-weight: 600;">LINK</a></span></p>
                         </div>
 
                         <div class="step-box">
@@ -228,15 +228,8 @@ export const POST: RequestHandler = async ({ request }) => {
         const mailOptions = {
             from: '"Associazione Dien Chan" <no-reply@riflessologiadienchan.it>',
             to: email,
-            subject: `🎉 Benvenuto/a! Ordine #${orderId} - Tessera + Assicurazione (MODULO DA FIRMARE ALLEGATO)`,
-            html: emailContentHtml,
-            attachments: [
-                {
-                    filename: 'MODULO_ADESIONE_CON_TUTELA.pdf',
-                    path: 'https://riflessologiadienchan.it/wp-content/uploads/2026/01/MODULO-ADESIONE-CON-TUTELA.pdf',
-                    contentType: 'application/pdf'
-                }
-            ]
+            subject: `🎉 Benvenuto/a! Ordine #${orderId} - Tessera + Assicurazione`,
+            html: emailContentHtml
         };
 
         const checkMail = await transporter.sendMail(mailOptions);
