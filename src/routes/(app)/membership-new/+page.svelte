@@ -791,7 +791,7 @@
 			{/if}
 
 			<!-- Membership + Insurance Card - Solo per utenti non loggati -->
-			<!-- {#if !auth}
+			{#if !auth}
 				<div class="bg-white rounded-xl overflow-hidden shadow-lg transition-all hover:shadow-2xl w-full md:w-96 relative">
 					<div class="bg-green-600 p-4 text-white text-center">
 						<h3 class="text-xl font-bold">SOCIO PRATICANTE</h3>
@@ -850,7 +850,7 @@
 						</ul>
 					</div>
 				</div>
-			{/if} -->
+			{/if}
 
 			<div class="bg-white rounded-xl overflow-hidden shadow-lg transition-all hover:shadow-2xl w-full md:w-96 relative">
 				<div class="bg-yellow-500 p-4 text-white text-center">

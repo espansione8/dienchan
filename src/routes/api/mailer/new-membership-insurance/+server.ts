@@ -1,3 +1,4 @@
+// `${BASE_URL}/api/mailer/new-membership-insurance`
 import type { RequestHandler } from '@sveltejs/kit';
 import { APIKEY, MAILER_HOST, MAILER_PORT, MAILER_SECURE, MAILER_USER, MAILER_PASS, BASE_URL } from '$env/static/private';
 import { json } from '@sveltejs/kit';
@@ -8,19 +9,27 @@ export const POST: RequestHandler = async ({ request }) => {
     const {
         apiKey,
         email,
-        membershipOrder,
-        insuranceOrder,
-        userName,
-        userSurname
+        order  // UN SOLO ordine con cart contenente [tessera, assicurazione]
     } = body;
 
     if (apiKey !== APIKEY) {
         return json({ message: 'api error' }, { status: 401 });
     }
 
-    if (!email || !membershipOrder || !insuranceOrder) {
+    if (!email || !order) {
         return json({ message: 'Data missing' }, { status: 400 });
     }
+
+    // Estrai i dati dall'ordine
+    const { orderId, createdAt, totalValue, invoicing, payment, cart, type } = order;
+
+    // Estrai i singoli prodotti dal carrello
+    const membershipItem = cart.find((item: any) => item.type === 'membership') || cart[0];
+    const insuranceItem = cart.find((item: any) => item.type === 'insurance') || cart[1];
+    
+    // Prendi nome/cognome dall'invoicing dell'ordine
+    const userName = invoicing?.name || '';
+    const userSurname = invoicing?.surname || '';
 
     const transporter = nodemailer.createTransport({
         host: MAILER_HOST,
@@ -55,9 +64,18 @@ export const POST: RequestHandler = async ({ request }) => {
         .section-box { background: #f8f9fa; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #0b5ed7; }
         .section-box-green { background: #f0fdf4; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #22c55e; }
         .section-box-orange { background: #fff7ed; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #f97316; }
+        .section-box-red { background: #fef2f2; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #dc2626; }
         .step-number { display: inline-block; width: 28px; height: 28px; background: #0b5ed7; color: white; border-radius: 50%; text-align: center; line-height: 28px; font-weight: bold; margin-right: 10px; }
         .highlight-box { background: #e0f2fe; padding: 15px; border-radius: 8px; margin: 15px 0; }
         .btn-primary { display: inline-block; padding: 12px 24px; background: #0b5ed7; color: white !important; border-radius: 8px; font-weight: 600; text-decoration: none; }
+        .alert-box { background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .alert-title { color: #856404; font-weight: 700; font-size: 18px; margin-bottom: 10px; }
+        .alert-text { color: #856404; font-size: 15px; line-height: 1.6; }
+        .step-box { background: #e7f3ff; border-left: 4px solid #0b5ed7; padding: 15px; margin: 10px 0; border-radius: 0 8px 8px 0; }
+        .table-cell-style { padding: 8px; border: 1px solid #ddd; color: #000; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: bold; }
         @media screen and (max-width: 500px) {
             .email-container { width: 100% !important; }
         }
@@ -70,9 +88,9 @@ export const POST: RequestHandler = async ({ request }) => {
                 
                 <!-- Header -->
                 <tr>
-                    <td style="padding: 30px 40px; text-align: center; );">
+                    <td style="padding: 30px 40px; text-align: center;">
                         <img src="https://riflessologiadienchan.it/wp-content/uploads/2025/06/Associazione_Dien_Chan_BQC_LOGO.png" alt="logo" style="width: 250px; margin: 0 auto 20px;">
-                        <h1 style="color: black; margin: 0; font-size: 28px;">Benvenuto/a nell'Associazione!</h1>
+                        <h1 style="color: black; margin: 0; font-size: 28px;">Benvenuto/a nell'Associazione! 🎉</h1>
                     </td>
                 </tr>
 
@@ -81,99 +99,98 @@ export const POST: RequestHandler = async ({ request }) => {
                     <td style="padding: 40px;">
                         
                         <!-- Saluto -->
-                        <h2 style="color: #1e293b; margin-top: 0;">Ciao ${userName} ${userSurname}!  </h2>
+                        <h2 style="color: #1e293b; margin-top: 0;">Ciao ${userName} ${userSurname}!</h2>
                         <p style="color: #475569; font-size: 16px;">
                             Grazie per aver scelto di unirti alla nostra comunità! Abbiamo ricevuto la tua richiesta di iscrizione come <strong>Socio Ordinario</strong> con <strong>Contributo Socio Praticante</strong>.
                         </p>
 
-                        <!-- Riepilogo Ordini -->
+                        <!-- Riepilogo Ordine -->
                         <div class="section-box-green">
-                            <h3 style="color: #166534; margin-top: 0;">✅ Riepilogo dei tuoi ordini</h3>
+                            <h3 style="color: #166534; margin-top: 0;">✅ Riepilogo del tuo ordine #${orderId}</h3>
                             <table width="100%" cellpadding="8" cellspacing="0" style="margin-top: 15px;">
                                 <tr style="background: #dcfce7; border-radius: 8px;">
-                                    <td style="padding: 12px; border-radius: 8px 0 0 8px;"><strong>Tessera Socio Ordinario</strong></td>
-                                    <td style="padding: 12px; text-align: right; border-radius: 0 8px 8px 0;">€ 25,00</td>
+                                    <td style="padding: 12px; border-radius: 8px 0 0 8px;"><strong>${membershipItem?.title || 'Tessera Socio Ordinario'}</strong></td>
+                                    <td style="padding: 12px; text-align: right; border-radius: 0 8px 8px 0;">€ ${(membershipItem?.price || 25).toFixed(2).replace('.', ',')}</td>
                                 </tr>
                                 <tr>
-                                    <td style="padding: 12px;"><strong>Contributo Socio Praticante</strong></td>
-                                    <td style="padding: 12px; text-align: right;">€ 70,00</td>
+                                    <td style="padding: 12px;"><strong>${insuranceItem?.title || 'Contributo Socio Praticante'}</strong></td>
+                                    <td style="padding: 12px; text-align: right;">€ ${(insuranceItem?.price || 70).toFixed(2).replace('.', ',')}</td>
                                 </tr>
                                 <tr style="background: #166534; color: white;">
                                     <td style="padding: 12px; border-radius: 8px 0 0 8px;"><strong>TOTALE</strong></td>
-                                    <td style="padding: 12px; text-align: right; border-radius: 0 8px 8px 0;"><strong>€ 95,00</strong></td>
+                                    <td style="padding: 12px; text-align: right; border-radius: 0 8px 8px 0;"><strong>€ ${(totalValue || 95).toFixed(2).replace('.', ',')}</strong></td>
                                 </tr>
                             </table>
                             <p style="margin-bottom: 0; margin-top: 15px; font-size: 14px; color: #166534;">
-                                <strong>N° Ordine Tessera Socio:</strong> #${membershipOrder.orderId}<br>
-                                <strong>N° Ordine Praticante:</strong> #${insuranceOrder.orderId}<br>
-                                <strong>Metodo di pagamento:</strong> ${membershipOrder.payment?.method || 'N/A'}
+                                <strong>N° Ordine:</strong> #${orderId}<br>
+                                <strong>Data ordine:</strong> ${createdAt ? createdAt.substring(0, 10) : new Date().toISOString().substring(0, 10)}<br>
+                                <strong>Metodo di pagamento:</strong> ${payment?.method || 'N/A'}
                             </p>
                         </div>
 
-                        ${membershipOrder.payment?.method === 'Bonifico bancario' ? `
+                        <!-- AZIONE RICHIESTA - BOX IMPORTANTE -->
+                        <div class="alert-box">
+                            <div class="alert-title">⚠️ IMPORTANTE - AZIONE RICHIESTA</div>
+                            <p class="alert-text">
+                                Per completare la tua adesione e attivare il contributo socio praticante, 
+                                è <strong>OBBLIGATORIO</strong> completare i seguenti passaggi:
+                            </p>
+                        </div>
+
+                        <!-- Steps da seguire -->
+                        <h3 style="color: #1e293b; margin-top: 25px;">📝 Cosa devi fare ora:</h3>
+
+                        <div class="step-box">
+                            <p style="margin: 0;"><span class="step-number">1</span> <strong>Scarica il modulo di adesione</strong><br>
+                            <span style="margin-left: 38px; color: #475569;">Trovi il modulo in <strong>allegato a questa email</strong> oppure scaricalo da questo <a href="https://riflessologiadienchan.it/wp-content/uploads/2026/01/MODULO-ADESIONE-CON-TUTELA.pdf" style="color: #0b5ed7; font-weight: 600;">LINK</a></span></p>
+                        </div>
+
+                        <div class="step-box">
+                            <p style="margin: 0;"><span class="step-number">2</span> <strong>Stampa il modulo</strong></p>
+                        </div>
+
+                        <div class="step-box">
+                            <p style="margin: 0;"><span class="step-number">3</span> <strong>Compila e firma il modulo</strong><br>
+                            <span style="margin-left: 38px; color: #475569;">Completa tutte le sezioni indicate nel documento</span></p>
+                        </div>
+
+                        <div class="step-box">
+                            <p style="margin: 0;"><span class="step-number">4</span> <strong>Invia il modulo firmato via email</strong><br>
+                            <span style="margin-left: 38px; color: #475569;">Invia a: <a href="mailto:amministrazionedienchan@gmail.com" style="color: #0b5ed7; font-weight: 600;">amministrazionedienchan@gmail.com</a></span></p>
+                        </div>
+
+                       
+
+                        ${payment?.method === 'Bonifico bancario' ? `
                         <!-- Istruzioni Bonifico -->
                         <div class="section-box-orange">
-                            <h3 style="color: #c2410c; margin-top: 0;">🏦 Istruzioni per il Bonifico</h3>
-                            <p style="color: #9a3412;">Per completare l'iscrizione, effettua un bonifico di <strong>€ 95,00</strong> alle seguenti coordinate:</p>
+                            <h3 style="color: #c2410c; margin-top: 0;">🏦 Dettagli per il Bonifico Bancario</h3>
+                            <p style="color: #9a3412;">Effettua il bonifico di <strong>€ ${(totalValue || 95).toFixed(2).replace('.', ',')}</strong> alle seguenti coordinate:</p>
                             <div class="highlight-box" style="background: #ffedd5;">
-                                <p style="margin: 0; color: #9a3412;">
+                                <p style="margin: 0; color: #9a3412; line-height: 1.8;">
                                     <strong>IBAN:</strong> IT93 R076 0111 5000 0102 3646 647<br>
                                     <strong>BIC/SWIFT:</strong> BPPIITRRXXX<br>
-                                    <strong>Intestato a:</strong> ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia<br>
-                                    <strong>Causale:</strong> Membership + Praticante - ${membershipOrder.orderId}
+                                    <strong>INTESTATO A:</strong> ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia<br>
+                                    <strong>INDIRIZZO:</strong> VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA<br>
+                                    <strong>CAUSALE:</strong> Tessera + Praticante - Ordine #${orderId}
                                 </p>
                             </div>
+                            <p style="color: #9a3412; font-size: 14px; margin-bottom: 0;">
+                                ⏳ L'evasione dell'ordine verrà effettuata dopo la ricezione del pagamento.
+                            </p>
                         </div>
                         ` : ''}
- 
-                        
 
-                        <!-- Sezione Assicurazione - AZIONE RICHIESTA -->
-                        <div class="section-box-orange">
-                            <h3 style="color: #c2410c; margin-top: 0;">⚠️ AZIONE RICHIESTA: Attivazione Praticante</h3>
-                            <p style="color: #9a3412; font-weight: 600;">
-                                Per attivare la tua copertura assicurativa come Socio Praticante, è necessario completare i seguenti passaggi:
+                        <!-- Indirizzo ricevuta -->
+                        <h4 style="color: #1e293b; margin-top: 25px;">📍 Indirizzo ricevuta:</h4>
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; color: #475569;">
+                            <p style="margin: 0; line-height: 1.8;">
+                                ${invoicing?.name || ''} ${invoicing?.surname || ''}<br>
+                                ${invoicing?.address || ''}<br>
+                                ${invoicing?.postalCode || ''} ${invoicing?.city || ''} ${invoicing?.county || ''}<br>
+                                ${invoicing?.country || ''}
                             </p>
-                            
-                            <div style="margin: 20px 0;">
-                                <p style="margin: 15px 0; color: #1e293b;">
-                                    <span class="step-number">1</span>
-                                    <strong>Scarica il modulo di adesione</strong><br>
-                                    <span style="margin-left: 38px; color: #475569;">Trovi il modulo in allegato a questa email</span>
-                                </p>
-                                
-                                <p style="margin: 15px 0; color: #1e293b;">
-                                    <span class="step-number">2</span>
-                                    <strong>Compila e firma il modulo</strong><br>
-                                    <span style="margin-left: 38px; color: #475569;">Completa tutte le sezioni indicate nel documento</span>
-                                </p>
-                                
-                                <p style="margin: 15px 0; color: #1e293b;">
-                                    <span class="step-number">3</span>
-                                    <strong>Invia il modulo firmato via email</strong><br>
-                                    <span style="margin-left: 38px; color: #475569;">Invia a: <a href="mailto:amministrazionedienchan@gmail.com" style="color: #0b5ed7; font-weight: 600;">amministrazionedienchan@gmail.com</a></span>
-                                </p>
-                            </div>
-
-                            <div class="highlight-box" style="background: #fef3c7; border: 1px solid #f59e0b;">
-                                <p style="margin: 0; color: #92400e; font-size: 14px;">
-                                    <strong>📋 Importante:</strong> La tua assicurazione sarà attivata SOLO dopo aver ricevuto il modulo firmato. 
-                                    Fino ad allora, lo stato risulterà "In attesa di documentazione".
-                                </p>
-                            </div>
                         </div>
-
-                        <!-- Vantaggi Socio Praticante 
-                        <div class="section-box">
-                            <h3 style="color: #0b5ed7; margin-top: 0;">🛡️ Vantaggi del Socio Praticante</h3>
-                            <p style="color: #475569;">Una volta attivata l'assicurazione, potrai godere di:</p>
-                            <ul style="color: #475569; margin-top: 5px;">
-                                <li><strong>Polizza RC Civile e Penale</strong> dell'associazione</li>
-                                <li><strong>Utilizzo sale</strong> con tariffa agevolata</li>
-                                <li>Accesso alle <strong>attività riservate</strong> ai soci praticanti</li>
-                                <li><strong>Copertura per eventi e fiere</strong> in luoghi pubblici</li>
-                            </ul>
-                        </div> -->
 
                         <!-- CTA Area Personale -->
                         <div style="text-align: center; margin: 30px 0;">
@@ -211,12 +228,13 @@ export const POST: RequestHandler = async ({ request }) => {
         const mailOptions = {
             from: '"Associazione Dien Chan" <no-reply@riflessologiadienchan.it>',
             to: email,
-            subject: `🎉 Benvenuto/a! Tessera #${membershipOrder.orderId} + Assicurazione #${insuranceOrder.orderId}`,
+            subject: `🎉 Benvenuto/a! Ordine #${orderId} - Tessera + Assicurazione (MODULO DA FIRMARE ALLEGATO)`,
             html: emailContentHtml,
             attachments: [
                 {
-                    filename: 'Modulo_Adesione_Socio_Praticante.pdf',
-                    path: 'https://riflessologiadienchan.it/wp-content/uploads/2026/01/MODULO-ADESIONE-CON-TUTELA.pdf'
+                    filename: 'MODULO_ADESIONE_CON_TUTELA.pdf',
+                    path: 'https://riflessologiadienchan.it/wp-content/uploads/2026/01/MODULO-ADESIONE-CON-TUTELA.pdf',
+                    contentType: 'application/pdf'
                 }
             ]
         };

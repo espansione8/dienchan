@@ -593,15 +593,13 @@ export const actions: Actions = {
 			},
 		});
 
-		const mailFetch = (email, membershipOrder, insuranceOrder, userName, userSurname) => fetch(`${BASE_URL}/api/mailer/new-membership-insurance`, {
+		// Usa l'endpoint specifico per tessera + assicurazione (con allegato PDF)
+		const mailFetch = (email: string, order: any) => fetch(`${BASE_URL}/api/mailer/new-membership-insurance`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiKey: APIKEY,
 				email,
-				membershipOrder,
-				insuranceOrder,
-				userName,
-				userSurname
+				order
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -817,34 +815,7 @@ export const actions: Actions = {
 				},
 			};
 
-			// Create membership order
-			const resMembership = await fetch(`${BASE_URL}/api/mongo/create`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey: APIKEY,
-					schema: 'order',
-					newDoc: {
-						orderId: nanoid(),
-						orderCode: crypto.randomUUID(),
-						totalValue: Number(membership[0]?.price || 25.00),
-						...baseOrderDoc,
-						type: 'membership',
-						cart: membership
-					},
-					returnObj: true
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-
-			if (!resMembership.ok) {
-				return fail(400, { action: 'newWithInsurance', success: false, message: await resMembership.text() });
-			}
-
-			const membershipOrder = await resMembership.json();
-
-			// Create insurance order
+			// Prodotto assicurazione da aggiungere al carrello
 			const insuranceProduct = {
 				title: 'Contributo Socio Praticante',
 				description: 'Il presente contributo permette a un socio praticante di godere di alcune agevolazioni quali utilizzo delle sale dell\'associazione con tariffa agevolata e inclusione della polizza di copertura RC dell\'associazione',
@@ -853,7 +824,13 @@ export const actions: Actions = {
 				uploadfiles: []
 			};
 
-			const resInsurance = await fetch(`${BASE_URL}/api/mongo/create`, {
+			// Crea UN SOLO ordine con ENTRAMBI i prodotti nel carrello (come il corso base)
+			// type: 'insurance' come richiesto dal collega
+			const membershipPrice = Number(membership[0]?.price || 25.00);
+			const insurancePrice = 70;
+			const totalOrderValue = membershipPrice + insurancePrice; // 95€
+
+			const resOrder = await fetch(`${BASE_URL}/api/mongo/create`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey: APIKEY,
@@ -861,10 +838,10 @@ export const actions: Actions = {
 					newDoc: {
 						orderId: nanoid(),
 						orderCode: crypto.randomUUID(),
-						totalValue: 70,
+						totalValue: totalOrderValue,
 						...baseOrderDoc,
-						type: 'insurance',
-						cart: [insuranceProduct]
+						type: 'insurance', // classificato come "assicurazione" anche se ha la tessera
+						cart: [membership[0], insuranceProduct] // 2 item nel carrello: tessera + assicurazione
 					},
 					returnObj: true
 				}),
@@ -873,11 +850,11 @@ export const actions: Actions = {
 				}
 			});
 
-			if (!resInsurance.ok) {
-				return fail(400, { action: 'newWithInsurance', success: false, message: await resInsurance.text() });
+			if (!resOrder.ok) {
+				return fail(400, { action: 'newWithInsurance', success: false, message: await resOrder.text() });
 			}
 
-			const insuranceOrder = await resInsurance.json();
+			const order = await resOrder.json();
 
 			// Handle promoter points (15 points for membership+insurance combo)
 			if (promoterId) {
@@ -920,7 +897,7 @@ export const actions: Actions = {
 										$push: {
 											pointsHistory: {
 												points: 15,
-												note: `Commissione Tessera + Assicurazione - Ordine ${membershipOrder.orderId}`,
+												note: `Commissione Tessera + Assicurazione - Ordine ${order.orderId}`,
 												date: new Date()
 											}
 										}
@@ -946,11 +923,11 @@ export const actions: Actions = {
 				}
 			}
 
-			// Send combined email
-			const mailRes = await mailFetch(email, membershipOrder, insuranceOrder, name, surname);
+			// Invia email con l'ordine unico (come il corso base)
+			const mailRes = await mailFetch(email, order);
 
 			if (!mailRes.ok) {
-				console.error('Error sending combined email:', await mailRes.text());
+				console.error('Error sending order email:', await mailRes.text());
 			}
 
 			return {
