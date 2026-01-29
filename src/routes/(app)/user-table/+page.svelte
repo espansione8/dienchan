@@ -29,7 +29,8 @@
 		ExternalLink,
 		House,
 		Coins,
-		BookText
+		BookText,
+		RotateCcwKey
 	} from 'lucide-svelte';
 
 	const { data } = $props();
@@ -394,14 +395,13 @@
 							trainingHistory = payload[0].trainingHistory?.filter((t) => t.approved === false) || [];
 						}
 
-					
 						if (approved === true && pendingApprovalsCount > 0) {
 							pendingApprovalsCount -= 1;
 						} else if (approved === false) {
 							pendingApprovalsCount += 1;
 						}
 
-							if (trainingHistory.length === 0) {
+						if (trainingHistory.length === 0) {
 							onCloseModal();
 						}
 					} else {
@@ -652,6 +652,13 @@
 								<form method="POST" action={`?/logUser`} use:enhance={formSubmit}>
 									<input type="hidden" name="userId" value={row.userId} />
 									<button type="submit" class="btn btn-sm btn-info"><ExternalLink /></button>
+								</form>
+							{/if}
+
+							{#if getUser.level == 'superadmin'}
+								<form method="POST" action={`?/resetPassword`} use:enhance={formSubmit}>
+									<input type="hidden" name="resetEmail" value={row.email} />
+									<button type="submit" class="btn btn-sm btn-warning"><RotateCcwKey /></button>
 								</form>
 							{/if}
 

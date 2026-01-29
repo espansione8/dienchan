@@ -1121,4 +1121,96 @@ export const actions: Actions = {
 		}
 	},
 
+	resetPassword: async ({ request }) => {
+		const data = await request.formData();
+		const resetEmail = data.get('resetEmail')?.toString().toLowerCase().trim() || '';
+		const newPass = nanoid(6);
+		const hashed = hash(newPass, SALT);
+
+		if (!resetEmail) {
+			return fail(400, { action: 'resetPassword', success: false, message: 'L\'email è obbligatoria.' });
+		}
+
+		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user',
+				query: { email: resetEmail },
+				projection: { email: 1 },
+				sort: { createdAt: -1 },
+				limit: 1,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		try {
+			// const userRes = await userFetch;
+			// if (!userRes.ok) {
+			// 	// Restituisco comunque messaggio generico
+			// 	return { action: 'resetPassword', success: true, message: 'Se l\'email è registrata, riceverai le istruzioni per il reset' };
+			// }
+			// const user = await userRes.json();
+
+			// // Se l'utente NON esiste, restituisco lo stesso messaggio generico
+			// if (user.length == 0 || user[0].email != resetEmail) {
+			// 	return { action: 'resetPassword', success: true, message: 'Se l\'email è registrata, riceverai le istruzioni per il reset' };
+			// }
+
+			// Solo se l'utente esiste, eseguo update e invio email
+			const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user',
+					query: { email: resetEmail },
+					update: {
+						$set: {
+							password: hashed,
+							cookieId: '',
+						}
+					},
+					options: { upsert: false },
+					multi: false
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			const mailFetch = fetch(`${BASE_URL}/api/mailer/recover-password`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					email: ['amministrazionedienchan@gmail.com', resetEmail],
+					password: newPass
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			const res = await resFetch;
+			if (!res.ok) {
+				// Anche in caso di errore, messaggio generico
+				return { action: 'resetPassword', success: true, message: 'Errore reset password' };
+			}
+
+			const mailRes = await mailFetch;
+			if (!mailRes.ok) {
+				// Anche in caso di errore invio mail, messaggio generico
+				return { action: 'resetPassword', success: true, message: 'Errore invio mail' };
+			}
+
+			return { action: 'resetPassword', success: true, message: 'Pass reset fatto' };
+
+		} catch (err: any) {
+			console.error('Password reset error:', err);
+			// Anche per errori del server, messaggio generico
+			return { action: 'resetPassword', success: true, message: 'Errore Reset' };
+		}
+	}
 } satisfies Actions;
