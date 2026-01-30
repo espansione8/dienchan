@@ -163,7 +163,12 @@
 							{
 								alignment: 'left',
 								columns: [
-									{ width: 35, text: `${50}`, font: 'Montserrat', style: [{ color: '#333333' }, { fontSize: 22 }, { alignment: 'left' }] },
+									{
+										width: 35,
+										text: `${item.academyNumber}`,
+										font: 'Montserrat',
+										style: [{ color: '#333333' }, { fontSize: 22 }, { alignment: 'left' }]
+									},
 									{ width: 85, text: '' },
 									{ width: 200, text: `${year}`, font: 'Montserrat', style: [{ color: '#333333' }, { fontSize: 22 }, { alignment: 'left' }] }
 								],
@@ -843,16 +848,6 @@
 
 	const formSubmit = () => {
 		loading = true;
-
-		// DEBUG: Log prima dell'invio
-		// console.log('=== DEBUG FORM SUBMIT ===');
-		// console.log('currentModal:', currentModal);
-		// console.log('postAction:', postAction);
-		// if (currentModal === 'subscribers' && postAction === '?/createCertification') {
-		// 	console.log('selectedSubscriber:', selectedSubscriber);
-		// 	console.log('Numero utenti selezionati:', selectedSubscriber.length);
-		// }
-		// console.log('========================');
 		//return async ({ result }: { result: ActionResult }) => {
 		//await invalidateAll();
 		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
@@ -1505,7 +1500,7 @@
 						<button type="button" class="btn btn-error btn-sm mx-2" onclick={onCloseModal}> Annulla </button>
 					{/if}
 
-					<button type="submit" class="btn btn-success btn-sm mx-2 text-white">
+					<button type="submit" class="btn btn-success btn-sm mx-2 text-white" disabled={loading}>
 						{#if currentModal == 'new'}
 							Registra
 						{:else if currentModal == 'modify'}

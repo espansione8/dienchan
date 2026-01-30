@@ -369,7 +369,7 @@
 						} else {
 							tableList = getTable;
 						}
-					} else if (action == 'modify') {
+					} else if (action == 'modify' || action == 'delete') {
 						notification.info(message);
 						if (resetActive) {
 							// Aggiorna solo l'utente modificato nella lista filtrata esistente
@@ -656,7 +656,15 @@
 							{/if}
 
 							{#if getUser.level == 'superadmin'}
-								<form method="POST" action={`?/resetPassword`} use:enhance={formSubmit}>
+								<!-- <form method="POST" action={`?/resetPassword`} use:enhance={formSubmit}> -->
+								<form
+									method="POST"
+									action={`?/resetPassword`}
+									use:enhance={formSubmit}
+									onsubmit={(e) => {
+										if (!confirm('Sei sicuro di voler resettare la password per questo utente?')) e.preventDefault();
+									}}
+								>
 									<input type="hidden" name="resetEmail" value={row.email} />
 									<button type="submit" class="btn btn-sm btn-warning"><RotateCcwKey /></button>
 								</form>

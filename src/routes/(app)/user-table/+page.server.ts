@@ -1121,7 +1121,7 @@ export const actions: Actions = {
 		}
 	},
 
-	resetPassword: async ({ request }) => {
+	resetPassword: async ({ request, fetch }) => {
 		const data = await request.formData();
 		const resetEmail = data.get('resetEmail')?.toString().toLowerCase().trim() || '';
 		const newPass = nanoid(6);
@@ -1131,21 +1131,21 @@ export const actions: Actions = {
 			return fail(400, { action: 'resetPassword', success: false, message: 'L\'email è obbligatoria.' });
 		}
 
-		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'user',
-				query: { email: resetEmail },
-				projection: { email: 1 },
-				sort: { createdAt: -1 },
-				limit: 1,
-				skip: 0
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
+		// const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+		// 	method: 'POST',
+		// 	body: JSON.stringify({
+		// 		apiKey: APIKEY,
+		// 		schema: 'user',
+		// 		query: { email: resetEmail },
+		// 		projection: { email: 1 },
+		// 		sort: { createdAt: -1 },
+		// 		limit: 1,
+		// 		skip: 0
+		// 	}),
+		// 	headers: {
+		// 		'Content-Type': 'application/json'
+		// 	}
+		// });
 
 		try {
 			// const userRes = await userFetch;
@@ -1195,14 +1195,12 @@ export const actions: Actions = {
 
 			const res = await resFetch;
 			if (!res.ok) {
-				// Anche in caso di errore, messaggio generico
-				return { action: 'resetPassword', success: true, message: 'Errore reset password' };
+				return fail(400, { action: 'resetPassword', success: false, message: 'Errore reset password' });
 			}
 
 			const mailRes = await mailFetch;
 			if (!mailRes.ok) {
-				// Anche in caso di errore invio mail, messaggio generico
-				return { action: 'resetPassword', success: true, message: 'Errore invio mail' };
+				return fail(400, { action: 'resetPassword', success: false, message: 'Errore invio mail' });
 			}
 
 			return { action: 'resetPassword', success: true, message: 'Pass reset fatto' };
