@@ -104,11 +104,11 @@ export const POST: RequestHandler = async ({ request }) => {
             <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="main-table">
                 <tr>
                     <td valign="top" class="bg_white text-center padding-top-sm padding-x-lg">
-                        <a href="https://associazione.riflessologiadienchan.it" class="logo-link">
+             
                             <img src="https://riflessologiadienchan.it/wp-content/uploads/2025/06/Associazione_Dien_Chan_BQC_LOGO.png" alt="logo" class="logo-img">
                             <h2>Ciao ${invoicing.name} ${invoicing.surname},</h2>
                             <h1 class="logo-title">Il tuo Ordine ${orderId} è Confermato! 🎉</h1>
-                        </a>
+                        
                     </td>
                 </tr>
                 <tr>
@@ -154,8 +154,8 @@ export const POST: RequestHandler = async ({ request }) => {
                              alt="${item.title}" 
                              width="80" 
                              height="80" 
-                             style="width: 80px; height: 80px; object-fit: contain; border-radius: 4px; border: 1px solid #e0e0e0; flex-shrink: 0;">
-                        <span>${item.title}</span>
+                             style="width: 80px; height: 80px; object-fit: contain; border-radius: 4px; border: 1px solid #e0e0e0; flex-shrink: 0;"> 
+                        <span> ${item.title}</span>
                     </div>
                 </td>
                 <td class="table-cell-style text-right">${item.orderQuantity || 1}</td>

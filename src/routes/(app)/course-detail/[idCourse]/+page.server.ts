@@ -1,6 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import type { CartItem, DiscountItem } from '$lib/types';
-import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK, } from '$env/static/private';
+import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK } from '$env/static/private';
+//import { env } from '$env/dynamic/private';
 import { error, fail } from '@sveltejs/kit';
 import { hash } from '$lib/tools/hash';
 import { customAlphabet } from 'nanoid';
@@ -884,6 +885,14 @@ export const actions: Actions = {
 			} else {
 				return fail(400, { action: 'new', success: false, message: `Errore ordine` });
 			}
+
+			// if (env.WEBHOOK) {
+			// 	try {
+			// 		await fetch(`https://${env.WEBHOOK}/?att`);
+			// 	} catch (webhookError) {
+			// 		console.error('Webhook call failed:', webhookError);
+			// 	}
+			// }
 
 			if (locals.auth) {
 				return {

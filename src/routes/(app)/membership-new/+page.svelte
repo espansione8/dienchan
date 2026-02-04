@@ -791,66 +791,66 @@
 			{/if}
 
 			<!-- Membership + Insurance Card - Solo per utenti non loggati -->
-			{#if !auth}
-				<div class="bg-white rounded-xl overflow-hidden shadow-lg transition-all hover:shadow-2xl w-full md:w-96 relative">
-					<div class="bg-green-600 p-4 text-white text-center">
-						<h3 class="text-xl font-bold">SOCIO PRATICANTE</h3>
-					</div>
-					<div class="p-6 flex flex-col flex-1">
-						<div class="text-center mb-6">
-							<p class="text-4xl font-bold text-blue-900">
-								95€ <span class="text-xl text-blue-700">annuali</span>
-							</p>
-							<p class="text-sm text-gray-500 mt-1">25€ tessera ORDINARIA + 70€ Contributo praticate</p>
-						</div>
-
-						<div class="flex justify-center mb-8">
-							<ShieldCheck class="text-green-500 h-32 w-32" />
-						</div>
-
-						<ul class="mb-8 space-y-3">
-							<li class="flex items-center">
-								<CircleCheckBig class="text-green-500 h-4 w-4 mr-2" />
-								<span>Tutti i vantaggi del socio ordinario</span>
-							</li>
-							<li class="flex items-center">
-								<CircleCheckBig class="text-green-500 h-4 w-4 mr-2" />
-								<span>Copertura RC CIVILE e PENALE</span>
-							</li>
-							<li class="flex items-center">
-								<CircleCheckBig class="text-green-500 h-4 w-4 mr-2" />
-								<span>Utilizzo Sale Associazione</span>
-							</li>
-							<li class="flex items-center">
-								<CircleCheckBig class="text-green-500 h-4 w-4 mr-2" />
-								<span>Supporto e attività riservate</span>
-							</li>
-						</ul>
-						<div class="mt-auto">
-							<button class="btn bg-green-500 hover:bg-green-600 text-white w-full" onclick={() => onClickModal('newWithInsurance', null)}>
-								Diventa Socio Praticante
-							</button>
-						</div>
-						<ul class="space-y-3 mt-2">
-							<li class="flex items-center">
-								<a href="https://riflessologiadienchan.it/wp-content/uploads/2026/01/TUTELA-LEGALE-SPA-449029-coperto-.pdf"
-									><Download size={28} />&nbsp;<span> Tutela legale </span></a
-								>
-							</li>
-							<li class="flex items-center">
-								<a href="https://riflessologiadienchan.it/wp-content/uploads/2026/01/UNIPOL-210620818-coperto-completo.pdf"
-									><Download size={28} />&nbsp;<span> Set informativo Unipol </span></a
-								>
-							</li>
-							<li class="flex items-center">
-								<a href="https://riflessologiadienchan.it/wp-content/uploads/2026/01/ITAS_M16297317-1.pdf"
-									><Download size={28} />&nbsp;<span> Copertura eventi e fiere </span></a
-								>
-							</li>
-						</ul>
-					</div>
+			<!-- {#if !auth} -->
+			<div class="bg-white rounded-xl overflow-hidden shadow-lg transition-all hover:shadow-2xl w-full md:w-96 relative">
+				<div class="bg-green-600 p-4 text-white text-center">
+					<h3 class="text-xl font-bold">SOCIO PRATICANTE</h3>
 				</div>
-			{/if}
+				<div class="p-6 flex flex-col flex-1">
+					<div class="text-center mb-6">
+						<p class="text-4xl font-bold text-blue-900">
+							95€ <span class="text-xl text-blue-700">annuali</span>
+						</p>
+						<!-- <p class="text-sm text-gray-500 mt-1">25€ tessera ORDINARIA + 70€ Contributo praticate</p> -->
+					</div>
+
+					<div class="flex justify-center mb-8">
+						<ShieldCheck class="text-green-500 h-32 w-32" />
+					</div>
+
+					<ul class="mb-8 space-y-3">
+						<li class="flex items-center">
+							<CircleCheckBig class="text-green-500 h-4 w-4 mr-2" />
+							<span>Tutti i vantaggi del socio ordinario</span>
+						</li>
+						<li class="flex items-center">
+							<CircleCheckBig class="text-green-500 h-4 w-4 mr-2" />
+							<span>Copertura RC CIVILE e PENALE</span>
+						</li>
+						<li class="flex items-center">
+							<CircleCheckBig class="text-green-500 h-4 w-4 mr-2" />
+							<span>Utilizzo Sale Associazione</span>
+						</li>
+						<li class="flex items-center">
+							<CircleCheckBig class="text-green-500 h-4 w-4 mr-2" />
+							<span>Supporto e attività riservate</span>
+						</li>
+					</ul>
+					<div class="mt-auto">
+						<button class="btn bg-green-500 hover:bg-green-600 text-white w-full" onclick={() => onClickModal('newWithInsurance', null)}>
+							Diventa Socio Praticante
+						</button>
+					</div>
+					<ul class="space-y-3 mt-2">
+						<li class="flex items-center">
+							<a href="https://riflessologiadienchan.it/wp-content/uploads/2026/01/TUTELA-LEGALE-SPA-449029-coperto-.pdf"
+								><Download size={28} />&nbsp;<span> Tutela legale </span></a
+							>
+						</li>
+						<li class="flex items-center">
+							<a href="https://riflessologiadienchan.it/wp-content/uploads/2026/01/UNIPOL-210620818-coperto-completo.pdf"
+								><Download size={28} />&nbsp;<span> Set informativo Unipol </span></a
+							>
+						</li>
+						<li class="flex items-center">
+							<a href="https://riflessologiadienchan.it/wp-content/uploads/2026/01/ITAS_M16297317-1.pdf"
+								><Download size={28} />&nbsp;<span> Copertura eventi e fiere </span></a
+							>
+						</li>
+					</ul>
+				</div>
+			</div>
+			<!-- {/if} -->
 
 			<div class="bg-white rounded-xl overflow-hidden shadow-lg transition-all hover:shadow-2xl w-full md:w-96 relative">
 				<div class="bg-yellow-500 p-4 text-white text-center">

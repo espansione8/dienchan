@@ -22,6 +22,8 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		const academicYear = currentMonth < 5 ? currentYear - 1 : currentYear;
 		const startOfYear = new Date(academicYear, 5, 1); // June 1st of academic year
 		const startOfNextYear = new Date(academicYear + 1, 5, 1); // June 1st of next academic year
+		// 1. Start Timer
+		//const startTime = performance.now();
 
 		const resProductsCorso = await fetch(`${baseURL}/api/mongo/find`, {
 			method: 'POST',
@@ -37,7 +39,8 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 					}
 				},
 				sort: { eventStartDate: 1 },
-				projection: { _id: 0 },
+				//projection: { _id: 0 },
+				projection: { prodId: 1, userId: 1, layoutView: 1, eventStartDate: 1, eventEndDate: 1, layoutId: 1, county: 1, timeStartDate: 1, timeEndDate: 1, type: 1, name: 1, surname: 1 },
 				limit: 1000,
 				skip: 0
 			}),
@@ -47,17 +50,6 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		});
 
 		if (!resProductsCorso.ok) throw error(400, `resProductsCorso: ${await resProductsCorso.text()}`);
-
-		const resGetTable = await resProductsCorso.json();
-
-		getTable = resGetTable
-			.filter((obj: any) => obj.layoutView)
-			.map((obj: any) => ({
-				...obj,
-				createdAt: obj.createdAt ? obj.createdAt.substring(0, 10) : undefined,
-				eventStartDate: obj.eventStartDate ? obj.eventStartDate.substring(0, 10) : undefined,
-				timeStartDate: obj.eventStartDate ? obj.eventStartDate.substring(11, 16) : undefined,
-			}));
 
 		// riflessologi list
 		const resRiflessologi = await fetch(`${baseURL}/api/mongo/find`, {
@@ -83,35 +75,6 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			}
 		});
 		if (!resRiflessologi.ok) throw error(400, `resRiflessologi: ${await resRiflessologi.text()}`);
-		const allFormatori = await resRiflessologi.json(); // Salviamo qui i formatori
-
-		const resCorsiAttivi = await fetch(`${baseURL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey,
-				schema: 'product',
-				query: {
-					type: { $in: ['course', 'event'] },
-					status: 'enabled'
-				},
-				projection: { _id: 0, userId: 1 },
-				limit: 1000,
-				skip: 0
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		if (!resCorsiAttivi.ok) throw error(400, `resCorsiAttivi: ${await resCorsiAttivi.text()}`);
-		const corsiAttivi = await resCorsiAttivi.json();
-
-		// Creiamo un Set con gli userId dei formatori che hanno corsi attivi
-		const formatoriConCorsiAttivi = new Set(corsiAttivi.map(corso => corso.userId));
-
-		// Filtriamo solo i formatori che hanno almeno un corso attivo
-		getRiflessologi = allFormatori.filter(formatore =>
-			formatoriConCorsiAttivi.has(formatore.userId)
-		);
 
 		// get layout
 		const resLayout = await fetch(`${baseURL}/api/mongo/find`, {
@@ -120,7 +83,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 				apiKey,
 				schema: 'layout',
 				query: {},
-				projection: { _id: 0 },
+				projection: { _id: 0, title: 1, urlPic: 1 },
 				sort: { title: 1 },
 				limit: 1000,
 				skip: 0
@@ -130,7 +93,47 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 			}
 		});
 		if (!resLayout.ok) throw error(400, `resLayout: ${await resLayout.text()}`);
-		getLayout = await resLayout.json();
+
+		const [resProductsCorso1, resRiflessologi1, getLayout1] = await Promise.all([
+			resProductsCorso,
+			resRiflessologi,
+			resLayout
+		]);
+
+		const resGetTable = await resProductsCorso1.json();
+
+		getTable = resGetTable
+			.filter((obj: any) => obj.layoutView)
+			.map((obj: any) => ({
+				...obj,
+				createdAt: obj.createdAt ? obj.createdAt.substring(0, 10) : undefined,
+				eventStartDate: obj.eventStartDate ? obj.eventStartDate.substring(0, 10) : undefined,
+				timeStartDate: obj.eventStartDate ? obj.eventStartDate.substring(11, 16) : undefined,
+			}));
+
+		const allFormatori = await resRiflessologi1.json(); // Salviamo qui i formatori
+
+		// Creiamo un Set con gli userId dei formatori che hanno corsi attivi
+		const formatoriConCorsiAttivi = new Set(resGetTable.map(corso => corso.userId));
+
+		// Filtriamo solo i formatori che hanno almeno un corso attivo
+		getRiflessologi = allFormatori.filter(formatore =>
+			formatoriConCorsiAttivi.has(formatore.userId)
+		);
+
+		getLayout = await getLayout1.json();
+
+		// 2. End Timer & Calculate Duration
+		// const endTime = performance.now();
+		// const duration = (endTime - startTime).toFixed(2);
+
+		// 3. Measure Size before parsing JSON
+		// const resClone = resProductsCorso.clone();
+		// const rawText = await resClone.text();
+		// const sizeInBytes = new TextEncoder().encode(rawText).length;
+		// const sizeInKB = (sizeInBytes / 1024).toFixed(2);
+		// console.log(`Fetch took ${duration}ms | Size: ${sizeInKB} KB`);
+		// console.log(`Fetch took ${duration}ms `);
 
 	} catch (error) {
 		console.log('layout find error:', error);

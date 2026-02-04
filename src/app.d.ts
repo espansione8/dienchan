@@ -17,6 +17,11 @@ declare global {
 				membershipLevel: string;
 				membershipStatus: boolean;
 			},
+			insurance: {
+				insuranceStatus: boolean;
+				insuranceDate: Date | string;
+				insuranceExpiry: Date | string;
+			},
 			userId: string;
 			name: string;
 			surname: string;

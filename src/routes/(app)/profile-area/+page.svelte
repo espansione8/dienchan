@@ -995,7 +995,14 @@
 						{#if membershipExpiry}
 							<div class="flex items-center gap-2 text-sm text-base-content/70">
 								<Calendar size={16} />
-								<span>Scadenza: {formatDate(typeof membershipExpiry === 'string' ? membershipExpiry : membershipExpiry.toISOString())}</span>
+								<span>Scadenza Tessera: {formatDate(typeof membershipExpiry === 'string' ? membershipExpiry : membershipExpiry.toISOString())}</span>
+							</div>
+						{/if}
+
+						{#if userData.insurance?.insuranceStatus}
+							<div class="flex items-center gap-2 text-sm text-base-content/70 mt-2">
+								<Calendar size={16} />
+								<span>Scadenza Copertura: 31/12/{new Date().getFullYear()}</span>
 							</div>
 						{/if}
 

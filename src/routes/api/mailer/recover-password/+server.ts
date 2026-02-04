@@ -397,7 +397,7 @@ export const POST: RequestHandler = async ({ request }) => {
 												<tr>
 													<td style="padding: 0 2.5em; text-align: center; padding-bottom: 3em">
 														<div class="text">
-															<h2>Gentile utente ${email},</h2>
+															<h4>Gentile utente ${email},</h4>
 															<h4>abbiamo ricevuto la sua richiesta di reset password.</h4>
 															<h4>La preghiamo di utilizzare:<br>${password}</h4>
 															<h4>per effettuare il login e cambiare la password con una nuova nel suo profilo</h4>
