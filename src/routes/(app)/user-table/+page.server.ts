@@ -977,6 +977,8 @@ export const actions: Actions = {
 		const userId = formData.get('userId');
 		const trainingDate = formData.get('trainingDate');
 		const trainingFileName = formData.get('trainingFileName');
+
+	const trainingDescription = formData.get('trainingDescription');
 		const approved = formData.get('approved') === 'true';
 
 
@@ -994,7 +996,8 @@ export const actions: Actions = {
 					'trainingHistory': {
 						$elemMatch: {
 							date: trainingDate,
-							fileName: trainingFileName
+							fileName: trainingFileName,
+							description: trainingDescription
 						}
 					}
 				},

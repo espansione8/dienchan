@@ -1553,6 +1553,7 @@
 										<form method="POST" action={`?/approveTraining`} use:enhance={formSubmit}>
 											<input type="hidden" name="userId" value={userId} />
 											<input type="hidden" name="trainingDate" value={training.date} />
+											<input type="hidden" name="trainingDescription" value={training.description || ''} />
 											<input type="hidden" name="trainingFileName" value={training.fileName} />
 											<input type="hidden" name="approved" value="true" />
 
