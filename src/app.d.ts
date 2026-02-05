@@ -54,12 +54,6 @@ declare global {
 				fileUrl: string;
 			}>;
 		}
-		interface Locals {
-			userData: User | null;
-			user: User | null;
-			auth: boolean | null;
-			status: string;
-		}
 		// interface PageData {}
 		// interface PageState {}
 		// interface Platform {}

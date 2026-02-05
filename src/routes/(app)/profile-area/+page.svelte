@@ -134,7 +134,8 @@
 	let setTrainingFile = $state<File | null>(null);
 
 	const formatoreLevels = new Set(['formatore base', 'master', 'formatore avanzato']);
-	const isFormatore = level ? formatoreLevels.has(level.toLowerCase()) : false;
+	//const isFormatore = level ? formatoreLevels.has(level.toLowerCase()) : false;
+	const isFormatore = $derived(level ? formatoreLevels.has(level.toLowerCase()) : false);
 
 	const checkMissingFields = () => {
 		const fields = [
@@ -1002,7 +1003,7 @@
 						{#if userData.insurance?.insuranceStatus}
 							<div class="flex items-center gap-2 text-sm text-base-content/70 mt-2">
 								<Calendar size={16} />
-								<span>Scadenza Copertura: 31/12/{new Date().getFullYear()}</span>
+								<span>Scadenza Copertura: {new Date(userData.insurance?.insuranceExpiry).toLocaleDateString('it-IT')}</span>
 							</div>
 						{/if}
 
@@ -1292,7 +1293,7 @@
 												<div class="form-control">
 													<label class="label cursor-pointer gap-2" for="check-name">
 														{#if closedInput}
-															<input type="hidden" name="namePublic" checked={namePublic} />
+															<input type="hidden" name="namePublic" value={namePublic} />
 														{:else}
 															<input
 																type="checkbox"
@@ -1340,7 +1341,7 @@
 												<div class="form-control">
 													<label class="label cursor-pointer gap-2" for="check-surnamePublic">
 														{#if closedInput}
-															<input type="hidden" name="surnamePublic" checked={surnamePublic} />
+															<input type="hidden" name="surnamePublic" value={surnamePublic} />
 														{:else}
 															<input
 																type="checkbox"
@@ -1388,7 +1389,7 @@
 												<div class="form-control">
 													<label class="label cursor-pointer gap-2" for="check-emailPublic">
 														{#if closedInput}
-															<input type="hidden" name="emailPublic" checked={emailPublic} />
+															<input type="hidden" name="emailPublic" value={emailPublic} />
 														{:else}
 															<input
 																type="checkbox"
@@ -1443,7 +1444,7 @@
 												<div class="form-control">
 													<label class="label cursor-pointer gap-2" for="check-addressPublic">
 														{#if closedInput}
-															<input type="hidden" name="addressPublic" checked={addressPublic} />
+															<input type="hidden" name="addressPublic" value={addressPublic} />
 														{:else}
 															<input
 																type="checkbox"
@@ -1494,7 +1495,7 @@
 												<div class="form-control">
 													<label class="label cursor-pointer gap-2" for="check-cityPublic">
 														{#if closedInput}
-															<input type="hidden" name="cityPublic" checked={cityPublic} />
+															<input type="hidden" name="cityPublic" value={cityPublic} />
 														{:else}
 															<input
 																type="checkbox"
@@ -1542,7 +1543,7 @@
 												<div class="form-control">
 													<label class="label cursor-pointer gap-2" for="check-postalCodePublic">
 														{#if closedInput}
-															<input type="hidden" name="postalCodePublic" checked={postalCodePublic} />
+															<input type="hidden" name="postalCodePublic" value={postalCodePublic} />
 														{:else}
 															<input
 																type="checkbox"
@@ -1592,7 +1593,7 @@
 												<div class="form-control">
 													<label class="label cursor-pointer gap-2" for="check-countyPublic">
 														{#if closedInput}
-															<input type="hidden" name="countyPublic" checked={countyPublic} />
+															<input type="hidden" name="countyPublic" value={countyPublic} />
 														{:else}
 															<input
 																type="checkbox"
@@ -1670,7 +1671,7 @@
 												<div class="form-control">
 													<label class="label cursor-pointer gap-2" for="check-countryPublic">
 														{#if closedInput}
-															<input type="hidden" name="countryPublic" checked={countryPublic} />
+															<input type="hidden" name="countryPublic" value={countryPublic} />
 														{:else}
 															<input
 																type="checkbox"
@@ -1716,7 +1717,7 @@
 												<div class="form-control">
 													<label class="label cursor-pointer gap-2" for="check-phonePublic">
 														{#if closedInput}
-															<input type="hidden" name="phonePublic" checked={phonePublic} />
+															<input type="hidden" name="phonePublic" value={phonePublic} />
 														{:else}
 															<input
 																type="checkbox"
@@ -1766,7 +1767,7 @@
 												<div class="form-control">
 													<label class="label cursor-pointer gap-2" for="check-mobilePhonePublic">
 														{#if closedInput}
-															<input type="hidden" name="mobilePhonePublic" checked={mobilePhonePublic} />
+															<input type="hidden" name="mobilePhonePublic" value={mobilePhonePublic} />
 														{:else}
 															<input
 																type="checkbox"
@@ -2252,8 +2253,8 @@
 						<DragDrop />
 					</div>
 					<div class="modal-action col-span-2">
-						<button class="btn btn-outline" onclick={onCloseModal}>Annulla</button>
-						<button class="btn btn-primary" type="submit">Carica</button>
+						<button type="button" class="btn btn-outline" onclick={onCloseModal}>Annulla</button>
+						<button type="submit" class="btn btn-primary">Carica</button>
 					</div>
 				</form>
 			{/if}
