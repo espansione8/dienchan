@@ -65,6 +65,9 @@ export const actions: Actions = {
 		const weight = formData.get('weight');
 		const price = formData.get('price');
 		const sku = formData.get('sku');
+		const promoPrice = formData.get('promoPrice') || 0;
+		const promoEndDate = formData.get('promoEndDate') || null;
+		const promoStatus = formData.get('promoStatus') || 'disabled';
 
 		const newDoc = {
 			prodId,
@@ -75,6 +78,9 @@ export const actions: Actions = {
 			weight,
 			category: [category],
 			price,
+			promoPrice,
+			promoEndDate: promoEndDate ? new Date(promoEndDate as string) : null,
+			promoStatus,
 			sku
 		};
 
@@ -123,6 +129,9 @@ export const actions: Actions = {
 		const weight = formData.get('weight');
 		const category = formData.get('category') || '';
 		const sku = formData.get('sku');
+		const promoPrice = formData.get('promoPrice') || 0;
+		const promoEndDate = formData.get('promoEndDate') || null;
+		const promoStatus = formData.get('promoStatus') || 'disabled';
 
 		if (!prodId) {
 			return fail(400, { action: 'modify', success: false, message: 'Dati mancanti' });
@@ -143,7 +152,10 @@ export const actions: Actions = {
 						price,
 						weight,
 						category,
-						sku
+						sku,
+						promoPrice: Number(promoPrice),
+						promoEndDate: promoEndDate ? new Date(promoEndDate as string) : null,
+						promoStatus
 					}
 				},
 				options: {
@@ -214,6 +226,7 @@ export const actions: Actions = {
 		const category = formData.get('category');
 		const status = formData.get('status');
 		const sku = formData.get('sku');
+		const promoStatus = formData.get('promoStatus'); 
 
 		const resFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 			method: 'POST',
@@ -227,6 +240,7 @@ export const actions: Actions = {
 					...(title && { title: { $regex: `.*${title}.*`, $options: 'i' } }),
 					...(category && { category }),
 					...(status && { status }),
+					   ...(promoStatus && { promoStatus }), 
 				},
 				projection: { _id: 0 },
 				sort: { title: 1 },
@@ -301,6 +315,45 @@ export const actions: Actions = {
 		}
 	},
 
+changePromoStatus: async ({ request, fetch }) => {
+    const formData = await request.formData();
+    const prodId = formData.get('prodId');
+    const promoStatus = formData.get('promoStatus');
+    const newPromoStatus = promoStatus === 'enabled' ? 'disabled' : 'enabled';
+
+    if (!prodId || !promoStatus) {
+        return fail(400, { action: 'changePromoStatus', success: false, message: 'Dati mancanti' });
+    }
+
+    // Solo toggle dello status, prezzo e data restano intatti
+    const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+        method: 'POST',
+        body: JSON.stringify({
+            apiKey: APIKEY,
+            schema: 'product',
+            query: { prodId: prodId },
+            update: { $set: { promoStatus: newPromoStatus } },
+            options: { upsert: false },
+            multi: false
+        }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+		try {
+			const res = await resFetch;
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('changePromoStatus update failed', res.status, errorText);
+				return fail(400, { action: 'changePromoStatus', success: false, message: errorText });
+			}
+			const result = await res.json();
+			return { action: 'changePromoStatus', success: true, message: result.message };
+		} catch (error) {
+			console.error('Error changePromoStatus:', error);
+			return fail(400, { action: 'changePromoStatus', success: false, message: 'Error changePromoStatus' });
+		}
+	},
 	setProdPic: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const prodId = formData.get('prodId');

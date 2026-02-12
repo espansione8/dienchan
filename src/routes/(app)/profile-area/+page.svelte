@@ -159,6 +159,33 @@
 		}
 	};
 
+	const getEffectivePrice = (item: { price: number; promoPrice?: number; promoStatus?: string; promoEndDate?: string | null }): number => {
+		if (item.promoStatus === 'enabled' && item.promoPrice && item.promoPrice > 0) {
+			// Se c'è una data di scadenza, verifica che non sia passata
+			if (item.promoEndDate) {
+				const now = new Date();
+				const endDate = new Date(item.promoEndDate);
+				if (endDate > now) {
+					return item.promoPrice;
+				}
+				return item.price; // Scaduta
+			}
+			// Nessuna scadenza: promo sempre attiva
+			return item.promoPrice;
+		}
+		return item.price;
+	};
+
+	const isPromoActive = (item: { promoStatus?: string; promoPrice?: number; promoEndDate?: string | null }): boolean => {
+		if (item.promoStatus !== 'enabled' || !item.promoPrice || item.promoPrice <= 0) {
+			return false;
+		}
+		if (item.promoEndDate) {
+			return new Date(item.promoEndDate) > new Date();
+		}
+		return true;
+	};
+
 	const createPDFReceipt = (order) => {
 		if (!order) {
 			notification.error('Dati ordine mancanti');
@@ -191,7 +218,7 @@
 
 			if (item.type === 'course' || item.type === 'event') {
 				description = item.layoutView?.title || item.title || 'N/A';
-				unitPrice = item.layoutView?.price || item.price || 0;
+				unitPrice = getEffectivePrice(item) || item.layoutView?.price || 0;
 				total = unitPrice;
 			} else if (item.type === 'membership') {
 				description = item.title || 'N/A';
@@ -200,7 +227,7 @@
 			} else {
 				description = item.title || 'N/A';
 				quantity = item.orderQuantity || 1;
-				unitPrice = item.price || 0;
+				unitPrice = getEffectivePrice(item);
 				total = unitPrice * quantity;
 			}
 
@@ -1958,9 +1985,13 @@
 																{#if order.type === 'course'}
 																	<div class="text-right flex-shrink-0">
 																		<div class="font-bold text-primary">
-																			<!-- € {item.type === 'course' ? item.layoutView.price : item.price} -->
 																			{#if item.type === 'course' || item.type === 'event'}
-																				{`€ ${item.layoutView.price.toFixed(2)}`}
+																				{#if isPromoActive(item)}
+																					<span class="text-amber-600">€ {item.promoPrice.toFixed(2)}</span>
+																					<span class="text-xs line-through text-gray-400 block">€ {item.layoutView.price.toFixed(2)}</span>
+																				{:else}
+																					{`€ ${item.layoutView.price.toFixed(2)}`}
+																				{/if}
 																			{:else if item.type === 'membership'}
 																				{`€ ${item.price.toFixed(2)}`}
 																			{/if}
@@ -1969,8 +2000,12 @@
 																{:else}
 																	<div class="text-right flex-shrink-0">
 																		<div class="font-bold text-primary">
-																			<!-- € {item.type === 'course' ? item.layoutView.price : item.price} -->
-																			€ {item.price.toFixed(2)}
+																			{#if isPromoActive(item)}
+																				<span class="text-amber-600">€ {item.promoPrice.toFixed(2)}</span>
+																				<span class="text-xs line-through text-gray-400 block">€ {item.price.toFixed(2)}</span>
+																			{:else}
+																				€ {item.price.toFixed(2)}
+																			{/if}
 																		</div>
 																	</div>
 																{/if}

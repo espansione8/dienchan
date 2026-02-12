@@ -81,10 +81,15 @@ const productSchema = new Schema(
         notificationEmail: [{ type: String, default: null }],
         points: { type: Number, default: 0 },
         price: { type: Number, default: 0 }, //PVP: Recommended Price for online channels
+        promoPrice: { type: Number, default: 0 },
         priceSetByBundle: { type: Boolean, default: false },
         promoEndDate: { type: Date, default: null },
         promoStartDate: { type: Date, default: null },
-        promoStatus: { type: String, default: null },
+        promoStatus: {
+            type: String,
+            enum: ['enabled', 'disabled'],
+            default: 'disabled'
+        },
         promoterProCod: { type: String, default: null },
         promotions: [{ type: String }],
         rating: { type: Number, default: 0 },

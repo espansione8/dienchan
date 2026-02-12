@@ -227,6 +227,9 @@ export type CartItem = {
     layoutView: { layoutId?: string, price: number };
     orderQuantity: number;
     price: number;
+    promoPrice?: number;
+    promoStatus?: 'enabled' | 'disabled';
+    promoEndDate?: string | null;
     [key: string]: any;
 };
 
@@ -343,6 +346,9 @@ export interface Product {
     stockQty: number;
     category: string;
     price: number;
+    promoPrice: number;
+    promoStatus: 'enabled' | 'disabled';
+    promoEndDate: string | null;
     points: number;
     uploadfiles: Array<{
         type: 'product-primary';

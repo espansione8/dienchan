@@ -109,7 +109,7 @@
 			if (element.type == 'course') {
 				total += element.layoutView.price * (element.orderQuantity || 1);
 			} else {
-				total += element.price * (element.orderQuantity || 1);
+				total += getEffectivePrice(element) * (element.orderQuantity || 1);
 			}
 		});
 		return total;
@@ -123,7 +123,7 @@
 		if (subtotal >= 100) return 0;
 
 		// Se subtotale o prodotti a costo 0, spedizione gratuita
-		const allFree = subtotal === 0 || ($cartProducts.length > 0 && $cartProducts.every((item: any) => item.price === 0));
+		const allFree = subtotal === 0 || ($cartProducts.length > 0 && $cartProducts.every((item: any) => getEffectivePrice(item) === 0));
 		if (allFree) return 0;
 
 		// Verifica se nel carrello ci sono SOLO libri
@@ -199,6 +199,33 @@
 		}
 		return formData.pointsBalance;
 	});
+
+	const getEffectivePrice = (item: { price: number; promoPrice?: number; promoStatus?: string; promoEndDate?: string | null }): number => {
+		if (item.promoStatus === 'enabled' && item.promoPrice && item.promoPrice > 0) {
+			// Se c'è una data di scadenza, verifica che non sia passata
+			if (item.promoEndDate) {
+				const now = new Date();
+				const endDate = new Date(item.promoEndDate);
+				if (endDate > now) {
+					return item.promoPrice;
+				}
+				return item.price; // Scaduta
+			}
+			// Nessuna scadenza: promo sempre attiva
+			return item.promoPrice;
+		}
+		return item.price;
+	};
+
+	const isPromoActive = (item: { promoStatus?: string; promoPrice?: number; promoEndDate?: string | null }): boolean => {
+		if (item.promoStatus !== 'enabled' || !item.promoPrice || item.promoPrice <= 0) {
+			return false;
+		}
+		if (item.promoEndDate) {
+			return new Date(item.promoEndDate) > new Date();
+		}
+		return true;
+	};
 
 	const initializeStripe = async () => {
 		if (!stripePublishableKey) {
@@ -703,7 +730,15 @@
 													{/if}
 												</div>
 												<div class="flex items-center gap-1 mt-1 text-xs">
-													<div class="text-lg font-bold text-primary">€ {item.price} pz</div>
+													<div class="text-lg font-bold text-primary">
+														{#if isPromoActive(item)}
+															<span class="text-amber-600">€ {item.promoPrice}</span>
+															<span class="text-sm line-through text-gray-400 ml-1">€ {item.price}</span>
+														{:else}
+															€ {item.price}
+														{/if}
+														pz
+													</div>
 												</div>
 											</div>
 										</div>
@@ -1629,7 +1664,14 @@
 								<tr>
 									<td>{item.title}</td>
 									<td class="text-right">{item.orderQuantity || 1}</td>
-									<td class="text-right">€ {item.price.toFixed(2)}</td>
+									<td class="text-right">
+										{#if isPromoActive(item)}
+											<span class="text-amber-600">€ {getEffectivePrice(item).toFixed(2)}</span>
+											<span class="text-xs line-through text-gray-400 block">€ {item.price.toFixed(2)}</span>
+										{:else}
+											€ {item.price.toFixed(2)}
+										{/if}
+									</td>
 								</tr>
 							{/each}
 

@@ -61,7 +61,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 				...obj,
 				createdAt: obj.createdAt.substring(0, 10),
 				orderDate: obj.orderDate.substring(0, 10),
-				totalCart: obj.cart.reduce((total: any, item: any) => total + item.price, 0).toFixed(2)
+				totalCart: (obj.totalValue ?? obj.cart.reduce((total: any, item: any) => total + item.price, 0)).toFixed(2)
 			}));
 		}
 

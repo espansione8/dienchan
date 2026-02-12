@@ -10,6 +10,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	let getOrder = [];
 	let getCourse = [];
 	// console.log('locals.user.userId', locals.user.userId);
+	
 
 	const resFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 		method: 'POST',
@@ -70,8 +71,8 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 		getOrder = response.map((obj: any) => ({
 			...obj,
 			createdAt: obj.createdAt.substring(0, 10),
-			orderDate: obj.orderDate.substring(0, 10),
-			totalCart: obj.cart.reduce((total: any, item: any) => total + item.price, 0)
+			orderDate: obj.orderDate.substring(0, 10), 
+			totalCart: obj.totalValue ?? obj.cart.reduce((total: any, item: any) => total + item.price, 0)
 		}));
 
 		const courseRes = await courseFetch;

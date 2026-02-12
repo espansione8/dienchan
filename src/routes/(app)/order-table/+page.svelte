@@ -126,6 +126,33 @@
 			return flatOrder;
 		});
 
+		const getEffectivePrice = (item: { price: number; promoPrice?: number; promoStatus?: string; promoEndDate?: string | null }): number => {
+			if (item.promoStatus === 'enabled' && item.promoPrice && item.promoPrice > 0) {
+				// Se c'è una data di scadenza, verifica che non sia passata
+				if (item.promoEndDate) {
+					const now = new Date();
+					const endDate = new Date(item.promoEndDate);
+					if (endDate > now) {
+						return item.promoPrice;
+					}
+					return item.price; // Scaduta
+				}
+				// Nessuna scadenza: promo sempre attiva
+				return item.promoPrice;
+			}
+			return item.price;
+		};
+
+		const isPromoActive = (item: { promoStatus?: string; promoPrice?: number; promoEndDate?: string | null }): boolean => {
+			if (item.promoStatus !== 'enabled' || !item.promoPrice || item.promoPrice <= 0) {
+				return false;
+			}
+			if (item.promoEndDate) {
+				return new Date(item.promoEndDate) > new Date();
+			}
+			return true;
+		};
+
 		//CSV UNPARSE
 		const csv = Papa.unparse(dataToExport, {
 			quotes: false, //or array of booleans
@@ -150,6 +177,33 @@
 		// Release the URL object
 		document.body.removeChild(link);
 		URL.revokeObjectURL(link.href);
+	};
+
+	const getEffectivePrice = (item: { price: number; promoPrice?: number; promoStatus?: string; promoEndDate?: string | null }): number => {
+		if (item.promoStatus === 'enabled' && item.promoPrice && item.promoPrice > 0) {
+			// Se c'è una data di scadenza, verifica che non sia passata
+			if (item.promoEndDate) {
+				const now = new Date();
+				const endDate = new Date(item.promoEndDate);
+				if (endDate > now) {
+					return item.promoPrice;
+				}
+				return item.price; // Scaduta
+			}
+			// Nessuna scadenza: promo sempre attiva
+			return item.promoPrice;
+		}
+		return item.price;
+	};
+
+	const isPromoActive = (item: { promoStatus?: string; promoPrice?: number; promoEndDate?: string | null }): boolean => {
+		if (item.promoStatus !== 'enabled' || !item.promoPrice || item.promoPrice <= 0) {
+			return false;
+		}
+		if (item.promoEndDate) {
+			return new Date(item.promoEndDate) > new Date();
+		}
+		return true;
 	};
 
 	const createPDFReceipt = (order: Order) => {
@@ -185,7 +239,7 @@
 
 			if (item.type === 'course' || item.type === 'event') {
 				description = item.layoutView?.title || item.title || 'N/A';
-				unitPrice = item.layoutView?.price || item.price || 0;
+				unitPrice = getEffectivePrice(item) || item.layoutView?.price || 0;
 				total = unitPrice;
 			} else if (item.type === 'membership') {
 				description = item.title || 'N/A';
@@ -194,7 +248,7 @@
 			} else {
 				description = item.title || 'N/A';
 				quantity = item.orderQuantity || 1;
-				unitPrice = item.price || 0;
+				unitPrice = getEffectivePrice(item);
 				total = unitPrice * quantity;
 			}
 
@@ -1177,7 +1231,7 @@
 								</p>
 								{#if orderDetail.type === 'product'}
 									<p class="text-center text-sm font-semibold">
-										{item.type === 'course' ? item.layoutView.price : item.price}€
+										{item.type === 'course' ? (isPromoActive(item) ? item.promoPrice : item.layoutView.price) : getEffectivePrice(item)}€
 									</p>
 
 									<p class="text-center text-sm font-semibold">

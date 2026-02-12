@@ -260,12 +260,27 @@ export const actions: Actions = {
 		// Calculate total cart on server anche for security
 		const cartRecalculated = () => {
 			let total = 0;
-			//total += 9 //delivery fee
 			cartItem.forEach((element: any) => {
 				if (element.type == 'course') {
 					total += element.layoutView.price * (element.orderQuantity || 1);
 				} else {
-					total += element.price * (element.orderQuantity || 1);
+					// Usa il prezzo promo se attivo e non scaduto
+					let effectivePrice = element.price;
+					if (
+						element.promoStatus === 'enabled' &&
+						element.promoPrice &&
+						element.promoPrice > 0
+					) {
+						if (element.promoEndDate) {
+							const endDate = new Date(element.promoEndDate);
+							if (endDate > new Date()) {
+								effectivePrice = element.promoPrice;
+							}
+						} else {
+							effectivePrice = element.promoPrice;
+						}
+					}
+					total += effectivePrice * (element.orderQuantity || 1);
 				}
 			});
 			return total;

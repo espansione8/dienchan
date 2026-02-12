@@ -206,6 +206,18 @@
 	// 	});
 	// });
 
+	 
+
+	const isPromoActive = (item: { promoStatus?: string; promoPrice?: number; promoEndDate?: string | null }): boolean => {
+		if (item.promoStatus !== 'enabled' || !item.promoPrice || item.promoPrice <= 0) {
+			return false;
+		}
+		if (item.promoEndDate) {
+			return new Date(item.promoEndDate) > new Date();
+		}
+		return true;
+	};
+
 	const formSubmit = () => {
 		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
@@ -538,11 +550,23 @@ border-base-200 hover:shadow-xl transition-shadow duration-300 flex flex-col w-f
 							<a href="/product-detail/{productData.prodId}">
 								<div class="absolute -top-1 -right-1 z-10 opacity-70">
 									<div class="relative">
-										<div class="bg-gradient-to-r from-primary to-primary/80 text-primary-content px-4 py-2 rounded-bl-lg rounded-tr-lg shadow-md">
-											<span class="text-xs font-semibold">PREZZO</span>
-											<div class="flex items-baseline">
-												<span class="text-2xl font-bold">€ {productData.price.toFixed(2)}</span>
-											</div>
+										<div
+											class="bg-gradient-to-r {isPromoActive(productData)
+												? 'from-amber-500 to-orange-500'
+												: 'from-primary to-primary/80'} text-primary-content px-4 py-2 rounded-bl-lg rounded-tr-lg shadow-md"
+										>
+											{#if isPromoActive(productData)}
+												<span class="text-xs font-semibold">PROMO</span>
+												<div class="flex items-baseline gap-2">
+													<span class="text-2xl font-bold">€ {productData.promoPrice.toFixed(2)}</span>
+													<span class="text-sm line-through opacity-70">€ {productData.price.toFixed(2)}</span>
+												</div>
+											{:else}
+												<span class="text-xs font-semibold">PREZZO</span>
+												<div class="flex items-baseline">
+													<span class="text-2xl font-bold">€ {productData.price.toFixed(2)}</span>
+												</div>
+											{/if}
 										</div>
 										<div
 											class="absolute top-0 right-0 w-0 h-0 border-t-8 border-t-primary/80 border-r-8 border-r-transparent transform translate-x-full"
