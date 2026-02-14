@@ -195,14 +195,11 @@ export const POST: RequestHandler = async ({ request }) => {
 			}
 		}
 
-		// PARTE 3: Fai scadere le assicurazioni (metti false insurance.status)
-
-		// Verifica se oggi è il 15 gennaio
+		// set false insurance.status
 		const isJanuary15 = now.getMonth() === 0 && now.getDate() === 15;
 
 		if (isJanuary15) {
 			try {
-				// Disattiva TUTTE le assicurazioni (tutti gli utenti)
 				await fetch(`${BASE_URL}/api/mongo/update`, {
 					method: 'POST',
 					body: JSON.stringify({

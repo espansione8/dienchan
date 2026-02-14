@@ -977,8 +977,7 @@ export const actions: Actions = {
 		const userId = formData.get('userId');
 		const trainingDate = formData.get('trainingDate');
 		const trainingFileName = formData.get('trainingFileName');
-
-	const trainingDescription = formData.get('trainingDescription');
+		const trainingDescription = formData.get('trainingDescription');
 		const approved = formData.get('approved') === 'true';
 
 
@@ -1065,6 +1064,7 @@ export const actions: Actions = {
 		const userId = formData.get('userId');
 		const fileName = formData.get('fileName');
 		const trainingDate = formData.get('trainingDate');
+		const trainingDescription = formData.get('trainingDescription');
 
 		if (!userId || !fileName) {
 			return fail(400, { action: 'delTraining', success: false, message: 'Dati mancanti' });
@@ -1082,7 +1082,8 @@ export const actions: Actions = {
 							trainingHistory: {
 								fileName,
 								...(trainingDate && { date: trainingDate }), // 🆕 Usa date se disponibile
-								fileUrl: `/uploads/user/${userId}/${fileName}`
+								fileUrl: `/uploads/user/${userId}/${fileName}`,
+								description: trainingDescription
 							}
 						}
 					},
@@ -1116,7 +1117,13 @@ export const actions: Actions = {
 				return fail(400, { action: 'delTraining', success: false, message: await responseDelete.text() });
 			}
 
-			return { action: 'delTraining', success: true, message: response.message };
+			return {
+				action: 'delTraining',
+				success: true, message:
+					response.message,
+				payload: ['ok'],
+				approved: true
+			};
 
 		} catch (error) {
 			console.error('Error delTraining:', error);

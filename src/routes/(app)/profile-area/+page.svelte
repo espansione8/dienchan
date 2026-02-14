@@ -4,6 +4,7 @@
 	import { quintOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
+	import { tick } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { notification } from '$lib/stores/notifications';
@@ -132,6 +133,7 @@
 	let trainingDescription = $state('');
 	let trainingHours = $state<number>(0);
 	let setTrainingFile = $state<File | null>(null);
+	let fileInputRef = $state<HTMLInputElement | null>(null);
 
 	const formatoreLevels = new Set(['formatore base', 'master', 'formatore avanzato']);
 	//const isFormatore = level ? formatoreLevels.has(level.toLowerCase()) : false;
@@ -916,10 +918,18 @@
 			//return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
 			await invalidateAll();
 			if (result.type === 'success' && result.data) {
-				const { message } = result.data; // { action, success, message, payload }
+				const { message, action } = result.data; // { action, success, message, payload }
+				if (action == 'delTraining') {
+					await invalidateAll();
+					await tick();
+					//tableList = getTable;
+				}
 				notification.info(message);
 				onCloseModal();
 				resetFields();
+				if (fileInputRef) {
+					fileInputRef.value = '';
+				}
 			}
 			if (result.type === 'failure') {
 				notification.error(result.data.message);
@@ -2132,6 +2142,7 @@
 									</span>
 								</label>
 								<input
+									bind:this={fileInputRef}
 									type="file"
 									id="trainingFile"
 									name="fileUpload"
@@ -2176,7 +2187,7 @@
 									</thead>
 									<tbody>
 										<!-- {#each userData?.trainingHistory as entry (entry.date)} -->
-										{#each [...(userData?.trainingHistory || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) as entry (entry.date)}
+										{#each [...(userData?.trainingHistory || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) as entry (`${entry.date}-${entry.description}-${entry.fileName}`)}
 											<tr class="hover" in:receive={{ key: entry.date }} out:send={{ key: entry.date }} animate:flip={{ duration: 300 }}>
 												<td>{formatDate(entry.date)}</td>
 												<!-- <td>{new Date(entry.date).toLocaleDateString()}</td> -->
@@ -2211,6 +2222,7 @@
 														<input type="hidden" name="userId" value={userData.userId} />
 														<input type="hidden" name="fileName" value={entry.fileName} />
 														<input type="hidden" name="trainingDate" value={entry.date} />
+														<input type="hidden" name="trainingDescription" value={entry.description || ''} />
 														<button class="btn btn-ghost btn-circle text-error btn-sm" type="submit" aria-label="Delete training entry">
 															<Trash2 size="18" />
 														</button>

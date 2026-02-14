@@ -33,13 +33,13 @@
 	const testimonials = [
 		{
 			name: 'Stefania Sica',
-			image: '/images/michael-dam-mEZ3PoFGs_k-unsplash.jpg',
+			image: '/images/avatar.png',
 			review:
 				'Un metodo estremamente valido ed efficace anche per autotrattarsi. Ho seguito i corsi tenuti da Duyen, docente preparatissima e persona eccezionale! Consigliato vivamente!'
 		},
 		{
 			name: 'Federico C',
-			image: '/images/michael-dam-mEZ3PoFGs_k-unsplash.jpg',
+			image: '/images/avatar.png',
 			review:
 				"Per chi fa i corsi della durata di qualche giorno è possibile dormire direttamente sul posto grazie a letti a muro. È presente in bagno e una cucina per poter fare le proprie cose e fare colazione/cucinare all'occorrenza."
 		},
@@ -926,7 +926,7 @@
 						<Image
 							layout="constrained"
 							aspectRatio={1}
-							src={testimonial.image || '/placeholder.svg'}
+							src={testimonial.image || '/placeholder.jpg'}
 							alt={testimonial.name}
 							class="w-12 h-12 rounded-full object-cover mr-4"
 						/>
@@ -989,15 +989,15 @@
 			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
 				<h3 class="font-semibold text-lg text-blue-900 mb-3">Come divento socio?</h3>
 				<p class="text-blue-800">
-					In questa pagina "Quote associative" è possibile iscriversi come socio ordinario premendo il pulsante "Associati" per 25 euro all\'anno
+					In questa pagina "Quote associative" è possibile iscriversi come socio ordinario premendo il pulsante "Associati" per 25 euro all'anno
 					oppure come socio vitalizio premendo il pulsante "Associati a vita" per un singolo pagamento di 390€.
 				</p>
 			</div>
 
 			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
-				<h3 class="font-semibold text-lg text-blue-900 mb-3">Cosa succede se come socio ordinario non rinnovo l\'iscrizione in tempo?</h3>
+				<h3 class="font-semibold text-lg text-blue-900 mb-3">Cosa succede se come socio ordinario non rinnovo l'iscrizione in tempo?</h3>
 				<p class="text-blue-800">
-					Se l\'iscrizione a socio ordinario non viene rinnovato entro un anno dalla prima associazione o dall\'ultimo rinnovo i privilegi da socio
+					Se l'iscrizione a socio ordinario non viene rinnovato entro un anno dalla prima associazione o dall'ultimo rinnovo i privilegi da socio
 					decadono.
 				</p>
 			</div>
@@ -1005,9 +1005,9 @@
 			<div class="bg-blue-50 rounded-xl p-6 shadow-md transition-all hover:shadow-lg">
 				<h3 class="font-semibold text-lg text-blue-900 mb-3">Quali sono le differenze tra un socio ordinario e un socio vitalizio?</h3>
 				<p class="text-blue-800">
-					Il socio ordinario e il socio vitalizio godono degli stessi privilegi e accessi. L\'unica differenza risiede nel pagamento. Al socio
-					ordinario sarà richiesto di rinnovare manualmente l\'abbonamento di 25 euro ogni anno, con il rischio di perdita dei privilegi in caso di
-					mancato rinnovo. Al contrario al socio vitalizio sarà necessario pagare solamente una volta l\'acconto di 390 euro per rimanere associato a
+					Il socio ordinario e il socio vitalizio godono degli stessi privilegi e accessi. L'unica differenza risiede nel pagamento. Al socio
+					ordinario sarà richiesto di rinnovare manualmente l'abbonamento di 25 euro ogni anno, con il rischio di perdita dei privilegi in caso di
+					mancato rinnovo. Al contrario al socio vitalizio sarà necessario pagare solamente una volta l'acconto di 390 euro per rimanere associato a
 					vita, senza alcun bisogno di rinnovamento.
 				</p>
 			</div>

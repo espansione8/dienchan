@@ -382,9 +382,10 @@
 							tableList = getTable;
 						}
 						onCloseModal();
-					} else if (action === 'approveTraining') {
+					} else if (action === 'approveTraining' || action === 'delTraining') {
+						//alert(action);
 						shouldResetFields = false;
-						await invalidateAll(); // Ricarica tutti i dati
+						await invalidateAll();
 						await tick();
 						tableList = getTable;
 						pendingList = pendingApprovalsList;
@@ -401,7 +402,7 @@
 							pendingApprovalsCount += 1;
 						}
 
-						if (trainingHistory.length === 0) {
+						if (trainingHistory.length === 0 && action === 'approveTraining') {
 							onCloseModal();
 						}
 					} else {
@@ -1565,6 +1566,7 @@
 										<input type="hidden" name="userId" value={userId} />
 										<input type="hidden" name="fileName" value={training.fileName} />
 										<input type="hidden" name="trainingDate" value={training.date} />
+										<input type="hidden" name="trainingDescription" value={training.description || ''} />
 
 										<button type="submit" class="btn btn-xs btn-error" aria-label="Elimina training">
 											<Trash2 size={16} />

@@ -489,66 +489,68 @@ export const actions: Actions = {
 	},
 
 	delTraining: async ({ request, fetch }) => {
-    const formData = await request.formData();
-    const userId = formData.get('userId');
-    const fileName = formData.get('fileName');
-    const trainingDate = formData.get('trainingDate'); 
+		const formData = await request.formData();
+		const userId = formData.get('userId');
+		const fileName = formData.get('fileName');
+		const trainingDate = formData.get('trainingDate');
+		const trainingDescription = formData.get('trainingDescription');
 
-    if (!userId || !fileName) {
-        return fail(400, { action: 'delTraining', success: false, message: 'Dati mancanti' });
-    }
+		if (!userId || !fileName) {
+			return fail(400, { action: 'delTraining', success: false, message: 'Dati mancanti' });
+		}
 
-    try {
-        const res = await fetch(`${BASE_URL}/api/mongo/update`, {
-            method: 'POST',
-            body: JSON.stringify({
-                apiKey: APIKEY,
-                schema: 'user',
-                query: { userId },
-                update: {
-                    $pull: {
-                        trainingHistory: {
-                            fileName,
-                            ...(trainingDate && { date: trainingDate }), // 🆕 Usa date se disponibile
-                            fileUrl: `/uploads/user/${userId}/${fileName}`
-                        }
-                    }
-                },
-                options: { upsert: false },
-                multi: false
-            }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!res.ok) {
-            return fail(400, { action: 'delTraining', success: false, message: await res.text() });
-        }
-        
-        const response = await res.json();
+		try {
+			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user',
+					query: { userId },
+					update: {
+						$pull: {
+							trainingHistory: {
+								description: trainingDescription,
+								fileName,
+								...(trainingDate && { date: trainingDate }), // 🆕 Usa date se disponibile
+								fileUrl: `/uploads/user/${userId}/${fileName}`
+							}
+						}
+					},
+					options: { upsert: false },
+					multi: false
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
 
-        // Elimina il file fisico
-        const responseDelete = await fetch(`${BASE_URL}/api/uploads/files`, {
-            method: 'DELETE',
-            body: JSON.stringify({
-                dir: `user/${userId}`,
-                fileName
-            }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!responseDelete.ok) {
-            return fail(400, { action: 'delTraining', success: false, message: await responseDelete.text() });
-        }
+			if (!res.ok) {
+				return fail(400, { action: 'delTraining', success: false, message: await res.text() });
+			}
 
-        return { action: 'delTraining', success: true, message: response.message };
+			const response = await res.json();
 
-    } catch (error) {
-        console.error('Error delTraining:', error);
-        return fail(400, { action: 'delTraining', success: false, message: 'Errore rimozione' });
-    }
-}
+			// Elimina il file fisico
+			const responseDelete = await fetch(`${BASE_URL}/api/uploads/files`, {
+				method: 'DELETE',
+				body: JSON.stringify({
+					dir: `user/${userId}`,
+					fileName
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (!responseDelete.ok) {
+				return fail(400, { action: 'delTraining', success: false, message: await responseDelete.text() });
+			}
+
+			return { action: 'delTraining', success: true, message: response.message };
+
+		} catch (error) {
+			console.error('Error delTraining:', error);
+			return fail(400, { action: 'delTraining', success: false, message: 'Errore rimozione' });
+		}
+	}
 } satisfies Actions;
