@@ -1,15 +1,19 @@
 import type { PageServerLoad, Actions } from './$types';
 import type { CartItem, DiscountItem } from '$lib/types';
 import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK } from '$env/static/private';
-//import { env } from '$env/dynamic/private';
+import { env } from '$env/dynamic/private';
 import { error, fail } from '@sveltejs/kit';
 import { hash } from '$lib/tools/hash';
 import { customAlphabet } from 'nanoid';
 import Stripe from 'stripe';
-const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9);
+const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12);
 const stripe = new Stripe(STRIPE_KEY_BACK, {
 	apiVersion: '2025-12-15.clover' // Use a stable API version https://docs.stripe.com/api/versioning
 });
+
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { now } from 'mongoose';
 
 export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 	//console.log('stripe:', STRIPE_KEY_FRONT);
@@ -882,13 +886,39 @@ export const actions: Actions = {
 						});
 					}
 				}
+				// order response OK
+				// webhook markettari
+				try {
+					const filePath = resolve("/uploads/webhook.json");
+					const fileContent = readFileSync(filePath, 'utf-8');
+					const webhook = JSON.parse(fileContent);
+					//console.log('webhook.url', webhook.url);
+					await fetch(`https://${webhook.url}/?`, {
+						method: 'POST',
+						body: JSON.stringify({
+							orderId,
+							cart,
+							date: new Date(),
+							totalValue,
+							statusPayment: newDoc.payment.statusPayment,
+							userId: currentUserId,
+							user: newDoc.invoicing
+						}),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					});
+				} catch (webhookError) {
+					console.error('Webhook call failed:', webhookError);
+				}
 			} else {
 				return fail(400, { action: 'new', success: false, message: `Errore ordine` });
 			}
 
 			// if (env.WEBHOOK) {
+			// 	console.log('Calling webhook...', env.WEBHOOK);
 			// 	try {
-			// 		await fetch(`https://${env.WEBHOOK}/?att`);
+			// 		await fetch(`https://${env.WEBHOOK}/?`);
 			// 	} catch (webhookError) {
 			// 		console.error('Webhook call failed:', webhookError);
 			// 	}
