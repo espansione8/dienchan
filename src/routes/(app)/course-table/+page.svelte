@@ -752,7 +752,7 @@
 			}
 		if (type == 'province') {
 			if (county != '') {
-				if (!provinceArray.includes(item)) {
+				if (!provinceArray.includes(item) && provinceArray.length === 0) {
 					provinceArray.push(item);
 					county = '';
 				} else {

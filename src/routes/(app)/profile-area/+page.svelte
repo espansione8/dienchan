@@ -78,7 +78,7 @@
 
 	let loading = $state(false);
 
-	let provinceFilterate = $province.filter((p) => p.title !== 'Online');
+	//let provinceFilterate = $province.filter((p) => p.title !== 'Online');
 
 	// modal
 	let currentModal = $state('');
@@ -579,7 +579,7 @@
 	const addItem = (item: any, type: string) => {
 		if (type == 'county') {
 			if (county != '') {
-				if (!countyArray.includes(item)) {
+				if (!countyArray.includes(item) && countyArray.length === 0) {
 					countyArray.push(item);
 					county = '';
 				} else {
