@@ -888,6 +888,7 @@ export const actions: Actions = {
 				// webhook markettari
 				try {
 					const filePath = resolve("/uploads/webhook.json");
+					// const filePath = resolve("D:/github/dienchan/uploads/webhook.json");
 					const fileContent = readFileSync(filePath, 'utf-8');
 					const webhook = JSON.parse(fileContent);
 					//console.log('webhook.url', webhook.url);
