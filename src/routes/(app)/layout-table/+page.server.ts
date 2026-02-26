@@ -88,6 +88,9 @@ export const actions: Actions = {
 		const price = formData.get('price') || '';
 		const bundle = formData.get('bundleProducts');
 		const isEvent = formData.get('isEvent') === "on" ? true : false;
+		const promoPrice = formData.get('promoPrice') || 0;
+		const promoEndDate = formData.get('promoEndDate') || null;
+		const promoStatus = formData.get('promoStatus') || 'disabled';
 		let bundleProducts: any[] = [];
 		try {
 			bundleProducts = bundle ? JSON.parse(String(bundle)) : [];
@@ -111,7 +114,9 @@ export const actions: Actions = {
 					title,
 					descr,
 					price,
-					bundleProducts
+					bundleProducts,
+					promoPrice: Number(promoPrice),
+					promoEndDate: promoEndDate ? new Date(promoEndDate as string) : null,
 				},
 				returnObj: false
 			}),
@@ -145,6 +150,9 @@ export const actions: Actions = {
 		const price = formData.get('price') || '';
 		const bundle = formData.get('bundleProducts');
 		const bundleProducts = JSON.parse(String(bundle)) || [];
+		const promoPrice = formData.get('promoPrice') || 0;
+		const promoEndDate = formData.get('promoEndDate') || null;
+		const promoStatus = formData.get('promoStatus') || 'disabled';
 		//const bundleProducts = arryProducts.map(item => String(item.prodId));
 		// console.log('bundleProducts', bundleProducts);
 		// return fail(400, { action: 'modify', success: false, message: 'bundleProducts' });
@@ -164,7 +172,10 @@ export const actions: Actions = {
 						title,
 						descr,
 						price: Number(price),
-						bundleProducts
+						bundleProducts,
+						promoPrice: Number(promoPrice),
+						promoEndDate: promoEndDate ? new Date(promoEndDate as string) : null,
+						promoStatus
 					}
 				},
 				options: { upsert: false },
@@ -350,6 +361,44 @@ export const actions: Actions = {
 			return fail(400, { action: 'changeStatus', success: false, message: 'Error layout changeStatus' });
 		}
 	},
+
+	changePromoStatus: async ({ request, fetch }) => {
+    const formData = await request.formData();
+    const layoutId = formData.get('layoutId');
+    const promoStatus = formData.get('promoStatus');
+    const newPromoStatus = promoStatus === 'enabled' ? 'disabled' : 'enabled';
+
+    if (!layoutId || !promoStatus) {
+        return fail(400, { action: 'changePromoStatus', success: false, message: 'Dati mancanti' });
+    }
+
+    const resFetch = fetch(`${BASE_URL}/api/mongo/update`, {
+        method: 'POST',
+        body: JSON.stringify({
+            apiKey: APIKEY,
+            schema: 'layout',
+            query: { layoutId: layoutId },
+            update: { $set: { promoStatus: newPromoStatus } },
+            options: { upsert: false },
+            multi: false
+        }),
+        headers: { 'Content-Type': 'application/json' }
+    });
+
+    try {
+        const res = await resFetch;
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error('changePromoStatus layout failed', res.status, errorText);
+            return fail(400, { action: 'changePromoStatus', success: false, message: errorText });
+        }
+        const result = await res.json();
+        return { action: 'changePromoStatus', success: true, message: result.message };
+    } catch (error) {
+        console.error('Error changePromoStatus:', error);
+        return fail(400, { action: 'changePromoStatus', success: false, message: 'Error layout changePromoStatus' });
+    }
+},
 
 	setProdPic: async ({ request, fetch }) => {
 		const formData = await request.formData();

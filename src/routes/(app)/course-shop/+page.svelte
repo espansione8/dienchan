@@ -576,7 +576,12 @@
 										<span class="text-xs font-semibold">PREZZO</span>
 										<div class="flex items-baseline">
 											{#if courseData.type === 'course'}
-												<span class="text-2xl font-bold">€ {courseData.layoutView?.price || 'N/A'} </span>
+												{#if courseData.layoutView?.promoStatus === 'enabled' && courseData.layoutView?.promoPrice > 0 && (!courseData.layoutView?.promoEndDate || new Date(courseData.layoutView.promoEndDate) >= new Date())}
+													<span class="text-sm line-through opacity-60">€ {courseData.layoutView?.price || 'N/A'}</span>
+													<span class="text-2xl font-bold text-amber-400">€ {courseData.layoutView?.promoPrice}</span>
+												{:else}
+													<span class="text-2xl font-bold">€ {courseData.layoutView?.price || 'N/A'}</span>
+												{/if}
 											{:else if courseData.type === 'event'}
 												<span class="text-2xl font-bold">€ 0 </span>
 											{/if}

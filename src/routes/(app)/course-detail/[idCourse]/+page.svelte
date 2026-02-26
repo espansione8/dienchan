@@ -31,6 +31,21 @@
 	const { getCourse, formatoreData, auth, userData, bundleProducts, stripePublishableKey } = data;
 	//console.log('bundleProducts', bundleProducts);
 
+	// calcolo il prezzo effettivo
+	const getEffectivePrice = (layoutView: any): number => {
+		if (!layoutView) return 0;
+		const isPromoActive =
+			layoutView.promoStatus === 'enabled' &&
+			layoutView.promoPrice > 0 &&
+			(!layoutView.promoEndDate || new Date(layoutView.promoEndDate) >= new Date());
+		return isPromoActive ? layoutView.promoPrice : layoutView.price;
+	};
+	const effectivePrice = getEffectivePrice(getCourse.layoutView);
+	const isPromoActive =
+		getCourse.layoutView?.promoStatus === 'enabled' &&
+		getCourse.layoutView?.promoPrice > 0 &&
+		(!getCourse.layoutView?.promoEndDate || new Date(getCourse.layoutView.promoEndDate) >= new Date());
+
 	// Stripe state
 	let stripe: Stripe | null = $state(null);
 	let elements: StripeElements | null = $state(null);
@@ -56,7 +71,7 @@
 		let total = 0;
 		cart.forEach((element: any) => {
 			if (element.type == 'course') {
-				total += element.layoutView.price * (element.orderQuantity || 1);
+				total += getEffectivePrice(element.layoutView) * (element.orderQuantity || 1);
 			} else {
 				total += element.price * (element.orderQuantity || 1);
 			}
@@ -636,8 +651,13 @@
 									<div class="relative">
 										<div class="bg-gradient-to-r from-primary to-primary/80 text-primary-content px-4 py-2 rounded-bl-lg rounded-tr-lg shadow-md">
 											<span class="text-xs font-semibold">PREZZO</span>
-											<div class="flex items-baseline">
-												<span class="text-2xl font-bold">€ {getCourse.layoutView.price}</span>
+											<div class="flex items-baseline gap-2">
+												{#if isPromoActive}
+													<span class="text-sm line-through opacity-60">€ {getCourse.layoutView.price?.toFixed(2)}</span>
+													<span class="text-2xl font-bold text-amber-300">€ {effectivePrice?.toFixed(2)}</span>
+												{:else}
+													<span class="text-2xl font-bold">€ {getCourse.layoutView.price?.toFixed(2)}</span>
+												{/if}
 											</div>
 										</div>
 										<div
@@ -885,7 +905,12 @@
 									<div>
 										<p class="text-sm text-gray-500">Prezzo</p>
 										<p class="font-medium text-xl text-blue-900">
-											{getCourse.layoutView.price.toFixed(2)} €
+											{#if isPromoActive}
+												<span class="line-through text-gray-400 text-base mr-2">{getCourse.layoutView.price.toFixed(2)} €</span>
+												<span class="text-amber-600">{effectivePrice.toFixed(2)} €</span>
+											{:else}
+												{getCourse.layoutView.price.toFixed(2)} €
+											{/if}
 										</p>
 									</div>
 									{#if discountList.length > 0}
@@ -957,7 +982,7 @@
 {/if}
 
 {#if currentModal == 'new'}
-	<Modal isOpen={openModal} header={modalTitle} cssClass={'bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[100vh] h-full overflow-y-auto'}>
+	<Modal isOpen={openModal} header={modalTitle} cssClass={'bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[100vh] h-ful overflow-y-auto'}>
 		<button class="btn btn-sm btn-circle absolute right-2 top-2 text-base-content" onclick={onCloseModal}>✕</button>
 		{#if loading}
 			<Loader />
@@ -1388,7 +1413,14 @@
 
 						<div class="flex justify-between items-center py-2 border-b border-base-300">
 							<span class="text-base-content/80 font-medium">{getCourse.layoutView.title || 'Corso'}</span>
-							<span class="font-semibold">{getCourse.layoutView.price.toFixed(2)} €</span>
+							<span class="font-semibold">
+								{#if isPromoActive}
+									<span class="line-through text-gray-400 text-sm mr-2">{getCourse.layoutView.price.toFixed(2)} €</span>
+									<span class="text-amber-600">{effectivePrice.toFixed(2)} €</span>
+								{:else}
+									{getCourse.layoutView.price.toFixed(2)} €
+								{/if}
+							</span>
 						</div>
 
 						{#if !auth && getCourse.type === 'course'}

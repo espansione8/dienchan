@@ -14,6 +14,13 @@ const LayoutSchema = new Schema(
         urlPic: { type: String, default: null },
         bgColor: { type: String, default: null },
         price: { type: Number, default: 0 },
+        promoPrice: { type: Number, default: 0 },
+        promoEndDate: { type: Date, default: null },
+        promoStatus: {
+            type: String,
+            enum: ['enabled', 'disabled'],
+            default: 'disabled'
+        },
 
         bundleProducts: [],
 

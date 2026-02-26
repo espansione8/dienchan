@@ -43,6 +43,9 @@
 	let modalTitle = $state('');
 	let deleteId = $state('');
 	let loading = $state(false);
+	let promoPrice = $state(0);
+	let promoEndDate = $state('');
+	let promoStatus = $state('disabled');
 
 	const getFileNameFromPath = (filePath: string): string => filePath.split('/').pop() || '';
 
@@ -80,6 +83,9 @@
 		status = '';
 		price = 0;
 		bundleProducts = [];
+		promoPrice = 0;
+		promoEndDate = '';
+		promoStatus = 'disabled';
 	};
 
 	const refresh = () => {
@@ -163,6 +169,9 @@
 			price = item.price;
 			isEvent = item.isEvent;
 			bundleProducts = item.bundleProducts || [];
+			promoPrice = item.promoPrice || 0;
+			promoEndDate = item.promoEndDate ? item.promoEndDate.substring(0, 10) : '';
+			promoStatus = item.promoStatus || 'disabled';
 			//console.log('bundleProducts', bundleProducts);
 		}
 		if (type == 'delete') {
@@ -265,6 +274,7 @@
 					<th>Descrizione</th>
 					<!-- <th>Colore tema</th> -->
 					<th>Prezzo</th>
+					<th>Promo</th>
 					<th>Azione</th>
 				</tr>
 			</thead>
@@ -337,6 +347,38 @@
 						<!-- <td>{row.bgColor}</td> -->
 						<!-- Prezzo -->
 						<td>{row.price}</td>
+
+						<td>
+							<div class="flex flex-col gap-1">
+								{#if row.promoPrice > 0}
+									<form method="POST" action="?/changePromoStatus" use:enhance={formSubmit}>
+										<input type="hidden" name="layoutId" value={row.layoutId} />
+										<input type="hidden" name="promoStatus" value={row.promoStatus || 'disabled'} />
+										<span class="flex items-center gap-1">
+											{#if row.promoStatus === 'enabled'}
+												<button type="submit" class="btn btn-ghost btn-xs">
+													<ToggleRight color="darkgreen" />
+												</button>
+												<span class="text-success font-bold text-sm">€ {row.promoPrice}</span>
+											{:else}
+												<button type="submit" class="btn btn-ghost btn-xs">
+													<ToggleLeft color="gray" />
+												</button>
+												<span class="text-gray-400 text-sm">€ {row.promoPrice}</span>
+											{/if}
+										</span>
+									</form>
+									{#if row.promoEndDate}
+										<span class="text-xs text-gray-500">
+											Scade: {new Date(row.promoEndDate).toLocaleDateString('it-IT')}
+										</span>
+									{/if}
+								{:else}
+									<span class="text-gray-400">—</span>
+								{/if}
+							</div>
+						</td>
+
 						<!-- Azione -->
 						<td class="flex items-center space-x-4">
 							<button
@@ -452,6 +494,46 @@
 					<p class="font-bold text-sm mb-2">Evento Gratuito</p>
 					<input type="checkbox" id="isEvent" name="isEvent" class="checkbox" checked={isEvent} />
 				</label>
+			</section>
+
+			<section class="col-span-6 md:col-span-2">
+				<label for="promoPrice" class="form-label">
+					<p class="font-bold mb-2">Prezzo Promo</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-amber-300 px-3"><Calculator /></button>
+					<input
+						class="input input-bordered join-item w-full"
+						id="promoPrice"
+						name="promoPrice"
+						type="number"
+						placeholder="Prezzo promo €"
+						bind:value={promoPrice}
+						min="0"
+						step="0.01"
+					/>
+				</div>
+			</section>
+			<section class="col-span-6 md:col-span-2">
+				<label for="promoEndDate" class="form-label">
+					<p class="font-bold mb-2">Scadenza Promo</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-amber-300 px-3"><Calculator /></button>
+					<input class="input input-bordered join-item w-full" id="promoEndDate" name="promoEndDate" type="date" bind:value={promoEndDate} />
+				</div>
+			</section>
+			<section class="col-span-6 md:col-span-2">
+				<label for="promoStatus" class="form-label">
+					<p class="font-bold mb-2">Stato Promo</p>
+				</label>
+				<div class="join join-horizontal w-full">
+					<button class="join-item bg-amber-300 px-3"><Calculator /></button>
+					<select class="select select-bordered w-full rounded-md rounded-l-none" id="promoStatus" name="promoStatus" bind:value={promoStatus}>
+						<option value="disabled">Disattivata</option>
+						<option value="enabled">Attiva</option>
+					</select>
+				</div>
 			</section>
 
 			<!-- Action -->

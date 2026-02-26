@@ -18,6 +18,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	let expiredCount = 0;
 	let promoExpiredCount = 0;
+	let layoutPromoExpiredCount = 0;
 
 	try {
 		// ============================================
@@ -152,6 +153,75 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 		// ============================================
+		// Controlla promo price scadute sui layout corsi
+		// ============================================
+
+		try {
+			const resLayoutPromoFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'layout',
+					query: {
+						promoEndDate: {
+							$lt: startOfToday,
+							$ne: null
+						},
+						promoStatus: 'enabled'
+					},
+					projection: { _id: 0, layoutId: 1, title: 1, promoEndDate: 1 },
+					sort: { createdAt: -1 },
+					limit: 10000,
+					skip: 0
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (!resLayoutPromoFetch.ok) {
+				console.error('Expired layout promos fetch error:', resLayoutPromoFetch.status, await resLayoutPromoFetch.text());
+			} else {
+				const expiredLayoutPromos = await resLayoutPromoFetch.json();
+
+				for (const layout of expiredLayoutPromos) {
+					try {
+						const updateRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+							method: 'POST',
+							body: JSON.stringify({
+								apiKey: APIKEY,
+								schema: 'layout',
+								query: { layoutId: layout.layoutId },
+								update: {
+									$set: {
+										promoStatus: 'disabled'
+									}
+								},
+								options: { upsert: false },
+								multi: false
+							}),
+							headers: {
+								'Content-Type': 'application/json'
+							}
+						});
+
+						if (!updateRes.ok) {
+							console.error(`Failed to disable layout promo for ${layout.title || layout.layoutId}`);
+							continue;
+						}
+
+						layoutPromoExpiredCount++;
+
+					} catch (err) {
+						console.error(`Error processing expired layout promo ${layout.layoutId}:`, err);
+					}
+				}
+			}
+		} catch (err) {
+			console.error('Error in layout promo expiry check:', err);
+		}
+
+		// ============================================
 
 		return json({
 			message: 'Expiry process completed successfully',
@@ -159,7 +229,9 @@ export const POST: RequestHandler = async ({ request }) => {
 				discountCount: expiredCount,
 				discountAction: 'Discounts disabled automatically',
 				promoCount: promoExpiredCount,
-				promoAction: 'Promo prices disabled automatically'
+				promoAction: 'Promo prices disabled automatically',
+				layoutPromoCount: layoutPromoExpiredCount,
+				layoutPromoAction: 'Layout promo prices disabled automatically'
 			}
 		}, { status: 200 });
 

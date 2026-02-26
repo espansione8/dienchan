@@ -83,7 +83,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 				apiKey,
 				schema: 'layout',
 				query: {},
-				projection: { _id: 0, title: 1, urlPic: 1 },
+				projection: { _id: 0, title: 1, urlPic: 1, price: 1, promoPrice: 1, promoEndDate: 1, promoStatus: 1 },
 				sort: { title: 1 },
 				limit: 1000,
 				skip: 0

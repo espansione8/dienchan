@@ -141,7 +141,15 @@ const calculateItemDiscount = (
 				if (type === 'amount') {
 					itemDiscount = value * qty;
 				} else if (type === 'percent') {
-					const rawPrice = isProduct ? item.price : item.layoutView.price;
+					let rawPrice;
+					if (isProduct) {
+						rawPrice = item.price;
+					} else {
+						const isPromoActive = item.layoutView?.promoStatus === 'enabled'
+							&& item.layoutView?.promoPrice > 0
+							&& (!item.layoutView?.promoEndDate || new Date(item.layoutView.promoEndDate) >= new Date());
+						rawPrice = isPromoActive ? (item.layoutView?.promoPrice ?? 0) : (item.layoutView?.price ?? 0);
+					}
 					const numericPrice = Number(rawPrice);
 					if (!Number.isFinite(numericPrice)) {
 						throw new Error('Errore calcolo');

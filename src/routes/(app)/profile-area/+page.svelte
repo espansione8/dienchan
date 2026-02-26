@@ -220,9 +220,8 @@
 
 			if (item.type === 'course' || item.type === 'event') {
 				description = item.layoutView?.title || item.title || 'N/A';
-				unitPrice = getEffectivePrice(item) || item.layoutView?.price || 0;
-				total = unitPrice;
-			} else if (item.type === 'membership') {
+				unitPrice = item.layoutView ? getEffectivePrice(item.layoutView) : item.price || 0;
+				total = unitPrice;			} else if (item.type === 'membership') {
 				description = item.title || 'N/A';
 				unitPrice = item.price || 0;
 				total = unitPrice;
@@ -1996,11 +1995,11 @@
 																	<div class="text-right flex-shrink-0">
 																		<div class="font-bold text-primary">
 																			{#if item.type === 'course' || item.type === 'event'}
-																				{#if isPromoActive(item)}
-																					<span class="text-amber-600">€ {item.promoPrice.toFixed(2)}</span>
+																				{#if item.layoutView && isPromoActive(item.layoutView)}
+																					<span class="text-amber-600">€ {item.layoutView.promoPrice.toFixed(2)}</span>
 																					<span class="text-xs line-through text-gray-400 block">€ {item.layoutView.price.toFixed(2)}</span>
 																				{:else}
-																					{`€ ${item.layoutView.price.toFixed(2)}`}
+																					{`€ ${(item.layoutView?.price ?? item.price)?.toFixed(2) || '0.00'}`}
 																				{/if}
 																			{:else if item.type === 'membership'}
 																				{`€ ${item.price.toFixed(2)}`}

@@ -239,7 +239,8 @@
 
 			if (item.type === 'course' || item.type === 'event') {
 				description = item.layoutView?.title || item.title || 'N/A';
-				unitPrice = getEffectivePrice(item) || item.layoutView?.price || 0;
+			unitPrice = item.layoutView ? getEffectivePrice(item.layoutView) : item.price || 0;
+
 				total = unitPrice;
 			} else if (item.type === 'membership') {
 				description = item.title || 'N/A';
@@ -1231,7 +1232,19 @@
 								</p>
 								{#if orderDetail.type === 'product'}
 									<p class="text-center text-sm font-semibold">
-										{item.type === 'course' ? (isPromoActive(item) ? item.promoPrice : item.layoutView.price) : getEffectivePrice(item)}€
+										{#if item.type === 'course' || item.type === 'event'}
+											{#if item.layoutView && isPromoActive(item?.layoutView)}
+												<span class="text-amber-600">{item?.layoutView?.promoPrice}€</span>
+												<span class="text-xs line-through text-gray-400 block">{item.layoutView.price}€</span>
+											{:else}
+												{item.layoutView?.price || 0}€
+											{/if}
+										{:else if isPromoActive(item)}
+											<span class="text-amber-600">{getEffectivePrice(item)}€</span>
+											<span class="text-xs line-through text-gray-400 block">{item.price}€</span>
+										{:else}
+											{getEffectivePrice(item)}€
+										{/if}
 									</p>
 
 									<p class="text-center text-sm font-semibold">
