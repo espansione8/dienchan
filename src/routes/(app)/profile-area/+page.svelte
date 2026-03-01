@@ -221,7 +221,8 @@
 			if (item.type === 'course' || item.type === 'event') {
 				description = item.layoutView?.title || item.title || 'N/A';
 				unitPrice = item.layoutView ? getEffectivePrice(item.layoutView) : item.price || 0;
-				total = unitPrice;			} else if (item.type === 'membership') {
+				total = unitPrice;
+			} else if (item.type === 'membership') {
 				description = item.title || 'N/A';
 				unitPrice = item.price || 0;
 				total = unitPrice;
@@ -578,11 +579,11 @@
 	const addItem = (item: any, type: string) => {
 		if (type == 'county') {
 			if (county != '') {
-				if (!countyArray.includes(item) && countyArray.length === 0) {
+				if (!countyArray.includes(item) && countyArray.length < 4) {
 					countyArray.push(item);
 					county = '';
 				} else {
-					notification.error('Provincia già inserita');
+					notification.error('Provincia al massimo: 4');
 				}
 			} else {
 				notification.error('Provincia NON valida');

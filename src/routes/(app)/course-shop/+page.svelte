@@ -577,8 +577,10 @@
 										<div class="flex items-baseline">
 											{#if courseData.type === 'course'}
 												{#if courseData.layoutView?.promoStatus === 'enabled' && courseData.layoutView?.promoPrice > 0 && (!courseData.layoutView?.promoEndDate || new Date(courseData.layoutView.promoEndDate) >= new Date())}
-													<span class="text-sm line-through opacity-60">€ {courseData.layoutView?.price || 'N/A'}</span>
-													<span class="text-2xl font-bold text-amber-400">€ {courseData.layoutView?.promoPrice}</span>
+													<span class="text-2xl font-bold line-through decoration-3 decoration-red-500/60"
+														>{courseData.layoutView?.price || 'N/A'}
+													</span>&nbsp;
+													<span class="text-2xl font-bold text-error"> € {courseData.layoutView?.promoPrice}</span>
 												{:else}
 													<span class="text-2xl font-bold">€ {courseData.layoutView?.price || 'N/A'}</span>
 												{/if}

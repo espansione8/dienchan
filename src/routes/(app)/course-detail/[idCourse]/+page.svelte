@@ -1189,8 +1189,8 @@
 						{/if}
 					</div>
 
-					<div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-						<div class="form-control w-full md:col-span-3">
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div class="form-control w-full md:col-span-2">
 							<label for="address" class="label">
 								<span class="label-text font-medium">Indirizzo</span>
 							</label>
@@ -1206,7 +1206,7 @@
 							/>
 						</div>
 
-						<div class="form-control w-full md:col-span-2">
+						<div class="form-control w-full">
 							<label for="city" class="label">
 								<span class="label-text font-medium">Città</span>
 							</label>
@@ -1222,7 +1222,7 @@
 							/>
 						</div>
 
-						<div class="form-control w-full md:col-span-1">
+						<div class="form-control w-full">
 							<label for="postalcode" class="label">
 								<span class="label-text font-medium">CAP</span>
 							</label>
@@ -1238,11 +1238,24 @@
 							/>
 						</div>
 
-						<div class="form-control w-full md:col-span-2">
+						<div class="form-control w-full">
 							<label for="state" class="label">
 								<span class="label-text font-medium">Provincia</span>
 							</label>
-							<select
+							<select id="county" class="select select-bordered w-full" name="county" required disabled={closedInput} bind:value={formData.county}>
+								<option value="" disabled selected>Seleziona provincia</option>
+								{#each $province as provincia, i}
+									{#if provincia.title !== 'Online'}
+										<option value={provincia.title}>
+											{provincia.title} ({provincia.region})
+										</option>
+									{/if}
+								{/each}
+							</select>
+							{#if closedInput}
+								<input type="hidden" name="county" value={formData.county} />
+							{/if}
+							<!-- <select
 								id="county"
 								class="select select-bordered w-full max-h-40 h-40 overflow-y-auto"
 								size="5"
@@ -1262,14 +1275,14 @@
 							</select>
 							{#if closedInput}
 								<input type="hidden" name="county" value={formData.county} />
-							{/if}
+							{/if} -->
 						</div>
 
-						<div class="form-control w-full md:col-span-2">
+						<div class="form-control w-full">
 							<label for="country" class="label">
 								<span class="label-text font-medium">Nazione</span>
 							</label>
-							<select
+							<!-- <select
 								id="country"
 								class="select select-bordered w-full max-h-40 h-40 overflow-y-auto"
 								size="5"
@@ -1278,6 +1291,17 @@
 								disabled={closedInput}
 								bind:value={formData.country}
 							>
+								<option value="" disabled selected>Seleziona nazione</option>
+								{#each $country_list as country}
+									<option value={country}>
+										{country}
+									</option>
+								{/each}
+							</select>
+							{#if closedInput}
+								<input type="hidden" name="country" value={formData.country} />
+							{/if} -->
+							<select id="country" class="select select-bordered w-full" name="country" required disabled={closedInput} bind:value={formData.country}>
 								<option value="" disabled selected>Seleziona nazione</option>
 								{#each $country_list as country}
 									<option value={country}>

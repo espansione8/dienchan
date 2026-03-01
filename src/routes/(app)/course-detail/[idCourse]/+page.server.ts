@@ -895,26 +895,31 @@ export const actions: Actions = {
 				// order response OK
 				// webhook markettari
 				try {
-					const filePath = resolve("/uploads/webhook.json");
-					// const filePath = resolve("D:/github/dienchan/uploads/webhook.json");
-					const fileContent = readFileSync(filePath, 'utf-8');
-					const webhook = JSON.parse(fileContent);
+					// const filePath = resolve("/uploads/webhook.json");
+					////const filePath = resolve("D:/github/dienchan/uploads/webhook.json");
+					// const fileContent = readFileSync(filePath, 'utf-8');
+					// const webhook = JSON.parse(fileContent);
 					//console.log('webhook.url', webhook.url);
-					await fetch(webhook.url, {
+
+					const courseData = cart.filter((item) => item.type === 'course')[0];
+					await fetch("https://nehemias-n8n-prod.brayanjeshua.com/webhook/977bae79-413c-4a54-bf7a-199b7b435eb8", {
 						method: 'POST',
 						body: JSON.stringify({
 							orderId,
-							cart,
 							date: new Date(),
+							courseDate: courseData.eventStartDate,
+							courseName: courseData.layoutView.title,
 							totalValue,
 							statusPayment: newDoc.payment.statusPayment,
 							userId: currentUserId,
-							user: newDoc.invoicing
+							userEmail: newDoc.invoicing.email,
 						}),
 						headers: {
 							'Content-Type': 'application/json'
 						}
 					});
+					//console.log(courseData.eventStartDate, courseData.layoutView.title, newDoc.payment.statusPayment, newDoc.invoicing.email);
+
 				} catch (webhookError) {
 					console.error('Webhook call failed:', webhookError);
 				}
