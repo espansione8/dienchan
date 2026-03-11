@@ -206,8 +206,6 @@
 	// 	});
 	// });
 
-	 
-
 	const isPromoActive = (item: { promoStatus?: string; promoPrice?: number; promoEndDate?: string | null }): boolean => {
 		if (item.promoStatus !== 'enabled' || !item.promoPrice || item.promoPrice <= 0) {
 			return false;
@@ -364,7 +362,7 @@
 							</div>
 
 							<div class="grid grid-cols-1 gap-1 mt-2 pr-1 filter-scrollbar overflow-y-auto">
-								{#each Object.entries(getCategories) as [key, value]}
+								{#each Object.entries(getCategories) as [key, value] (key)}
 									{#if (key !== 'Materiale riflessologi' || user?.isRiflessologo) && key !== 'Materiale formatori'}
 										<button
 											type="submit"
@@ -541,7 +539,7 @@
 						</div>
 					</div>
 				{/if}
-				{#each prodList as productData, i}
+				{#each prodList as productData (productData.prodId)}
 					<div
 						class="card overflow-hidden bg-base-100 rounded-xl shadow-lg border
 border-base-200 hover:shadow-xl transition-shadow duration-300 flex flex-col w-full sm:w-80 h-128"
@@ -645,7 +643,7 @@ border-base-200 hover:shadow-xl transition-shadow duration-300 flex flex-col w-f
 											</div>
 										{:else}
 											<button
-												class="btn btn-primary rounded-md flex-1 rounded-md flex items-center gap-1"
+												class="btn btn-primary rounded-md flex-1 flex items-center gap-1"
 												onclick={() => addToCart($cartProducts, productData, false)}><ShoppingCart /> Aggiungi</button
 											>
 										{/if}

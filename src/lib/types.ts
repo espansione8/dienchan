@@ -162,6 +162,7 @@ export type User = {
     remoteHost: string;
     remoteBrowser: string;
     notesOnUser: string;
+    isRiflessologo: boolean;
     userCart: [];
     userWishList: [];
     documentPageArray: string[];
@@ -379,11 +380,11 @@ export interface Notification {
 
 
 export interface Video {
-	videoId: string;
-	status: 'enabled' | 'disabled';
-	title: string;
-	url: string;
-	visibility: string[];
-	createdAt: string;
-	updatedAt: string;
+    videoId: string;
+    status: 'enabled' | 'disabled';
+    title: string;
+    url: string;
+    visibility: string[];
+    createdAt: string;
+    updatedAt: string;
 }

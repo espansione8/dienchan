@@ -747,6 +747,7 @@
 						<option value="Pettini">Pettini</option>
 						<option value="Rulli">Rulli</option>
 						<option value="Vietmassage">Vietmassage</option>
+						<option value="Servizi">Servizi</option>
 						<option value="Senza Categoria">Senza Categoria</option>
 					</select>
 				</div>
@@ -990,6 +991,7 @@
 						<option value="Pettini">Pettini</option>
 						<option value="Rulli">Rulli</option>
 						<option value="Vietmassage">Vietmassage</option>
+						<option value="Servizi">Servizi</option>
 						<option value="Senza Categoria">Senza Categoria</option>
 					</select>
 				</div>
@@ -1138,6 +1140,7 @@
 					<option value="Pettini">Pettini</option>
 					<option value="Rulli">Rulli</option>
 					<option value="Vietmassage">Vietmassage</option>
+					<option value="Servizi">Servizi</option>
 					<option value="Senza Categoria">Senza Categoria</option>
 				</select>
 
