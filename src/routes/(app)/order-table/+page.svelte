@@ -239,7 +239,7 @@
 
 			if (item.type === 'course' || item.type === 'event') {
 				description = item.layoutView?.title || item.title || 'N/A';
-			unitPrice = item.layoutView ? getEffectivePrice(item.layoutView) : item.price || 0;
+				unitPrice = item.layoutView ? getEffectivePrice(item.layoutView) : item.price || 0;
 
 				total = unitPrice;
 			} else if (item.type === 'membership') {
@@ -795,7 +795,7 @@
 				</tr>
 			{/if}
 
-			{#each tableList as row}
+			{#each tableList as row (row.orderId)}
 				<tr class="hover:bg-gray-100">
 					<!-- Data -->
 					<td>{row.orderDate ? new Date(row.orderDate).toLocaleDateString('it-IT') : '-'}</td>
@@ -816,7 +816,7 @@
 							>
 								{row.type}
 							</div>
-							{#each row.cart as item}
+							{#each row.cart as item (item.prodId)}
 								{#if item.type == 'course' || item.type == 'event'}
 									<span class="font-semibold">{item.layoutView.title}: {item.prodId}</span>
 								{:else if item.type == 'membership'}
@@ -843,7 +843,7 @@
 										<input type="hidden" name="statusPayment" value="done" />
 										<input type="hidden" name="userId" value={row.userId} />
 										<input type="hidden" name="type" value={row.type} />
-										{#if row.promoterId && row.type === 'course'}
+										{#if row.promoterId}
 											<input type="hidden" name="promoterId" value={row.promoterId} />
 											<input type="hidden" name="cart" value={JSON.stringify(row.cart)} class="hidden" />
 										{/if}
@@ -866,7 +866,7 @@
 									<form method="POST" action={`?/modify`} use:enhance={formSubmit}>
 										<input type="hidden" name="orderId" value={row.orderId} />
 										<input type="hidden" name="statusPayment" value="canceled" />
-										{#if row.promoterId && row.type === 'course'}
+										{#if row.promoterId}
 											<input type="hidden" name="promoterId" value={row.promoterId} />
 											<input type="hidden" name="type" value={row.type} />
 											<input type="hidden" name="cart" value={JSON.stringify(row.cart)} class="hidden" />
@@ -910,7 +910,7 @@
 
 							{#if row.promoterId}
 								<div>
-									<span class="badge badge-info text-sm"><Handshake size={16} />: {row.promoterId}</span>
+									<span class="badge badge-info text-sm"><Handshake size={14} />{row.promoterId}</span>
 								</div>
 							{/if}
 						</div>
@@ -1205,7 +1205,7 @@
 					<button class="btn btn-success btn-sm rounded-md hover:bg-green-400" type="submit"> Modifica </button>
 				</div>
 				<div class="col-span-2 flex flex-wrap justify-center w-full gap-3 my-4">
-					{#each orderDetail?.cart as item}
+					{#each orderDetail?.cart as item (item.prodId)}
 						<div class="flex items-center w-full max-w-96 bg-indigo-100 rounded-lg shadow-md overflow-hidden">
 							<div class="w-1/3 p-3">
 								{#if item.type === 'course' || item.type === 'event'}

@@ -320,6 +320,7 @@ export const actions: Actions = {
 									pointsHistory: {
 										points: points,
 										note: `Commissione ${courseItem.layoutView.title} - Ordine ${orderId}`,
+										date: new Date()
 									}
 								}
 							},
@@ -333,7 +334,54 @@ export const actions: Actions = {
 
 					if (!userPointsFetch.ok) {
 						return fail(400, {
-							action: 'new',
+							action: 'modify',
+							success: false,
+							message: `userPointsFetch: ${await userPointsFetch.text()}`
+						});
+					}
+				}
+			}
+
+			if (statusPayment === 'done' && oldStatusPayment === 'pending' && promoterId && type === 'insurance') {
+				const itemsToCheck = cartItem || orderCartItems;
+				const arrayItem = itemsToCheck.find((item: any) => item.type === 'insurance');
+				let points = 0;
+				if (arrayItem && itemsToCheck.length === 2) {
+					points = 25
+				}
+				if (points === 0) {
+					console.log('no points');
+				} else {
+
+					const userPointsFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
+						method: 'POST',
+						body: JSON.stringify({
+							apiKey: APIKEY,
+							schema: 'user',
+							query: { email: promoterId },
+							update: {
+								$inc: {
+									pointsBalance: points
+								},
+								$push: {
+									pointsHistory: {
+										points: points,
+										note: `Commissione tessera + assicurazione - Ordine ${orderId}`,
+										date: new Date()
+									}
+								}
+							},
+							options: { upsert: false },
+							multi: false
+						}),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					});
+
+					if (!userPointsFetch.ok) {
+						return fail(400, {
+							action: 'modify',
 							success: false,
 							message: `userPointsFetch: ${await userPointsFetch.text()}`
 						});
@@ -384,7 +432,7 @@ export const actions: Actions = {
 				}
 
 				const user = await resFetch.json();
-				console.log('user', user);
+				//console.log('user', user);
 
 				if (user[0].membership.membershipStatus === false) {
 					const res = await userUpdateFetch;

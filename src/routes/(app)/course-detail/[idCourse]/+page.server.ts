@@ -4,6 +4,7 @@ import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK } from '$env/
 //import { env } from '$env/dynamic/private';
 import { error, fail } from '@sveltejs/kit';
 import { hash } from '$lib/tools/hash';
+import { tools } from '$lib/tools/backendTools';
 import { customAlphabet } from 'nanoid';
 import Stripe from 'stripe';
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12);
@@ -431,33 +432,6 @@ export const actions: Actions = {
 				});
 			}
 
-			// const amountInCents = Math.round(Number(totalValue) * 100);
-			// try {
-			// 	const paymentIntent = await stripe.paymentIntents.create({
-			// 		amount: amountInCents,
-			// 		currency: 'eur',
-			// 		payment_method: paymentMethodId,
-			// 		confirm: true,
-			// 		automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
-			// 	});
-			// 	if (paymentIntent.status === 'succeeded') {
-			// 		paymentIntentId = paymentIntent.id;
-			// 	} else {
-			// 		return fail(400, {
-			// 			action: 'new',
-			// 			success: false,
-			// 			message: `Pagamento fallito: ${paymentIntent.status}`
-			// 		});
-			// 	}
-			// } catch (err: any) {
-			// 	console.error('Stripe error:', err);
-			// 	return fail(400, {
-			// 		action: 'new',
-			// 		success: false,
-			// 		message: `Pagamento fallito: ${err.message}`
-			// 	});
-			// }
-
 			try {
 				const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
@@ -475,6 +449,17 @@ export const actions: Actions = {
 					action: 'new',
 					success: false,
 					message: `Errore verifica pagamento: ${err.message}`
+				});
+			}
+		}
+
+		// not necessary, but extra check
+		if (payment === 'Carta di credito' && !paymentVerified) {
+			if (!paymentIntentId) {
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: 'Pagamento non completato.'
 				});
 			}
 		}
@@ -680,7 +665,9 @@ export const actions: Actions = {
 			});
 
 			if (!orderRes.ok) {
-				return fail(400, { action: 'new', success: false, message: `res: ${await orderRes.text()}` });
+				const errText = await orderRes.text()
+				tools.write(errText, null, null);
+				return fail(400, { action: 'new', success: false, message: `res: ${errText}` });
 			}
 			const order = await orderRes.json();
 

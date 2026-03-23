@@ -1649,14 +1649,15 @@
 			<div class="mb-6 flex justify-between items-center gap-2">
 				<div class="flex gap-2">
 					{#if currentObj.type !== 'event'}
-						<button
+						<!-- <button
 							type="button"
 							class="btn"
 							class:btn-error={showCheckboxes}
 							aria-pressed={showCheckboxes}
 							onclick={toggleCheckboxes}
 							disabled={certificationStatus}
-						>
+						> -->
+						<button type="button" class="btn" class:btn-error={showCheckboxes} aria-pressed={showCheckboxes} onclick={toggleCheckboxes}>
 							{showCheckboxes ? 'Annulla' : 'Genera Attestati'}
 						</button>
 					{/if}

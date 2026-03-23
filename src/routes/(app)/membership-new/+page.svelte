@@ -84,7 +84,8 @@
 		payment: 'Carta di credito',
 		membershipLevel: '',
 		howDidYouKnow: '',
-		eventDetails: ''
+		eventDetails: '',
+		agreement: false
 	});
 	let password1: string = $state('');
 	let password2: string = $state('');
@@ -242,6 +243,7 @@
 		password2 = '';
 		formData.howDidYouKnow = '';
 		formData.eventDetails = '';
+		formData.agreement = false;
 		discountCode = '';
 		promoterId = '';
 		if (cardElement) {
@@ -1454,8 +1456,17 @@
 				{/if} -->
 
 				<input type="hidden" name="paymentIntentId" value={paymentIntentId} />
+				<fieldset class="fieldset bg-base-100 border-base-300 rounded-box w-64 border p-4">
+					<legend class="fieldset-legend">richiesto*</legend>
+					<label class="label">
+						<input type="checkbox" class="checkbox" required bind:checked={formData.agreement} />
+						Adesione al codice deontologico e al regolamento dell'associazione -
+						<a href="https://riflessologiadienchan.it/wp-content/uploads/2021/04/STATUTO-ASS.NE-DIEN-CHAN-032021.pdf" target="_blank"
+							>LINK DOCUMENTO</a
+						>
+					</label>
+				</fieldset>
 			</div>
-
 			<!-- Navigation -->
 			<div class="flex justify-between mt-6">
 				<button type="button" class="btn btn-outline" onclick={prevStep} class:hidden={currentStep === 1}>
@@ -1474,7 +1485,7 @@
 							type="button"
 							class="btn btn-success"
 							onclick={handleFinalSubmit}
-							disabled={!isCurrentStepValid() || loading || stripeError != null}
+							disabled={!isCurrentStepValid() || loading || stripeError != null || !formData.agreement}
 						>
 							Conferma Acquisto</button
 						>
@@ -1824,6 +1835,16 @@
 				{/if} -->
 
 				<input type="hidden" name="paymentIntentId" value={paymentIntentId} />
+				<fieldset class="fieldset bg-base-100 border-base-300 rounded-box w-64 border p-4">
+					<legend class="fieldset-legend">richiesto*</legend>
+					<label class="label">
+						<input type="checkbox" class="checkbox" required bind:checked={formData.agreement} />
+						Adesione al codice deontologico e al regolamento dell'associazione -
+						<a href="https://riflessologiadienchan.it/wp-content/uploads/2021/04/STATUTO-ASS.NE-DIEN-CHAN-032021.pdf" target="_blank"
+							>LINK DOCUMENTO</a
+						>
+					</label>
+				</fieldset>
 			</div>
 
 			<!-- Navigation -->
@@ -2287,6 +2308,16 @@
 				{#if promoterId}
 					<input type="hidden" name="promoterId" value={promoterId} />
 				{/if}
+				<fieldset class="fieldset bg-base-100 border-base-300 rounded-box w-64 border p-4">
+					<legend class="fieldset-legend">richiesto*</legend>
+					<label class="label">
+						<input type="checkbox" class="checkbox" required bind:checked={formData.agreement} />
+						Adesione al codice deontologico e al regolamento dell'associazione -
+						<a href="https://riflessologiadienchan.it/wp-content/uploads/2021/04/STATUTO-ASS.NE-DIEN-CHAN-032021.pdf" target="_blank"
+							>LINK DOCUMENTO</a
+						>
+					</label>
+				</fieldset>
 			</div>
 
 			<!-- Navigation -->

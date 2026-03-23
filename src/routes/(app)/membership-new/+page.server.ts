@@ -252,39 +252,6 @@ export const actions: Actions = {
 				});
 			}
 
-			// const amountInCents = Math.round(Number(totalValue) * 100);
-
-			// try {
-			// 	const paymentIntent = await stripe.paymentIntents.create({
-			// 		amount: amountInCents,
-			// 		currency: 'eur',
-			// 		payment_method: paymentMethodId,
-			// 		confirm: true,
-			// 		automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
-			// 	});
-			// 	// console.log('paymentIntent.status', paymentIntent.status)
-			// 	//paymentIntentId = paymentIntent.id;
-
-			// 	if (paymentIntent.status === 'succeeded') {
-			// 		paymentIntentId = paymentIntent.id;
-			// 	} else {
-			// 		return fail(400, {
-			// 			action: 'new',
-			// 			success: false,
-			// 			message: `Pagamento fallito: ${paymentIntent.status}`
-			// 		});
-			// 	}
-
-			// } catch (err: any) {
-			// 	console.error('Stripe error:', err);
-			// 	return fail(400, {
-			// 		action: 'new',
-			// 		success: false,
-			// 		message: `Pagamento fallito: ${err.message}`
-			// 	});
-			// }
-
-
 			try {
 				const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
@@ -304,7 +271,17 @@ export const actions: Actions = {
 					message: `Errore verifica pagamento: ${err.message}`
 				});
 			}
+		}
 
+		//not needed, but here for extra check
+		if (payment === 'Carta di credito' && !paymentVerified) {
+			if (!paymentIntentId) {
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: 'Pagamento non completato.'
+				});
+			}
 		}
 
 		try {
@@ -657,6 +634,16 @@ export const actions: Actions = {
 			}
 		}
 
+		if (payment === 'Carta di credito' && !paymentVerified) {
+			if (!paymentIntentId) {
+				return fail(400, {
+					action: 'newWithInsurance',
+					success: false,
+					message: 'Pagamento non completato.'
+				});
+			}
+		}
+
 		try {
 			const membershipRes = await membershipFetch;
 			if (!membershipRes.ok) {
@@ -808,7 +795,7 @@ export const actions: Actions = {
 				},
 				payment: {
 					method: payment,
-					statusPayment: paymentIntentId ? 'done' : 'pending',
+					statusPayment: paymentVerified ? 'done' : 'pending',
 					transactionId: paymentIntentId || '',
 					points: '',
 					value: ''
@@ -857,71 +844,71 @@ export const actions: Actions = {
 			const order = await resOrder.json();
 
 			// Handle promoter points (15 points for membership+insurance combo)
-			if (promoterId) {
-				try {
-					// Prima verifica se l'utente promoter esiste
-					const checkPromoter = await fetch(`${BASE_URL}/api/mongo/find`, {
-						method: 'POST',
-						body: JSON.stringify({
-							apiKey: APIKEY,
-							schema: 'user',
-							query: { email: promoterId.trim() },
-							projection: { userId: 1, email: 1, pointsBalance: 1 },
-							limit: 1
-						}),
-						headers: {
-							'Content-Type': 'application/json'
-						}
-					});
+			// if (promoterId) {
+			// 	try {
+			// 		// Prima verifica se l'utente promoter esiste
+			// 		const checkPromoter = await fetch(`${BASE_URL}/api/mongo/find`, {
+			// 			method: 'POST',
+			// 			body: JSON.stringify({
+			// 				apiKey: APIKEY,
+			// 				schema: 'user',
+			// 				query: { email: promoterId.trim() },
+			// 				projection: { userId: 1, email: 1, pointsBalance: 1 },
+			// 				limit: 1
+			// 			}),
+			// 			headers: {
+			// 				'Content-Type': 'application/json'
+			// 			}
+			// 		});
 
-					if (!checkPromoter.ok) {
-						console.error('Error checking promoter:', await checkPromoter.text());
-					} else {
-						const promoterData = await checkPromoter.json();
-						console.log('Promoter found:', promoterData);
+			// 		if (!checkPromoter.ok) {
+			// 			console.error('Error checking promoter:', await checkPromoter.text());
+			// 		} else {
+			// 			const promoterData = await checkPromoter.json();
+			// 			console.log('Promoter found:', promoterData);
 
-						if (promoterData.length === 0) {
-							console.error('Promoter email not found in database:', promoterId);
-						} else {
-							// Promoter esiste, aggiorna i punti
-							const userPointsFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
-								method: 'POST',
-								body: JSON.stringify({
-									apiKey: APIKEY,
-									schema: 'user',
-									query: { email: promoterId.trim() },
-									update: {
-										$inc: {
-											pointsBalance: 15
-										},
-										$push: {
-											pointsHistory: {
-												points: 15,
-												note: `Commissione Tessera + Assicurazione - Ordine ${order.orderId}`,
-												date: new Date()
-											}
-										}
-									},
-									options: { upsert: false },
-									multi: false
-								}),
-								headers: {
-									'Content-Type': 'application/json'
-								}
-							});
+			// 			if (promoterData.length === 0) {
+			// 				console.error('Promoter email not found in database:', promoterId);
+			// 			} else {
+			// 				// Promoter esiste, aggiorna i punti
+			// 				const userPointsFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
+			// 					method: 'POST',
+			// 					body: JSON.stringify({
+			// 						apiKey: APIKEY,
+			// 						schema: 'user',
+			// 						query: { email: promoterId.trim() },
+			// 						update: {
+			// 							$inc: {
+			// 								pointsBalance: 15
+			// 							},
+			// 							$push: {
+			// 								pointsHistory: {
+			// 									points: 25,
+			// 									note: `Commissione Tessera + Assicurazione - Ordine ${order.orderId}`,
+			// 									date: new Date()
+			// 								}
+			// 							}
+			// 						},
+			// 						options: { upsert: false },
+			// 						multi: false
+			// 					}),
+			// 					headers: {
+			// 						'Content-Type': 'application/json'
+			// 					}
+			// 				});
 
-							if (!userPointsFetch.ok) {
-								console.error('Error updating promoter points:', await userPointsFetch.text());
-							} else {
-								const result = await userPointsFetch.json();
-								console.log('Promoter points updated successfully:', result);
-							}
-						}
-					}
-				} catch (err) {
-					console.error('Exception updating promoter points:', err);
-				}
-			}
+			// 				if (!userPointsFetch.ok) {
+			// 					console.error('Error updating promoter points:', await userPointsFetch.text());
+			// 				} else {
+			// 					const result = await userPointsFetch.json();
+			// 					console.log('Promoter points updated successfully:', result);
+			// 				}
+			// 			}
+			// 		}
+			// 	} catch (err) {
+			// 		console.error('Exception updating promoter points:', err);
+			// 	}
+			// }
 
 			// Invia email con l'ordine unico (come il corso base)
 			const mailRes = await mailFetch(email, order);
@@ -1050,10 +1037,6 @@ export const actions: Actions = {
 			},
 		});
 
-
-
-
-
 		const mailFetch = (email, order) => fetch(`${BASE_URL}/api/mailer/new-order`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -1072,7 +1055,7 @@ export const actions: Actions = {
 				return fail(400, { action: 'renew', success: false, message: await resMembership.text() });
 			}
 			const membership = await resMembership.json();
-			//let paymentVerified = false;
+			let paymentVerified = false;
 
 			// Stripe payment processing
 			if (payment === 'Carta di credito') {
@@ -1090,18 +1073,29 @@ export const actions: Actions = {
 
 					if (paymentIntent.status !== 'succeeded') {
 						return fail(400, {
-							action: 'new',
+							action: 'renew',
 							success: false,
 							message: `Pagamento non completato: ${paymentIntent.status}`
 						});
 					}
-					//paymentVerified = true;
+					paymentVerified = true;
 				} catch (err: any) {
 					console.error('PaymentIntent verification error:', err);
 					return fail(400, {
-						action: 'new',
+						action: 'renew',
 						success: false,
 						message: `Errore verifica pagamento: ${err.message}`
+					});
+				}
+			}
+
+			// not needed, but extra check
+			if (payment === 'Carta di credito' && !paymentVerified) {
+				if (!paymentIntentId) {
+					return fail(400, {
+						action: 'renew',
+						success: false,
+						message: 'Pagamento non completato.'
 					});
 				}
 			}

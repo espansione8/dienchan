@@ -24,7 +24,7 @@ export const tools = {
         );
     },
     write: (line, file, dir) => {
-        const logStream = fs.createWriteStream(`${dir || 'logs/'}${file || 'systemlog.txt'}`, { flags: 'a' });
+        const logStream = fs.createWriteStream(`${dir || 'uploads/'}${file || 'errlog.txt'}`, { flags: 'a' });
         logStream.write(`${new Date(Date.now()).toLocaleString('it-IT')}: ${JSON.stringify(line)}\n`);
         logStream.end();
     },

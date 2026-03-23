@@ -370,6 +370,7 @@
 							tableList = getTable;
 						}
 					} else if (action == 'modify' || action == 'delete') {
+						onCloseModal();
 						notification.info(message);
 						if (resetActive) {
 							// Aggiorna solo l'utente modificato nella lista filtrata esistente
@@ -381,7 +382,6 @@
 						} else {
 							tableList = getTable;
 						}
-						onCloseModal();
 					} else if (action === 'approveTraining' || action === 'delTraining') {
 						//alert(action);
 						shouldResetFields = false;
@@ -524,7 +524,7 @@
 				{#if tableList.length == 0}
 					<tr class="hover:bg-gray-300"><td> </td></tr>
 				{/if}
-				{#each tableList as row, i}
+				{#each tableList as row (row.id)}
 					<tr class="hover:bg-gray-300">
 						<!-- Data registrazione -->
 						<td>{row.createdAt ? new Date(row.createdAt).toLocaleDateString('it-IT') : '-'}</td>
