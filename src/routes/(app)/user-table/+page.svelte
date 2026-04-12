@@ -524,7 +524,8 @@
 				{#if tableList.length == 0}
 					<tr class="hover:bg-gray-300"><td> </td></tr>
 				{/if}
-				{#each tableList as row (row.id)}
+				<!-- {#each tableList as row, i (i)} -->
+				{#each tableList as row (`${row.userId}-${row.email}`)}
 					<tr class="hover:bg-gray-300">
 						<!-- Data registrazione -->
 						<td>{row.createdAt ? new Date(row.createdAt).toLocaleDateString('it-IT') : '-'}</td>
@@ -936,7 +937,7 @@
 							onchange={() => addItem(county, 'county')}
 						>
 							<option disabled value="">Scegli provincia</option>
-							{#each $province as provincia}
+							{#each $province as provincia (provincia.title)}
 								<option value={provincia.title}>
 									{provincia.title} ({provincia.region})
 								</option>
@@ -944,7 +945,7 @@
 						</select>
 					</div>
 					{#if countyArray?.length > 0}
-						{#each countyArray as county, i}
+						{#each countyArray as county (county)}
 							<div class="btn btn-primary btn-sm m-1 rounded-md">
 								{county}
 								<button type="button" class="badge badge-error ml-2" onclick={() => removeItem(i, 'county')}> X </button>
@@ -1023,7 +1024,7 @@
 						bind:value={country}
 					>
 						<option value="" selected disabled>Scegli</option>
-						{#each $country_list as country}
+						{#each $country_list as country (country)}
 							<option value={country}>
 								{country}
 							</option>
@@ -1505,7 +1506,7 @@
 
 		<div class="grid grid-cols-4 bg-base-100 grid-col gap-y-3 p-4 lg:gap-x-4 lg:p-4">
 			<!-- {#each pointsHistory || [] as item} -->
-			{#each [...(pointsHistory || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) as item}
+			{#each [...(pointsHistory || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) as item, i (i)}
 				<div
 					class="col-span-4
                            p-3
@@ -1536,7 +1537,8 @@
 		<div class="p-4 lg:p-8">
 			{#if trainingHistory && trainingHistory.length > 0}
 				<div class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-4">
-					{#each trainingHistory as training, index}
+					{#each trainingHistory as training (`${training.date}-${training.fileName}`)}
+						<!-- {#each trainingHistory as training, i (i)} -->
 						<div class="col-span-4 p-4 rounded-box shadow-md bg-base-200 flex flex-col gap-y-4">
 							<!-- Header -->
 							<div class="flex items-start justify-between gap-4 flex-wrap lg:flex-nowrap">
@@ -1619,7 +1621,7 @@
 		<div class="p-4 lg:p-8">
 			{#if pendingApprovalsList && pendingApprovalsList.length > 0}
 				<div class="space-y-3">
-					{#each pendingApprovalsList as row}
+					{#each pendingApprovalsList as row (row.id)}
 						<button
 							type="button"
 							onclick={() => onClickModal('trainingHistory', row)}

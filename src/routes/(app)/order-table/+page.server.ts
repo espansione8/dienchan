@@ -566,30 +566,58 @@ export const actions: Actions = {
 
 					// Remove user from listSubscribers for courses, events, and memberships
 					if ((item.type === 'course' || item.type === 'event' || item.type === 'membership') && userEmail) {
-						const removeSubscriberRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+						const resFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 							method: 'POST',
 							body: JSON.stringify({
 								apiKey: APIKEY,
-								schema: 'product',
-								query: { prodId: item.prodId },
-								update: {
-									$pull: {
-										listSubscribers: { email: userEmail }
-									}
-								},
-								options: { upsert: false },
-								multi: false
+								schema: 'product', //product | order | user | layout | discount
+								query: { prodId: item.prodId, type: item.type },
+								projection: { _id: 0, password: 0 }, // 0: exclude | 1: include
+								sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
+								limit: 1,
+								skip: 0
 							}),
 							headers: {
 								'Content-Type': 'application/json'
 							}
 						});
-						//console.log('removeSubscriberRes', removeSubscriberRes);
+						const res = await resFetch;
+						if (!res.ok) {
+							//return fail(400, { action: 'renew', success: false, message: `res: ${await res.text()}` });
+							const errorText = await res.text();
+							console.error(`Product find failed for ${item.prodId}:`, errorText);
+							throw new Error(`Product find failed for ${item.prodId}: ${errorText}`);
+						}
+						const response = await res.json()
+						//console.log('response', response);
+						if (response.length > 0) {
+							const removeSubscriberRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+								method: 'POST',
+								body: JSON.stringify({
+									apiKey: APIKEY,
+									schema: 'product',
+									query: { prodId: item.prodId },
+									update: {
+										$pull: {
+											listSubscribers: { email: userEmail }
+										}
+									},
+									options: { upsert: false },
+									multi: false
+								}),
+								headers: {
+									'Content-Type': 'application/json'
+								}
+							});
+							// console.log('removeSubscriberRes', removeSubscriberRes);
+							// const data = await removeSubscriberRes.json();
+							// console.log('removeSubscriberRes.json()', data);
 
-						if (!removeSubscriberRes.ok) {
-							const errorData = await removeSubscriberRes.json();
-							console.error(`Failed to remove subscriber from ${item.prodId}:`, errorData);
-							throw new Error(`Failed to remove subscriber from ${item.prodId}`);
+							if (!removeSubscriberRes.ok) {
+								const errorData = await removeSubscriberRes.json();
+								console.error(`Failed to remove subscriber from ${item.prodId}:`, errorData);
+								throw new Error(`Failed to remove subscriber from ${item.prodId}`);
+							}
 						}
 					}
 

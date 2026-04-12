@@ -1108,7 +1108,7 @@
 							class="select select-bordered w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
 						>
 							<option disabled value="">Scegli una Provincia {orderDetail.shipping.county}</option>
-							{#each $province as provincia}
+							{#each $province as provincia (provincia.title)}
 								<option value={provincia.title}>{provincia.title}</option>
 							{/each}
 						</select>
