@@ -1621,7 +1621,7 @@
 		<div class="p-4 lg:p-8">
 			{#if pendingApprovalsList && pendingApprovalsList.length > 0}
 				<div class="space-y-3">
-					{#each pendingApprovalsList as row (row.id)}
+					{#each pendingApprovalsList as row (row.userId)}
 						<button
 							type="button"
 							onclick={() => onClickModal('trainingHistory', row)}

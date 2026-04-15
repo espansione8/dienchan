@@ -686,6 +686,7 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const orderId = formData.get('orderId');
 		const userId = formData.get('userId');
+		const name = formData.get('name');
 		const surname = formData.get('surname');
 		const email = formData.get('email');
 		const paymentMethod = formData.get('paymentMethod');
@@ -694,7 +695,7 @@ export const actions: Actions = {
 		const type = formData.get('type');
 		const courseId = formData.get('courseId');
 
-		if (!orderId && !userId && !surname && !email && !paymentMethod && !status && !statusPayment && !type && !courseId) {
+		if (!orderId && !userId && !name && !surname && !email && !paymentMethod && !status && !statusPayment && !type && !courseId) {
 			return fail(400, { action: 'filter', success: false, message: 'Dati mancanti' });
 		}
 
@@ -706,6 +707,7 @@ export const actions: Actions = {
 				query: {
 					...(orderId && { orderId }),
 					...(userId && { userId }),
+					...(name && { 'shipping.name': { $regex: `.*${name}.*`, $options: 'i' } }),
 					...(surname && { 'shipping.surname': { $regex: `.*${surname}.*`, $options: 'i' } }),
 					...(email && { 'shipping.email': { $regex: `.*${email}.*`, $options: 'i' } }),
 					...(paymentMethod && { 'payment.method': paymentMethod }),

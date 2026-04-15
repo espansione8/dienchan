@@ -45,6 +45,7 @@
 	let status = $state('');
 	let statusPayment = $state('');
 	let type = $state('');
+	let name = $state('');
 	let surname = $state('');
 	let email = $state('');
 	let courseId = $state('');
@@ -1319,7 +1320,18 @@
 						</select>
 					</div> -->
 					<div class="w-full md:w-1/2 px-2 mb-4">
-						<label for="name" class="block text-sm font-medium text-gray-700 mb-1">Cognome</label>
+						<label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+						<input
+							type="text"
+							id="name"
+							name="name"
+							bind:value={name}
+							placeholder="Inserisci nome"
+							class="w-full bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+						/>
+					</div>
+					<div class="w-full md:w-1/2 px-2 mb-4">
+						<label for="surname" class="block text-sm font-medium text-gray-700 mb-1">Cognome</label>
 						<input
 							type="text"
 							id="surname"
