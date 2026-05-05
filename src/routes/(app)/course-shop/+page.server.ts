@@ -25,6 +25,10 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 		// 1. Start Timer
 		//const startTime = performance.now();
 
+		const now = new Date();
+		const startOfRange = new Date(now.getFullYear(), now.getMonth(), 1); // 1st of current month
+		const startOfNextRange = new Date(now.getFullYear() + 1, now.getMonth(), 1); // same month next year
+
 		const resProductsCorso = await fetch(`${baseURL}/api/mongo/find`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -34,8 +38,10 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 					status: 'enabled',
 					type: { $in: ['course', 'event'] },
 					eventStartDate: {
-						$gte: startOfYear,
-						$lt: startOfNextYear
+						$gte: startOfRange,
+						$lt: startOfNextRange
+						// $gte: startOfYear,
+						// $lt: startOfNextYear
 					}
 				},
 				sort: { eventStartDate: 1 },
