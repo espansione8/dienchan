@@ -900,6 +900,8 @@ export const actions: Actions = {
 							statusPayment: newDoc.payment.statusPayment,
 							userId: currentUserId,
 							userEmail: newDoc.invoicing.email,
+							name: newDoc.invoicing.name,
+							surname: newDoc.invoicing.surname
 						}),
 						headers: {
 							'Content-Type': 'application/json'
