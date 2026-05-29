@@ -1,12 +1,12 @@
 import type { PageServerLoad, Actions } from './$types'
-import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK } from '$env/static/private';
+import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK, STRIPE_API } from '$env/static/private';
 import { error, fail } from '@sveltejs/kit';
 import { hash } from '$lib/tools/hash';
 import { customAlphabet } from 'nanoid'
 import Stripe from 'stripe';
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9)
 const stripe = new Stripe(STRIPE_KEY_BACK, {
-	apiVersion: '2025-12-15.clover'
+	apiVersion: STRIPE_API
 });
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {

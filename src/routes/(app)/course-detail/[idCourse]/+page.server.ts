@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import type { CartItem, DiscountItem } from '$lib/types';
-import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK } from '$env/static/private';
+import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK, STRIPE_API } from '$env/static/private';
 //import { env } from '$env/dynamic/private';
 import { error, fail } from '@sveltejs/kit';
 import { hash } from '$lib/tools/hash';
@@ -8,8 +8,9 @@ import { tools } from '$lib/tools/backendTools';
 import { customAlphabet } from 'nanoid';
 import Stripe from 'stripe';
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12);
+//const apiS = '2025-12-15.clover'
 const stripe = new Stripe(STRIPE_KEY_BACK, {
-	apiVersion: '2025-12-15.clover' // Use a stable API version https://docs.stripe.com/api/versioning
+	apiVersion: STRIPE_API // Use a stable API version https://docs.stripe.com/api/versioning
 });
 
 import { readFileSync } from 'node:fs';

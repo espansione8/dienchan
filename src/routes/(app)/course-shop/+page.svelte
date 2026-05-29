@@ -30,7 +30,7 @@
 	const { data } = $props();
 	const { getTable, getRiflessologi, getLayout, auth, userData } = data;
 	let coursesList = $state(getTable);
-	//console.log('getRiflessologi', getRiflessologi);
+
 	let resetActive = $state(false);
 	let currentSort = $state('dal più recente');
 
@@ -168,7 +168,8 @@
 	const updateFilter = () => {
 		const workshopTitle = 'Workshop: 12 Massaggi mattutini';
 		const massaggiMattutini = getTable.filter((item) => item.layoutView.title == workshopTitle);
-
+		//const massaggiMattutini = getTable.filter((item) => item.layoutView.layoutId === 'PYSYPA4QCTH1');
+		//console.log('massaggiMattutini1', massaggiMattutini.length);
 		coursesList = getTable;
 		// Evento
 		if (filtriAttivi.evento) {
@@ -186,12 +187,14 @@
 				const eventMonth = new Date(item.eventStartDate).getMonth();
 				return eventMonth === monthIndex;
 			});
+			//console.log('massaggiMattutini lenght', massaggiMattutini.length);
 
 			if (massaggiMattutini.length > 0) {
 				const checkArray = coursesList.some((item) => item.layoutView.title === workshopTitle);
 
 				if (!checkArray) {
 					coursesList.push(massaggiMattutini[0]);
+					//console.log('coursesList', coursesList);
 				}
 			}
 		}
@@ -561,7 +564,7 @@
 					</div>
 				</div>
 			{/if}
-			{#each coursesList as courseData, i}
+			{#each coursesList as courseData (courseData.prodId)}
 				<div
 					class="card overflow-hidden bg-base-100 rounded-xl shadow-lg border
 	border-base-200 hover:shadow-xl transition-shadow duration-300 flex flex-col w-full sm:w-81"

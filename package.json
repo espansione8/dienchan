@@ -45,7 +45,7 @@
 		"vitest": "^3.2.4"
 	},
 	"dependencies": {
-		"@stripe/stripe-js": "8.6.0",
+		"@stripe/stripe-js": "9.6.0",
 		"@unpic/svelte": "^1.0.0",
 		"basic-ftp": "^5.0.5",
 		"drizzle-orm": "^0.44.5",
@@ -57,7 +57,7 @@
 		"pdfmake": "^0.2.20",
 		"qrcode": "^1.5.4",
 		"sharp": "^0.34.5",
-		"stripe": "20.1.0",
+		"stripe": "22.1.1",
 		"tesseract.js": "^6.0.1"
 	},
 	"type": "module"

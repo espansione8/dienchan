@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types'
 import type { CartItem, DiscountItem } from '$lib/types';
-import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK } from '$env/static/private';
+import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK, STRIPE_API } from '$env/static/private';
 import { fail, error } from '@sveltejs/kit';
 import { pageAuth } from '$lib/pageAuth';
 import { hash } from '$lib/tools/hash';
@@ -8,7 +8,7 @@ import { customAlphabet } from 'nanoid'
 import Stripe from 'stripe';
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9)
 const stripe = new Stripe(STRIPE_KEY_BACK, {
-	apiVersion: '2025-12-15.clover' // Use a stable API version https://docs.stripe.com/api/versioning
+	apiVersion: STRIPE_API // Use a stable API version https://docs.stripe.com/api/versioning
 });
 
 export const load: PageServerLoad = async ({ locals, fetch, url }) => {

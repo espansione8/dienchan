@@ -35,14 +35,20 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 				apiKey,
 				schema: 'product',
 				query: {
-					status: 'enabled',
-					type: { $in: ['course', 'event'] },
-					eventStartDate: {
-						$gte: startOfRange,
-						$lt: startOfNextRange
-						// $gte: startOfYear,
-						// $lt: startOfNextYear
+					$or: [{
+						status: 'enabled',
+						type: { $in: ['course', 'event'] },
+						eventStartDate: {
+							$gte: startOfRange,
+							$lt: startOfNextRange
+							// $gte: startOfYear,
+							// $lt: startOfNextYear
+						}
+					},
+					{
+						prodId: 'CQ112QCNK'
 					}
+					]
 				},
 				sort: { eventStartDate: 1 },
 				//projection: { _id: 0 },
