@@ -6,10 +6,13 @@
 	import Modal from '$lib/components/Modal.svelte';
 	import Papa from 'papaparse';
 	import Loader from '$lib/components/Loader.svelte';
-	import { userKeysToDelete } from '$lib/stores/arrays';
+	import { userKeysToDelete, country_list, province } from '$lib/stores/arrays';
 	import { enhance } from '$app/forms';
-	import { country_list } from '$lib/stores/arrays.js';
-	import { province } from '$lib/stores/arrays';
+	// import { country_list } from '$lib/stores/arrays.js';
+	// import { province } from '$lib/stores/arrays';
+	import DragDrop from '$lib/components/DragDrop.svelte';
+	import { Image } from '@unpic/svelte';
+	import { imgCheck } from '$lib/tools/tools.js';
 	import {
 		Funnel,
 		Trash2,
@@ -144,7 +147,7 @@
 		if (type == 'phonePublic') phonePublic = !value;
 		if (type == 'mobilePhonePublic') mobilePhonePublic = !value;
 		//userData[type] = !value;  const userdata = {type: value}  userdata.namePublic =  | value = namePublic
-		// console.log('onSwitchPublicProfile', type, value, typeof namePublic, namePublic);
+		// console.log('onSwitchPublicProfile', type, value, typeof namePublic, namePublic);
 	};
 
 	const csvCreate = (content) => {
@@ -527,6 +530,39 @@
 				<!-- {#each tableList as row, i (i)} -->
 				{#each tableList as row (`${row.userId}-${row.email}`)}
 					<tr class="hover:bg-gray-300">
+						<td>
+							<!-- img start -->
+							{#if row?.uploadfiles.some((file) => file.type === 'profile')}
+								<div class="card-body p-4">
+									<div class="relative flex items-center gap-5">
+										<figure class="flex-shrink-0">
+											<Image
+												layout="constrained"
+												aspectRatio={1}
+												src={imgCheck?.single(row?.uploadfiles, 'profile')}
+												alt="Profile pic"
+												class="object-cover rounded-md max-w-16 max-h-16 h-auto"
+											/>
+										</figure>
+
+										<form method="POST" action="?/delProfilePic" use:enhance={formSubmit}>
+											<input type="hidden" name="userId" value={row.userId} />
+											<input type="hidden" name="fileName" value={imgCheck.fileName(row.uploadfiles, 'profile')} />
+											<button class="absolute bottom-0 right-0 btn btn-circle btn-lg btn-error" type="submit" aria-label="Delete image">
+												<Trash2 size="18" />
+											</button>
+										</form>
+									</div>
+								</div>
+							{:else}
+								<form action="?/setProfilePic" method="POST" enctype="multipart/form-data" use:enhance={formSubmit} class="card-body max-w-48">
+									<input type="hidden" name="userId" value={row.userId} />
+									<DragDrop />
+									<button class="btn btn-sm btn-info rounded-lg border-2" type="submit"> Aggiungi foto </button>
+								</form>
+							{/if}
+							<!-- img end -->
+						</td>
 						<!-- Data registrazione -->
 						<td>{row.createdAt ? new Date(row.createdAt).toLocaleDateString('it-IT') : '-'}</td>
 

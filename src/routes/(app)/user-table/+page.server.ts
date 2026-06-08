@@ -1220,5 +1220,125 @@ export const actions: Actions = {
 			// Anche per errori del server, messaggio generico
 			return { action: 'resetPassword', success: true, message: 'Errore Reset' };
 		}
-	}
+	},
+
+	setProfilePic: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const userId = formData.get('userId');
+		const file = formData.get('fileUpload') as File;
+
+		if (!userId || !file || !file.name) {
+			return fail(400, { action: 'setProfilePic', success: false, message: 'File mancante' });
+		}
+
+		const maxSize = 10 * 1024 * 1024;
+		if (file.size > maxSize) {
+			return fail(400, { action: 'setProfilePic', success: false, message: 'File troppo grande (max 10MB)' });
+		}
+
+		// const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+		const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/JPG', 'image/JPEG'];
+		if (!allowedTypes.includes(file.type)) {
+			return fail(400, { action: 'setProfilePic', success: false, message: 'Tipo di file non supportato (solo JPEG, PNG, WebP)' });
+		}
+		try {
+			const uploadImg = await fetch(`${BASE_URL}/api/uploads/files`, {
+				method: 'POST',
+				headers: {
+					//'Content-Type': 'application/json',
+					'x-file-name': file.name,
+					'x-folder-name': `user/${userId}`
+				},
+				body: file
+			});
+
+			if (!uploadImg.ok) return fail(400, { action: 'setProfilePic', success: false, message: `uploadImg: ${await uploadImg.text()}` })
+
+			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user', //product | order | user | layout | discount
+					query: { userId }, //IF USE Products.model -> types: course / product / membership / event,
+					update: {
+						$push: {
+							uploadfiles: {
+								type: 'profile',
+								fileName: file.name,
+								fileUrl: `/uploads/user/${userId}/${file.name}`
+							}
+						}
+					},
+					options: { upsert: false },
+					multi: false
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (!res.ok) return fail(400, { action: 'setProfilePic', success: false, message: await res.text() })
+
+			return { action: 'setProfilePic', success: true, message: 'Immagine caricata' };
+
+		} catch (error) {
+			console.error('Error upload:', error);
+			return fail(400, { action: 'setProfilePic', success: false, message: 'Errore upload' });
+		}
+	},
+	delProfilePic: async ({ request, fetch }) => {
+		const formData = await request.formData();
+		const userId = formData.get('userId');
+		const fileName = formData.get('fileName');
+		//console.log(fileName);
+
+		if (!userId || !fileName) {
+			return fail(400, { action: 'delProfilePic', success: false, message: 'Dati mancanti' });
+		}
+
+		try {
+			const res = await fetch(`${BASE_URL}/api/mongo/update`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'user', //product | order | user | layout | discount
+					query: { userId }, //IF USE Products.model -> types: course / product / membership / event,
+					update: {
+						$pull: {
+							uploadfiles: {
+								type: 'profile',
+								fileName,
+								//fileUrl: `/uploads/user/${userId}/${fileName}`
+							}
+						}
+					},
+					options: { upsert: false },
+					multi: false
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (!res.ok) return fail(400, { action: 'delProfilePic', success: false, message: await res.text() });
+			const response = await res.json();
+
+			const responseDelete = await fetch(`${BASE_URL}/api/uploads/files`, {
+				method: 'DELETE',
+				body: JSON.stringify({
+					dir: `user/${userId}`,
+					fileName
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (!responseDelete.ok) return fail(400, { action: 'delProfilePic', success: false, message: await responseDelete.text() });
+
+			return { action: 'delProfilePic', success: true, message: response.message || 'Immagine rimossa' };
+
+		} catch (error) {
+			console.error('Error delProfilePic:', error);
+			return fail(400, { action: 'delProfilePic', success: false, message: 'Errore rimozione' });
+		}
+	},
 } satisfies Actions;
