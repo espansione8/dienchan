@@ -424,6 +424,9 @@
 		<Loader />
 	{:else}
 		<section class="col-span-12 xl:col-span-10 bg-base-100 rounded-lg">
+			<p class="text-error font-bold uppercase pt-3 px-4">
+				Gli ordini saranno evasi Lunedì e Giovedì se effettuati entro le le 23.59 della domenica e del mercoledì.
+			</p>
 			<div class="flex items-center p-4">
 				<!-- <div class="btn btn-sm rounded-md cursor-default {count > 0 ? 'bg-green-300 hover:bg-green-300' : 'bg-red-300 hover:bg-red-300'}"> -->
 				<!-- Prodotti disponibili: {activeFilter.category} -->
@@ -436,7 +439,6 @@
 				<!-- <strong class="">{count}</strong> -->
 				<!-- </div> -->
 				<!-- </div> -->
-
 				<div class="btn btn-sm rounded-md cursor-default {count > 0 ? 'bg-green-300 hover:bg-green-300' : 'bg-red-300 hover:bg-red-300'}">
 					Prodotti disponibili: {activeFilter.category || activeFilter.searchTerm || 'Tutti'}
 					<div class="badge rounded-md flex justify-center">
