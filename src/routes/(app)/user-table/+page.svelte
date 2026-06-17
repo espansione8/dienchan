@@ -981,7 +981,7 @@
 						</select>
 					</div>
 					{#if countyArray?.length > 0}
-						{#each countyArray as county (county)}
+						{#each countyArray as county, i (county)}
 							<div class="btn btn-primary btn-sm m-1 rounded-md">
 								{county}
 								<button type="button" class="badge badge-error ml-2" onclick={() => removeItem(i, 'county')}> X </button>
