@@ -732,7 +732,7 @@ export const actions: Actions = {
 				}
 
 				//const mailArray = [...cartItem.notificationEmail, email]; // mail amministrazione dienchan?
-				const mailArray = [email]; // mail amministrazione dienchan?
+				const mailArray = [email, "vantri70@gmail.com"]; // mail amministrazione dienchan?
 				let mailRes;
 
 				if (cartItem.prodId === 'CQ112QCNK') { // prodId 12 massaggi mattutini CQ112QCNK // layoutId PYSYPA4QCTH1

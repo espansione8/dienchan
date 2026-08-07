@@ -11,6 +11,7 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	let getTable = [];
 	let itemCount = 0;
 	let countyObj = {};
+	let getRiflessologi = [];
 
 	try {
 		// Count
@@ -73,11 +74,33 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			}),
 			headers: { 'Content-Type': 'application/json' }
 		});
-		
-		const [countRes, userRes, aggregateRes] = await Promise.all([
+
+		// lightweight full list (name/surname/userId only) for the Riflessologo filter/search picker
+		const riflessologiFetch = fetch(`${BASE_URL}/api/mongo/find`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey: APIKEY,
+				schema: 'user',
+				query: {
+					'membership.membershipStatus': true, level: {
+						$in: ['riflessologo', 'formatore base', 'master', 'formatore avanzato']
+					}
+				},
+				sort: { surname: 1 },
+				projection: { _id: 0, userId: 1, name: 1, surname: 1 },
+				limit: 1000,
+				skip: 0
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		const [countRes, userRes, aggregateRes, riflessologiRes] = await Promise.all([
 			countFetch,
 			userFetch,
-			aggregateFetch
+			aggregateFetch,
+			riflessologiFetch
 		]);
 
 		if (!countRes.ok) {
@@ -107,6 +130,12 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			return acc;
 		}, {});
 
+		if (!riflessologiRes.ok) {
+			throw error(400, 'riflessologi fetch failed');
+		}
+
+		getRiflessologi = await riflessologiRes.json();
+
 	} catch (error) {
 		console.log('userfetch error:', error);
 		throw error(500, 'Server error');
@@ -115,7 +144,8 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 	return {
 		getTable,
 		itemCount,
-		countyObj
+		countyObj,
+		getRiflessologi
 	};
 }
 
@@ -123,6 +153,7 @@ export const actions: Actions = {
 	filter: async ({ request, fetch }) => {
 		const formData = await request.formData();
 		const county = formData.get('county');
+		const riflessologo = formData.get('riflessologo');
 
 		try {
 			// Count filtered items - Updated for array county field
@@ -131,10 +162,11 @@ export const actions: Actions = {
 				body: JSON.stringify({
 					apiKey: APIKEY,
 					schema: 'user',
-					query: { 
-						'membership.membershipStatus': true, 
-						level: { $in: ['riflessologo', 'formatore base', 'master', 'formatore avanzato'] }, 
-						...(county && { county: { $in: [county] } }) // Use $in to search in array
+					query: {
+						'membership.membershipStatus': true,
+						level: { $in: ['riflessologo', 'formatore base', 'master', 'formatore avanzato'] },
+						...(county && { county: { $in: [county] } }), // Use $in to search in array
+						...(riflessologo && { userId: riflessologo })
 					},
 					option: { hint: { userId: 1 } },
 				}),
@@ -151,6 +183,7 @@ export const actions: Actions = {
 						'membership.membershipStatus': true,
 						level: { $in: ['riflessologo', 'formatore base', 'master', 'formatore avanzato'] },
 						...(county && { county: { $in: [county] } }), // Use $in to search in array
+						...(riflessologo && { userId: riflessologo })
 					},
 					sort: { surname: 1 },
 					projection: { _id: 0, password: 0 },
@@ -175,7 +208,7 @@ export const actions: Actions = {
 				return surnameA.localeCompare(surnameB);
 			});
 
-			return { action: 'filter', success: true, payload: { getTable, itemCount, currentPage: 1, county } };
+			return { action: 'filter', success: true, payload: { getTable, itemCount, currentPage: 1, county, riflessologo } };
 		} catch (error) {
 			console.error('Error user filter:', error);
 			return fail(500, { action: 'filter', success: false, message: 'Error user filter' });
@@ -186,6 +219,7 @@ export const actions: Actions = {
 		const navigation = formData.get('navigation');
 		const itemsPerPage = Number(formData.get('itemsPerPage'));
 		const county = formData.get('county');
+		const riflessologo = formData.get('riflessologo');
 		let currentPage = Number(formData.get('currentPage'));
 
 		if (navigation === 'prev') {
@@ -203,10 +237,11 @@ export const actions: Actions = {
 				body: JSON.stringify({
 					apiKey: APIKEY,
 					schema: 'user', //product | order | user | layout | discount
-					query: { 
-						'membership.membershipStatus': true, 
-						level: { $in: ['riflessologo', 'formatore base', 'master', 'formatore avanzato'] }, 
-						...(county && { county: { $in: [county] } }) // Use $in to search in array
+					query: {
+						'membership.membershipStatus': true,
+						level: { $in: ['riflessologo', 'formatore base', 'master', 'formatore avanzato'] },
+						...(county && { county: { $in: [county] } }), // Use $in to search in array
+						...(riflessologo && { userId: riflessologo })
 					},
 					sort: { surname: 1 },
 					projection: { _id: 0, password: 0 },
@@ -224,7 +259,7 @@ export const actions: Actions = {
 			}
 			const getTable = await res.json();
 
-			return { action: 'changePage', success: true, payload: { getTable, currentPage, county } };
+			return { action: 'changePage', success: true, payload: { getTable, currentPage, county, riflessologo } };
 
 		} catch (error) {
 			console.error('Error changePage:', error);

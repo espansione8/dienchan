@@ -26,7 +26,7 @@
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { getTable, itemCount, countyObj } = $derived(data);
+	const { getTable, itemCount, countyObj, getRiflessologi } = $derived(data);
 	let tableList = $state(getTable || []);
 	let count = $state(itemCount);
 	let loading = $state(false);
@@ -36,10 +36,23 @@
 	let currentSort = $state('alfabetico');
 	let searchQuery = $state('');
 	let filterAccordion = $state('');
+	// Riflessologo filter - live search text used to narrow the picker list below
+	let riflessologoSearch = $state('');
 
 	let activeFilter = $state({
 		county: '',
-		riflessologo: ''
+		riflessologo: {
+			id: '',
+			name: '',
+			surname: ''
+		}
+	});
+
+	// Narrows getRiflessologi as the user types in the search box
+	const filteredRiflessologi = $derived.by(() => {
+		if (!riflessologoSearch.trim()) return getRiflessologi;
+		const needle = riflessologoSearch.trim().toLowerCase();
+		return getRiflessologi.filter((item) => `${item.name} ${item.surname}`.toLowerCase().includes(needle));
 	});
 
 	// Pagination
@@ -72,10 +85,15 @@
 
 		activeFilter = {
 			county: '',
-			riflessologo: ''
+			riflessologo: {
+				id: '',
+				name: '',
+				surname: ''
+			}
 		};
 
 		searchQuery = '';
+		riflessologoSearch = '';
 		filterAccordion = '';
 		currentPage = 1;
 		count = itemCount;
@@ -96,6 +114,24 @@
 		}
 	};
 
+	// Provincia filter click - sets state then submits the shared filterForm
+	const onClickFilterCounty = async (county: string) => {
+		resetActive = true;
+		activeFilter.county = county;
+		await tick();
+		(document.getElementById('filterForm') as HTMLFormElement)?.requestSubmit();
+	};
+
+	// Riflessologo filter click - sets state then submits the shared filterForm
+	const onClickFilterRiflessologo = async (id: string, name: string, surname: string) => {
+		resetActive = true;
+		activeFilter.riflessologo.id = id;
+		activeFilter.riflessologo.name = name;
+		activeFilter.riflessologo.surname = surname;
+		await tick();
+		(document.getElementById('filterForm') as HTMLFormElement)?.requestSubmit();
+	};
+
 	const formSubmit = () => {
 		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
@@ -106,11 +142,13 @@
 					tableList = payload.getTable;
 					currentPage = payload.currentPage;
 					activeFilter.county = payload.county || '';
+					activeFilter.riflessologo.id = payload.riflessologo || '';
 				} else if (action == 'filter') {
 					tableList = payload.getTable;
 					count = payload.itemCount;
 					currentPage = payload.currentPage;
-					activeFilter.county = payload.county;
+					activeFilter.county = payload.county || '';
+					activeFilter.riflessologo.id = payload.riflessologo || '';
 				} else {
 					tableList = getTable;
 					resetActive = false;
@@ -162,43 +200,87 @@
 			<!-- Filter Body -->
 			<div class="p-4 space-y-4">
 				<form id="filterForm" method="POST" action="?/filter" use:enhance={formSubmit}>
-					<!-- Province Filter -->
-					<div class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200">
-						<input id="accordion1" type="checkbox" class="peer" />
-						<div class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold">
-							<span class="inline-flex items-center">
-								<b><MapPinned class="-mt-1 mr-2" /> Provincia</b>
-								{#if activeFilter.county.length > 0}
-									<Check class="ml-1" color="green" />
-								{/if}
-							</span>
-						</div>
-						<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto">
-							<ul class="list-none -mx-4 divide-y divide-base-200/70">
-								{#each Object.entries(countyObj) as [key, count]}
-									<li>
-										<button
-											type="submit"
-											name="county"
-											value={key}
-											class="p-3 w-full transition-all duration-300 flex items-center justify-between
-                  {activeFilter.county === key ? 'bg-orange-200 text-red-900 font-bold' : 'hover:bg-blue-200 hover:text-blue-900'}"
-										>
-											<span>{key}</span>
-											<div class="flex items-center gap-2">
-												<span class="badge badge-sm badge-ghost">{count}</span>
-												{#if activeFilter.county === key}
-													<Check size={18} class="flex-shrink-0 text-green-600" />
-												{/if}
-											</div>
-										</button>
-									</li>
-								{/each}
-							</ul>
-						</div>
-					</div>
+					<input type="hidden" name="county" bind:value={activeFilter.county} />
+					<input type="hidden" name="riflessologo" bind:value={activeFilter.riflessologo.id} />
 				</form>
-				
+
+				<!-- Province Filter -->
+				<div class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200">
+					<input id="accordion1" type="checkbox" class="peer" />
+					<div class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold">
+						<span class="inline-flex items-center">
+							<b><MapPinned class="-mt-1 mr-2" /> Provincia</b>
+							{#if activeFilter.county.length > 0}
+								<Check class="ml-1" color="green" />
+							{/if}
+						</span>
+					</div>
+					<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100 max-h-[250px] overflow-y-auto">
+						<ul class="list-none -mx-4 divide-y divide-base-200/70">
+							{#each Object.entries(countyObj) as [key, count]}
+								<li>
+									<button
+										type="button"
+										onclick={() => onClickFilterCounty(key)}
+										class="p-3 w-full transition-all duration-300 flex items-center justify-between
+                  {activeFilter.county === key ? 'bg-orange-200 text-red-900 font-bold' : 'hover:bg-blue-200 hover:text-blue-900'}"
+									>
+										<span>{key}</span>
+										<div class="flex items-center gap-2">
+											<span class="badge badge-sm badge-ghost">{count}</span>
+											{#if activeFilter.county === key}
+												<Check size={18} class="flex-shrink-0 text-green-600" />
+											{/if}
+										</div>
+									</button>
+								</li>
+							{/each}
+						</ul>
+					</div>
+				</div>
+
+				<!-- Riflessologo Filter -->
+				<div class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg hover:border-primary/30 transition-colors duration-200">
+					<input id="accordion2" type="checkbox" class="peer" />
+					<div class="collapse-title bg-base-200 text-base-content peer-checked:bg-blue-300 peer-checked:font-bold">
+						<span class="inline-flex items-center">
+							<b><UserSearch class="-mt-1 mr-2" /> Riflessologo</b>
+							{#if activeFilter.riflessologo.id.length > 0}
+								<Check class="ml-1" color="green" />
+							{/if}
+						</span>
+					</div>
+					<div class="collapse-content bg-base-100 text-base-content peer-checked:bg-base-100">
+						<div class="p-2">
+							<input
+								type="text"
+								placeholder="Cerca per nome o cognome..."
+								class="input input-sm input-bordered w-full"
+								bind:value={riflessologoSearch}
+							/>
+						</div>
+						<ul class="list-none -mx-4 divide-y divide-base-200/70 max-h-[250px] overflow-y-auto">
+							{#each filteredRiflessologi as item (item.userId)}
+								<li>
+									<button
+										type="button"
+										onclick={() => onClickFilterRiflessologo(item.userId, item.name, item.surname)}
+										class="p-3 w-full text-left transition-all duration-300 flex items-center justify-between
+                  {activeFilter.riflessologo.id === item.userId ? 'bg-orange-200 text-red-900 font-bold' : 'hover:bg-blue-200 hover:text-blue-900'}"
+									>
+										<span>{item.surname} {item.name}</span>
+										{#if activeFilter.riflessologo.id === item.userId}
+											<Check size={18} class="flex-shrink-0 text-green-600" />
+										{/if}
+									</button>
+								</li>
+							{:else}
+								<li class="p-3 text-center text-gray-400 text-sm">Nessun riflessologo trovato</li>
+							{/each}
+						</ul>
+					</div>
+				</div>
+
 				<!-- Reset Button -->
 				{#if resetActive || searchQuery.trim() !== ''}
 					<div class="pt-3 mt-2 border-t border-base-200">
@@ -215,7 +297,7 @@
 			</div>
 		</div>
 	</section>
-	
+
 	<!-- Reflexologists column -->
 	{#if loading}
 		<Loader />
@@ -249,6 +331,11 @@
 						{#if activeFilter.county.length > 0}
 							<div class="badge badge-accent rounded-md">
 								Provincia: <strong class="pl-1">{activeFilter.county}</strong>
+							</div>
+						{/if}
+						{#if activeFilter.riflessologo.id.length > 0}
+							<div class="badge badge-accent rounded-md">
+								Riflessologo: <strong class="pl-1">{activeFilter.riflessologo.name} {activeFilter.riflessologo.surname}</strong>
 							</div>
 						{/if}
 					</div>
@@ -333,7 +420,7 @@
 					{/each}
 				{/if}
 			</div>
-			
+
 			<div class="join flex justify-center mt-5">
 				<form method="POST" action="?/changePage" use:enhance={formSubmit}>
 					{#if currentPage > 1}
@@ -348,6 +435,7 @@
 					<input type="hidden" name="itemsPerPage" value={itemsPerPage} />
 					<input type="hidden" name="currentPage" value={currentPage} />
 					<input type="hidden" name="county" value={activeFilter.county} />
+					<input type="hidden" name="riflessologo" value={activeFilter.riflessologo.id} />
 				</form>
 			</div>
 		</section>
