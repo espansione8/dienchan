@@ -1,0 +1,1486 @@
+{
+  "project": "dienchan",
+  "name": "Dienchan — Associazione Riflessologia Facciale",
+  "description": "SvelteKit 5 portal for the Italian Dien Chan facial reflexology association: membership signup/renewal, practitioner directory, course and event catalogue with certificate generation, product e-commerce shop with Stripe payments, order and discount administration, and role-gated dashboards for users, formatori (trainers), riflessologi, admins and superadmins on MongoDB/Mongoose plus a small Drizzle SQLite messages table.",
+  "version": "0.1.11",
+  "generatedAt": "2026-09-10",
+  "techStack": {
+    "framework": "SvelteKit 2.27",
+    "runtime": "Svelte 5 runes",
+    "styling": "Tailwind CSS 4 + DaisyUI 5 (theme dienchan)",
+    "database": "MongoDB (Mongoose 8) + SQLite (Drizzle ORM) for messages",
+    "orm": "Mongoose + Drizzle ORM 0.44",
+    "auth": "custom session cookie (httpOnly session_id + x-internal-call bypass, validated in hooks.server.ts)",
+    "adapter": "@sveltejs/adapter-node (out: build, bodySizeLimit 20M, csrf checkOrigin false)",
+    "email": "Nodemailer (SMTP via MAILER_* env)",
+    "payments": "Stripe (stripe 22 + @stripe/stripe-js 9.6, 3DS automatic)",
+    "pdf": "pdfmake 0.2 + sharp 0.34 for catalog and course certificates",
+    "images": "@unpic/svelte, jszip, qrcode, tesseract.js, basic-ftp"
+  },
+  "stackItems": [
+    { "name": "SvelteKit", "version": "2.27.0", "tag": "framework" },
+    { "name": "Svelte", "version": "5.37.2", "tag": "runtime" },
+    { "name": "Tailwind CSS", "version": "4.1.11", "tag": "styling" },
+    { "name": "DaisyUI", "version": "5.1.6", "tag": "styling" },
+    { "name": "Vite", "version": "7.0.6", "tag": "build" },
+    { "name": "Mongoose", "version": "8.18.0", "tag": "database" },
+    { "name": "Drizzle ORM", "version": "0.44.5", "tag": "orm" },
+    { "name": "Stripe", "version": "22.1.1", "tag": "payments" },
+    { "name": "Nodemailer", "version": "7.0.6", "tag": "email" },
+    { "name": "Sharp", "version": "0.34.5", "tag": "images" },
+    { "name": "pdfmake", "version": "0.2.20", "tag": "pdf" },
+    { "name": "@unpic/svelte", "version": "1.0.0", "tag": "images" },
+    { "name": "lucide-svelte", "version": "0.536.0", "tag": "icons" },
+    { "name": "Vitest", "version": "3.2.4", "tag": "testing" },
+    { "name": "Playwright", "version": "1.54.2", "tag": "testing" }
+  ],
+  "routes": [
+    {
+      "id": "r-root",
+      "kind": "page",
+      "path": "/",
+      "methods": "GET",
+      "file": "src/routes/+page.server.ts",
+      "group": "(root)",
+      "accent": "public",
+      "dotColor": "amber",
+      "tags": ["PUBLIC"],
+      "terse": "root redirect router",
+      "description": "Root loader checks locals.auth via hooks.server.ts. If unauthenticated redirects 302 to /membership-new; if authenticated redirects 302 to /profile-area. No UI (+page.svelte is empty shell).",
+      "links": [
+        { "to": "r-login", "type": "auth", "label": "no auth" },
+        { "to": "r-profile-area", "type": "flow", "label": "auth ok" },
+        { "to": "r-membership-new", "type": "flow", "label": "guest" }
+      ]
+    },
+    {
+      "id": "r-login",
+      "kind": "page",
+      "path": "/login",
+      "methods": "GET·POST",
+      "file": "src/routes/(login)/login/+page.server.ts",
+      "group": "(login)",
+      "accent": "auth",
+      "dotColor": null,
+      "tags": ["AUTH", "PUBLIC"],
+      "terse": "email password login",
+      "description": "Three actions: login verifies email + SHA-256(salt+password) via POST /api/mongo/find (schema user), then POST /api/mongo/update sets cookieId=UUID and sets httpOnly session_id cookie (rememberMe 1y else 7d). register is TODO stub returning success. resetPassword generates nanoid 6-char temp password, SHA-256 hashes it, clears cookieId via update, sends new password via POST /api/mailer/recover-password; always returns generic success to avoid email enumeration. UI is animated Tailwind+DaisyUI form with enhance+invalidateAll, redirects to /profile-area or stored $courseId destination.",
+      "links": [
+        { "to": "r-profile-area", "type": "flow", "label": "login ok" },
+        { "to": "r-membership-new", "type": "flow", "label": "register" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "find user" },
+        { "to": "r-api-mongo-update", "type": "api", "label": "set cookie" },
+        { "to": "r-api-mailer-recover", "type": "api", "label": "reset mail" }
+      ]
+    },
+    {
+      "id": "r-cart",
+      "kind": "page",
+      "path": "/cart",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/cart/+page.server.ts",
+      "group": "(app)",
+      "accent": "protected",
+      "dotColor": null,
+      "tags": ["PROTECTED"],
+      "terse": "cart and checkout",
+      "description": "Protected via pageAuth('page'). load returns userData+auth+stripePublishableKey. Actions: createPaymentIntent creates Stripe PaymentIntent (eur, automatic_payment_methods, 3DS automatic) returning clientSecret+paymentIntentId. new handles full checkout: validates discounts, recalculates cart totals server-side (promoPrice if enabled and not expired, +9 EUR shipping if <100 and not storePickUp), verifies Stripe Intent status succeeded, creates/updates user (hash password, cookieId), creates order doc (schema order, status requested, invoicing/shipping/payment splits), decrements product stockQty via update $inc, awards referral points (refPoints % of totalValue) and deducts usedPoints, sends mail via /api/mailer/new-order. applyDiscount/removeDiscount validate discount applicability per selectedApplicability (email, membershipLevel, prodId with qty threshold, layoutId, referral, riflessologo) and compute discounts via calculateItemDiscount.",
+      "links": [
+        { "to": "r-profile-area", "type": "flow", "label": "order done" },
+        { "to": "r-product-shop", "type": "flow", "label": "continue" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "validate" },
+        { "to": "r-api-mongo-create", "type": "api", "label": "create order" },
+        { "to": "r-api-mongo-update", "type": "api", "label": "stock" },
+        { "to": "r-api-mailer-new-order", "type": "api", "label": "mail" }
+      ]
+    },
+    {
+      "id": "r-course-detail",
+      "kind": "page",
+      "path": "/course-detail/[idCourse]",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/course-detail/[idCourse]/+page.server.ts",
+      "group": "(app)",
+      "accent": "protected",
+      "dotColor": null,
+      "tags": ["PROTECTED"],
+      "terse": "course enrollment detail",
+      "description": "Load fetches product by prodId (type course/event) via /api/mongo/find with layoutView population, plus related courses. Actions include enrollment (enrollSubscriber pushes to listSubscribers with paymentMethod/status, checks duplicate enrollment), checkout via Stripe, and trainer-level certification toggles. Uses STRIPE_KEY_FRONT/BACK and SALT.",
+      "links": [
+        { "to": "r-course-shop", "type": "flow", "label": "back to shop" },
+        { "to": "r-profile-area", "type": "flow", "label": "my courses" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "load" },
+        { "to": "r-api-mongo-update", "type": "api", "label": "enroll" }
+      ]
+    },
+    {
+      "id": "r-course-shop",
+      "kind": "page",
+      "path": "/course-shop",
+      "methods": "GET",
+      "file": "src/routes/(app)/course-shop/+page.server.ts",
+      "group": "(app)",
+      "accent": "public",
+      "dotColor": null,
+      "tags": ["PUBLIC"],
+      "terse": "browse courses and events",
+      "description": "Public load computes academic year (June 1 boundary), fetches enabled products type course/event within next 12 months (projecting prodId,userId,layoutView,eventStartDate,county,timing) via /api/mongo/find, plus riflessologi formatori lists and layout metadata. Filters to formatori who actually have active courses. No auth guard; returns getTable, getRiflessologi, getLayout for shop filters.",
+      "links": [
+        { "to": "r-course-detail", "type": "flow", "label": "select course" },
+        { "to": "r-cart", "type": "flow", "label": "enroll" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "list" }
+      ]
+    },
+    {
+      "id": "r-course-table",
+      "kind": "page",
+      "path": "/course-table",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/course-table/+page.server.ts",
+      "group": "(app)",
+      "accent": "admin",
+      "dotColor": null,
+      "tags": ["ADMIN", "PROTECTED"],
+      "terse": "manage courses admin",
+      "description": "Protected via pageAuth. load scopes by level: non-admin sees only own userId courses; admin/superadmin sees all. Joins layoutView, formats dates to YYYY-MM-DD and HH:MM. Actions: new creates Product course/event doc, modify updates it, delete removes via /api/mongo/remove, filter queries by county/layoutId/prodId/userId, createCertification sets certificationStatus + per-subscriber fields via arrayFilters, toggleCertificationStatus flips one subscriber, coursePdf enriches subscriber list merging product listSubscribers + user city/county + order payment data, resetCertifications ($unset array fields) admin-only.",
+      "links": [
+        { "to": "r-course-detail", "type": "flow", "label": "view course" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "load" },
+        { "to": "r-api-mongo-create", "type": "api", "label": "create" },
+        { "to": "r-api-mongo-update", "type": "api", "label": "update" },
+        { "to": "r-api-mongo-remove", "type": "api", "label": "delete" }
+      ]
+    },
+    {
+      "id": "r-discount-table",
+      "kind": "page",
+      "path": "/discount-table",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/discount-table/+page.server.ts",
+      "group": "(app)",
+      "accent": "admin",
+      "dotColor": null,
+      "tags": ["ADMIN", "PROTECTED"],
+      "terse": "manage discounts",
+      "description": "Admin-only via pageAuth. load fetches all discounts, layouts, products, users for applicability targeting (selectedApplicability email|membershipLevel|prodId|layoutId|referral|riflessologo, type percent|amount|referral|qty). Actions: new creates Discount doc, modify updates it, delete removes, toggle disables. Validates riflessologo/referral uniqueness and qty thresholds used by cart checkout.",
+      "links": [
+        { "to": "r-cart", "type": "flow", "label": "apply code" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "load refs" },
+        { "to": "r-api-mongo-create", "type": "api", "label": "create" },
+        { "to": "r-api-mongo-update", "type": "api", "label": "update" },
+        { "to": "r-api-mongo-remove", "type": "api", "label": "delete" }
+      ]
+    },
+    {
+      "id": "r-insurance-new",
+      "kind": "page",
+      "path": "/insurance-new",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/insurance-new/+page.server.ts",
+      "group": "(app)",
+      "accent": "protected",
+      "dotColor": null,
+      "tags": ["PROTECTED"],
+      "terse": "new practitioner insurance",
+      "description": "Protected membership-tied insurance contribution form. load returns userData, membership product options and stripe key. Actions: createPaymentIntent and new (similar to cart/membership) create order type insurance, update user insurance.insuranceStatus/Date/Expiry, send confirmation via /api/mailer/new-insurance. Requires valid membershipStatus.",
+      "links": [
+        { "to": "r-profile-area", "type": "flow", "label": "done" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "load" },
+        { "to": "r-api-mongo-create", "type": "api", "label": "order" },
+        { "to": "r-api-mailer-new-insurance", "type": "api", "label": "mail" }
+      ]
+    },
+    {
+      "id": "r-kit-formatori",
+      "kind": "page",
+      "path": "/kit-materiale-formatori",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/kit-materiale-formatori/+page.server.ts",
+      "group": "(app)",
+      "accent": "admin",
+      "dotColor": null,
+      "tags": ["ADMIN", "PROTECTED"],
+      "terse": "trainer kit materials",
+      "description": "Formatore/admin page for kit material requests. load fetches kit products and user level gating. Actions handle kit order creation and stock handling via Mongo APIs, with Disc count and mail notification.",
+      "links": [
+        { "to": "r-order-table", "type": "flow", "label": "orders" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "load kit" },
+        { "to": "r-api-mongo-create", "type": "api", "label": "order kit" }
+      ]
+    },
+    {
+      "id": "r-layout-table",
+      "kind": "page",
+      "path": "/layout-table",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/layout-table/+page.server.ts",
+      "group": "(app)",
+      "accent": "admin",
+      "dotColor": null,
+      "tags": ["ADMIN", "PROTECTED"],
+      "terse": "manage course templates",
+      "description": "Admin page for Layout (course templates) CRUD. load lists all layouts via /api/mongo/find schema layout. Actions: new creates Layout doc (layoutId nanoid, title/descr/bgColor/price/promo/bundleProducts/uploadfiles), modify updates, delete removes, toggle status. Layouts are referenced by Product.layoutId and joined via layoutView virtual.",
+      "links": [
+        { "to": "r-course-table", "type": "flow", "label": "use template" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "list layouts" },
+        { "to": "r-api-mongo-create", "type": "api", "label": "create" },
+        { "to": "r-api-mongo-update", "type": "api", "label": "update" },
+        { "to": "r-api-mongo-remove", "type": "api", "label": "delete" }
+      ]
+    },
+    {
+      "id": "r-membership-new",
+      "kind": "page",
+      "path": "/membership-new",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/membership-new/+page.server.ts",
+      "group": "(app)",
+      "accent": "public",
+      "dotColor": null,
+      "tags": ["PUBLIC"],
+      "terse": "new membership signup",
+      "description": "Public membership signup (Socio ordinario 25 EUR or Socio vitalizio 380 EUR). load fetches product type membership titles. Actions: createPaymentIntent (Stripe) and new (guest or logged-in): validates address/howDidYouKnow/eventDetails, verifies Stripe Intent if card, checks email uniqueness, creates user (hashed password, cookieId, extraFieldText1/2 for survey), activates membership (membershipStatus, membershipLevel, signUp/activation/expiry), creates order type membership, handles vitalizio upgrade (36500-day expiry), mails order, sets session cookie. newWithInsurance variant also triggers insurance order and uses /api/mailer/new-membership-insurance (with PDF attachment).",
+      "links": [
+        { "to": "r-profile-area", "type": "flow", "label": "welcome" },
+        { "to": "r-login", "type": "auth", "label": "existing user" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "check email" },
+        { "to": "r-api-mongo-create", "type": "api", "label": "create user" },
+        { "to": "r-api-mailer-new-order", "type": "api", "label": "mail" },
+        { "to": "r-api-mailer-new-membership-insurance", "type": "api", "label": "mail+insurance" }
+      ]
+    },
+    {
+      "id": "r-membership-table",
+      "kind": "page",
+      "path": "/membership-table",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/membership-table/+page.server.ts",
+      "group": "(app)",
+      "accent": "admin",
+      "dotColor": null,
+      "tags": ["ADMIN", "PROTECTED"],
+      "terse": "manage memberships",
+      "description": "Admin CRUD for membership products (products where type=membership). load lists them. Actions: new/modify/delete/toggle status, change price/renewalLength, manage promoPrice/status. Backed by /api/mongo/* schema product.",
+      "links": [
+        { "to": "r-membership-new", "type": "flow", "label": "public form" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "list" },
+        { "to": "r-api-mongo-create", "type": "api", "label": "create" },
+        { "to": "r-api-mongo-update", "type": "api", "label": "update" }
+      ]
+    },
+    {
+      "id": "r-order-table",
+      "kind": "page",
+      "path": "/order-table",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/order-table/+page.server.ts",
+      "group": "(app)",
+      "accent": "admin",
+      "dotColor": null,
+      "tags": ["ADMIN", "PROTECTED"],
+      "terse": "manage orders",
+      "description": "Admin order management. Protected via pageAuth. load fetches orders with userView population, filtered by status/type/pagination. Actions: updateStatus (requested→confirmed→exported etc), updateTracking (company/trackingNumber/link/estimatedDelivery), filter by userId/orderId/date, export CSV via Papa.unparse, and downloadCatalog PDF generation (pdfmake) for product bundles.",
+      "links": [
+        { "to": "r-cart", "type": "flow", "label": "new order" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "list orders" },
+        { "to": "r-api-mongo-update", "type": "api", "label": "update status" },
+        { "to": "r-api-download", "type": "api", "label": "csv export" }
+      ]
+    },
+    {
+      "id": "r-product-detail",
+      "kind": "page",
+      "path": "/product-detail/[value_Id]",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/product-detail/[value_Id]/+page.server.ts",
+      "group": "(app)",
+      "accent": "public",
+      "dotColor": null,
+      "tags": ["PUBLIC"],
+      "terse": "product detail view",
+      "description": "Public product detail by prodId/sku. load fetches product via /api/mongo/find, resolves uploadfiles for primary/gallery images via imgCheck helper, checks stockQty and promoPrice validity, returns related products by category. Actions addToCart via client store and server-side stock validation.",
+      "links": [
+        { "to": "r-product-shop", "type": "flow", "label": "back to shop" },
+        { "to": "r-cart", "type": "flow", "label": "add to cart" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "load product" }
+      ]
+    },
+    {
+      "id": "r-product-shop",
+      "kind": "page",
+      "path": "/product-shop",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/product-shop/+page.server.ts",
+      "group": "(app)",
+      "accent": "public",
+      "dotColor": null,
+      "tags": ["PUBLIC"],
+      "terse": "browse products",
+      "description": "Public product shop with pagination, category aggregation, search and PDF catalog. load counts products, fetches first 20 sorted by title, aggregates categories via /api/mongo/aggregate ($match status enabled/type product, $unwind category, $group count). Actions: filter by category, searchName by title regex, changePage with skip/limit, downloadCatalog generates optimized PDF via sharp (200x200 resize, flatten alpha→white, jpeg 70) + pdfmake (Roboto, A4, compression) streaming as base64.",
+      "links": [
+        { "to": "r-product-detail", "type": "flow", "label": "view product" },
+        { "to": "r-cart", "type": "flow", "label": "buy" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "list" },
+        { "to": "r-api-mongo-count", "type": "api", "label": "count" },
+        { "to": "r-api-mongo-aggregate", "type": "api", "label": "categories" }
+      ]
+    },
+    {
+      "id": "r-product-table",
+      "kind": "page",
+      "path": "/product-table",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/product-table/+page.server.ts",
+      "group": "(app)",
+      "accent": "admin",
+      "dotColor": null,
+      "tags": ["ADMIN", "PROTECTED"],
+      "terse": "manage products",
+      "description": "Admin product CRUD (type product). Protected. load lists products with pagination/count. Actions: new creates Product doc (nanoid prodId, title/price/stock/category/uploadfiles via /api/uploads/files headers), modify updates, delete removes, toggle status enabled/disabled, filter/search, and bulk stock operations.",
+      "links": [
+        { "to": "r-product-shop", "type": "flow", "label": "storefront" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "list" },
+        { "to": "r-api-mongo-create", "type": "api", "label": "create" },
+        { "to": "r-api-mongo-update", "type": "api", "label": "update" },
+        { "to": "r-api-mongo-remove", "type": "api", "label": "delete" },
+        { "to": "r-api-uploads-files", "type": "api", "label": "upload image" }
+      ]
+    },
+    {
+      "id": "r-profile-area",
+      "kind": "page",
+      "path": "/profile-area",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/profile-area/+page.server.ts",
+      "group": "(app)",
+      "accent": "protected",
+      "dotColor": null,
+      "tags": ["PROTECTED"],
+      "terse": "personal area dashboard",
+      "description": "Core protected dashboard (pageAuth). load returns userData, orders, membership/insurance status, trainingHistory. Actions: updateProfile (name/surname/address/etc, privacyAccept), changePassword (old password hash check, new hash), uploadAvatar/Document via /api/uploads/files (headers x-file-name/x-folder-name), addTrainingHistory (hours/description/file), requestMembershipRenewal, and admin notes. Uses hash.ts with SALT.",
+      "links": [
+        { "to": "r-login", "type": "auth", "label": "no auth" },
+        { "to": "r-membership-new", "type": "flow", "label": "renew" },
+        { "to": "r-insurance-new", "type": "flow", "label": "insurance" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "load" },
+        { "to": "r-api-mongo-update", "type": "api", "label": "save" },
+        { "to": "r-api-uploads-files", "type": "api", "label": "upload" }
+      ]
+    },
+    {
+      "id": "r-profile-public",
+      "kind": "page",
+      "path": "/profile-public/[idUser]",
+      "methods": "GET",
+      "file": "src/routes/(app)/profile-public/[idUser]/+page.server.ts",
+      "group": "(app)",
+      "accent": "public",
+      "dotColor": null,
+      "tags": ["PUBLIC"],
+      "terse": "public practitioner profile",
+      "description": "Public read-only profile for a riflessologo/trainer looked up by userId via /api/mongo/find with projection respecting *Public booleans (namePublic, cityPublic etc). Shows level, membershipLevel, city/county, public contact, and course list. No auth guard.",
+      "links": [
+        { "to": "r-user-list", "type": "flow", "label": "back to directory" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "load user" }
+      ]
+    },
+    {
+      "id": "r-trireport",
+      "kind": "page",
+      "path": "/trireport",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/trireport/+page.server.ts",
+      "group": "(app)",
+      "accent": "protected",
+      "dotColor": null,
+      "tags": ["PROTECTED"],
+      "terse": "training tri-report",
+      "description": "Protected reporting page (tri = trimestrale?). load aggregates user/orders/courses for the logged user. Actions filter by date range and generate CSV/PDF exports via Papa and pdfmake, reusing tooling from product-shop.",
+      "links": [
+        { "to": "r-profile-area", "type": "flow", "label": "profile" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "query" },
+        { "to": "r-api-mongo-aggregate", "type": "api", "label": "aggregate" },
+        { "to": "r-api-download", "type": "api", "label": "export csv" }
+      ]
+    },
+    {
+      "id": "r-user-list",
+      "kind": "page",
+      "path": "/user-list",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/user-list/+page.server.ts",
+      "group": "(app)",
+      "accent": "public",
+      "dotColor": null,
+      "tags": ["PUBLIC"],
+      "terse": "practitioner directory",
+      "description": "Public directory of riflessologi. load fetches users where status enabled and level in (riflessologo, formatore base/master/avanzato) via /api/mongo/find, projecting only public fields and sorting by surname. Actions filter by county/level/name and paginate, linking each entry to /profile-public/[idUser].",
+      "links": [
+        { "to": "r-profile-public", "type": "flow", "label": "view profile" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "list users" }
+      ]
+    },
+    {
+      "id": "r-user-table",
+      "kind": "page",
+      "path": "/user-table",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/user-table/+page.server.ts",
+      "group": "(app)",
+      "accent": "admin",
+      "dotColor": null,
+      "tags": ["ADMIN", "PROTECTED"],
+      "terse": "manage users admin",
+      "description": "Admin user management with pagination and search. Protected. load counts users, fetches page with projection excluding sensitive fields, plus pending membership cards. Actions: new creates User (nanoid userId, hash password), modify updates via $set, delete via remove, toggle status/level, changePassword (hash with SALT), upload files, filter/search, and pendingApprovals queue.",
+      "links": [
+        { "to": "r-profile-public", "type": "flow", "label": "public view" },
+        { "to": "r-api-mongo-count", "type": "api", "label": "count" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "list" },
+        { "to": "r-api-mongo-create", "type": "api", "label": "create" },
+        { "to": "r-api-mongo-update", "type": "api", "label": "update" },
+        { "to": "r-api-mongo-remove", "type": "api", "label": "delete" }
+      ]
+    },
+    {
+      "id": "r-video-table",
+      "kind": "page",
+      "path": "/video-table",
+      "methods": "GET·POST",
+      "file": "src/routes/(app)/video-table/+page.server.ts",
+      "group": "(app)",
+      "accent": "admin",
+      "dotColor": null,
+      "tags": ["ADMIN", "PROTECTED"],
+      "terse": "manage tutorial videos",
+      "description": "Admin CRUD for Video docs. Protected. load fetches all videos via /api/mongo/find schema video. Actions: new creates Video (nanoid videoId, title/url/visibility array, status), modify updates, delete removes, toggleStatus via $set. Videos are consumed by Navbar tutorial dropdown filtered by user level through POST /api/video which proxies to /api/mongo/find with visibility $in [level].",
+      "links": [
+        { "to": "r-api-mongo-find", "type": "api", "label": "list" },
+        { "to": "r-api-mongo-create", "type": "api", "label": "create" },
+        { "to": "r-api-mongo-update", "type": "api", "label": "update" },
+        { "to": "r-api-mongo-remove", "type": "api", "label": "delete" },
+        { "to": "r-api-video", "type": "api", "label": "serve by level" }
+      ]
+    },
+    {
+      "id": "r-ocrtest",
+      "kind": "page",
+      "path": "/ocrtest",
+      "methods": "GET·POST",
+      "file": "src/routes/(test)/ocrtest/+page.server.ts",
+      "group": "(test)",
+      "accent": "dev",
+      "dotColor": "violet",
+      "tags": ["DEV"],
+      "terse": "OCR test harness",
+      "description": "Test harness for tesseract.js OCR on uploaded images. Uses DragDrop upload, sharp preprocessing, and tesseract worker to extract text; results displayed in page. No auth guard, dev-only.",
+      "links": [
+        { "to": "r-api-uploads-files", "type": "api", "label": "upload" }
+      ]
+    },
+    {
+      "id": "r-prod-sample",
+      "kind": "page",
+      "path": "/prod-sample",
+      "methods": "GET",
+      "file": "src/routes/(test)/prod-sample/+page.svelte",
+      "group": "(test)",
+      "accent": "dev",
+      "dotColor": "violet",
+      "tags": ["DEV"],
+      "terse": "product sample view",
+      "description": "Static sample product page for UI prototyping. No server load; renders placeholder product card with Tailwind/DaisyUI.",
+      "links": []
+    },
+    {
+      "id": "r-test",
+      "kind": "page",
+      "path": "/test",
+      "methods": "GET·POST",
+      "file": "src/routes/(test)/test/+page.server.ts",
+      "group": "(test)",
+      "accent": "dev",
+      "dotColor": "violet",
+      "tags": ["DEV"],
+      "terse": "generic test page",
+      "description": "Generic test/sandbox page under (test) group. Exercises form actions, upload and Mongo find plumbing without affecting production data.",
+      "links": [
+        { "to": "r-api-mongo-find", "type": "api", "label": "find" }
+      ]
+    },
+    {
+      "id": "r-testlogin",
+      "kind": "page",
+      "path": "/testlogin",
+      "methods": "GET·POST",
+      "file": "src/routes/(test)/testlogin/+page.server.ts",
+      "group": "(test)",
+      "accent": "dev",
+      "dotColor": "violet",
+      "tags": ["DEV"],
+      "terse": "login flow test",
+      "description": "Dedicated test for login/session flow; mirrors /login actions but isolated for debugging hooks.server.ts session_id + APIKEY validation.",
+      "links": [
+        { "to": "r-login", "type": "flow", "label": "real login" },
+        { "to": "r-api-mongo-find", "type": "api", "label": "find user" }
+      ]
+    },
+    {
+      "id": "r-wheel",
+      "kind": "page",
+      "path": "/wheel",
+      "methods": "GET",
+      "file": "src/routes/(test)/wheel/+page.svelte",
+      "group": "(test)",
+      "accent": "dev",
+      "dotColor": "violet",
+      "tags": ["DEV"],
+      "terse": "wheel interaction demo",
+      "description": "Interactive wheel/spinner demo page (Svelte motion). No server load.",
+      "links": []
+    },
+    {
+      "id": "r-api-download",
+      "kind": "api",
+      "path": "/api/download",
+      "methods": "POST",
+      "file": "src/routes/api/download/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API"],
+      "terse": "csv export endpoint",
+      "description": "POST { exportData: any[], fileName: string } → uses papaparse.unparse to generate CSV string, returns Buffer with Content-Type text/csv and Content-Disposition attachment; filename* UTF-8 encoded. Used by order-table/trireport exports.",
+      "links": []
+    },
+    {
+      "id": "r-api-logout",
+      "kind": "api",
+      "path": "/api/logout",
+      "methods": "POST",
+      "file": "src/routes/api/logout/+page.server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API"],
+      "terse": "session logout",
+      "description": "Form action default: reads session_id cookie, deletes it (path /), POSTs to /api/mongo/update clearing cookieId for that user, then redirect 303 to /login. Throws 400 if no session, 500 on update failure.",
+      "links": [
+        { "to": "r-api-mongo-update", "type": "api", "label": "clear cookie" },
+        { "to": "r-login", "type": "auth", "label": "redirect" }
+      ]
+    },
+    {
+      "id": "r-api-mailer-default",
+      "kind": "api",
+      "path": "/api/mailer/default",
+      "methods": "POST",
+      "file": "src/routes/api/mailer/default/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "EMAIL"],
+      "terse": "generic notification mail",
+      "description": "POST { apiKey, email, content } APIKEY-gated. Creates nodemailer transport from MAILER_HOST/PORT/SECURE/USER/PASS, sends HTML email from no-reply@riflessologiadienchan.it with subject 'Notifica Dienchan' and content injected into styled template. Used for referral points notification and generic alerts.",
+      "links": []
+    },
+    {
+      "id": "r-api-mailer-expiry-discount",
+      "kind": "api",
+      "path": "/api/mailer/expiry-discount",
+      "methods": "POST",
+      "file": "src/routes/api/mailer/expiry-discount/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "EMAIL"],
+      "terse": "discount expiry mailer",
+      "description": "Cron-style endpoint: finds discounts where expiryDate <= now or status disabled, updates status via /api/mongo/update, sends expiry notification mails via nodemailer. APIKEY + BASE_URL protected; called internally.",
+      "links": [
+        { "to": "r-api-mongo-find", "type": "api", "label": "find expired" },
+        { "to": "r-api-mongo-update", "type": "api", "label": "disable" }
+      ]
+    },
+    {
+      "id": "r-api-mailer-expiry-notification",
+      "kind": "api",
+      "path": "/api/mailer/expiry-notification/+server.ts",
+      "methods": "POST",
+      "file": "src/routes/api/mailer/expiry-notification/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "EMAIL"],
+      "terse": "membership expiry notifier",
+      "description": "Cron endpoint that queries users with membership.membershipExpiry expired or expiring soon, flips membershipStatus to false via update, and sends renewal reminder mails (nodemailer). Handles both already-expired and expiring batches separately.",
+      "links": [
+        { "to": "r-api-mongo-find", "type": "api", "label": "find expiring" },
+        { "to": "r-api-mongo-update", "type": "api", "label": "deactivate" }
+      ]
+    },
+    {
+      "id": "r-api-mailer-new-insurance",
+      "kind": "api",
+      "path": "/api/mailer/new-insurance",
+      "methods": "POST",
+      "file": "src/routes/api/mailer/new-insurance/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "EMAIL"],
+      "terse": "insurance confirm mail",
+      "description": "POST { apiKey, email, order } APIKEY-gated. Sends insurance confirmation HTML mail with order details (pdf attachment for policy) via nodemailer. Used by /insurance-new new action.",
+      "links": []
+    },
+    {
+      "id": "r-api-mailer-new-membership-insurance",
+      "kind": "api",
+      "path": "/api/mailer/new-membership-insurance/+server.ts",
+      "methods": "POST",
+      "file": "src/routes/api/mailer/new-membership-insurance/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "EMAIL"],
+      "terse": "membership+insurance mail",
+      "description": "Combined membership+insurance order mailer. Sends HTML mail with both order types in one template plus PDF attachment. Called by /membership-new newWithInsurance action with APIKEY auth.",
+      "links": []
+    },
+    {
+      "id": "r-api-mailer-new-order",
+      "kind": "api",
+      "path": "/api/mailer/new-order/+server.ts",
+      "methods": "POST",
+      "file": "src/routes/api/mailer/new-order/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "EMAIL"],
+      "terse": "order confirmation mail",
+      "description": "POST { apiKey, email[], order } renders order cart as HTML table (BASE_URL for image URLs, fallback placeholder), calculates totals + shipping, sends to both admin and customer via nodemailer (MAILER_*). Handles product/course/membership order types, injects orderNotes discount codes. Used by cart/membership-new.",
+      "links": []
+    },
+    {
+      "id": "r-api-mailer-new-order-12massaggi",
+      "kind": "api",
+      "path": "/api/mailer/new-order-12massaggi/+server.ts",
+      "methods": "POST",
+      "file": "src/routes/api/mailer/new-order-12massaggi/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "EMAIL"],
+      "terse": "12massaggi order mail",
+      "description": "Specialized order mailer for 12massaggi promo: similar to new-order but tailored template/recipients for that promotion. Branches on the cart course prodId: F82B3JBZT (recurring course of the 15th of each month, Van Tri Truong) gets a dedicated template with its own course title, 'il 15 di ogni mese' schedule line and the Zoom registration link https://us06web.zoom.us/meeting/register/Q3OGh5aFSrinZi3sHbDS1A#/registration; CQ112QCNK keeps the original 12 Massaggi template byte-identical. APIKEY-gated, nodemailer backed.",
+      "links": []
+    },
+    {
+      "id": "r-api-mailer-recover",
+      "kind": "api",
+      "path": "/api/mailer/recover-password",
+      "methods": "POST",
+      "file": "src/routes/api/mailer/recover-password/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "EMAIL"],
+      "terse": "recover password mail",
+      "description": "POST { apiKey, email, password } APIKEY-gated. Sends password-recovery HTML mail with new temp password highlighted (MAILER_HOST/PORT/USER/PASS). Called by /login resetPassword after hashing and clearing cookie.",
+      "links": []
+    },
+    {
+      "id": "r-api-mongo-aggregate",
+      "kind": "api",
+      "path": "/api/mongo/aggregate",
+      "methods": "POST",
+      "file": "src/routes/api/mongo/aggregate/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "DATA"],
+      "terse": "mongo aggregate pipe",
+      "description": "Generic aggregate proxy: POST { apiKey, schema product|order|user|layout|discount, pipeline: [] } validates apiKey via timingSafeEqual, selects Mongoose model, runs model.aggregate(pipeline).exec(). Used by product-shop category counts and reporting. TODO notes missing pipeline validation for arbitrary operations.",
+      "links": []
+    },
+    {
+      "id": "r-api-mongo-count",
+      "kind": "api",
+      "path": "/api/mongo/count",
+      "methods": "POST",
+      "file": "src/routes/api/mongo/count/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "DATA"],
+      "terse": "mongo count helper",
+      "description": "POST { apiKey, schema, query, option:{hint} } → timingSafeEqual APIKEY check, model.countDocuments(query) with optional hint index. Returns number. Used for pagination counts in user-table, product-shop, etc.",
+      "links": []
+    },
+    {
+      "id": "r-api-mongo-create",
+      "kind": "api",
+      "path": "/api/mongo/create",
+      "methods": "POST",
+      "file": "src/routes/api/mongo/create/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "DATA"],
+      "terse": "mongo create doc",
+      "description": "POST { apiKey, schema product|order|user|layout|discount|video, newDoc, returnObj } APIKEY timingSafeEqual. Selects model, calls model.create(newDoc); if returnObj returns inserted doc else {message: insert ok}. Errors 500 on exception.",
+      "links": []
+    },
+    {
+      "id": "r-api-mongo-find",
+      "kind": "api",
+      "path": "/api/mongo/find",
+      "methods": "POST",
+      "file": "src/routes/api/mongo/find/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "DATA"],
+      "terse": "mongo find proxy",
+      "description": "Central find proxy: POST { apiKey, schema, query, projection, sort, limit, skip } timingSafeEqual check. Builds Mongoose find with optional populate of userView (Order→User via userId) and layoutView (Product→Layout via layoutId) unless projection excludes them. Lean exec, returns array. Used by virtually every page load and hooks.server.ts session lookup.",
+      "links": []
+    },
+    {
+      "id": "r-api-mongo-get-orders",
+      "kind": "api",
+      "path": "/api/mongo/get/getOrders",
+      "methods": "GET",
+      "file": "src/routes/api/mongo/get/getOrders/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "DATA"],
+      "terse": "get all orders",
+      "description": "GET without APIKEY (direct DB access): connects via dbConnect, runs Order.find({}).populate(userView).lean(). Returns all orders. Intended for internal/reporting; note missing APIKEY gate vs other /api/mongo/* routes.",
+      "links": []
+    },
+    {
+      "id": "r-api-mongo-get-users",
+      "kind": "api",
+      "path": "/api/mongo/get/getUsers",
+      "methods": "GET",
+      "file": "src/routes/api/mongo/get/getUsers/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "DATA"],
+      "terse": "get all users",
+      "description": "GET without APIKEY: User.find({}).select('-token -password').lean(). Returns all users sans sensitive fields.",
+      "links": []
+    },
+    {
+      "id": "r-api-mongo-getCourse-accademia",
+      "kind": "api",
+      "path": "/api/mongo/getCourse/accademia",
+      "methods": "GET",
+      "file": "src/routes/api/mongo/getCourse/accademia/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "DATA"],
+      "terse": "list accademia events",
+      "description": "GET: Product.find({ type:event, layoutId:5G98NH2XQ, status:enabled }).populate userView+layoutView.lean(). Returns Accademia-layout events without auth.",
+      "links": []
+    },
+    {
+      "id": "r-api-mongo-getCourse-conferenza",
+      "kind": "api",
+      "path": "/api/mongo/getCourse/conferenzaGratuita",
+      "methods": "GET",
+      "file": "src/routes/api/mongo/getCourse/conferenzaGratuita/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "DATA"],
+      "terse": "list free conference",
+      "description": "GET: Product.find for layout conferenza gratuita (layoutId conferenza). Same populate pattern as other getCourse endpoints.",
+      "links": []
+    },
+    {
+      "id": "r-api-mongo-getCourse-avanzato",
+      "kind": "api",
+      "path": "/api/mongo/getCourse/corsoAvanzato/+server.ts",
+      "methods": "GET",
+      "file": "src/routes/api/mongo/getCourse/corsoAvanzato/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "DATA"],
+      "terse": "list advanced course",
+      "description": "GET: Product.find({ type:course, layoutId:794792843 (avanzato), status:enabled }).populate userView+layoutView.lean().",
+      "links": []
+    },
+    {
+      "id": "r-api-mongo-getCourse-base",
+      "kind": "api",
+      "path": "/api/mongo/getCourse/corsoBase/+server.ts",
+      "methods": "GET",
+      "file": "src/routes/api/mongo/getCourse/corsoBase/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "DATA"],
+      "terse": "list base course",
+      "description": "GET: Product.find({ type:course, layoutId:XW7LYV2LG2BU (base), status:enabled }).populate userView+layoutView.lean().",
+      "links": []
+    },
+    {
+      "id": "r-api-mongo-remove",
+      "kind": "api",
+      "path": "/api/mongo/remove",
+      "methods": "POST",
+      "file": "src/routes/api/mongo/remove/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "DATA"],
+      "terse": "mongo delete doc",
+      "description": "POST { apiKey, schema, query, multi } timingSafeEqual check. Selects model, calls deleteOne or deleteMany based on multi flag. Used by discount/course/product/user/video table deletes.",
+      "links": []
+    },
+    {
+      "id": "r-api-mongo-update",
+      "kind": "api",
+      "path": "/api/mongo/update/+server.ts",
+      "methods": "POST",
+      "file": "src/routes/api/mongo/update/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "DATA"],
+      "terse": "mongo update doc",
+      "description": "POST { apiKey, schema, query, update, options (arrayFilters, upsert), multi } timingSafeEqual. Calls updateOne/updateMany with $set/$inc/$push. Used everywhere: login cookie set, membership activation, stock decrement, points, profile updates, certification toggles, hooks expiry fix.",
+      "links": []
+    },
+    {
+      "id": "r-api-mongo-update-bulk",
+      "kind": "api",
+      "path": "/api/mongo/update-bulk",
+      "methods": "POST",
+      "file": "src/routes/api/mongo/update-bulk/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "DATA"],
+      "terse": "bulk update helper",
+      "description": "POST { apiKey, schema, operations: [{query,update,options}] } bulkWrite wrapper with APIKEY check. For batch updates.",
+      "links": []
+    },
+    {
+      "id": "r-api-uploads-files",
+      "kind": "api",
+      "path": "/api/uploads/files",
+      "methods": "POST·DELETE",
+      "file": "src/routes/api/uploads/files/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "UPLOAD"],
+      "terse": "upload/delete files",
+      "description": "POST: expects raw body + headers x-file-name (validated regex /^[a-zA-Z0-9._\\- ]+$/) and x-folder-name (alphanumeric _- segments). Sanitizes, mkdir -p uploads/<folderSegments>, streams via pipeline(Readable.fromWeb, createWriteStream), returns 200. Cleans partial file on error. DELETE: {dir,fileName} unlinks file and rmdir if empty. Files are served by GET /files/[type]/[folder]/[name] with ETag, range support, sanitized path traversal guard.",
+      "links": []
+    },
+    {
+      "id": "r-api-video",
+      "kind": "api",
+      "path": "/api/video",
+      "methods": "POST",
+      "file": "src/routes/api/video/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "DATA"],
+      "terse": "videos by user level",
+      "description": "POST { level } (no APIKEY from client). Internally fetches POST /api/mongo/find schema video where status enabled and visibility $in [level] with x-internal-call header, returns filtered array or [] on error. Called by Navbar onMount via getVideosByLevel remote.",
+      "links": [
+        { "to": "r-api-mongo-find", "type": "api", "label": "proxy find" }
+      ]
+    },
+    {
+      "id": "r-api-files",
+      "kind": "api",
+      "path": "/files/[type]/[folder]/[name]",
+      "methods": "GET",
+      "file": "src/routes/files/[type]/[folder]/[name]/+server.ts",
+      "group": "api",
+      "accent": "api",
+      "dotColor": null,
+      "tags": ["API", "DATA"],
+      "terse": "serve uploaded files",
+      "description": "GET params type/folder/name sanitized (replace [<>:\"|?*\\x00-1f] with _), path-traversal guard via isPathSafe against ./uploads, ETag weak validator (size-mtime), If-None-Match 304, range bytes 206, mime lookup table, Cache-Control max-age 604800. Streams via Readable.toWeb(createReadStream).",
+      "links": []
+    },
+    {
+      "id": "r-ext-mongo",
+      "kind": "external",
+      "path": "EXTERNAL · MongoDB",
+      "methods": "◈",
+      "file": "MongoDB + Mongoose 8 — MONGO_URI",
+      "group": "external",
+      "accent": "ext",
+      "dotColor": "blue",
+      "tags": ["DATA"],
+      "terse": "primary data store",
+      "description": "Primary persistence: MongoDB accessed via cached mongoose connection in src/lib/server/mongo/database.ts (readyState 1 reuse, readyState 2 wait, bufferCommands false). Collections: users, products, orders, layouts, discounts, videos with indexes on userId, prodId, orderId, layoutId, email etc.",
+      "links": []
+    },
+    {
+      "id": "r-ext-sqlite",
+      "kind": "external",
+      "path": "EXTERNAL · SQLite messages",
+      "methods": "◈",
+      "file": "Drizzle SQLite — data/sqlite.db",
+      "group": "external",
+      "accent": "ext",
+      "dotColor": "blue",
+      "tags": ["DATA"],
+      "terse": "whatsapp messages store",
+      "description": "Drizzle sqliteTable messages in src/lib/server/sqlite/schema/messages.ts (drizzle.config dialect sqlite, schema ./src/lib/db/sqlite/schema, out ./data/migration, url ./data/sqlite.db). Currently stubbed client in database.ts (better-sqlite3 commented out). backup.ts is fully commented stub.",
+      "links": []
+    },
+    {
+      "id": "r-ext-stripe",
+      "kind": "external",
+      "path": "EXTERNAL · Stripe",
+      "methods": "◈",
+      "file": "Stripe API — STRIPE_KEY_BACK/FRONT",
+      "group": "external",
+      "accent": "ext",
+      "dotColor": "blue",
+      "tags": ["DATA"],
+      "terse": "card payments 3DS",
+      "description": "Payments processor: stripe 22 server SDK initialized with STRIPE_KEY_BACK and STRIPE_API version. Client uses @stripe/stripe-js with STRIPE_KEY_FRONT. Flow: createPaymentIntent → client confirms with stripe.confirmCardPayment → server retrieves and verifies Intent status succeeded before creating order.",
+      "links": []
+    },
+    {
+      "id": "r-ext-mailer",
+      "kind": "external",
+      "path": "EXTERNAL · SMTP Nodemailer",
+      "methods": "◈",
+      "file": "Nodemailer — MAILER_HOST/PORT/USER/PASS",
+      "group": "external",
+      "accent": "ext",
+      "dotColor": "blue",
+      "tags": ["EMAIL"],
+      "terse": "transactional email",
+      "description": "Email delivery via nodemailer.createTransport host MAILER_HOST, port MAILER_PORT, secure MAILER_SECURE, auth USER/PASS. Used by all /api/mailer/* endpoints. Sender no-reply@riflessologiadienchan.it.",
+      "links": []
+    }
+  ],
+  "components": [
+    {
+      "id": "C-01",
+      "name": "Navbar.svelte",
+      "file": "src/lib/components/Navbar.svelte",
+      "status": "live",
+      "description": "Sticky top header with logo, desktop dropdowns (Iscrizioni, Corsi, Prodotti, Albo, Tutorial filtered by level via getVideosByLevel), Gestione admin menu (Corsi, Kit, Membership, Modelli, Ordini, Prodotti, Sconti, Utenti, Video), cart badge ($cdata.q1), user info bar (name, pointsBalance), mobile hamburger drawer, logout form with emptyCart+applyAction. Props user,auth; derived isFormatore from Set('riflessologo','formatore base','master','formatore avanzato')."
+    },
+    {
+      "id": "C-02",
+      "name": "Footer.svelte",
+      "file": "src/lib/components/Footer.svelte",
+      "status": "live",
+      "description": "Global footer rendered in (app),(login),(test) layouts; site links, association info, socials."
+    },
+    {
+      "id": "C-03",
+      "name": "Modal.svelte",
+      "file": "src/lib/components/Modal.svelte",
+      "status": "live",
+      "description": "DaisyUI modal dialog: props isOpen (bindable), header, headerBg, footer, footerColor, cssClass, children snippet. Animates with scale quintOut. Used for login reset, product/course modals, alerts across app."
+    },
+    {
+      "id": "C-04",
+      "name": "CartFloat.svelte",
+      "file": "src/lib/components/CartFloat.svelte",
+      "status": "live",
+      "description": "Floating toast-end toast-middle button showing $cdata.q1 badge, links to /cart, slide x transition. Rendered when cartProducts length >0."
+    },
+    {
+      "id": "C-05",
+      "name": "DragDrop.svelte",
+      "file": "src/lib/components/DragDrop.svelte",
+      "status": "live",
+      "description": "File drop zone for images: props inputName, dragCounter/isDragging/previewUrl state, accepts jpg/jpeg/png/webp, shows preview with cancel clearing URL.createObjectURL. Wraps hidden file input with Tailwind dashed border."
+    },
+    {
+      "id": "C-06",
+      "name": "NotificationContainer.svelte",
+      "file": "src/lib/components/NotificationContainer.svelte",
+      "status": "live",
+      "description": "Toast-top toast-center container subscribing to notification store, rendering each Notification (id,content,type,duration) with fly transitions and Info/CircleX/CircleCheckBig icons, close button calls notification.remove(id)."
+    },
+    {
+      "id": "C-07",
+      "name": "Loader.svelte",
+      "file": "src/lib/components/Loader.svelte",
+      "status": "live",
+      "description": "Fullscreen bottom modal with centered Tailwind loading-bars spinner (text-primary). Shown while forms await server actions."
+    },
+    {
+      "id": "C-08",
+      "name": "Notification(deprecated).svelte",
+      "file": "src/lib/components/Notification(deprecated).svelte",
+      "status": "dormant",
+      "description": "Legacy notification component superseded by NotificationContainer + notification store; kept for reference, not imported anywhere."
+    },
+    {
+      "id": "C-09",
+      "name": "UpdateBrowserAlert.svelte",
+      "file": "src/lib/components/UpdateBrowserAlert.svelte",
+      "status": "dormant",
+      "description": "Browser-update nudge component (import commented out in +layout.svelte); not rendered."
+    }
+  ],
+  "stores": [
+    {
+      "file": "src/lib/stores/cart.ts",
+      "name": "cartProducts",
+      "exports": ["cartProducts", "cdata", "cartStatus", "discountList", "addToCart", "removeFromCart", "emptyCart"],
+      "description": "Svelte writable cart persisted to localStorage (cartProducts array, cdata {q1,p1} qty+points, cartStatus trigger). addToCart deduplicates by prodId incrementing orderQuantity, removeFromCart decrements or filters, emptyCart clears. cdata syncs total qty and points sum. discountList writable holds applied discounts."
+    },
+    {
+      "file": "src/lib/stores/notifications.ts",
+      "name": "notification",
+      "exports": ["notification"],
+      "description": "Custom store createNotificationStore wrapping writable<Notification[]> with success/error/info/clear/remove, auto-removes after duration (default 5000ms) via setTimeout with Date.now()+Math.random() id."
+    },
+    {
+      "file": "src/lib/stores/arrays.ts",
+      "name": "arrays",
+      "exports": ["sidebarData", "courseId", "countries", "country_list", "province", "hours", "minutes", "days", "months", "monthsShort", "courseKeysToDelete", "orderKeysToDelete", "userKeysToDelete", "membershipKeysToDelete", "productKeysToDelete", "layoutArray", "pdfValue"],
+      "description": "Large config store: writable sidebarData, courseId (for post-login redirect); readable constants for countries (250+ ISO), provinces (100+ Italian with region code), time pickers, *KeysToDelete lists for CSV export column filtering, layoutArray (11 layoutId mappings like base XW7LYV2LG2BU), pdfValue (certificate bg/pageMargins per layout using PUBLIC_BASE_URL/training/*.jpg)."
+    },
+    {
+      "file": "src/lib/stores/currentProduct.ts",
+      "name": "currentProduct",
+      "exports": ["thisProd", "imagesArray", "relatedProd", "isFetching", "getThisProd"],
+      "description": "Legacy product fetch helpers (isFetching flag). getThisProd(prodId) fetches BASE_URL/api/product/findId via fetch (BASE_URL from private env), builds slides from image1..8, sets thisProd/imagesArray, then fetches related by categoryId. Note file present but Navbar/product-detail now use direct API calls; still exported."
+    },
+    {
+      "file": "src/lib/stores/searchCategory.ts",
+      "name": "searchCategory",
+      "exports": ["listCategory", "currentSearchCategory", "currentSearchId", "newSearch"],
+      "description": "Simple shop search state: readable listCategory (8 categories), writables currentSearchCategory/currentSearchId/newSearch. Imported by product-shop filters."
+    },
+    {
+      "file": "src/lib/stores/upload.ts",
+      "name": "create_upload",
+      "exports": ["create_upload"],
+      "description": "XHR-based upload store: writable {status:idle|uploading|completed|error, progress}, start({file,url,headers}) returns Promise via XMLHttpRequest with progress listener and loadend resolver. Used as alternative to fetch uploads."
+    }
+  ],
+  "serverLibs": [
+    {
+      "id": "S-01",
+      "name": "database.ts",
+      "path": "src/lib/server/mongo/database.ts",
+      "description": "Cached Mongoose connector: validates MONGO_URI env, reuses mongoose.connection readyState 1, awaits readyState 2 'connected' event, else mongoose.connect(MONGO_URI,{bufferCommands:false}) and caches. Exported dbConnect default imported by all /api/mongo/* handlers."
+    },
+    {
+      "id": "S-02",
+      "name": "database.ts",
+      "path": "src/lib/server/sqlite/database.ts",
+      "description": "Stubbed Drizzle SQLite client (all code commented out): was better-sqlite3 with WAL/NORMAL/MEMORY/mmap pragma, drizzle({client:sqlite}). Currently no-op; messages table not actively queried."
+    },
+    {
+      "id": "S-03",
+      "name": "backup.ts",
+      "path": "src/lib/server/sqlite/backup.ts",
+      "description": "Stubbed SQLite backup routine (all commented): would use better-sqlite3 backup API with SQLITE_DB_PATH/BACKUP_DIR envs. Inactive."
+    },
+    {
+      "id": "S-04",
+      "name": "video.remote.ts",
+      "path": "src/lib/remote/video.remote.ts",
+      "description": "Remote helper getVideosByLevel(fetch, userLevel): POST /api/video {level}, returns array or [] on error/non-ok with console.error. Called from Navbar onMount to populate tutorial dropdown per level visibility."
+    }
+  ],
+  "utils": [
+    {
+      "name": "hash",
+      "file": "src/lib/tools/hash.ts",
+      "functions": ["hash"]
+    },
+    {
+      "name": "tools",
+      "file": "src/lib/tools/tools.ts",
+      "functions": ["imgCheck", "formatDate"]
+    },
+    {
+      "name": "backendTools",
+      "file": "src/lib/tools/backendTools.ts",
+      "functions": ["checkNumber", "tools"]
+    },
+    {
+      "name": "pageAuth",
+      "file": "src/lib/pageAuth.ts",
+      "functions": ["pageAuth"]
+    }
+  ],
+  "integrations": {
+    "mailer": {
+      "file": "src/routes/api/mailer/* (+server.ts ×8)",
+      "functions": ["POST handles in default, recover-password, new-order, new-order-12massaggi, new-insurance, new-membership-insurance, expiry-discount, expiry-notification"],
+      "description": "Eight Nodemailer endpoints sharing MAILER_HOST/PORT/SECURE/USER/PASS; each creates transporter per-request, renders HTML templates inline (Papa not used here), and is APIKEY-gated except internal fetches via BASE_URL."
+    },
+    "stripe": {
+      "file": "src/routes/(app)/cart/+page.server.ts, membership-new, insurance-new, course-detail",
+      "functions": ["createPaymentIntent action", "stripe.paymentIntents.create", "stripe.paymentIntents.retrieve"],
+      "description": "Stripe 22 server SDK with STRIPE_KEY_BACK/STRIPE_API plus @stripe/stripe-js client with STRIPE_KEY_FRONT. 3DS automatic. Verification pattern: retrieve and check status succeeded before committing order."
+    },
+    "storage": {
+      "file": "src/routes/api/uploads/files/+server.ts and src/routes/files/[type]/[folder]/[name]/+server.ts",
+      "functions": ["POST upload", "DELETE", "GET serve with ETag/range"],
+      "description": "Uploads to ./uploads/<sanitizedSegments>/<fileName> via streams; served with sanitization, path-traversal guard, ETag, range. Vite fs.allow includes uploads dir."
+    }
+  },
+  "database": {
+    "provider": "MongoDB (Mongoose) + SQLite (Drizzle) messages",
+    "orm": "Mongoose + Drizzle ORM",
+    "tables": [
+      {
+        "name": "users",
+        "category": "core",
+        "description": "Association members and staff; levels user|riflessologo|formatore base|master|formatore avanzato|admin|superadmin. Holds membership/insurance/card, pointsHistory, trainingHistory, uploadfiles, businessData, extraField*, and privacy. Indexed userId unique, email index, status enum.",
+        "columns": [
+          { "name": "userId", "type": "text", "primaryKey": false, "unique": true },
+          { "name": "userCode", "type": "text" },
+          { "name": "status", "type": "text", "default": "enabled" },
+          { "name": "token", "type": "text", "default": null },
+          { "name": "cookieId", "type": "text" },
+          { "name": "level", "type": "text", "default": "user" },
+          { "name": "isRiflessologo", "type": "boolean", "default": false },
+          { "name": "membership.membershipLevel", "type": "text" },
+          { "name": "membership.membershipSignUp", "type": "date" },
+          { "name": "membership.membershipActivation", "type": "date" },
+          { "name": "membership.membershipExpiry", "type": "date" },
+          { "name": "membership.membershipStatus", "type": "boolean", "default": false },
+          { "name": "membership.senior", "type": "text" },
+          { "name": "insurance.insuranceDate", "type": "date" },
+          { "name": "insurance.insuranceExpiry", "type": "date" },
+          { "name": "insurance.insuranceStatus", "type": "boolean", "default": false },
+          { "name": "card.cardId", "type": "text" },
+          { "name": "card.cardCode", "type": "text" },
+          { "name": "card.cardActivation", "type": "date" },
+          { "name": "card.cardExpiry", "type": "date" },
+          { "name": "card.cardStatus", "type": "boolean", "default": false },
+          { "name": "name", "type": "text" },
+          { "name": "surname", "type": "text" },
+          { "name": "email", "type": "text" },
+          { "name": "address", "type": "text" },
+          { "name": "city", "type": "text" },
+          { "name": "county", "type": "array:text" },
+          { "name": "region", "type": "text" },
+          { "name": "country", "type": "text" },
+          { "name": "phone", "type": "text" },
+          { "name": "mobilePhone", "type": "text" },
+          { "name": "birthdate", "type": "text" },
+          { "name": "gender", "type": "text" },
+          { "name": "socialSecurityNumber", "type": "text" },
+          { "name": "username", "type": "text" },
+          { "name": "password", "type": "text" },
+          { "name": "pointsBalance", "type": "number", "default": 0 },
+          { "name": "pointsTotal", "type": "number", "default": 0 },
+          { "name": "pointsSpent", "type": "number", "default": 0 },
+          { "name": "pointsHistory", "type": "array:json", "default": "[]" },
+          { "name": "trainingHistory", "type": "array:json" },
+          { "name": "uploadfiles", "type": "array:json" },
+          { "name": "businessData", "type": "object" },
+          { "name": "extraFieldNumber1..24", "type": "number" },
+          { "name": "extraFieldText1..24", "type": "text" },
+          { "name": "revenue", "type": "number" },
+          { "name": "target0..12", "type": "number" },
+          { "name": "extra0..12", "type": "text" },
+          { "name": "lastAccess", "type": "date" },
+          { "name": "counterAccess", "type": "number" },
+          { "name": "remoteIP", "type": "text" },
+          { "name": "notesOnUser", "type": "text" },
+          { "name": "userCart", "type": "array" },
+          { "name": "documentPageArray", "type": "array:text" },
+          { "name": "docModifyArray", "type": "array:json" },
+          { "name": "courseJoined", "type": "array" },
+          { "name": "courseCreated", "type": "array" },
+          { "name": "createdAt", "type": "timestamp" },
+          { "name": "updatedAt", "type": "timestamp" }
+        ]
+      },
+      {
+        "name": "products",
+        "category": "catalog",
+        "description": "Polymorphic product/course/membership/event catalog. type enum course|product|membership|event, status enabled/disabled, category array index, stockQty, price/promoPrice/promoStatus, layoutId FK to layouts, userId creator, listSubscribers for enrollments, bundleProduct, uploadfiles images, vat/points etc. Virtual layoutView populates Layout via layoutId.",
+        "columns": [
+          { "name": "prodId", "type": "text", "unique": true },
+          { "name": "type", "type": "text", "default": "product" },
+          { "name": "status", "type": "text", "default": "enabled" },
+          { "name": "title", "type": "text" },
+          { "name": "name", "type": "text" },
+          { "name": "surname", "type": "text" },
+          { "name": "descrLong", "type": "text" },
+          { "name": "descrShort", "type": "text" },
+          { "name": "category", "type": "array:text" },
+          { "name": "categoryId", "type": "array:text" },
+          { "name": "brand", "type": "text" },
+          { "name": "sku", "type": "text" },
+          { "name": "ean13", "type": "text" },
+          { "name": "cod", "type": "text" },
+          { "name": "price", "type": "number", "default": 0 },
+          { "name": "promoPrice", "type": "number", "default": 0 },
+          { "name": "promoStatus", "type": "text", "default": "disabled" },
+          { "name": "promoStartDate", "type": "date" },
+          { "name": "promoEndDate", "type": "date" },
+          { "name": "cost", "type": "number" },
+          { "name": "stockQty", "type": "number", "default": 0 },
+          { "name": "points", "type": "number", "default": 0 },
+          { "name": "vatValue", "type": "number" },
+          { "name": "weight", "type": "number" },
+          { "name": "height", "type": "number" },
+          { "name": "width", "type": "number" },
+          { "name": "depth", "type": "number" },
+          { "name": "layoutId", "type": "text" },
+          { "name": "userId", "type": "text" },
+          { "name": "eventStartDate", "type": "date" },
+          { "name": "location", "type": "text" },
+          { "name": "county", "type": "array:text" },
+          { "name": "notificationEmail", "type": "array:text" },
+          { "name": "infoExtra", "type": "text" },
+          { "name": "academyNumber", "type": "number" },
+          { "name": "certificationStatus", "type": "boolean", "default": false },
+          { "name": "listSubscribers", "type": "array:json" },
+          { "name": "bundleProduct", "type": "array:json" },
+          { "name": "attributes", "type": "array:json" },
+          { "name": "uploadfiles", "type": "array:json" },
+          { "name": "createdAt", "type": "timestamp" },
+          { "name": "updatedAt", "type": "timestamp" }
+        ]
+      },
+      {
+        "name": "orders",
+        "category": "commerce",
+        "description": "Orders for product/course/membership/insurance/kit with invoicing+shipping nested docs, payment, cart array snapshot, totals, tracking. Statuses requested|confirmed|cancelled|exported|processed, payment pending|done|canceled. Virtual userView populates User via userId.",
+        "columns": [
+          { "name": "orderId", "type": "text", "unique": true },
+          { "name": "orderCode", "type": "text", "unique": true },
+          { "name": "userId", "type": "text", "references": "users.userId" },
+          { "name": "status", "type": "text", "default": "confirmed" },
+          { "name": "type", "type": "text" },
+          { "name": "orderDate", "type": "date" },
+          { "name": "orderConfirmDate", "type": "date" },
+          { "name": "totalValue", "type": "number", "default": 0 },
+          { "name": "totalPoints", "type": "number", "default": 0 },
+          { "name": "totalDiscount", "type": "number", "default": 0 },
+          { "name": "totalVAT", "type": "number", "default": 0 },
+          { "name": "promotionId", "type": "text" },
+          { "name": "promotionName", "type": "text" },
+          { "name": "promoterId", "type": "text" },
+          { "name": "agencyId", "type": "text" },
+          { "name": "orderConfirmed", "type": "boolean", "default": false },
+          { "name": "storePickUp", "type": "boolean", "default": false },
+          { "name": "orderNotes", "type": "text" },
+          { "name": "orderIp", "type": "text" },
+          { "name": "browser", "type": "text" },
+          { "name": "invoicing", "type": "object" },
+          { "name": "shipping", "type": "object" },
+          { "name": "shipping.tracking", "type": "object" },
+          { "name": "payment", "type": "object" },
+          { "name": "cart", "type": "array:json" },
+          { "name": "createdAt", "type": "timestamp" },
+          { "name": "updatedAt", "type": "timestamp" }
+        ]
+      },
+      {
+        "name": "layouts",
+        "category": "catalog",
+        "description": "Course templates (modelli corsi) reused as blueprints for products type course/event. Fields title/descr/urlPic/bgColor/price/promo/bundleProducts/uploadfiles. Referenced by products.layoutId.",
+        "columns": [
+          { "name": "layoutId", "type": "text", "unique": true },
+          { "name": "title", "type": "text" },
+          { "name": "descr", "type": "text" },
+          { "name": "urlPic", "type": "text" },
+          { "name": "bgColor", "type": "text" },
+          { "name": "isEvent", "type": "boolean", "default": false },
+          { "name": "price", "type": "number", "default": 0 },
+          { "name": "promoPrice", "type": "number", "default": 0 },
+          { "name": "promoStatus", "type": "text", "default": "disabled" },
+          { "name": "promoEndDate", "type": "date" },
+          { "name": "bundleProducts", "type": "array" },
+          { "name": "status", "type": "text", "default": "enabled" },
+          { "name": "uploadfiles", "type": "array:json" },
+          { "name": "createdAt", "type": "timestamp" },
+          { "name": "updatedAt", "type": "timestamp" }
+        ]
+      },
+      {
+        "name": "discounts",
+        "category": "commerce",
+        "description": "Discount codes with applicability targeting. type percent|amount|referral|qty, selectedApplicability email|membershipLevel|prodId|layoutId|referral|riflessologo, qty threshold, refDiscount/refPoints for referral points. Used at cart checkout.",
+        "columns": [
+          { "name": "discountId", "type": "text", "unique": true },
+          { "name": "code", "type": "text", "unique": true },
+          { "name": "type", "type": "text", "default": "percent" },
+          { "name": "value", "type": "number", "default": 0 },
+          { "name": "refDiscount", "type": "number", "default": 0 },
+          { "name": "refPoints", "type": "number", "default": 0 },
+          { "name": "selectedApplicability", "type": "text", "default": "email" },
+          { "name": "email", "type": "text" },
+          { "name": "prodId", "type": "text" },
+          { "name": "qty", "type": "number" },
+          { "name": "layoutId", "type": "text" },
+          { "name": "membershipLevel", "type": "text" },
+          { "name": "referral", "type": "text" },
+          { "name": "riflessologo", "type": "boolean", "default": false },
+          { "name": "notes", "type": "text" },
+          { "name": "expiryDate", "type": "date" },
+          { "name": "status", "type": "text", "default": "enabled" },
+          { "name": "createdAt", "type": "timestamp" },
+          { "name": "updatedAt", "type": "timestamp" }
+        ]
+      },
+      {
+        "name": "videos",
+        "category": "content",
+        "description": "Tutorial video library with level-gated visibility. Fields videoId unique, title/url required, visibility array per level, status enabled/disabled. Consumed by Navbar tutorial menu via POST /api/video.",
+        "columns": [
+          { "name": "videoId", "type": "text", "unique": true },
+          { "name": "status", "type": "text", "default": "enabled" },
+          { "name": "title", "type": "text" },
+          { "name": "url", "type": "text" },
+          { "name": "visibility", "type": "array:text" },
+          { "name": "createdAt", "type": "timestamp" },
+          { "name": "updatedAt", "type": "timestamp" }
+        ]
+      },
+      {
+        "name": "messages",
+        "category": "messaging",
+        "description": "Drizzle SQLite table for WhatsApp-style messages (src/lib/server/sqlite/schema/messages.ts). Drizzle dialect sqlite, indexes on from and idWhatsapp. Client is currently stubbed out; table defined but not actively queried in production routes.",
+        "columns": [
+          { "name": "id", "type": "text", "primaryKey": true, "default": "crypto.randomUUID()" },
+          { "name": "idWhatsapp", "type": "text" },
+          { "name": "from", "type": "text" },
+          { "name": "text", "type": "text" },
+          { "name": "date", "type": "integer" },
+          { "name": "file", "type": "text", "default": "" },
+          { "name": "created_at", "type": "integer", "mode": "timestamp" },
+          { "name": "updatedAt", "type": "integer", "mode": "timestamp" }
+        ]
+      }
+    ],
+    "relationships": [
+      { "from": "products", "to": "layouts", "description": "Product.layoutId → Layout.layoutId via virtual layoutView (justOne). Used to render course template title/bgColor/price in course-shop and course-table." },
+      { "from": "orders", "to": "users", "description": "Order.userId → User.userId via virtual userView (justOne). Populated in order fetches to show buyer name/email/city." },
+      { "from": "products", "to": "users", "description": "Product.userId → User.userId (creator/trainer). Not a Mongoose virtual but logical FK for scoping course-table by trainer." },
+      { "from": "products.listSubscribers", "to": "users", "description": "Product.listSubscribers[].userId references users.userId; certification fields updated via arrayFilters $[elem]." },
+      { "from": "videos.visibility", "to": "users.level", "description": "Video.visibility array $in User.level gating for tutorial access (Navbar getVideosByLevel)." },
+      { "from": "discounts.prodId", "to": "products.prodId", "description": "Discount.prodId targets product-specific discounts applied at cart checkout (selectedApplicability prodId with qty threshold)." },
+      { "from": "discounts.layoutId", "to": "layouts.layoutId", "description": "Discount.layoutId targets layout/template discounts." },
+      { "from": "discounts.referral", "to": "users.email", "description": "Discount.referral holds trainer email; checkout awards refPoints % of totalValue to that user and sends mail." }
+    ]
+  },
+  "auth": {
+    "provider": "custom session cookie + APIKEY gate",
+    "methods": ["password (SHA-256)"],
+    "session": "httpOnly session_id cookie (UUID) validated in hooks.server.ts; x-internal-call=true header bypasses auth for internal fetches (hooks→/api/mongo/find)",
+    "passwordHash": "SHA-256 hex of SALT+password via createHash (src/lib/tools/hash.ts). SALT from env static/private.",
+    "guards": [
+      { "scope": "(app) group protected pages", "rule": "src/lib/pageAuth.ts pageAuth(url,auth,'page') checks protectedPages list (cart, course-table, discount-table, layout-table, membership-table, order-table, product-table, profile-area, user-table, etc) and throws redirect 302 to /login when !auth" },
+      { "scope": "(app) group protected routes prefix", "rule": "pageAuth mode 'route' checks protectedRoutes ['/app','/dashboard'] prefix — currently unused but defined" },
+      { "scope": "hooks.server.ts", "rule": "Per-request: reads session_id cookie; if x-internal-call header → resolve directly; else fetch POST /api/mongo/find schema user where cookieId=session_id, projection excludes password etc; if no user → auth false; if membershipExpiry < today (midnight normalized) → POST /api/mongo/update $set membershipStatus false then set locals.user with status false; sets locals.user/locals.auth for +layout.server.ts" },
+      { "scope": "API mongo/mailer", "rule": "Most POST /api/mongo/* and /api/mailer/* require apiKey === APIKEY via timingSafeEqual(Buffer) check → 401 on mismatch. GET /api/mongo/get/* endpoints currently lack APIKEY gate (considered gap)." },
+      { "scope": "admin gating", "rule": "Navbar and server loads check user.level in ('admin','superadmin') plus formatoreLevels Set; course-table scopes query to own userId unless admin; resetCertifications requires admin/superadmin; video-table admin-only" }
+    ]
+  },
+  "businessLogic": {
+    "membership": { "rule": "Levels: Socio inattivo (inactive), Socio ordinario 25 EUR/yr (Regular Period), Socio vitalizio 380 EUR (Life Time), others in enum but commented. Dates: membershipSignUp (first activation default Date.now), membershipActivation (last renewal), membershipExpiry (default now+1yr via setFullYear), membershipStatus boolean. Hook enforces expiry daily: if expiry < today midnight → update status false. Vitalizio set via 36500-day (100yr) expiry. Membership-table manages template products type membership." },
+    "insurance": { "rule": "insurance: { insuranceDate, insuranceExpiry, insuranceStatus } on User. insurance-new page creates order type insurance and toggles status after payment; requires membershipStatus true to show link." },
+    "courses_and_certificates": { "rule": "Product type course|event with layoutId FK, eventStartDate, location, county array, stockQty capacity, listSubscribers array (userId/name/surname/email/phone/paymentMethod/paymentStatus/promoterId/certificationStatus/Date/Place). Certification: createCertification sets certificationStatus true + per-subscriber fields via arrayFilters $in selectedUserIds; toggleCertificationStatus flips one; resetCertifications $unset array fields (admin only). Certificates rendered via pdfValue config per layoutId (XW7LYV2LG2BU base etc) with PUBLIC_BASE_URL backgrounds." },
+    "products_and_promo": { "rule": "Product type product with category array, price, promoPrice/promoStart/End/promoStatus. Effective price at checkout: if promoStatus enabled and promoPrice>0 and (no end or end>now) use promoPrice. stockQty decremented via $inc -orderQuantity on order creation." },
+    "cart_and_discounts": { "rule": "Cart persisted in localStorage; discounts selectedApplicability: email (user.email), membershipLevel, prodId (with optional qty threshold: value* floor(qty/threshold) if type amount else percent*total), layoutId (price* qty), referral/riflessologo (global percent/amount). Only one referral and one riflessologo allowed; mutual exclusivity enforced. Discount codes stored as array of {code,totalDiscount}; referral also awards points." },
+    "points": { "rule": "User pointsBalance/pointsTotal/pointsSpent + pointsHistory [{points,note,date}]. Cart checkout can use points (usePoint): totalDiscount includes usedPoints, newPointsBalance validated >=0 then $set and $push history -usedPoints. Referral discount awards Math.round(totalValue * refPoints/100) to referral email user via $inc + push note 'punti per ordine: orderId' and mails via /api/mailer/default." },
+    "payments": { "rule": "Stripe PaymentIntents with automatic_payment_methods enabled and request_three_d_secure automatic. createPaymentIntent (cart/membership-new/insurance-new) creates Intent amount*100 eur, returns clientSecret. Client confirms; server verifies via stripe.paymentIntents.retrieve(status succeeded) before creating Order/activating membership. TransactionId stored in Order.payment.transactionId, statusPayment done else pending. Card payments rejected if amount <50 cents." },
+    "orders": { "rule": "Order doc contains orderId/orderCode UUID, userId, status requested|confirmed|cancelled|exported|processed, type product/course/membership/event/insurance, orderDate/ConfirmDate, invoicing+shipping nested (names, address, county, vat etc plus tracking subdoc), payment {method, statusPayment, transactionId}, cart snapshot array, totals (totalValue/totalPoints/totalDiscount/totalVAT), storePickUp flag (if true shipping is 'Ritiro in sede'), promotion fields. Order creation triggers stock update, points, and mail to [admin, email]." },
+    "file_uploads": { "rule": "Upload via POST /api/uploads/files with x-file-name/x-folder-name headers, strict regex validation, path.join uploads/<folder>/<file>, streaming pipeline. DELETE removes file+empties dir. Retrieval via GET /files/[type]/[folder]/[name] with sanitization, path traversal check, ETag, range, mime lookup. Images referenced as /files/product/<prodId>/<file> and checked via imgCheck helper (single/array/fileName)." },
+    "level_hierarchy": { "rule": "Levels hierarchy user < riflessologo < formatore base < master < formatore avanzato < admin < superadmin. isRiflessologo boolean; level determines Navbar Gestione visibility and course-table scoping. Forum-style: formatoreLevels Set controls certification and tutorial split." },
+    "security_notes": { "rule": "API authentication is a shared secret APIKEY sent as apiKey JSON body field on every internal POST to /api/mongo/* and /api/mailer/* (value redacted — see src/routes/api/mongo/find/+server.ts and $env/static/private; must be rotated and moved to env-only, consider per-route JWT). Recovery mail sends temp password in plain text via Nodemailer (value redacted — see src/routes/api/mailer/recover-password/+server.ts) — should be reset-link instead. GET /api/mongo/get/* endpoints expose all users/orders without APIKEY gate (src/routes/api/mongo/get/getUsers/+server.ts, getOrders) — add gate. Aggregate pipeline is not validated (api/mongo/aggregate/+server.ts TODO) — allowlist stages. File upload regex permits spaces, consider stricter." }
+  },
+  "environmentVariables": [
+    { "name": "BASE_URL", "required": true, "topic": "core", "description": "Internal base URL for server-to-server fetch calls to /api/mongo/* and /api/mailer/* (e.g. https://associazione.riflessologiadienchan.it or http://localhost:5173)" },
+    { "name": "APIKEY", "required": true, "topic": "core", "description": "Shared secret for /api/mongo/* and /api/mailer/* POST gate (timingSafeEqual). Redacted value in src/routes/api/mongo/* and hooks.server.ts" },
+    { "name": "MONGO_URI", "required": true, "topic": "core", "description": "MongoDB connection string for mongoose (src/lib/server/mongo/database.ts). Error if missing." },
+    { "name": "SALT", "required": true, "topic": "core", "description": "Salt concatenated before SHA-256 password hashing (src/lib/tools/hash.ts, login/membership-new)." },
+    { "name": "STRIPE_KEY_FRONT", "required": true, "topic": "payments", "description": "Stripe publishable key for client @stripe/stripe-js init (exposed to load payload)." },
+    { "name": "STRIPE_KEY_BACK", "required": true, "topic": "payments", "description": "Stripe secret key for server Stripe SDK (src/routes/(app)/cart/+page.server.ts etc)." },
+    { "name": "STRIPE_API", "required": true, "topic": "payments", "description": "Stripe API version string passed as apiVersion to new Stripe(...)." },
+    { "name": "MAILER_HOST", "required": true, "topic": "mailer", "description": "SMTP host for nodemailer transport (all /api/mailer/*)." },
+    { "name": "MAILER_PORT", "required": true, "topic": "mailer", "description": "SMTP port (numeric, parsed via Number)." },
+    { "name": "MAILER_SECURE", "required": false, "topic": "mailer", "description": "Whether to use TLS (==='true' → true, else false). Undefined treated as false." },
+    { "name": "MAILER_USER", "required": true, "topic": "mailer", "description": "SMTP auth user." },
+    { "name": "MAILER_PASS", "required": true, "topic": "mailer", "description": "SMTP auth password (value redacted)." },
+    { "name": "PUBLIC_BASE_URL", "required": true, "topic": "core", "description": "Public base URL for client assets (pdfValue certificate backgrounds /training/*.jpg) via $env/static/public." },
+    { "name": "SQLITE_DB_PATH", "required": false, "topic": "database", "description": "SQLite file path (commented out, intended ./data/sqlite.db) for Drizzle; currently not wired." },
+    { "name": "BACKUP_DIR", "required": false, "topic": "database", "description": "Backup directory for SQLite (commented in backup.ts)." }
+  ],
+  "scripts": {
+    "development": [
+      { "cmd": "npm run dev", "description": "vite dev server (SvelteKit, host fs allow uploads)" },
+      { "cmd": "npm run check", "description": "svelte-kit sync + svelte-check" },
+      { "cmd": "npm run check:watch", "description": "svelte-check watch mode" },
+      { "cmd": "npm run lint", "description": "prettier --check + eslint" },
+      { "cmd": "npm run format", "description": "prettier --write" }
+    ],
+    "database": [
+      { "cmd": "npx drizzle-kit push", "description": "push Drizzle schema to SQLite (drizzle.config dialect sqlite, schema ./src/lib/db/sqlite/schema)" },
+      { "cmd": "npx drizzle-kit generate", "description": "generate migrations" },
+      { "cmd": "npx drizzle-kit migrate", "description": "run migrations" },
+      { "cmd": "npx drizzle-kit studio", "description": "open Drizzle Studio" }
+    ],
+    "buildAndTest": [
+      { "cmd": "npm run build", "description": "vite build via @sveltejs/adapter-node to ./build (bodySizeLimit 20M)" },
+      { "cmd": "npm run preview", "description": "vite preview" },
+      { "cmd": "npm run test", "description": "playwright + vitest (test:integration + test:unit)" },
+      { "cmd": "npm run test:integration", "description": "playwright test" },
+      { "cmd": "npm run test:unit", "description": "vitest src/**/*.{test,spec}" }
+    ]
+  },
+  "topology": {
+    "zones": [
+      {
+        "kind": "zone",
+        "layout": "stack",
+        "emphasis": true,
+        "label": "public · login",
+        "columns": [["r-root", "r-login", "r-membership-new", "r-course-shop", "r-product-shop"]]
+      },
+      { "kind": "gate", "label": "auth gate" },
+      {
+        "kind": "zone",
+        "layout": "columns",
+        "label": "authenticated app",
+        "columns": [
+          ["r-cart", "r-profile-area", "r-profile-public", "r-user-list", "r-course-detail", "r-product-detail"],
+          ["r-insurance-new", "r-trireport", "r-kit-formatori"],
+          ["r-course-table", "r-product-table", "r-order-table", "r-discount-table", "r-layout-table", "r-membership-table", "r-user-table", "r-video-table"]
+        ]
+      },
+      {
+        "kind": "zone",
+        "layout": "columns",
+        "label": "dev & test",
+        "columns": [
+          ["r-test", "r-testlogin", "r-ocrtest", "r-prod-sample", "r-wheel"]
+        ]
+      },
+      {
+        "kind": "zone",
+        "layout": "columns",
+        "label": "infrastructure",
+        "columns": [
+          ["r-ext-mongo", "r-ext-sqlite", "r-ext-stripe", "r-ext-mailer"]
+        ]
+      }
+    ]
+  }
+}

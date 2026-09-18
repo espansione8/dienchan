@@ -46,7 +46,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 						}
 					},
 					{
-						prodId: 'CQ112QCNK'
+						prodId: { $in: ['CQ112QCNK', 'F82B3JBZT'] } // corsi ricorrenti sempre in vetrina: 12 Massaggi mattutini + il 15 di ogni mese
 					}
 					]
 				},

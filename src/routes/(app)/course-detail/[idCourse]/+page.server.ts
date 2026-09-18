@@ -8,6 +8,8 @@ import { tools } from '$lib/tools/backendTools';
 import { customAlphabet } from 'nanoid';
 import Stripe from 'stripe';
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12);
+// corsi ricorrenti: iscrizione ripetibile ogni mese, senza tracking abbonati/storico, mail dedicata via /api/mailer/new-order-12massaggi
+const RECURRING_COURSES = ['CQ112QCNK', 'F82B3JBZT']; // CQ112QCNK = Workshop: 12 Massaggi mattutini (layoutId PYSYPA4QCTH1), F82B3JBZT = corso del 15 di ogni mese (Van Tri Truong)
 //const apiS = '2025-12-15.clover'
 const stripe = new Stripe(STRIPE_KEY_BACK, {
 	apiVersion: STRIPE_API // Use a stable API version https://docs.stripe.com/api/versioning
@@ -699,7 +701,7 @@ export const actions: Actions = {
 
 					if (!membershipUpdateRes.ok) return fail(400, { action: 'new', success: false, message: 'Error new order' });
 				}
-				if (cartItem.prodId !== 'CQ112QCNK') {
+				if (!RECURRING_COURSES.includes(cartItem.prodId)) {
 					const updateSubscribers = await fetch(`${BASE_URL}/api/mongo/update`, {
 						method: 'POST',
 						body: JSON.stringify({
@@ -735,7 +737,7 @@ export const actions: Actions = {
 				const mailArray = [email, "vantri70@gmail.com"]; // mail amministrazione dienchan?
 				let mailRes;
 
-				if (cartItem.prodId === 'CQ112QCNK') { // prodId 12 massaggi mattutini CQ112QCNK // layoutId PYSYPA4QCTH1
+				if (RECURRING_COURSES.includes(cartItem.prodId)) { // corsi ricorrenti: prodId 12 massaggi mattutini CQ112QCNK // layoutId PYSYPA4QCTH1 + F82B3JBZT (il 15 di ogni mese) → template per corso nel mailer
 					mailRes = await mail12massaggi(mailArray, order);
 				} else {
 					mailRes = await mailFetch(mailArray, order);
@@ -772,7 +774,7 @@ export const actions: Actions = {
 					console.error(`notificationRes: ${await notificationRes.text()}`);
 				}
 
-				if (cartItem.prodId !== 'CQ112QCNK') {
+				if (!RECURRING_COURSES.includes(cartItem.prodId)) {
 					const updateUserFetch = () => fetch(`${BASE_URL}/api/mongo/update`, {
 						method: 'POST',
 						body: JSON.stringify({

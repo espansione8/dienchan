@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title><!-- ADAPT: PROJECT_NAME --> — App Structure Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;500;600;700;800&family=Saira+Condensed:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+STRUCTURE MAP  —  blueprint / technical-drawing theme
+Desktop visual support · non-responsive by design
+============================================================ */
+:root{
+--bg:#080b11;
+--bg-2:#0b0f17;
+--panel:#0e131c;
+--panel-2:#11182400;
+--line:#1c2738;
+--line-soft:#16202e;
+--ink:#dfe7f2;
+--ink-dim:#8a98ad;
+--ink-faint:#56627a;
+--grid:rgba(86,124,168,.07);
+--green:#34d8a0;   /* page flow / data feed */
+--coral:#ff6b6b;   /* admin manages / assigns */
+--blue:#3fb6f2;    /* api · cron rails */
+--violet:#a98bff;  /* utility / dev */
+--amber:#f4b740;   /* auth / public redirect */
+--mono:'JetBrains Mono',ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+--disp:'Saira Condensed','Saira',system-ui,sans-serif;
+--body:'Saira',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+background:var(--bg);
+color:var(--ink);
+font-family:var(--body);
+font-size:15px;
+line-height:1.5;
+-webkit-font-smoothing:antialiased;
+overflow-x:hidden;
+}
+/* ---------- ambient background ---------- */
+.ambient{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.ambient .grid{
+position:absolute;inset:-2px;
+background-image:
+linear-gradient(var(--grid) 1px,transparent 1px),
+linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+background-size:46px 46px;
+mask-image:radial-gradient(120% 90% at 50% 0%,#000 35%,transparent 92%);
+}
+.ambient .glow{position:absolute;border-radius:50%;filter:blur(90px);opacity:.20;mix-blend-mode:screen}
+.ambient .g1{width:620px;height:620px;left:-160px;top:120px;background:radial-gradient(circle,var(--amber),transparent 65%);animation:drift1 26s ease-in-out infinite}
+.ambient .g2{width:720px;height:720px;right:-200px;top:520px;background:radial-gradient(circle,var(--blue),transparent 65%);animation:drift2 32s ease-in-out infinite}
+.ambient .g3{width:560px;height:560px;left:38%;top:1500px;background:radial-gradient(circle,var(--green),transparent 65%);opacity:.12;animation:drift1 38s ease-in-out infinite reverse}
+.ambient .scan{position:absolute;left:0;right:0;height:140px;top:0;
+background:linear-gradient(180deg,transparent,rgba(63,182,242,.05),transparent);
+animation:scan 11s linear infinite}
+@keyframes drift1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,40px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(-70px,50px)}}
+@keyframes scan{0%{transform:translateY(-160px)}100%{transform:translateY(120vh)}}
+.wrap{position:relative;z-index:1;max-width:1720px;margin:0 auto;padding:42px 40px 120px}
+/* ---------- masthead ---------- */
+.mast{display:flex;align-items:flex-end;justify-content:space-between;gap:40px;
+border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:16px}
+.brand .mark{
+font-family:var(--disp);font-weight:800;letter-spacing:.06em;font-size:26px;
+color:var(--bg);background:var(--ink);padding:6px 12px 4px;line-height:1;
+box-shadow:6px 6px 0 var(--green);
+}
+.brand .stack{font-family:var(--mono);font-size:11px;letter-spacing:.32em;color:var(--ink-faint);text-transform:uppercase}
+.brand .stack b{display:block;color:var(--ink-dim);letter-spacing:.18em;font-size:12px;margin-top:3px}
+.mast h1{
+font-family:var(--disp);font-weight:800;text-transform:uppercase;
+font-size:clamp(40px,5vw,72px);line-height:.92;letter-spacing:.01em;margin:14px 0 0;
+}
+.mast h1 .thin{color:var(--ink-faint);font-weight:600}
+.mast .lede{max-width:560px;color:var(--ink-dim);font-size:14px;margin-top:10px}
+.mast .lede .hl{color:var(--green)}
+.sheetmeta{font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-align:right;letter-spacing:.06em;line-height:1.9;white-space:nowrap}
+.sheetmeta b{color:var(--amber)}
+/* ---------- nav ---------- */
+nav.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:22px 0 40px;position:sticky;top:0;z-index:30;
+background:linear-gradient(180deg,var(--bg) 70%,transparent);padding:10px 0 16px}
+nav.tabs a{
+font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+color:var(--ink-dim);text-decoration:none;padding:9px 16px;border:1px solid var(--line);
+background:var(--panel);transition:.18s;display:flex;align-items:center;gap:9px}
+nav.tabs a .n{color:var(--ink-faint);font-weight:700}
+nav.tabs a:hover{color:var(--ink);border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset,0 6px 22px -12px var(--green)}
+nav.tabs a:hover .n{color:var(--green)}
+/* ---------- section frame ---------- */
+section{margin-bottom:78px;scroll-margin-top:80px}
+.sec-head{display:flex;align-items:baseline;gap:18px;margin-bottom:6px}
+.sec-head .num{font-family:var(--mono);font-size:12px;color:var(--green);letter-spacing:.2em}
+.sec-head .crumb{font-family:var(--mono);font-size:11px;color:var(--ink-faint);letter-spacing:.1em}
+.sec-title{font-family:var(--disp);font-weight:800;text-transform:uppercase;font-size:46px;line-height:1;letter-spacing:.01em;margin:2px 0 4px}
+.sec-sub{font-family:var(--mono);font-size:11px;color:var(--ink-faint);letter-spacing:.16em;text-transform:uppercase;margin-bottom:24px}
+.sec-sub b{color:var(--ink-dim)}
+.statrow{display:flex;gap:34px;margin-left:auto}
+.stat{text-align:right}
+.stat .v{font-family:var(--disp);font-weight:800;font-size:40px;line-height:.9}
+.stat .k{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ink-faint);text-transform:uppercase}
+.stat.s1 .v{color:var(--green)} .stat.s2 .v{color:var(--amber)} .stat.s3 .v{color:var(--blue)} .stat.s4 .v{color:var(--violet)}
+/* ============================================================
+SECTION 01 — ROUTE TOPOLOGY
+============================================================ */
+.legend{display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;
+font-family:var(--mono);font-size:11px;color:var(--ink-dim);letter-spacing:.05em;
+border:1px dashed var(--line);padding:12px 16px;margin-bottom:18px;background:rgba(14,19,28,.5)}
+.legend .li{display:flex;align-items:center;gap:9px;cursor:default;transition:.15s;padding:2px 4px}
+.legend .li:hover{color:var(--ink)}
+.legend .ln{width:34px;height:0;border-top-width:2px;border-top-style:solid}
+.legend .ln.flow{border-color:var(--green)}
+.legend .ln.admin{border-color:var(--coral);border-top-style:dashed}
+.legend .ln.api{border-color:var(--blue);border-top-style:dashed}
+.legend .ln.util{border-color:var(--violet)}
+.legend .ln.auth{border-color:var(--amber);border-top-style:dashed}
+.legend .hint{margin-left:auto;color:var(--ink-faint)}
+.legend .hint b{color:var(--amber)} .legend .hint i{color:var(--blue);font-style:normal}
+/* full-width viewport — rows only scroll if they genuinely overflow; draggable when they do */
+.topo-scroll{overflow-x:auto;overflow-y:visible;padding-bottom:14px;cursor:grab;
+scrollbar-color:var(--green) var(--line-soft)}
+.topo-scroll::-webkit-scrollbar{height:11px}
+.topo-scroll::-webkit-scrollbar-track{background:var(--line-soft)}
+.topo-scroll::-webkit-scrollbar-thumb{background:#23324a;border:2px solid var(--line-soft)}
+.topo-scroll::-webkit-scrollbar-thumb:hover{background:var(--green)}
+/* canvas stacks the two rows (pages row, then api row); wires span both */
+.topo-canvas{position:relative;display:flex;flex-direction:column;gap:26px;
+min-width:max-content;padding:22px 16px 26px}
+.topo-row{display:flex;align-items:stretch;gap:22px;min-width:max-content}
+/* CRITICAL — the wire SVG MUST be absolutely positioned, never in flow:
+draw() sizes it to canvas.scrollWidth/scrollHeight, and if it is a flex
+child of .topo-canvas (a flex column) its own height feeds back into
+scrollHeight → infinite growth loop (page gets longer forever, scrollbar
+shrinks). Do NOT remove or "simplify" this rule. */
+.topo-wires{position:absolute;left:0;top:0;pointer-events:none}
+.wire{fill:none;stroke-width:1.6;opacity:.42;transition:opacity .2s,stroke-width .2s}
+.wire.flow{stroke:var(--green)} .wire.admin{stroke:var(--coral);stroke-dasharray:7 6}
+.wire.api{stroke:var(--blue);stroke-dasharray:3 5} .wire.util{stroke:var(--violet)}
+.wire.auth{stroke:var(--amber);stroke-dasharray:9 5 2 5}
+.topo-canvas.tracing .wire:not(.hot){opacity:.08}
+.wire.hot{opacity:1;stroke-width:2.6;filter:drop-shadow(0 0 5px currentColor)}
+.wire-label{font-family:var(--mono);font-size:9.5px;fill:var(--ink-faint);letter-spacing:.04em;
+paint-order:stroke;stroke:var(--bg);stroke-width:3px;opacity:0;transition:opacity .2s}
+.wire-label.hot{opacity:1;fill:var(--ink-dim)}
+/* zone group boxes */
+.zone{position:relative;z-index:1;display:flex;flex-direction:column;gap:14px;padding:28px 12px 14px;
+border:1px solid var(--line);background:linear-gradient(180deg,rgba(14,19,28,.55),rgba(8,11,17,.2));min-width:212px}
+.zone.hi{border-color:rgba(244,183,64,.35);box-shadow:0 0 60px -28px var(--amber) inset}
+.zone.dash{flex-direction:row;align-items:stretch;gap:18px;min-width:0;padding-top:32px}
+.zone .zlabel{position:absolute;top:-1px;left:12px;transform:translateY(-50%);
+font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+background:var(--bg);padding:3px 10px;color:var(--ink-dim);border:1px solid var(--line)}
+.zone.hi .zlabel{color:var(--amber);border-color:rgba(244,183,64,.4)}
+.zone.dash .zlabel{color:var(--green);border-color:rgba(52,216,160,.4)}
+.col{display:flex;flex-direction:column;gap:14px;min-width:186px}
+/* auth gate stripe */
+.gate{position:relative;z-index:1;width:46px;flex:0 0 46px;align-self:stretch;
+background:repeating-linear-gradient(135deg,rgba(244,183,64,.16) 0 9px,transparent 9px 18px);
+border-left:1px solid rgba(244,183,64,.4);border-right:1px solid rgba(244,183,64,.4);
+display:flex;align-items:center;justify-content:center}
+.gate span{writing-mode:vertical-rl;transform:rotate(180deg);font-family:var(--mono);
+font-size:10px;letter-spacing:.4em;color:var(--amber);text-transform:uppercase}
+/* route card — compact: narrow width + terse desc clamped to 2 lines */
+.rcard{position:relative;z-index:2;width:186px;background:var(--panel);
+border:1px solid var(--line);border-left:3px solid var(--ink-faint);
+padding:10px 11px 9px;cursor:pointer;transition:transform .16s,box-shadow .2s,border-color .2s,background .2s}
+.rcard:hover{transform:translateY(-3px);background:#121a26}
+.rcard.linked{box-shadow:0 0 0 1px currentColor,0 10px 30px -16px currentColor}
+.rcard .top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.rcard .route{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:-.01em;word-break:break-all}
+.rcard .meth{flex:0 0 auto;font-family:var(--mono);font-size:8px;letter-spacing:.08em;
+color:var(--ink-dim);border:1px solid var(--line);padding:2px 6px;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.rcard .meth .dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green)}
+.rcard .file{font-family:var(--mono);font-size:8px;color:var(--ink-faint);margin:5px 0 4px;line-height:1.4;word-break:break-all}
+.rcard .desc{font-size:9.5px;color:var(--ink-dim);line-height:1.3;margin:0 0 6px;
+display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rcard .tags{display:flex;flex-wrap:wrap;gap:4px}
+/* accent → left border + route title colour */
+.acc-admin{border-left-color:var(--coral);color:var(--coral)}      .acc-admin .route{color:var(--coral)}
+.acc-protected{border-left-color:var(--green);color:var(--green)}  .acc-protected .route{color:var(--green)}
+.acc-public{border-left-color:var(--amber);color:var(--amber)}     .acc-public .route{color:var(--amber)}
+.acc-api{border-left-color:var(--blue);color:var(--blue)}          .acc-api .route{color:var(--blue)}
+.acc-dev{border-left-color:var(--violet);color:var(--violet)}      .acc-dev .route{color:var(--violet)}
+.acc-auth{border-left-color:var(--amber);color:var(--amber)}       .acc-auth .route{color:var(--amber)}
+.rcard:hover{box-shadow:0 14px 34px -20px currentColor}
+/* external node */
+.rcard.ext{border-style:dashed;border-left-style:dashed;border-color:rgba(63,182,242,.5);
+background:repeating-linear-gradient(45deg,rgba(63,182,242,.05) 0 8px,transparent 8px 16px),var(--panel)}
+.rcard.ext .route{color:var(--blue)}
+/* tag chips */
+.tag{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;
+padding:1px 6px;border:1px solid currentColor;color:var(--ink-faint);opacity:.92}
+.tag-admin{color:var(--coral)} .tag-protected{color:var(--green)} .tag-public{color:var(--amber)}
+.tag-auth{color:var(--amber)} .tag-api{color:var(--blue)} .tag-dev{color:var(--violet)}
+/* unmapped/custom tags (e.g. SEO, EMAIL, DATA, CREATE...) simply use the neutral base .tag style above —
+add more tag-<name>{color:...} rules here ONLY if a tag needs to stand out; not required for correctness. */
+/* ============================================================
+SECTION 02 — COMPONENT LEDGER
+============================================================ */
+.grid-c{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.ccard{position:relative;background:var(--panel);border:1px solid var(--line);padding:14px 15px 13px;
+overflow:hidden;transition:.18s}
+.ccard:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--green)}
+.ccard:hover{transform:translateY(-3px);border-color:#27384f;box-shadow:0 16px 36px -22px var(--green)}
+.ccard .cid{font-family:var(--mono);font-size:10px;color:var(--ink-faint);letter-spacing:.1em}
+.ccard .cname{font-family:var(--mono);font-weight:700;font-size:14px;color:var(--ink);margin:3px 0 2px}
+.ccard .cpath{font-family:var(--mono);font-size:9.5px;color:var(--violet);margin-bottom:7px;word-break:break-all}
+.ccard .cdesc{font-size:12px;color:var(--ink-dim);line-height:1.42}
+.ccard .pill{position:absolute;top:12px;right:12px;font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;
+padding:2px 7px;border:1px solid var(--green);color:var(--green)}
+.ccard.dorm{opacity:.5}
+.ccard.dorm:before{background:var(--ink-faint)}
+.ccard.dorm .pill{border-color:var(--ink-faint);color:var(--ink-faint)}
+/* ============================================================
+SECTION 03 — STATE & SERVER
+============================================================ */
+.grp-label{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+color:var(--ink-dim);margin:0 0 12px;display:flex;align-items:center;gap:12px}
+.grp-label:after{content:"";flex:1;height:1px;background:var(--line)}
+.grp-label .src{color:var(--ink-faint);letter-spacing:.08em}
+.grid-s{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:34px}
+.scard{background:var(--panel);border:1px solid var(--line);padding:14px 15px;transition:.18s}
+.scard:hover{transform:translateY(-3px);border-color:#27384f;box-shadow:0 16px 36px -24px var(--blue)}
+.scard .sid{font-family:var(--mono);font-size:10px;color:var(--green);letter-spacing:.1em}
+.scard .sname{font-family:var(--mono);font-weight:700;font-size:14px;color:var(--ink);margin:3px 0 1px}
+.scard .spath{font-family:var(--mono);font-size:9.5px;color:var(--violet);margin-bottom:7px}
+.scard .sdesc{font-size:12px;color:var(--ink-dim);line-height:1.42;margin-bottom:9px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-family:var(--mono);font-size:9.5px;color:var(--blue);background:rgba(63,182,242,.08);
+border:1px solid rgba(63,182,242,.25);padding:2px 7px}
+/* ============================================================
+SECTION 04 — DATABASE BOARD
+============================================================ */
+.db-scroll{overflow-x:auto;overflow-y:visible;padding-bottom:12px;scrollbar-color:var(--blue) var(--line-soft)}
+.db-scroll::-webkit-scrollbar{height:11px}
+.db-scroll::-webkit-scrollbar-track{background:var(--line-soft)}
+.db-scroll::-webkit-scrollbar-thumb{background:#23324a}
+.db-board{display:flex;gap:16px;min-width:max-content;align-items:flex-start}
+.db-col{display:flex;flex-direction:column;gap:12px;min-width:248px;max-width:268px}
+.db-col .cat{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+color:var(--bg);background:var(--blue);padding:4px 10px;align-self:flex-start;margin-bottom:2px}
+.db-col.cat-1 .cat{background:var(--amber)} .db-col.cat-2 .cat{background:var(--green);color:#04130d}
+.db-col.cat-3 .cat{background:var(--coral);color:#1a0606} .db-col.cat-4 .cat{background:var(--violet);color:#0d0720}
+.db-col.cat-5 .cat{background:#e08a3c;color:#1a0d02} .db-col.cat-6 .cat{background:#3fb6f2}
+.db-col.cat-7 .cat{background:#56627a}
+/* 8th+ distinct category: omit the cat-N class and let it fall back to the default blue .cat style above */
+.tcard{background:var(--panel);border:1px solid var(--line);padding:11px 12px;transition:.16s}
+.tcard:hover{border-color:#27384f;transform:translateX(3px)}
+.tcard .tname{font-family:var(--mono);font-weight:700;font-size:13px;color:var(--ink);display:flex;align-items:center;gap:7px}
+.tcard .tname:before{content:"■";color:var(--blue);font-size:9px}
+.tcard .cols{font-family:var(--mono);font-size:9.5px;color:var(--ink-faint);line-height:1.65;margin-top:6px}
+.tcard .cols .j{color:var(--amber)} .tcard .cols .k{color:var(--ink-dim)}
+.rel{margin-top:26px;border:1px solid var(--line);background:var(--panel);padding:18px 20px}
+.rel h4{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--green);margin:0 0 14px}
+.rel .r{display:grid;grid-template-columns:300px 1fr;gap:14px;padding:8px 0;border-top:1px dashed var(--line-soft);font-size:12.5px}
+.rel .r:first-of-type{border-top:0}
+.rel .r .a{font-family:var(--mono);color:var(--blue);font-size:11.5px}
+.rel .r .a .ar{color:var(--green)}
+.rel .r .b{color:var(--ink-dim)}
+/* ============================================================
+SECTION 05 — STACK & OPS
+============================================================ */
+.stackrow{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:30px}
+.stk{font-family:var(--mono);font-size:12px;color:var(--ink);background:var(--panel);border:1px solid var(--line);
+padding:9px 14px;display:flex;align-items:center;gap:9px;transition:.16s}
+.stk:hover{border-color:var(--green);transform:translateY(-2px)}
+.stk .v{color:var(--green);font-weight:700}
+.stk .t{color:var(--ink-faint);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase}
+.cmdgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:34px}
+.cmdblock{border:1px solid var(--line);background:var(--panel);padding:16px 18px}
+.cmdblock h4{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);
+margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.cmdblock h4:before{content:"▸";color:var(--green)}
+.cmdline{display:flex;justify-content:space-between;gap:14px;font-family:var(--mono);font-size:11.5px;
+padding:6px 0;border-top:1px dashed var(--line-soft)}
+.cmdline:first-of-type{border-top:0}
+.cmdline .c{color:var(--green)} .cmdline .d{color:var(--ink-faint);text-align:right}
+/* ONE big environment card */
+.envcard{border:1px solid var(--line);background:
+linear-gradient(180deg,rgba(63,182,242,.04),transparent 120px),var(--panel);
+padding:24px 26px 26px;position:relative;overflow:hidden}
+.envcard:before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
+background:linear-gradient(90deg,var(--blue),var(--green),var(--amber))}
+.envcard .envhead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.envcard .envhead h3{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+font-size:24px;margin:0;color:var(--ink)}
+.envcard .envhead .src{font-family:var(--mono);font-size:11px;color:var(--ink-faint);letter-spacing:.1em}
+.envcard .envnote{font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-bottom:20px}
+.envgroup{margin-bottom:22px}
+.envgroup:last-child{margin-bottom:0}
+.envgroup .gh{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;
+color:var(--ink-dim);margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.envgroup .gh:after{content:"";flex:1;height:1px;background:var(--line)}
+.envgroup .gh .req{color:var(--coral)} .envgroup .gh .opt{color:var(--ink-faint)}
+.envgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
+.envrow{display:grid;grid-template-columns:200px 78px 1fr;align-items:center;gap:14px;
+padding:7px 0;border-bottom:1px dashed var(--line-soft)}
+.envrow .vn{font-family:var(--mono);font-weight:600;font-size:12.5px;color:var(--blue)}
+.envrow .vb{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-align:center;
+padding:2px 0;border:1px solid currentColor}
+.envrow .vb.req{color:var(--coral)} .envrow .vb.opt{color:var(--ink-faint)}
+.envrow .vd{font-size:12px;color:var(--ink-dim)}
+.envrow .vd .or{color:var(--amber);font-family:var(--mono);font-size:10px}
+/* ============================================================
+INSPECTOR DRAWER
+============================================================ */
+.insp{position:fixed;top:0;right:0;height:100vh;width:380px;z-index:60;
+background:linear-gradient(180deg,#0d131d,#080b11);border-left:1px solid var(--green);
+box-shadow:-30px 0 80px -40px #000;transform:translateX(105%);transition:transform .32s cubic-bezier(.2,.8,.2,1);
+padding:26px 24px;overflow-y:auto}
+.insp.open{transform:translateX(0)}
+.insp .x{position:absolute;top:18px;right:18px;font-family:var(--mono);font-size:13px;color:var(--ink-dim);
+background:none;border:1px solid var(--line);width:30px;height:30px;cursor:pointer;transition:.15s}
+.insp .x:hover{color:var(--coral);border-color:var(--coral)}
+.insp .ilabel{font-family:var(--mono);font-size:10px;letter-spacing:.24em;color:var(--green);text-transform:uppercase}
+.insp .iroute{font-family:var(--mono);font-weight:700;font-size:21px;color:var(--ink);margin:6px 0 4px;word-break:break-all}
+.insp .imeth{font-family:var(--mono);font-size:11px;color:var(--amber);letter-spacing:.1em}
+.insp .ifile{font-family:var(--mono);font-size:11px;color:var(--violet);margin:14px 0;line-height:1.5;
+background:rgba(169,139,255,.06);border:1px solid var(--line);padding:9px 11px;word-break:break-all}
+.insp .idesc{font-size:13px;color:var(--ink-dim);line-height:1.5;margin:0 0 16px}
+.insp .itags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px}
+.insp .iconn h5{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+color:var(--ink-faint);margin:18px 0 8px}
+.insp .iconn a{display:block;font-family:var(--mono);font-size:11.5px;color:var(--blue);text-decoration:none;
+padding:5px 0;border-top:1px dashed var(--line-soft);cursor:pointer}
+.insp .iconn a:hover{color:var(--green)}
+.insp .iconn a .dir{color:var(--ink-faint);margin-right:8px}
+.insp .empty{color:var(--ink-faint);font-family:var(--mono);font-size:11px}
+/* reveal */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+.reveal.in{opacity:1;transform:none}
+</style></head>
+<body>
+<div class="ambient">
+<div class="grid"></div>
+<div class="glow g1"></div>
+<div class="glow g2"></div>
+<div class="glow g3"></div>
+<div class="scan"></div>
+</div>
+<div class="wrap">
+<header class="mast">
+<div>
+<div class="brand">
+<span class="mark">DIENCHAN</span>
+<span class="stack">structure<b>map</b></span>
+</div>
+<h1>App Structure <span class="thin">Map</span></h1>
+<p class="lede">SvelteKit 5 portal for the Italian Dien Chan facial reflexology association: membership signup/renewal, practitioner directory, course and event catalogue with certificate generation, product e-commerce shop with Stripe payments, order and discount administration, and role-gated dashboards for users, formatori (trainers), riflessologi, admins and superadmins on MongoDB/Mongoose plus a small Drizzle SQLite messages table. <span class="hl">SvelteKit 2.27.0 · Svelte 5.37.2</span></p>
+</div>
+<div class="sheetmeta">
+SHEET <b>A‑01</b> · ROUTE TOPOLOGY<br>
+SCALE 1:NTS · REV 2026-09-10<br>
+SvelteKit 2.27.0 · Svelte 5.37.2<br>
+57 routes · 7 tables · Mongoose 8.18.0 / Drizzle ORM 0.44.5
+</div>
+</header>
+<nav class="tabs">
+<a href="#s01"><span class="n">01</span> Routes</a>
+<a href="#s02"><span class="n">02</span> Components</a>
+<a href="#s03"><span class="n">03</span> State + Server</a>
+<a href="#s04"><span class="n">04</span> Database</a>
+<a href="#s05"><span class="n">05</span> Stack + Cmds</a>
+</nav>
+<section id="s01">
+<div class="sec-head">
+<span class="num">SECTION 01</span>
+<span class="crumb">src/routes/**</span>
+<div class="statrow">
+<div class="stat s1"><div class="v">57</div><div class="k">route files</div></div>
+<div class="stat s2"><div class="v">7</div><div class="k">public</div></div>
+<div class="stat s3"><div class="v">5</div><div class="k">protected</div></div>
+<div class="stat s4"><div class="v">26</div><div class="k">api rails</div></div>
+</div>
+</div>
+<h2 class="sec-title">Route Topology</h2>
+<div class="sec-sub">page flow / data feed · admin manages / assigns · api · cron rails · utility / dev · auth redirect &nbsp;—&nbsp; <b>hover</b> = trace connections · <b>click</b> = inspect route</div>
+<div class="legend" id="legend">
+<span class="li" data-type="flow"><span class="ln flow"></span> page flow / data feed</span>
+<span class="li" data-type="admin"><span class="ln admin"></span> admin manages / assigns</span>
+<span class="li" data-type="api"><span class="ln api"></span> api · cron rails</span>
+<span class="li" data-type="util"><span class="ln util"></span> utility / dev</span>
+<span class="li" data-type="auth"><span class="ln auth"></span> auth redirect</span>
+<span class="hint"><b>hover</b> = trace connections · <i>click</i> = inspect route →</span>
+</div>
+<div class="topo-scroll">
+<div class="topo-canvas" id="canvas">
+<svg class="topo-wires" id="wires"></svg>
+<div class="topo-row"><div class="zone hi"><span class="zlabel">public · login</span><div class="rcard acc-public" id="r-root" data-route="/" data-method="GET" data-file="src/routes/+page.server.ts" data-desc="root redirect router" data-tags="PUBLIC">
+<div class="top"><span class="route">/</span><span class="meth">GET<i class="dot" style="background:var(--amber);box-shadow:0 0 7px var(--amber)"></i></span></div>
+<div class="file">src/routes/+page.server.ts</div>
+<p class="desc">root redirect router</p>
+<div class="tags"><span class="tag tag-public">PUBLIC</span></div>
+</div><div class="rcard acc-auth" id="r-login" data-route="/login" data-method="GET·POST" data-file="src/routes/(login)/login/+page.server.ts" data-desc="email password login" data-tags="AUTH,PUBLIC">
+<div class="top"><span class="route">/login</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(login)/login/+page.server.ts</div>
+<p class="desc">email password login</p>
+<div class="tags"><span class="tag tag-auth">AUTH</span><span class="tag tag-public">PUBLIC</span></div>
+</div><div class="rcard acc-public" id="r-membership-new" data-route="/membership-new" data-method="GET·POST" data-file="src/routes/(app)/membership-new/+page.server.ts" data-desc="new membership signup" data-tags="PUBLIC">
+<div class="top"><span class="route">/membership-new</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/membership-new/+page.server.ts</div>
+<p class="desc">new membership signup</p>
+<div class="tags"><span class="tag tag-public">PUBLIC</span></div>
+</div><div class="rcard acc-public" id="r-course-shop" data-route="/course-shop" data-method="GET" data-file="src/routes/(app)/course-shop/+page.server.ts" data-desc="browse courses and events" data-tags="PUBLIC">
+<div class="top"><span class="route">/course-shop</span><span class="meth">GET<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/course-shop/+page.server.ts</div>
+<p class="desc">browse courses and events</p>
+<div class="tags"><span class="tag tag-public">PUBLIC</span></div>
+</div><div class="rcard acc-public" id="r-product-shop" data-route="/product-shop" data-method="GET·POST" data-file="src/routes/(app)/product-shop/+page.server.ts" data-desc="browse products" data-tags="PUBLIC">
+<div class="top"><span class="route">/product-shop</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/product-shop/+page.server.ts</div>
+<p class="desc">browse products</p>
+<div class="tags"><span class="tag tag-public">PUBLIC</span></div>
+</div></div><div class="gate"><span>auth gate</span></div><div class="zone dash"><span class="zlabel">authenticated app</span><div class="col"><div class="rcard acc-protected" id="r-cart" data-route="/cart" data-method="GET·POST" data-file="src/routes/(app)/cart/+page.server.ts" data-desc="cart and checkout" data-tags="PROTECTED">
+<div class="top"><span class="route">/cart</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/cart/+page.server.ts</div>
+<p class="desc">cart and checkout</p>
+<div class="tags"><span class="tag tag-protected">PROTECTED</span></div>
+</div><div class="rcard acc-protected" id="r-profile-area" data-route="/profile-area" data-method="GET·POST" data-file="src/routes/(app)/profile-area/+page.server.ts" data-desc="personal area dashboard" data-tags="PROTECTED">
+<div class="top"><span class="route">/profile-area</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/profile-area/+page.server.ts</div>
+<p class="desc">personal area dashboard</p>
+<div class="tags"><span class="tag tag-protected">PROTECTED</span></div>
+</div><div class="rcard acc-public" id="r-profile-public" data-route="/profile-public/[idUser]" data-method="GET" data-file="src/routes/(app)/profile-public/[idUser]/+page.server.ts" data-desc="public practitioner profile" data-tags="PUBLIC">
+<div class="top"><span class="route">/profile-public/[idUser]</span><span class="meth">GET<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/profile-public/[idUser]/+page.server.ts</div>
+<p class="desc">public practitioner profile</p>
+<div class="tags"><span class="tag tag-public">PUBLIC</span></div>
+</div><div class="rcard acc-public" id="r-user-list" data-route="/user-list" data-method="GET·POST" data-file="src/routes/(app)/user-list/+page.server.ts" data-desc="practitioner directory" data-tags="PUBLIC">
+<div class="top"><span class="route">/user-list</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/user-list/+page.server.ts</div>
+<p class="desc">practitioner directory</p>
+<div class="tags"><span class="tag tag-public">PUBLIC</span></div>
+</div><div class="rcard acc-protected" id="r-course-detail" data-route="/course-detail/[idCourse]" data-method="GET·POST" data-file="src/routes/(app)/course-detail/[idCourse]/+page.server.ts" data-desc="course enrollment detail" data-tags="PROTECTED">
+<div class="top"><span class="route">/course-detail/[idCourse]</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/course-detail/[idCourse]/+page.server.ts</div>
+<p class="desc">course enrollment detail</p>
+<div class="tags"><span class="tag tag-protected">PROTECTED</span></div>
+</div><div class="rcard acc-public" id="r-product-detail" data-route="/product-detail/[value_Id]" data-method="GET·POST" data-file="src/routes/(app)/product-detail/[value_Id]/+page.server.ts" data-desc="product detail view" data-tags="PUBLIC">
+<div class="top"><span class="route">/product-detail/[value_Id]</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/product-detail/[value_Id]/+page.server.ts</div>
+<p class="desc">product detail view</p>
+<div class="tags"><span class="tag tag-public">PUBLIC</span></div>
+</div></div><div class="col"><div class="rcard acc-protected" id="r-insurance-new" data-route="/insurance-new" data-method="GET·POST" data-file="src/routes/(app)/insurance-new/+page.server.ts" data-desc="new practitioner insurance" data-tags="PROTECTED">
+<div class="top"><span class="route">/insurance-new</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/insurance-new/+page.server.ts</div>
+<p class="desc">new practitioner insurance</p>
+<div class="tags"><span class="tag tag-protected">PROTECTED</span></div>
+</div><div class="rcard acc-protected" id="r-trireport" data-route="/trireport" data-method="GET·POST" data-file="src/routes/(app)/trireport/+page.server.ts" data-desc="training tri-report" data-tags="PROTECTED">
+<div class="top"><span class="route">/trireport</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/trireport/+page.server.ts</div>
+<p class="desc">training tri-report</p>
+<div class="tags"><span class="tag tag-protected">PROTECTED</span></div>
+</div><div class="rcard acc-admin" id="r-kit-formatori" data-route="/kit-materiale-formatori" data-method="GET·POST" data-file="src/routes/(app)/kit-materiale-formatori/+page.server.ts" data-desc="trainer kit materials" data-tags="ADMIN,PROTECTED">
+<div class="top"><span class="route">/kit-materiale-formatori</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/kit-materiale-formatori/+page.server.ts</div>
+<p class="desc">trainer kit materials</p>
+<div class="tags"><span class="tag tag-admin">ADMIN</span><span class="tag tag-protected">PROTECTED</span></div>
+</div></div><div class="col"><div class="rcard acc-admin" id="r-course-table" data-route="/course-table" data-method="GET·POST" data-file="src/routes/(app)/course-table/+page.server.ts" data-desc="manage courses admin" data-tags="ADMIN,PROTECTED">
+<div class="top"><span class="route">/course-table</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/course-table/+page.server.ts</div>
+<p class="desc">manage courses admin</p>
+<div class="tags"><span class="tag tag-admin">ADMIN</span><span class="tag tag-protected">PROTECTED</span></div>
+</div><div class="rcard acc-admin" id="r-product-table" data-route="/product-table" data-method="GET·POST" data-file="src/routes/(app)/product-table/+page.server.ts" data-desc="manage products" data-tags="ADMIN,PROTECTED">
+<div class="top"><span class="route">/product-table</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/product-table/+page.server.ts</div>
+<p class="desc">manage products</p>
+<div class="tags"><span class="tag tag-admin">ADMIN</span><span class="tag tag-protected">PROTECTED</span></div>
+</div><div class="rcard acc-admin" id="r-order-table" data-route="/order-table" data-method="GET·POST" data-file="src/routes/(app)/order-table/+page.server.ts" data-desc="manage orders" data-tags="ADMIN,PROTECTED">
+<div class="top"><span class="route">/order-table</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/order-table/+page.server.ts</div>
+<p class="desc">manage orders</p>
+<div class="tags"><span class="tag tag-admin">ADMIN</span><span class="tag tag-protected">PROTECTED</span></div>
+</div><div class="rcard acc-admin" id="r-discount-table" data-route="/discount-table" data-method="GET·POST" data-file="src/routes/(app)/discount-table/+page.server.ts" data-desc="manage discounts" data-tags="ADMIN,PROTECTED">
+<div class="top"><span class="route">/discount-table</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/discount-table/+page.server.ts</div>
+<p class="desc">manage discounts</p>
+<div class="tags"><span class="tag tag-admin">ADMIN</span><span class="tag tag-protected">PROTECTED</span></div>
+</div><div class="rcard acc-admin" id="r-layout-table" data-route="/layout-table" data-method="GET·POST" data-file="src/routes/(app)/layout-table/+page.server.ts" data-desc="manage course templates" data-tags="ADMIN,PROTECTED">
+<div class="top"><span class="route">/layout-table</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/layout-table/+page.server.ts</div>
+<p class="desc">manage course templates</p>
+<div class="tags"><span class="tag tag-admin">ADMIN</span><span class="tag tag-protected">PROTECTED</span></div>
+</div><div class="rcard acc-admin" id="r-membership-table" data-route="/membership-table" data-method="GET·POST" data-file="src/routes/(app)/membership-table/+page.server.ts" data-desc="manage memberships" data-tags="ADMIN,PROTECTED">
+<div class="top"><span class="route">/membership-table</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/membership-table/+page.server.ts</div>
+<p class="desc">manage memberships</p>
+<div class="tags"><span class="tag tag-admin">ADMIN</span><span class="tag tag-protected">PROTECTED</span></div>
+</div><div class="rcard acc-admin" id="r-user-table" data-route="/user-table" data-method="GET·POST" data-file="src/routes/(app)/user-table/+page.server.ts" data-desc="manage users admin" data-tags="ADMIN,PROTECTED">
+<div class="top"><span class="route">/user-table</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/user-table/+page.server.ts</div>
+<p class="desc">manage users admin</p>
+<div class="tags"><span class="tag tag-admin">ADMIN</span><span class="tag tag-protected">PROTECTED</span></div>
+</div><div class="rcard acc-admin" id="r-video-table" data-route="/video-table" data-method="GET·POST" data-file="src/routes/(app)/video-table/+page.server.ts" data-desc="manage tutorial videos" data-tags="ADMIN,PROTECTED">
+<div class="top"><span class="route">/video-table</span><span class="meth">GET·POST<i class="dot"></i></span></div>
+<div class="file">src/routes/(app)/video-table/+page.server.ts</div>
+<p class="desc">manage tutorial videos</p>
+<div class="tags"><span class="tag tag-admin">ADMIN</span><span class="tag tag-protected">PROTECTED</span></div>
+</div></div></div><div class="zone dash"><span class="zlabel">dev &amp; test</span><div class="col"><div class="rcard acc-dev" id="r-test" data-route="/test" data-method="GET·POST" data-file="src/routes/(test)/test/+page.server.ts" data-desc="generic test page" data-tags="DEV">
+<div class="top"><span class="route">/test</span><span class="meth">GET·POST<i class="dot" style="background:var(--violet);box-shadow:0 0 7px var(--violet)"></i></span></div>
+<div class="file">src/routes/(test)/test/+page.server.ts</div>
+<p class="desc">generic test page</p>
+<div class="tags"><span class="tag tag-dev">DEV</span></div>
+</div><div class="rcard acc-dev" id="r-testlogin" data-route="/testlogin" data-method="GET·POST" data-file="src/routes/(test)/testlogin/+page.server.ts" data-desc="login flow test" data-tags="DEV">
+<div class="top"><span class="route">/testlogin</span><span class="meth">GET·POST<i class="dot" style="background:var(--violet);box-shadow:0 0 7px var(--violet)"></i></span></div>
+<div class="file">src/routes/(test)/testlogin/+page.server.ts</div>
+<p class="desc">login flow test</p>
+<div class="tags"><span class="tag tag-dev">DEV</span></div>
+</div><div class="rcard acc-dev" id="r-ocrtest" data-route="/ocrtest" data-method="GET·POST" data-file="src/routes/(test)/ocrtest/+page.server.ts" data-desc="OCR test harness" data-tags="DEV">
+<div class="top"><span class="route">/ocrtest</span><span class="meth">GET·POST<i class="dot" style="background:var(--violet);box-shadow:0 0 7px var(--violet)"></i></span></div>
+<div class="file">src/routes/(test)/ocrtest/+page.server.ts</div>
+<p class="desc">OCR test harness</p>
+<div class="tags"><span class="tag tag-dev">DEV</span></div>
+</div><div class="rcard acc-dev" id="r-prod-sample" data-route="/prod-sample" data-method="GET" data-file="src/routes/(test)/prod-sample/+page.svelte" data-desc="product sample view" data-tags="DEV">
+<div class="top"><span class="route">/prod-sample</span><span class="meth">GET<i class="dot" style="background:var(--violet);box-shadow:0 0 7px var(--violet)"></i></span></div>
+<div class="file">src/routes/(test)/prod-sample/+page.svelte</div>
+<p class="desc">product sample view</p>
+<div class="tags"><span class="tag tag-dev">DEV</span></div>
+</div><div class="rcard acc-dev" id="r-wheel" data-route="/wheel" data-method="GET" data-file="src/routes/(test)/wheel/+page.svelte" data-desc="wheel interaction demo" data-tags="DEV">
+<div class="top"><span class="route">/wheel</span><span class="meth">GET<i class="dot" style="background:var(--violet);box-shadow:0 0 7px var(--violet)"></i></span></div>
+<div class="file">src/routes/(test)/wheel/+page.svelte</div>
+<p class="desc">wheel interaction demo</p>
+<div class="tags"><span class="tag tag-dev">DEV</span></div>
+</div></div></div><div class="zone dash"><span class="zlabel">infrastructure</span><div class="col"><div class="rcard ext" id="r-ext-mongo" data-route="EXTERNAL · MongoDB" data-method="◈" data-file="MongoDB + Mongoose 8 — MONGO_URI" data-desc="primary data store" data-tags="DATA">
+<div class="top"><span class="route">EXTERNAL · MongoDB</span><span class="meth">◈<i class="dot" style="background:var(--blue);box-shadow:0 0 7px var(--blue)"></i></span></div>
+<div class="file">MongoDB + Mongoose 8 — MONGO_URI</div>
+<p class="desc">primary data store</p>
+<div class="tags"><span class="tag ">DATA</span></div>
+</div><div class="rcard ext" id="r-ext-sqlite" data-route="EXTERNAL · SQLite messages" data-method="◈" data-file="Drizzle SQLite — data/sqlite.db" data-desc="whatsapp messages store" data-tags="DATA">
+<div class="top"><span class="route">EXTERNAL · SQLite messages</span><span class="meth">◈<i class="dot" style="background:var(--blue);box-shadow:0 0 7px var(--blue)"></i></span></div>
+<div class="file">Drizzle SQLite — data/sqlite.db</div>
+<p class="desc">whatsapp messages store</p>
+<div class="tags"><span class="tag ">DATA</span></div>
+</div><div class="rcard ext" id="r-ext-stripe" data-route="EXTERNAL · Stripe" data-method="◈" data-file="Stripe API — STRIPE_KEY_BACK/FRONT" data-desc="card payments 3DS" data-tags="DATA">
+<div class="top"><span class="route">EXTERNAL · Stripe</span><span class="meth">◈<i class="dot" style="background:var(--blue);box-shadow:0 0 7px var(--blue)"></i></span></div>
+<div class="file">Stripe API — STRIPE_KEY_BACK/FRONT</div>
+<p class="desc">card payments 3DS</p>
+<div class="tags"><span class="tag ">DATA</span></div>
+</div><div class="rcard ext" id="r-ext-mailer" data-route="EXTERNAL · SMTP Nodemailer" data-method="◈" data-file="Nodemailer — MAILER_HOST/PORT/USER/PASS" data-desc="transactional email" data-tags="EMAIL">
+<div class="top"><span class="route">EXTERNAL · SMTP Nodemailer</span><span class="meth">◈<i class="dot" style="background:var(--blue);box-shadow:0 0 7px var(--blue)"></i></span></div>
+<div class="file">Nodemailer — MAILER_HOST/PORT/USER/PASS</div>
+<p class="desc">transactional email</p>
+<div class="tags"><span class="tag ">EMAIL</span></div>
+</div></div></div></div>
+<div class="topo-row"><div class="zone dash"><span class="zlabel">api rails</span><div class="col"><div class="rcard acc-api" id="r-api-download" data-route="/api/download" data-method="POST" data-file="src/routes/api/download/+server.ts" data-desc="csv export endpoint" data-tags="API">
+<div class="top"><span class="route">/api/download</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/download/+server.ts</div>
+<p class="desc">csv export endpoint</p>
+<div class="tags"><span class="tag tag-api">API</span></div>
+</div><div class="rcard acc-api" id="r-api-logout" data-route="/api/logout" data-method="POST" data-file="src/routes/api/logout/+page.server.ts" data-desc="session logout" data-tags="API">
+<div class="top"><span class="route">/api/logout</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/logout/+page.server.ts</div>
+<p class="desc">session logout</p>
+<div class="tags"><span class="tag tag-api">API</span></div>
+</div><div class="rcard acc-api" id="r-api-mailer-default" data-route="/api/mailer/default" data-method="POST" data-file="src/routes/api/mailer/default/+server.ts" data-desc="generic notification mail" data-tags="API,EMAIL">
+<div class="top"><span class="route">/api/mailer/default</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mailer/default/+server.ts</div>
+<p class="desc">generic notification mail</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">EMAIL</span></div>
+</div><div class="rcard acc-api" id="r-api-mailer-expiry-discount" data-route="/api/mailer/expiry-discount" data-method="POST" data-file="src/routes/api/mailer/expiry-discount/+server.ts" data-desc="discount expiry mailer" data-tags="API,EMAIL">
+<div class="top"><span class="route">/api/mailer/expiry-discount</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mailer/expiry-discount/+server.ts</div>
+<p class="desc">discount expiry mailer</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">EMAIL</span></div>
+</div><div class="rcard acc-api" id="r-api-mailer-expiry-notification" data-route="/api/mailer/expiry-notification/+server.ts" data-method="POST" data-file="src/routes/api/mailer/expiry-notification/+server.ts" data-desc="membership expiry notifier" data-tags="API,EMAIL">
+<div class="top"><span class="route">/api/mailer/expiry-notification/+server.ts</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mailer/expiry-notification/+server.ts</div>
+<p class="desc">membership expiry notifier</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">EMAIL</span></div>
+</div><div class="rcard acc-api" id="r-api-mailer-new-insurance" data-route="/api/mailer/new-insurance" data-method="POST" data-file="src/routes/api/mailer/new-insurance/+server.ts" data-desc="insurance confirm mail" data-tags="API,EMAIL">
+<div class="top"><span class="route">/api/mailer/new-insurance</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mailer/new-insurance/+server.ts</div>
+<p class="desc">insurance confirm mail</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">EMAIL</span></div>
+</div><div class="rcard acc-api" id="r-api-mailer-new-membership-insurance" data-route="/api/mailer/new-membership-insurance/+server.ts" data-method="POST" data-file="src/routes/api/mailer/new-membership-insurance/+server.ts" data-desc="membership+insurance mail" data-tags="API,EMAIL">
+<div class="top"><span class="route">/api/mailer/new-membership-insurance/+server.ts</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mailer/new-membership-insurance/+server.ts</div>
+<p class="desc">membership+insurance mail</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">EMAIL</span></div>
+</div><div class="rcard acc-api" id="r-api-mailer-new-order" data-route="/api/mailer/new-order/+server.ts" data-method="POST" data-file="src/routes/api/mailer/new-order/+server.ts" data-desc="order confirmation mail" data-tags="API,EMAIL">
+<div class="top"><span class="route">/api/mailer/new-order/+server.ts</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mailer/new-order/+server.ts</div>
+<p class="desc">order confirmation mail</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">EMAIL</span></div>
+</div><div class="rcard acc-api" id="r-api-mailer-new-order-12massaggi" data-route="/api/mailer/new-order-12massaggi/+server.ts" data-method="POST" data-file="src/routes/api/mailer/new-order-12massaggi/+server.ts" data-desc="12massaggi order mail" data-tags="API,EMAIL">
+<div class="top"><span class="route">/api/mailer/new-order-12massaggi/+server.ts</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mailer/new-order-12massaggi/+server.ts</div>
+<p class="desc">12massaggi order mail</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">EMAIL</span></div>
+</div><div class="rcard acc-api" id="r-api-mailer-recover" data-route="/api/mailer/recover-password" data-method="POST" data-file="src/routes/api/mailer/recover-password/+server.ts" data-desc="recover password mail" data-tags="API,EMAIL">
+<div class="top"><span class="route">/api/mailer/recover-password</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mailer/recover-password/+server.ts</div>
+<p class="desc">recover password mail</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">EMAIL</span></div>
+</div></div><div class="col"><div class="rcard acc-api" id="r-api-mongo-aggregate" data-route="/api/mongo/aggregate" data-method="POST" data-file="src/routes/api/mongo/aggregate/+server.ts" data-desc="mongo aggregate pipe" data-tags="API,DATA">
+<div class="top"><span class="route">/api/mongo/aggregate</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mongo/aggregate/+server.ts</div>
+<p class="desc">mongo aggregate pipe</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">DATA</span></div>
+</div><div class="rcard acc-api" id="r-api-mongo-count" data-route="/api/mongo/count" data-method="POST" data-file="src/routes/api/mongo/count/+server.ts" data-desc="mongo count helper" data-tags="API,DATA">
+<div class="top"><span class="route">/api/mongo/count</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mongo/count/+server.ts</div>
+<p class="desc">mongo count helper</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">DATA</span></div>
+</div><div class="rcard acc-api" id="r-api-mongo-create" data-route="/api/mongo/create" data-method="POST" data-file="src/routes/api/mongo/create/+server.ts" data-desc="mongo create doc" data-tags="API,DATA">
+<div class="top"><span class="route">/api/mongo/create</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mongo/create/+server.ts</div>
+<p class="desc">mongo create doc</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">DATA</span></div>
+</div><div class="rcard acc-api" id="r-api-mongo-find" data-route="/api/mongo/find" data-method="POST" data-file="src/routes/api/mongo/find/+server.ts" data-desc="mongo find proxy" data-tags="API,DATA">
+<div class="top"><span class="route">/api/mongo/find</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mongo/find/+server.ts</div>
+<p class="desc">mongo find proxy</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">DATA</span></div>
+</div><div class="rcard acc-api" id="r-api-mongo-get-orders" data-route="/api/mongo/get/getOrders" data-method="GET" data-file="src/routes/api/mongo/get/getOrders/+server.ts" data-desc="get all orders" data-tags="API,DATA">
+<div class="top"><span class="route">/api/mongo/get/getOrders</span><span class="meth">GET<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mongo/get/getOrders/+server.ts</div>
+<p class="desc">get all orders</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">DATA</span></div>
+</div><div class="rcard acc-api" id="r-api-mongo-get-users" data-route="/api/mongo/get/getUsers" data-method="GET" data-file="src/routes/api/mongo/get/getUsers/+server.ts" data-desc="get all users" data-tags="API,DATA">
+<div class="top"><span class="route">/api/mongo/get/getUsers</span><span class="meth">GET<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mongo/get/getUsers/+server.ts</div>
+<p class="desc">get all users</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">DATA</span></div>
+</div><div class="rcard acc-api" id="r-api-mongo-getCourse-accademia" data-route="/api/mongo/getCourse/accademia" data-method="GET" data-file="src/routes/api/mongo/getCourse/accademia/+server.ts" data-desc="list accademia events" data-tags="API,DATA">
+<div class="top"><span class="route">/api/mongo/getCourse/accademia</span><span class="meth">GET<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mongo/getCourse/accademia/+server.ts</div>
+<p class="desc">list accademia events</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">DATA</span></div>
+</div><div class="rcard acc-api" id="r-api-mongo-getCourse-conferenza" data-route="/api/mongo/getCourse/conferenzaGratuita" data-method="GET" data-file="src/routes/api/mongo/getCourse/conferenzaGratuita/+server.ts" data-desc="list free conference" data-tags="API,DATA">
+<div class="top"><span class="route">/api/mongo/getCourse/conferenzaGratuita</span><span class="meth">GET<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mongo/getCourse/conferenzaGratuita/+server.ts</div>
+<p class="desc">list free conference</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">DATA</span></div>
+</div><div class="rcard acc-api" id="r-api-mongo-getCourse-avanzato" data-route="/api/mongo/getCourse/corsoAvanzato/+server.ts" data-method="GET" data-file="src/routes/api/mongo/getCourse/corsoAvanzato/+server.ts" data-desc="list advanced course" data-tags="API,DATA">
+<div class="top"><span class="route">/api/mongo/getCourse/corsoAvanzato/+server.ts</span><span class="meth">GET<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mongo/getCourse/corsoAvanzato/+server.ts</div>
+<p class="desc">list advanced course</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">DATA</span></div>
+</div><div class="rcard acc-api" id="r-api-mongo-getCourse-base" data-route="/api/mongo/getCourse/corsoBase/+server.ts" data-method="GET" data-file="src/routes/api/mongo/getCourse/corsoBase/+server.ts" data-desc="list base course" data-tags="API,DATA">
+<div class="top"><span class="route">/api/mongo/getCourse/corsoBase/+server.ts</span><span class="meth">GET<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mongo/getCourse/corsoBase/+server.ts</div>
+<p class="desc">list base course</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">DATA</span></div>
+</div></div><div class="col"><div class="rcard acc-api" id="r-api-mongo-remove" data-route="/api/mongo/remove" data-method="POST" data-file="src/routes/api/mongo/remove/+server.ts" data-desc="mongo delete doc" data-tags="API,DATA">
+<div class="top"><span class="route">/api/mongo/remove</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mongo/remove/+server.ts</div>
+<p class="desc">mongo delete doc</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">DATA</span></div>
+</div><div class="rcard acc-api" id="r-api-mongo-update" data-route="/api/mongo/update/+server.ts" data-method="POST" data-file="src/routes/api/mongo/update/+server.ts" data-desc="mongo update doc" data-tags="API,DATA">
+<div class="top"><span class="route">/api/mongo/update/+server.ts</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mongo/update/+server.ts</div>
+<p class="desc">mongo update doc</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">DATA</span></div>
+</div><div class="rcard acc-api" id="r-api-mongo-update-bulk" data-route="/api/mongo/update-bulk" data-method="POST" data-file="src/routes/api/mongo/update-bulk/+server.ts" data-desc="bulk update helper" data-tags="API,DATA">
+<div class="top"><span class="route">/api/mongo/update-bulk</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/mongo/update-bulk/+server.ts</div>
+<p class="desc">bulk update helper</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">DATA</span></div>
+</div><div class="rcard acc-api" id="r-api-uploads-files" data-route="/api/uploads/files" data-method="POST·DELETE" data-file="src/routes/api/uploads/files/+server.ts" data-desc="upload/delete files" data-tags="API,UPLOAD">
+<div class="top"><span class="route">/api/uploads/files</span><span class="meth">POST·DELETE<i class="dot"></i></span></div>
+<div class="file">src/routes/api/uploads/files/+server.ts</div>
+<p class="desc">upload/delete files</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">UPLOAD</span></div>
+</div><div class="rcard acc-api" id="r-api-video" data-route="/api/video" data-method="POST" data-file="src/routes/api/video/+server.ts" data-desc="videos by user level" data-tags="API,DATA">
+<div class="top"><span class="route">/api/video</span><span class="meth">POST<i class="dot"></i></span></div>
+<div class="file">src/routes/api/video/+server.ts</div>
+<p class="desc">videos by user level</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">DATA</span></div>
+</div><div class="rcard acc-api" id="r-api-files" data-route="/files/[type]/[folder]/[name]" data-method="GET" data-file="src/routes/files/[type]/[folder]/[name]/+server.ts" data-desc="serve uploaded files" data-tags="API,DATA">
+<div class="top"><span class="route">/files/[type]/[folder]/[name]</span><span class="meth">GET<i class="dot"></i></span></div>
+<div class="file">src/routes/files/[type]/[folder]/[name]/+server.ts</div>
+<p class="desc">serve uploaded files</p>
+<div class="tags"><span class="tag tag-api">API</span><span class="tag ">DATA</span></div>
+</div></div></div></div>
+</div>
+</div>
+</section>
+<section id="s02" class="reveal">
+<div class="sec-head"><span class="num">SECTION 02</span><span class="crumb">src/lib/components/ · src/lib/dashboardComponents/</span></div>
+<h2 class="sec-title">Component Ledger</h2>
+<div class="sec-sub"><b>7</b> live · <b>2</b> dormant</div>
+<div class="grid-c">
+<div class="ccard"><span class="pill">LIVE</span><div class="cid">C-01</div><div class="cname">Navbar.svelte</div><div class="cpath">src/lib/components/Navbar.svelte</div><div class="cdesc">Sticky top header with logo, desktop dropdowns (Iscrizioni, Corsi, Prodotti, Albo, Tutorial filtered by level via getVideosByLevel), Gestione admin menu (Corsi, Kit, Membership, Modelli, Ordini, Prodotti, Sconti, Utenti, Video), cart badge ($cdata.q1), user info bar (name, pointsBalance), mobile hamburger drawer, logout form with emptyCart+applyAction. Props user,auth; derived isFormatore from Set('riflessologo','formatore base','master','formatore avanzato').</div></div><div class="ccard"><span class="pill">LIVE</span><div class="cid">C-02</div><div class="cname">Footer.svelte</div><div class="cpath">src/lib/components/Footer.svelte</div><div class="cdesc">Global footer rendered in (app),(login),(test) layouts; site links, association info, socials.</div></div><div class="ccard"><span class="pill">LIVE</span><div class="cid">C-03</div><div class="cname">Modal.svelte</div><div class="cpath">src/lib/components/Modal.svelte</div><div class="cdesc">DaisyUI modal dialog: props isOpen (bindable), header, headerBg, footer, footerColor, cssClass, children snippet. Animates with scale quintOut. Used for login reset, product/course modals, alerts across app.</div></div><div class="ccard"><span class="pill">LIVE</span><div class="cid">C-04</div><div class="cname">CartFloat.svelte</div><div class="cpath">src/lib/components/CartFloat.svelte</div><div class="cdesc">Floating toast-end toast-middle button showing $cdata.q1 badge, links to /cart, slide x transition. Rendered when cartProducts length &gt;0.</div></div><div class="ccard"><span class="pill">LIVE</span><div class="cid">C-05</div><div class="cname">DragDrop.svelte</div><div class="cpath">src/lib/components/DragDrop.svelte</div><div class="cdesc">File drop zone for images: props inputName, dragCounter/isDragging/previewUrl state, accepts jpg/jpeg/png/webp, shows preview with cancel clearing URL.createObjectURL. Wraps hidden file input with Tailwind dashed border.</div></div><div class="ccard"><span class="pill">LIVE</span><div class="cid">C-06</div><div class="cname">NotificationContainer.svelte</div><div class="cpath">src/lib/components/NotificationContainer.svelte</div><div class="cdesc">Toast-top toast-center container subscribing to notification store, rendering each Notification (id,content,type,duration) with fly transitions and Info/CircleX/CircleCheckBig icons, close button calls notification.remove(id).</div></div><div class="ccard"><span class="pill">LIVE</span><div class="cid">C-07</div><div class="cname">Loader.svelte</div><div class="cpath">src/lib/components/Loader.svelte</div><div class="cdesc">Fullscreen bottom modal with centered Tailwind loading-bars spinner (text-primary). Shown while forms await server actions.</div></div><div class="ccard dorm"><span class="pill">DORMANT</span><div class="cid">C-08</div><div class="cname">Notification(deprecated).svelte</div><div class="cpath">src/lib/components/Notification(deprecated).svelte</div><div class="cdesc">Legacy notification component superseded by NotificationContainer + notification store; kept for reference, not imported anywhere.</div></div><div class="ccard dorm"><span class="pill">DORMANT</span><div class="cid">C-09</div><div class="cname">UpdateBrowserAlert.svelte</div><div class="cpath">src/lib/components/UpdateBrowserAlert.svelte</div><div class="cdesc">Browser-update nudge component (import commented out in +layout.svelte); not rendered.</div></div>
+</div>
+</section>
+<section id="s03" class="reveal">
+<div class="sec-head"><span class="num">SECTION 03</span><span class="crumb">src/lib/treeState.svelte.ts · src/lib/server/</span></div>
+<h2 class="sec-title">Registers &amp; Wiring</h2>
+<div class="sec-sub"><b>6</b> stores · <b>4</b> server libs</div>
+<div class="grp-label">state registers <span class="src">src/lib/</span></div>
+<div class="grid-s">
+<div class="scard"><div class="sid">cart.ts</div><div class="sname">cartProducts</div><div class="sdesc">Svelte writable cart persisted to localStorage (cartProducts array, cdata {q1,p1} qty+points, cartStatus trigger). addToCart deduplicates by prodId incrementing orderQuantity, removeFromCart decrements or filters, emptyCart clears. cdata syncs total qty and points sum. discountList writable holds applied discounts.</div><div class="chips"><span class="chip">cartProducts</span><span class="chip">cdata</span><span class="chip">cartStatus</span><span class="chip">discountList</span><span class="chip">addToCart</span><span class="chip">removeFromCart</span><span class="chip">emptyCart</span></div></div><div class="scard"><div class="sid">notifications.ts</div><div class="sname">notification</div><div class="sdesc">Custom store createNotificationStore wrapping writable&lt;Notification[]&gt; with success/error/info/clear/remove, auto-removes after duration (default 5000ms) via setTimeout with Date.now()+Math.random() id.</div><div class="chips"><span class="chip">notification</span></div></div><div class="scard"><div class="sid">arrays.ts</div><div class="sname">arrays</div><div class="sdesc">Large config store: writable sidebarData, courseId (for post-login redirect); readable constants for countries (250+ ISO), provinces (100+ Italian with region code), time pickers, *KeysToDelete lists for CSV export column filtering, layoutArray (11 layoutId mappings like base XW7LYV2LG2BU), pdfValue (certificate bg/pageMargins per layout using PUBLIC_BASE_URL/training/*.jpg).</div><div class="chips"><span class="chip">sidebarData</span><span class="chip">courseId</span><span class="chip">countries</span><span class="chip">country_list</span><span class="chip">province</span><span class="chip">hours</span><span class="chip">minutes</span><span class="chip">days</span><span class="chip">months</span><span class="chip">monthsShort</span><span class="chip">courseKeysToDelete</span><span class="chip">orderKeysToDelete</span><span class="chip">userKeysToDelete</span><span class="chip">membershipKeysToDelete</span><span class="chip">productKeysToDelete</span><span class="chip">layoutArray</span><span class="chip">pdfValue</span></div></div><div class="scard"><div class="sid">currentProduct.ts</div><div class="sname">currentProduct</div><div class="sdesc">Legacy product fetch helpers (isFetching flag). getThisProd(prodId) fetches BASE_URL/api/product/findId via fetch (BASE_URL from private env), builds slides from image1..8, sets thisProd/imagesArray, then fetches related by categoryId. Note file present but Navbar/product-detail now use direct API calls; still exported.</div><div class="chips"><span class="chip">thisProd</span><span class="chip">imagesArray</span><span class="chip">relatedProd</span><span class="chip">isFetching</span><span class="chip">getThisProd</span></div></div><div class="scard"><div class="sid">searchCategory.ts</div><div class="sname">searchCategory</div><div class="sdesc">Simple shop search state: readable listCategory (8 categories), writables currentSearchCategory/currentSearchId/newSearch. Imported by product-shop filters.</div><div class="chips"><span class="chip">listCategory</span><span class="chip">currentSearchCategory</span><span class="chip">currentSearchId</span><span class="chip">newSearch</span></div></div><div class="scard"><div class="sid">upload.ts</div><div class="sname">create_upload</div><div class="sdesc">XHR-based upload store: writable {status:idle|uploading|completed|error, progress}, start({file,url,headers}) returns Promise via XMLHttpRequest with progress listener and loadend resolver. Used as alternative to fetch uploads.</div><div class="chips"><span class="chip">create_upload</span></div></div>
+</div>
+<div class="grp-label">server libs <span class="src">src/lib/server/ · src/lib/remote/</span></div>
+<div class="grid-s">
+<div class="scard"><div class="sid">S-01</div><div class="sname">database.ts</div><div class="spath">src/lib/server/mongo/</div><div class="sdesc">Cached Mongoose connector: validates MONGO_URI env, reuses mongoose.connection readyState 1, awaits readyState 2 'connected' event, else mongoose.connect(MONGO_URI,{bufferCommands:false}) and caches. Exported dbConnect default imported by all /api/mongo/* handlers.</div></div><div class="scard"><div class="sid">S-02</div><div class="sname">database.ts</div><div class="spath">src/lib/server/sqlite/</div><div class="sdesc">Stubbed Drizzle SQLite client (all code commented out): was better-sqlite3 with WAL/NORMAL/MEMORY/mmap pragma, drizzle({client:sqlite}). Currently no-op; messages table not actively queried.</div></div><div class="scard"><div class="sid">S-03</div><div class="sname">backup.ts</div><div class="spath">src/lib/server/sqlite/</div><div class="sdesc">Stubbed SQLite backup routine (all commented): would use better-sqlite3 backup API with SQLITE_DB_PATH/BACKUP_DIR envs. Inactive.</div></div><div class="scard"><div class="sid">S-04</div><div class="sname">video.remote.ts</div><div class="spath">src/lib/remote/</div><div class="sdesc">Remote helper getVideosByLevel(fetch, userLevel): POST /api/video {level}, returns array or [] on error/non-ok with console.error. Called from Navbar onMount to populate tutorial dropdown per level visibility.</div></div>
+</div>
+</section>
+<section id="s04" class="reveal">
+<div class="sec-head"><span class="num">SECTION 04</span><span class="crumb">src/lib/server/libsql/schema · Turso (LibSQL) · Drizzle</span></div>
+<h2 class="sec-title">Database Board</h2>
+<div class="sec-sub"><b>7</b> tables · MongoDB (Mongoose) + SQLite (Drizzle) messages · Mongoose + Drizzle ORM</div>
+<div class="db-scroll">
+<div class="db-board">
+<div class="db-col cat-1"><span class="cat">core</span><div class="tcard"><div class="tname">users</div><div class="cols"><span class="k">userId</span> <span class="k">userCode</span> <span class="k">status</span> <span class="k">token</span> <span class="k">cookieId</span> <span class="k">level</span> <span class="k">isRiflessologo</span> <span class="k">membership.membershipLevel</span> <span class="k">membership.membershipSignUp</span> <span class="k">membership.membershipActivation</span> <span class="k">membership.membershipExpiry</span> <span class="k">membership.membershipStatus</span> <span class="k">membership.senior</span> <span class="k">insurance.insuranceDate</span> <span class="k">insurance.insuranceExpiry</span> <span class="k">insurance.insuranceStatus</span> <span class="k">card.cardId</span> <span class="k">card.cardCode</span> <span class="k">card.cardActivation</span> <span class="k">card.cardExpiry</span> <span class="k">card.cardStatus</span> <span class="k">name</span> <span class="k">surname</span> <span class="k">email</span> <span class="k">address</span> <span class="k">city</span> <span class="k">county</span> <span class="k">region</span> <span class="k">country</span> <span class="k">phone</span> <span class="k">mobilePhone</span> <span class="k">birthdate</span> <span class="k">gender</span> <span class="k">socialSecurityNumber</span> <span class="k">username</span> <span class="k">password</span> <span class="k">pointsBalance</span> <span class="k">pointsTotal</span> <span class="k">pointsSpent</span> <span class="k">pointsHistory</span> <span class="k">trainingHistory</span> <span class="k">uploadfiles</span> <span class="k">businessData</span> <span class="k">extraFieldNumber1..24</span> <span class="k">extraFieldText1..24</span> <span class="k">revenue</span> <span class="k">target0..12</span> <span class="k">extra0..12</span> <span class="k">lastAccess</span> <span class="k">counterAccess</span> <span class="k">remoteIP</span> <span class="k">notesOnUser</span> <span class="k">userCart</span> <span class="k">documentPageArray</span> <span class="k">docModifyArray</span> <span class="k">courseJoined</span> <span class="k">courseCreated</span> <span class="k">createdAt</span> <span class="k">updatedAt</span></div></div></div><div class="db-col cat-2"><span class="cat">catalog</span><div class="tcard"><div class="tname">products</div><div class="cols"><span class="k">prodId</span> <span class="k">type</span> <span class="k">status</span> <span class="k">title</span> <span class="k">name</span> <span class="k">surname</span> <span class="k">descrLong</span> <span class="k">descrShort</span> <span class="k">category</span> <span class="k">categoryId</span> <span class="k">brand</span> <span class="k">sku</span> <span class="k">ean13</span> <span class="k">cod</span> <span class="k">price</span> <span class="k">promoPrice</span> <span class="k">promoStatus</span> <span class="k">promoStartDate</span> <span class="k">promoEndDate</span> <span class="k">cost</span> <span class="k">stockQty</span> <span class="k">points</span> <span class="k">vatValue</span> <span class="k">weight</span> <span class="k">height</span> <span class="k">width</span> <span class="k">depth</span> <span class="k">layoutId</span> <span class="k">userId</span> <span class="k">eventStartDate</span> <span class="k">location</span> <span class="k">county</span> <span class="k">notificationEmail</span> <span class="k">infoExtra</span> <span class="k">academyNumber</span> <span class="k">certificationStatus</span> <span class="k">listSubscribers</span> <span class="k">bundleProduct</span> <span class="k">attributes</span> <span class="k">uploadfiles</span> <span class="k">createdAt</span> <span class="k">updatedAt</span></div></div><div class="tcard"><div class="tname">layouts</div><div class="cols"><span class="k">layoutId</span> <span class="k">title</span> <span class="k">descr</span> <span class="k">urlPic</span> <span class="k">bgColor</span> <span class="k">isEvent</span> <span class="k">price</span> <span class="k">promoPrice</span> <span class="k">promoStatus</span> <span class="k">promoEndDate</span> <span class="k">bundleProducts</span> <span class="k">status</span> <span class="k">uploadfiles</span> <span class="k">createdAt</span> <span class="k">updatedAt</span></div></div></div><div class="db-col cat-3"><span class="cat">commerce</span><div class="tcard"><div class="tname">orders</div><div class="cols"><span class="k">orderId</span> <span class="k">orderCode</span> <span class="k">userId</span> <span class="k">status</span> <span class="k">type</span> <span class="k">orderDate</span> <span class="k">orderConfirmDate</span> <span class="k">totalValue</span> <span class="k">totalPoints</span> <span class="k">totalDiscount</span> <span class="k">totalVAT</span> <span class="k">promotionId</span> <span class="k">promotionName</span> <span class="k">promoterId</span> <span class="k">agencyId</span> <span class="k">orderConfirmed</span> <span class="k">storePickUp</span> <span class="k">orderNotes</span> <span class="k">orderIp</span> <span class="k">browser</span> <span class="k">invoicing</span> <span class="k">shipping</span> <span class="k">shipping.tracking</span> <span class="k">payment</span> <span class="k">cart</span> <span class="k">createdAt</span> <span class="k">updatedAt</span></div></div><div class="tcard"><div class="tname">discounts</div><div class="cols"><span class="k">discountId</span> <span class="k">code</span> <span class="k">type</span> <span class="k">value</span> <span class="k">refDiscount</span> <span class="k">refPoints</span> <span class="k">selectedApplicability</span> <span class="k">email</span> <span class="k">prodId</span> <span class="k">qty</span> <span class="k">layoutId</span> <span class="k">membershipLevel</span> <span class="k">referral</span> <span class="k">riflessologo</span> <span class="k">notes</span> <span class="k">expiryDate</span> <span class="k">status</span> <span class="k">createdAt</span> <span class="k">updatedAt</span></div></div></div><div class="db-col cat-4"><span class="cat">content</span><div class="tcard"><div class="tname">videos</div><div class="cols"><span class="k">videoId</span> <span class="k">status</span> <span class="k">title</span> <span class="k">url</span> <span class="k">visibility</span> <span class="k">createdAt</span> <span class="k">updatedAt</span></div></div></div><div class="db-col cat-5"><span class="cat">messaging</span><div class="tcard"><div class="tname">messages</div><div class="cols"><span class="k">id</span> <span class="k">idWhatsapp</span> <span class="k">from</span> <span class="k">text</span> <span class="k">date</span> <span class="k">file</span> <span class="k">created_at</span> <span class="k">updatedAt</span></div></div></div>
+</div>
+</div>
+<div class="rel">
+<h4>key relationships</h4>
+<div class="r"><div class="a">products <span class="ar">─▸</span> layouts</div><div class="b">Product.layoutId → Layout.layoutId via virtual layoutView (justOne). Used to render course template title/bgColor/price in course-shop and course-table.</div></div><div class="r"><div class="a">orders <span class="ar">─▸</span> users</div><div class="b">Order.userId → User.userId via virtual userView (justOne). Populated in order fetches to show buyer name/email/city.</div></div><div class="r"><div class="a">products <span class="ar">─▸</span> users</div><div class="b">Product.userId → User.userId (creator/trainer). Not a Mongoose virtual but logical FK for scoping course-table by trainer.</div></div><div class="r"><div class="a">products.listSubscribers <span class="ar">─▸</span> users</div><div class="b">Product.listSubscribers[].userId references users.userId; certification fields updated via arrayFilters $[elem].</div></div><div class="r"><div class="a">videos.visibility <span class="ar">─▸</span> users.level</div><div class="b">Video.visibility array $in User.level gating for tutorial access (Navbar getVideosByLevel).</div></div><div class="r"><div class="a">discounts.prodId <span class="ar">─▸</span> products.prodId</div><div class="b">Discount.prodId targets product-specific discounts applied at cart checkout (selectedApplicability prodId with qty threshold).</div></div><div class="r"><div class="a">discounts.layoutId <span class="ar">─▸</span> layouts.layoutId</div><div class="b">Discount.layoutId targets layout/template discounts.</div></div><div class="r"><div class="a">discounts.referral <span class="ar">─▸</span> users.email</div><div class="b">Discount.referral holds trainer email; checkout awards refPoints % of totalValue to that user and sends mail.</div></div>
+</div>
+</section>
+<section id="s05" class="reveal">
+<div class="sec-head"><span class="num">SECTION 05</span><span class="crumb">tech stack &amp; commands</span></div>
+<h2 class="sec-title">Stack &amp; Ops</h2>
+<div class="sec-sub"><b>15</b> stack items · <b>15</b> env vars</div>
+<div class="stackrow">
+<div class="stk">SvelteKit <span class="v">2.27.0</span><span class="t">framework</span></div><div class="stk">Svelte <span class="v">5.37.2</span><span class="t">runtime</span></div><div class="stk">Tailwind CSS <span class="v">4.1.11</span><span class="t">styling</span></div><div class="stk">DaisyUI <span class="v">5.1.6</span><span class="t">styling</span></div><div class="stk">Vite <span class="v">7.0.6</span><span class="t">build</span></div><div class="stk">Mongoose <span class="v">8.18.0</span><span class="t">database</span></div><div class="stk">Drizzle ORM <span class="v">0.44.5</span><span class="t">orm</span></div><div class="stk">Stripe <span class="v">22.1.1</span><span class="t">payments</span></div><div class="stk">Nodemailer <span class="v">7.0.6</span><span class="t">email</span></div><div class="stk">Sharp <span class="v">0.34.5</span><span class="t">images</span></div><div class="stk">pdfmake <span class="v">0.2.20</span><span class="t">pdf</span></div><div class="stk">@unpic/svelte <span class="v">1.0.0</span><span class="t">images</span></div><div class="stk">lucide-svelte <span class="v">0.536.0</span><span class="t">icons</span></div><div class="stk">Vitest <span class="v">3.2.4</span><span class="t">testing</span></div><div class="stk">Playwright <span class="v">1.54.2</span><span class="t">testing</span></div>
+</div>
+<div class="cmdgrid">
+<div class="cmdblock"><h4>development</h4><div class="cmdline"><span class="c">npm run dev</span><span class="d">vite dev server (SvelteKit, host fs allow uploads)</span></div><div class="cmdline"><span class="c">npm run check</span><span class="d">svelte-kit sync + svelte-check</span></div><div class="cmdline"><span class="c">npm run check:watch</span><span class="d">svelte-check watch mode</span></div><div class="cmdline"><span class="c">npm run lint</span><span class="d">prettier --check + eslint</span></div><div class="cmdline"><span class="c">npm run format</span><span class="d">prettier --write</span></div></div>
+<div class="cmdblock"><h4>database</h4><div class="cmdline"><span class="c">npx drizzle-kit push</span><span class="d">push Drizzle schema to SQLite (drizzle.config dialect sqlite, schema ./src/lib/db/sqlite/schema)</span></div><div class="cmdline"><span class="c">npx drizzle-kit generate</span><span class="d">generate migrations</span></div><div class="cmdline"><span class="c">npx drizzle-kit migrate</span><span class="d">run migrations</span></div><div class="cmdline"><span class="c">npx drizzle-kit studio</span><span class="d">open Drizzle Studio</span></div></div>
+<div class="cmdblock"><h4>build &amp; test</h4><div class="cmdline"><span class="c">npm run build</span><span class="d">vite build via @sveltejs/adapter-node to ./build (bodySizeLimit 20M)</span></div><div class="cmdline"><span class="c">npm run preview</span><span class="d">vite preview</span></div><div class="cmdline"><span class="c">npm run test</span><span class="d">playwright + vitest (test:integration + test:unit)</span></div><div class="cmdline"><span class="c">npm run test:integration</span><span class="d">playwright test</span></div><div class="cmdline"><span class="c">npm run test:unit</span><span class="d">vitest src/**/*.{test,spec}</span></div></div>
+</div>
+<div class="envcard">
+<div class="envhead">
+<h3>Environment Variables</h3>
+<span class="src">.env</span>
+</div>
+<div class="envnote">All values loaded at boot. <span style="color:var(--coral)">REQUIRED</span> keys must be present; <span style="color:var(--ink-faint)">OPTIONAL</span> keys enable secondary features.</div>
+<div class="envgroup"><div class="gh"><span class="req">required</span> core · payments · mailer</div><div class="envgrid"><div class="envrow"><span class="vn">BASE_URL</span><span class="vb req">required</span><span class="vd">Internal base URL for server-to-server fetch calls to /api/mongo/* and /api/mailer/* (e.g. https://associazione.riflessologiadienchan.it or http://localhost:5173)</span></div><div class="envrow"><span class="vn">APIKEY</span><span class="vb req">required</span><span class="vd">Shared secret for /api/mongo/* and /api/mailer/* POST gate (timingSafeEqual). Redacted value in src/routes/api/mongo/* and hooks.server.ts</span></div><div class="envrow"><span class="vn">MONGO_URI</span><span class="vb req">required</span><span class="vd">MongoDB connection string for mongoose (src/lib/server/mongo/database.ts). Error if missing.</span></div><div class="envrow"><span class="vn">SALT</span><span class="vb req">required</span><span class="vd">Salt concatenated before SHA-256 password hashing (src/lib/tools/hash.ts, login/membership-new).</span></div><div class="envrow"><span class="vn">STRIPE_KEY_FRONT</span><span class="vb req">required</span><span class="vd">Stripe publishable key for client @stripe/stripe-js init (exposed to load payload).</span></div><div class="envrow"><span class="vn">STRIPE_KEY_BACK</span><span class="vb req">required</span><span class="vd">Stripe secret key for server Stripe SDK (src/routes/(app)/cart/+page.server.ts etc).</span></div><div class="envrow"><span class="vn">STRIPE_API</span><span class="vb req">required</span><span class="vd">Stripe API version string passed as apiVersion to new Stripe(...).</span></div><div class="envrow"><span class="vn">MAILER_HOST</span><span class="vb req">required</span><span class="vd">SMTP host for nodemailer transport (all /api/mailer/*).</span></div><div class="envrow"><span class="vn">MAILER_PORT</span><span class="vb req">required</span><span class="vd">SMTP port (numeric, parsed via Number).</span></div><div class="envrow"><span class="vn">MAILER_USER</span><span class="vb req">required</span><span class="vd">SMTP auth user.</span></div><div class="envrow"><span class="vn">MAILER_PASS</span><span class="vb req">required</span><span class="vd">SMTP auth password (value redacted).</span></div><div class="envrow"><span class="vn">PUBLIC_BASE_URL</span><span class="vb req">required</span><span class="vd">Public base URL for client assets (pdfValue certificate backgrounds /training/*.jpg) via $env/static/public.</span></div></div></div>
+<div class="envgroup"><div class="gh"><span class="opt">optional</span> mailer · database</div><div class="envgrid"><div class="envrow"><span class="vn">MAILER_SECURE</span><span class="vb opt">optional</span><span class="vd">Whether to use TLS (==='true' → true, else false). Undefined treated as false.</span></div><div class="envrow"><span class="vn">SQLITE_DB_PATH</span><span class="vb opt">optional</span><span class="vd">SQLite file path (commented out, intended ./data/sqlite.db) for Drizzle; currently not wired.</span></div><div class="envrow"><span class="vn">BACKUP_DIR</span><span class="vb opt">optional</span><span class="vd">Backup directory for SQLite (commented in backup.ts).</span></div></div></div>
+</div>
+</section>
+</div>
+<aside class="insp" id="insp" aria-hidden="true">
+<button class="x" id="inspClose" aria-label="close">✕</button>
+<div class="ilabel">route inspector</div>
+<div class="iroute" id="iRoute">/</div>
+<div class="imeth" id="iMeth">—</div>
+<div class="ifile" id="iFile">—</div>
+<p class="idesc" id="iDesc">Click any route node in the topology to inspect it.</p>
+<div class="itags" id="iTags"></div>
+<div class="iconn">
+<h5>connections</h5>
+<div id="iConn"><span class="empty">no connections traced</span></div>
+</div>
+</aside>
+<script>
+(function(){
+"use strict";
+
+/* ---------- edges: [from, to, type, label] ----------
+ADAPT: build this array by flattening spec.json → routes[].links.
+For every route object in spec.json, for every entry in its "links" array,
+push [route.id, link.to, link.type, link.label]. Do this for ALL routes
+(including kind:"api" routes in the api row and kind:"external" nodes,
+which can be link targets too). */
+var EDGES = [["r-root","r-login","auth","no auth"],["r-root","r-profile-area","flow","auth ok"],["r-root","r-membership-new","flow","guest"],["r-login","r-profile-area","flow","login ok"],["r-login","r-membership-new","flow","register"],["r-login","r-api-mongo-find","api","find user"],["r-login","r-api-mongo-update","api","set cookie"],["r-login","r-api-mailer-recover","api","reset mail"],["r-cart","r-profile-area","flow","order done"],["r-cart","r-product-shop","flow","continue"],["r-cart","r-api-mongo-find","api","validate"],["r-cart","r-api-mongo-create","api","create order"],["r-cart","r-api-mongo-update","api","stock"],["r-cart","r-api-mailer-new-order","api","mail"],["r-course-detail","r-course-shop","flow","back to shop"],["r-course-detail","r-profile-area","flow","my courses"],["r-course-detail","r-api-mongo-find","api","load"],["r-course-detail","r-api-mongo-update","api","enroll"],["r-course-shop","r-course-detail","flow","select course"],["r-course-shop","r-cart","flow","enroll"],["r-course-shop","r-api-mongo-find","api","list"],["r-course-table","r-course-detail","flow","view course"],["r-course-table","r-api-mongo-find","api","load"],["r-course-table","r-api-mongo-create","api","create"],["r-course-table","r-api-mongo-update","api","update"],["r-course-table","r-api-mongo-remove","api","delete"],["r-discount-table","r-cart","flow","apply code"],["r-discount-table","r-api-mongo-find","api","load refs"],["r-discount-table","r-api-mongo-create","api","create"],["r-discount-table","r-api-mongo-update","api","update"],["r-discount-table","r-api-mongo-remove","api","delete"],["r-insurance-new","r-profile-area","flow","done"],["r-insurance-new","r-api-mongo-find","api","load"],["r-insurance-new","r-api-mongo-create","api","order"],["r-insurance-new","r-api-mailer-new-insurance","api","mail"],["r-kit-formatori","r-order-table","flow","orders"],["r-kit-formatori","r-api-mongo-find","api","load kit"],["r-kit-formatori","r-api-mongo-create","api","order kit"],["r-layout-table","r-course-table","flow","use template"],["r-layout-table","r-api-mongo-find","api","list layouts"],["r-layout-table","r-api-mongo-create","api","create"],["r-layout-table","r-api-mongo-update","api","update"],["r-layout-table","r-api-mongo-remove","api","delete"],["r-membership-new","r-profile-area","flow","welcome"],["r-membership-new","r-login","auth","existing user"],["r-membership-new","r-api-mongo-find","api","check email"],["r-membership-new","r-api-mongo-create","api","create user"],["r-membership-new","r-api-mailer-new-order","api","mail"],["r-membership-new","r-api-mailer-new-membership-insurance","api","mail+insurance"],["r-membership-table","r-membership-new","flow","public form"],["r-membership-table","r-api-mongo-find","api","list"],["r-membership-table","r-api-mongo-create","api","create"],["r-membership-table","r-api-mongo-update","api","update"],["r-order-table","r-cart","flow","new order"],["r-order-table","r-api-mongo-find","api","list orders"],["r-order-table","r-api-mongo-update","api","update status"],["r-order-table","r-api-download","api","csv export"],["r-product-detail","r-product-shop","flow","back to shop"],["r-product-detail","r-cart","flow","add to cart"],["r-product-detail","r-api-mongo-find","api","load product"],["r-product-shop","r-product-detail","flow","view product"],["r-product-shop","r-cart","flow","buy"],["r-product-shop","r-api-mongo-find","api","list"],["r-product-shop","r-api-mongo-count","api","count"],["r-product-shop","r-api-mongo-aggregate","api","categories"],["r-product-table","r-product-shop","flow","storefront"],["r-product-table","r-api-mongo-find","api","list"],["r-product-table","r-api-mongo-create","api","create"],["r-product-table","r-api-mongo-update","api","update"],["r-product-table","r-api-mongo-remove","api","delete"],["r-product-table","r-api-uploads-files","api","upload image"],["r-profile-area","r-login","auth","no auth"],["r-profile-area","r-membership-new","flow","renew"],["r-profile-area","r-insurance-new","flow","insurance"],["r-profile-area","r-api-mongo-find","api","load"],["r-profile-area","r-api-mongo-update","api","save"],["r-profile-area","r-api-uploads-files","api","upload"],["r-profile-public","r-user-list","flow","back to directory"],["r-profile-public","r-api-mongo-find","api","load user"],["r-trireport","r-profile-area","flow","profile"],["r-trireport","r-api-mongo-find","api","query"],["r-trireport","r-api-mongo-aggregate","api","aggregate"],["r-trireport","r-api-download","api","export csv"],["r-user-list","r-profile-public","flow","view profile"],["r-user-list","r-api-mongo-find","api","list users"],["r-user-table","r-profile-public","flow","public view"],["r-user-table","r-api-mongo-count","api","count"],["r-user-table","r-api-mongo-find","api","list"],["r-user-table","r-api-mongo-create","api","create"],["r-user-table","r-api-mongo-update","api","update"],["r-user-table","r-api-mongo-remove","api","delete"],["r-video-table","r-api-mongo-find","api","list"],["r-video-table","r-api-mongo-create","api","create"],["r-video-table","r-api-mongo-update","api","update"],["r-video-table","r-api-mongo-remove","api","delete"],["r-video-table","r-api-video","api","serve by level"],["r-ocrtest","r-api-uploads-files","api","upload"],["r-test","r-api-mongo-find","api","find"],["r-testlogin","r-login","flow","real login"],["r-testlogin","r-api-mongo-find","api","find user"],["r-api-logout","r-api-mongo-update","api","clear cookie"],["r-api-logout","r-login","auth","redirect"],["r-api-mailer-expiry-discount","r-api-mongo-find","api","find expired"],["r-api-mailer-expiry-discount","r-api-mongo-update","api","disable"],["r-api-mailer-expiry-notification","r-api-mongo-find","api","find expiring"],["r-api-mailer-expiry-notification","r-api-mongo-update","api","deactivate"],["r-api-video","r-api-mongo-find","api","proxy find"]];
+
+var SVGNS = "http://www.w3.org/2000/svg";
+var canvas = document.getElementById("canvas");
+var svg = document.getElementById("wires");
+var cards = Array.prototype.slice.call(canvas.querySelectorAll(".rcard"));
+var cardById = {};
+cards.forEach(function(c){ cardById[c.id] = c; });
+
+/* arrow markers, one per colour */
+var COLORS = {flow:"#34d8a0",admin:"#ff6b6b",api:"#3fb6f2",util:"#a98bff",auth:"#f4b740"};
+var defs = document.createElementNS(SVGNS,"defs");
+Object.keys(COLORS).forEach(function(t){
+var m = document.createElementNS(SVGNS,"marker");
+m.setAttribute("id","ah-"+t);
+m.setAttribute("viewBox","0 0 10 10");
+m.setAttribute("refX","8"); m.setAttribute("refY","5");
+m.setAttribute("markerWidth","7"); m.setAttribute("markerHeight","7");
+m.setAttribute("orient","auto-start-reverse");
+var p = document.createElementNS(SVGNS,"path");
+p.setAttribute("d","M0,0 L10,5 L0,10 z");
+p.setAttribute("fill",COLORS[t]);
+m.appendChild(p); defs.appendChild(m);
+});
+svg.appendChild(defs);
+
+/* build path + label elements */
+var wireEls = [];
+EDGES.forEach(function(e,i){
+var path = document.createElementNS(SVGNS,"path");
+path.setAttribute("class","wire "+e[2]);
+path.setAttribute("marker-end","url(#ah-"+e[2]+")");
+path.dataset.from = e[0]; path.dataset.to = e[1]; path.dataset.type = e[2];
+svg.appendChild(path);
+var lbl = document.createElementNS(SVGNS,"text");
+lbl.setAttribute("class","wire-label");
+lbl.dataset.from = e[0]; lbl.dataset.to = e[1]; lbl.dataset.type = e[2];
+lbl.textContent = e[3] || "";
+svg.appendChild(lbl);
+wireEls.push({path:path,lbl:lbl,edge:e});
+});
+
+function rect(el){
+var cr = canvas.getBoundingClientRect();
+var r = el.getBoundingClientRect();
+return {l:r.left-cr.left, t:r.top-cr.top, r:r.right-cr.left, b:r.bottom-cr.top,
+w:r.width, h:r.height, cx:(r.left+r.right)/2-cr.left, cy:(r.top+r.bottom)/2-cr.top};
+}
+function anchor(fromR, toR, side){
+if(side==="r") return {x:fromR.r, y:fromR.cy};
+if(side==="l") return {x:fromR.l, y:fromR.cy};
+if(side==="b") return {x:fromR.cx, y:fromR.b};
+return {x:fromR.cx, y:fromR.t};
+}
+
+function draw(){
+var w = canvas.scrollWidth, h = canvas.scrollHeight;
+svg.setAttribute("width", w); svg.setAttribute("height", h);
+svg.setAttribute("viewBox","0 0 "+w+" "+h);
+wireEls.forEach(function(we){
+var a = cardById[we.edge[0]], b = cardById[we.edge[1]];
+if(!a||!b) return;
+var ar = rect(a), br = rect(b);
+var sameCol = Math.abs(ar.cx-br.cx) < 60;
+var sSide, tSide;
+if(sameCol){ sSide = ar.cy<br.cy?"b":"t"; tSide = ar.cy<br.cy?"t":"b"; }
+else if(br.cx>ar.cx){ sSide="r"; tSide="l"; }
+else { sSide="l"; tSide="r"; }
+var p1 = anchor(ar,br,sSide), p2 = anchor(br,ar,tSide);
+var dx = (p2.x-p1.x), dy = (p2.y-p1.y);
+var c1x,c1y,c2x,c2y;
+if(sameCol){
+var off = Math.max(40, Math.abs(dy)*0.4);
+c1x=p1.x+off; c1y=p1.y; c2x=p2.x+off; c2y=p2.y;
+} else {
+var hx = Math.max(40, Math.abs(dx)*0.5);
+c1x = p1.x + (sSide==="r"?hx:-hx); c1y = p1.y;
+c2x = p2.x + (tSide==="l"?-hx:hx); c2y = p2.y;
+}
+we.path.setAttribute("d","M"+p1.x+","+p1.y+" C"+c1x+","+c1y+" "+c2x+","+c2y+" "+p2.x+","+p2.y);
+we.lbl.setAttribute("x", (p1.x+p2.x)/2 + (sameCol?22:0));
+we.lbl.setAttribute("y", (p1.y+p2.y)/2 - 4);
+});
+}
+
+/* ---------- hover trace ---------- */
+function clearTrace(){
+canvas.classList.remove("tracing");
+wireEls.forEach(function(we){ we.path.classList.remove("hot"); we.lbl.classList.remove("hot"); });
+cards.forEach(function(c){ c.classList.remove("linked"); });
+}
+function traceCard(id){
+canvas.classList.add("tracing");
+wireEls.forEach(function(we){
+if(we.edge[0]===id || we.edge[1]===id){
+we.path.classList.add("hot"); we.lbl.classList.add("hot");
+var other = we.edge[0]===id ? we.edge[1] : we.edge[0];
+if(cardById[other]) cardById[other].classList.add("linked");
+}
+});
+if(cardById[id]) cardById[id].classList.add("linked");
+}
+function traceType(type){
+canvas.classList.add("tracing");
+wireEls.forEach(function(we){
+if(we.edge[2]===type){ we.path.classList.add("hot"); we.lbl.classList.add("hot"); }
+});
+}
+cards.forEach(function(c){
+c.addEventListener("mouseenter",function(){ traceCard(c.id); });
+c.addEventListener("mouseleave",clearTrace);
+c.addEventListener("click",function(){ openInspector(c.id); });
+});
+Array.prototype.forEach.call(document.querySelectorAll("#legend .li"),function(li){
+li.addEventListener("mouseenter",function(){ traceType(li.dataset.type); });
+li.addEventListener("mouseleave",clearTrace);
+});
+
+/* ---------- inspector ---------- */
+var insp = document.getElementById("insp");
+function tagClass(t){
+// ADAPT: only the structural tags get a colour; any other project-specific
+// tag (SEO, EMAIL, DATA, CREATE, ...) falls back to the neutral base .tag style.
+var m={ADMIN:"tag-admin",PROTECTED:"tag-protected",PUBLIC:"tag-public",AUTH:"tag-auth",
+API:"tag-api",DEV:"tag-dev"};
+return m[t]||"";
+}
+function openInspector(id){
+var c = cardById[id]; if(!c) return;
+document.getElementById("iRoute").textContent = c.dataset.route;
+document.getElementById("iMeth").textContent = "METHOD  ·  " + c.dataset.method;
+document.getElementById("iFile").textContent = c.dataset.file;
+document.getElementById("iDesc").textContent = c.dataset.desc;
+var tg = document.getElementById("iTags"); tg.innerHTML="";
+(c.dataset.tags||"").split(",").filter(Boolean).forEach(function(t){
+var s=document.createElement("span"); s.className="tag "+tagClass(t.trim()); s.textContent=t.trim(); tg.appendChild(s);
+});
+var conn = document.getElementById("iConn"); conn.innerHTML="";
+var found=false;
+EDGES.forEach(function(e){
+var dir=null, other=null;
+if(e[0]===id){ dir="out →"; other=e[1]; }
+else if(e[1]===id){ dir="in ←"; other=e[0]; }
+if(dir){
+found=true;
+var a=document.createElement("a");
+a.innerHTML='<span class="dir">'+dir+'</span>'+ (cardById[other]?cardById[other].dataset.route:other) + (e[3]?' <span class="dir">· '+e[3]+'</span>':'');
+a.addEventListener("click",function(){ openInspector(other); traceCard(other); });
+conn.appendChild(a);
+}
+});
+if(!found) conn.innerHTML='<span class="empty">no connections traced</span>';
+insp.classList.add("open"); insp.setAttribute("aria-hidden","false");
+}
+/* single shared close path — keeps the visual state (.open) and the
+accessibility state (aria-hidden) in sync for EVERY close trigger.
+Never split this back into separate handlers. */
+function closeInspector(){
+insp.classList.remove("open"); insp.setAttribute("aria-hidden","true");
+}
+document.getElementById("inspClose").addEventListener("click",closeInspector);
+document.addEventListener("keydown",function(e){ if(e.key==="Escape") closeInspector(); });
+
+/* ---------- drag-to-scroll for the topology viewport ----------
+Edge case only: when a row holds more cards than fit on screen, the viewport
+scrolls horizontally AND can be dragged with the mouse. A drag starts only on
+empty canvas space — .rcard elements keep their hover/click behavior. */
+var scroller = document.querySelector(".topo-scroll");
+var drag = {down:false, x:0, left:0};
+scroller.addEventListener("pointerdown", function(e){
+if(e.target.closest(".rcard")) return;
+drag.down = true; drag.x = e.clientX; drag.left = scroller.scrollLeft;
+scroller.style.cursor = "grabbing";
+});
+window.addEventListener("pointermove", function(e){
+if(!drag.down) return;
+scroller.scrollLeft = drag.left - (e.clientX - drag.x);
+});
+window.addEventListener("pointerup", function(){
+if(drag.down){ drag.down = false; scroller.style.cursor = ""; }
+});
+
+/* ---------- draw timing (robust against fonts / layout shifts) ---------- */
+draw();
+window.addEventListener("resize", draw);
+window.addEventListener("load", draw);
+if(document.fonts && document.fonts.ready){ document.fonts.ready.then(draw); }
+if("ResizeObserver" in window){ new ResizeObserver(draw).observe(canvas); }
+setTimeout(draw,120); setTimeout(draw,500);
+
+/* ---------- smooth nav + reveal ---------- */
+document.querySelectorAll('nav.tabs a').forEach(function(a){
+a.addEventListener("click",function(ev){
+var t=document.querySelector(a.getAttribute("href"));
+if(t){ ev.preventDefault(); t.scrollIntoView({behavior:"smooth",block:"start"}); }
+});
+});
+if("IntersectionObserver" in window){
+var io=new IntersectionObserver(function(es){
+es.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add("in"); io.unobserve(en.target);} });
+},{threshold:.12});
+document.querySelectorAll(".reveal").forEach(function(el){ io.observe(el); });
+} else {
+document.querySelectorAll(".reveal").forEach(function(el){ el.classList.add("in"); });
+}
+})();
+</script>
+</body>
+</html>

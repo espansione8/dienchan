@@ -166,8 +166,9 @@
 	};
 
 	const updateFilter = () => {
-		const workshopTitle = 'Workshop: 12 Massaggi mattutini';
-		const massaggiMattutini = getTable.filter((item) => item.layoutView.title == workshopTitle);
+		// corsi ricorrenti: sempre visibili anche quando il filtro mese esclude la loro data (12 Massaggi mattutini + il 15 di ogni mese)
+		const recurringProdIds = ['CQ112QCNK', 'F82B3JBZT'];
+		const massaggiMattutini = getTable.filter((item) => recurringProdIds.includes(item.prodId));
 		//const massaggiMattutini = getTable.filter((item) => item.layoutView.layoutId === 'PYSYPA4QCTH1');
 		//console.log('massaggiMattutini1', massaggiMattutini.length);
 		coursesList = getTable;
@@ -190,12 +191,15 @@
 			//console.log('massaggiMattutini lenght', massaggiMattutini.length);
 
 			if (massaggiMattutini.length > 0) {
-				const checkArray = coursesList.some((item) => item.layoutView.title === workshopTitle);
+				// re-inietta ogni corso ricorrente assente dalla lista filtrata
+				massaggiMattutini.forEach((recurringCourse) => {
+					const checkArray = coursesList.some((item) => item.prodId === recurringCourse.prodId);
 
-				if (!checkArray) {
-					coursesList.push(massaggiMattutini[0]);
-					//console.log('coursesList', coursesList);
-				}
+					if (!checkArray) {
+						coursesList.push(recurringCourse);
+						//console.log('coursesList', coursesList);
+					}
+				});
 			}
 		}
 		// provincia
@@ -621,6 +625,11 @@
 								<span class="font-medium">Tutti i giorni</span>
 								<Clock size={16} class="text-primary flex-shrink-0 ml-2" />
 								<span>alle 7:00 e 9:00</span>
+							{:else if courseData.prodId === 'F82B3JBZT'}
+								<Calendar size={16} class="text-primary flex-shrink-0" />
+								<span class="font-medium">Il 15 di ogni mese</span>
+								<Clock size={16} class="text-primary flex-shrink-0 ml-2" />
+								<span>Dalle <b>{courseData.timeStartDate}</b></span>
 							{:else}
 								<Calendar size={16} class="text-primary flex-shrink-0" />
 								<span class="font-medium"><b>{new Date(courseData.eventStartDate).toLocaleDateString('it-IT')}</b></span>
