@@ -5,3 +5,6 @@ Il corso F82B3JBZT (Van Tri Truong) è ora ricorrente come "Workshop: 12 Massagg
 
 ### Summary - T-1
 See Summary - General (T-1) — single-list chain, no separate scope chunks.
+
+### Summary - T-2
+Shop card CQ112QCNK now shows "Dal Lunedì al Venerdì: 6.45 e 8.00 / Sabato e Domenica: 9.00", keyed on prodId instead of layoutId so other courses reusing layout PYSYPA4QCTH1 are unaffected. Markup-only; F82B3JBZT and generic branches untouched. Verified via diff + autofixer; npm check skipped as markup-only.

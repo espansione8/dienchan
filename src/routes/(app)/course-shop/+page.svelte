@@ -621,10 +621,9 @@
 							</h3>
 						</a>
 						<div class="flex items-center gap-2 mb-2 text-sm">
-							{#if courseData.layoutId === 'PYSYPA4QCTH1'}
-								<span class="font-medium">Tutti i giorni</span>
-								<Clock size={16} class="text-primary flex-shrink-0 ml-2" />
-								<span>alle 7:00 e 9:00</span>
+							{#if courseData.prodId === 'CQ112QCNK'}
+								<Clock size={16} class="text-primary flex-shrink-0" />
+								<span class="font-medium">Dal Lunedì al Venerdì: 6.45 e 8.00<br />Sabato e Domenica: 9.00</span>
 							{:else if courseData.prodId === 'F82B3JBZT'}
 								<Calendar size={16} class="text-primary flex-shrink-0" />
 								<span class="font-medium">Il 15 di ogni mese</span>
