@@ -14,6 +14,7 @@
 	import Loader from '$lib/components/Loader.svelte';
 	import { province, country_list, pdfValue, layoutArray } from '$lib/stores/arrays.js';
 	import { imgCheck, formatDate } from '$lib/tools/tools';
+	import { createPDFtraining } from '$lib/tools/trainingPdf';
 	import {
 		HandCoins,
 		X,
@@ -2068,6 +2069,15 @@
 				{:else if activeTab === 'training'}
 					<div class="card bg-base-200 shadow-xl mb-6 p-6">
 						<h2 class="text-2xl font-bold mb-4"><NotebookPen size={24} class="text-primary" /> Gestione Formazione</h2>
+						{#if userData?.trainingHistory?.length > 0}
+							<button
+								type="button"
+								class="btn btn-primary btn-sm mb-4 flex items-center gap-2"
+								onclick={() => createPDFtraining(userData)}
+							>
+								<FileDown size={16} /> Scarica PDF Formazione
+							</button>
+						{/if}
 						<div class="mb-4 text-lg">
 							<p class="font-semibold">
 								<CalendarPlus size={24} class="text-primary" /> Eventi approvati:

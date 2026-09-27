@@ -13,6 +13,7 @@
 	import DragDrop from '$lib/components/DragDrop.svelte';
 	import { Image } from '@unpic/svelte';
 	import { imgCheck } from '$lib/tools/tools.js';
+	import { createPDFtraining } from '$lib/tools/trainingPdf';
 	import {
 		Funnel,
 		Trash2,
@@ -78,6 +79,8 @@
 	let membershipExpiry = $state('');
 	let membershipStatus = $state(false);
 	let trainingHistory = $state<any[]>([]);
+	let trainingName = $state('');
+	let trainingSurname = $state('');
 	let insuranceExpiry = $state('');
 	let insuranceStatus = $state(false);
 
@@ -325,12 +328,25 @@
 		if (type == 'trainingHistory') {
 			modalTitle = 'Storico formazione';
 			userId = item.userId;
+			trainingName = item.name;
+			trainingSurname = item.surname;
 			trainingHistory = item.trainingHistory || [];
 			postAction = `?/approveTraining`;
 		}
 		if (type == 'pendingApprovals') {
 			modalTitle = 'Utenti in attesa di approvazione';
 		}
+	};
+
+	// l'admin stampa lo storico formazione dell'utente aperto nel modal: preferisce la riga più fresca di tableList
+	const onDownloadTrainingPdf = () => {
+		const row = tableList.find((user) => user.userId === userId);
+		createPDFtraining({
+			name: row?.name ?? trainingName,
+			surname: row?.surname ?? trainingSurname,
+			userId,
+			trainingHistory: row?.trainingHistory ?? trainingHistory
+		});
 	};
 
 	const onCloseModal = () => {
@@ -1572,6 +1588,16 @@
 		{/if}
 		<div class="p-4 lg:p-8">
 			{#if trainingHistory && trainingHistory.length > 0}
+				<div class="flex justify-end mb-4">
+					<button
+						type="button"
+						class="btn btn-sm btn-primary flex items-center gap-2"
+						onclick={onDownloadTrainingPdf}
+						aria-label="Scarica PDF formazione"
+					>
+						<FileDown size={16} /> Scarica PDF
+					</button>
+				</div>
 				<div class="grid grid-cols-4 bg-base-100 grid-rows-[min-content] gap-y-6 p-4 lg:gap-x-8 lg:p-4">
 					{#each trainingHistory as training (`${training.date}-${training.fileName}`)}
 						<!-- {#each trainingHistory as training, i (i)} -->

@@ -357,7 +357,7 @@
       "dotColor": null,
       "tags": ["PROTECTED"],
       "terse": "personal area dashboard",
-      "description": "Core protected dashboard (pageAuth). load returns userData, orders, membership/insurance status, trainingHistory. Actions: updateProfile (name/surname/address/etc, privacyAccept), changePassword (old password hash check, new hash), uploadAvatar/Document via /api/uploads/files (headers x-file-name/x-folder-name), addTrainingHistory (hours/description/file), requestMembershipRenewal, and admin notes. Uses hash.ts with SALT.",
+      "description": "Core protected dashboard (pageAuth). load returns userData, orders, membership/insurance status, trainingHistory. Actions: updateProfile (name/surname/address/etc, privacyAccept), changePassword (old password hash check, new hash), uploadAvatar/Document via /api/uploads/files (headers x-file-name/x-folder-name), addTrainingHistory (hours/description/file), requestMembershipRenewal, and admin notes. Uses hash.ts with SALT. Gestione Formazione tab also exports a client-side pdfmake Riepilogo formazione PDF from the shared builder $lib/tools/trainingPdf (createPDFtraining, also used by user-table): Dienchan logo header, full training table (Data/Descrizione/Ore/Stato) and a totals row with approved hours and approved-entry count.",
       "links": [
         { "to": "r-login", "type": "auth", "label": "no auth" },
         { "to": "r-membership-new", "type": "flow", "label": "renew" },
@@ -431,7 +431,7 @@
       "dotColor": null,
       "tags": ["ADMIN", "PROTECTED"],
       "terse": "manage users admin",
-      "description": "Admin user management with pagination and search. Protected. load counts users, fetches page with projection excluding sensitive fields, plus pending membership cards. Actions: new creates User (nanoid userId, hash password), modify updates via $set, delete via remove, toggle status/level, changePassword (hash with SALT), upload files, filter/search, and pendingApprovals queue.",
+      "description": "Admin user management with pagination and search. Protected. load counts users, fetches page with projection excluding sensitive fields, plus pending membership cards. Actions: new creates User (nanoid userId, hash password), modify updates via $set, delete via remove, toggle status/level, changePassword (hash with SALT), upload files, filter/search, and pendingApprovals queue. The Storico formazione modal also exports the member's training record as a client-side PDF through the shared builder $lib/tools/trainingPdf (same layout as /profile-area), using the freshest row from tableList with a fallback on the modal state.",
       "links": [
         { "to": "r-profile-public", "type": "flow", "label": "public view" },
         { "to": "r-api-mongo-count", "type": "api", "label": "count" },
@@ -656,7 +656,7 @@
       "dotColor": null,
       "tags": ["API", "EMAIL"],
       "terse": "order confirmation mail",
-      "description": "POST { apiKey, email[], order } renders order cart as HTML table (BASE_URL for image URLs, fallback placeholder), calculates totals + shipping, sends to both admin and customer via nodemailer (MAILER_*). Handles product/course/membership order types, injects orderNotes discount codes. Used by cart/membership-new.",
+      "description": "POST { apiKey, email[], order } renders order cart as HTML table (BASE_URL for image URLs, fallback placeholder), calculates totals + shipping, sends to both admin and customer via nodemailer (MAILER_*). Handles product/course/membership order types, injects orderNotes discount codes. Used by cart/membership-new. For orders carrying a course/event item it resolves the course owner (product.userId via POST /api/mongo/find, schema user) and adds an Il tuo Riflessologo block with name, surname and phone (mobilePhone fallback); the lookup is non-blocking, so a failed lookup still sends the mail without the block.",
       "links": []
     },
     {

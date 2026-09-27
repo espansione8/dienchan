@@ -1,0 +1,1198 @@
+Loading svelte-check in workspace: d:\github\dienchan
+Getting Svelte diagnostics...
+
+d:\github\dienchan\[32msrc\lib\tools\hash.ts[39m:6:37
+[31mError[39m: Property 'toString' does not exist on type 'never'. 
+[36m    if (typeof inputString !== 'string') {
+        currentString = inputString.[35mtoString[36m();
+        throw new Error('input must be a  string.');[39m
+
+d:\github\dienchan\[32msrc\lib\stores\upload.ts[39m:43:48
+[31mError[39m: Argument of type 'unknown' is not assignable to parameter of type 'string'. 
+[36m                for (const [name, value] of Object.entries(headers)) {
+                    xhr.setRequestHeader(name, [35mvalue[36m);
+                }[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\cart\+page.server.ts[39m:11:2
+[31mError[39m: Type 'string' is not assignable to type '"2026-04-22.dahlia"'. 
+[36mconst stripe = new Stripe(STRIPE_KEY_BACK, {
+	[35mapiVersion[36m: STRIPE_API // Use a stable API version https://docs.stripe.com/api/versioning
+});[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-detail\[idCourse]\+page.server.ts[39m:15:2
+[31mError[39m: Type 'string' is not assignable to type '"2026-04-22.dahlia"'. 
+[36mconst stripe = new Stripe(STRIPE_KEY_BACK, {
+	[35mapiVersion[36m: STRIPE_API // Use a stable API version https://docs.stripe.com/api/versioning
+});[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-detail\[idCourse]\+page.server.ts[39m:152:46
+[31mError[39m: Property 'promoStatus' does not exist on type '{ layoutId?: string; price: number; }'. 
+[36m					} else {
+						const isPromoActive = item.layoutView?.[35mpromoStatus[36m === 'enabled'
+							&& item.layoutView?.promoPrice > 0[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-detail\[idCourse]\+page.server.ts[39m:153:28
+[31mError[39m: Property 'promoPrice' does not exist on type '{ layoutId?: string; price: number; }'. 
+[36m						const isPromoActive = item.layoutView?.promoStatus === 'enabled'
+							&& item.layoutView?.[35mpromoPrice[36m > 0
+							&& (!item.layoutView?.promoEndDate || new Date(item.layoutView.promoEndDate) >= new Date());[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-detail\[idCourse]\+page.server.ts[39m:154:30
+[31mError[39m: Property 'promoEndDate' does not exist on type '{ layoutId?: string; price: number; }'. 
+[36m							&& item.layoutView?.promoPrice > 0
+							&& (!item.layoutView?.[35mpromoEndDate[36m || new Date(item.layoutView.promoEndDate) >= new Date());
+						rawPrice = isPromoActive ? (item.layoutView?.promoPrice ?? 0) : (item.layoutView?.price ?? 0);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-detail\[idCourse]\+page.server.ts[39m:154:71
+[31mError[39m: Property 'promoEndDate' does not exist on type '{ layoutId?: string; price: number; }'. 
+[36m							&& item.layoutView?.promoPrice > 0
+							&& (!item.layoutView?.promoEndDate || new Date(item.layoutView.[35mpromoEndDate[36m) >= new Date());
+						rawPrice = isPromoActive ? (item.layoutView?.promoPrice ?? 0) : (item.layoutView?.price ?? 0);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-detail\[idCourse]\+page.server.ts[39m:155:52
+[31mError[39m: Property 'promoPrice' does not exist on type '{ layoutId?: string; price: number; }'. 
+[36m							&& (!item.layoutView?.promoEndDate || new Date(item.layoutView.promoEndDate) >= new Date());
+						rawPrice = isPromoActive ? (item.layoutView?.[35mpromoPrice[36m ?? 0) : (item.layoutView?.price ?? 0);
+					}[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-table\+page.server.ts[39m:600:32
+[31mError[39m: Property 'method' does not exist on type 'unknown'. 
+[36m					...user,
+					paymentMethod: orderData?.[35mmethod[36m || productSubData?.paymentMethod || null,
+					paymentStatus: orderData ? orderData.status : (productSubData?.paymentStatus || 'not paid'),[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-table\+page.server.ts[39m:601:43
+[31mError[39m: Property 'status' does not exist on type 'unknown'. 
+[36m					paymentMethod: orderData?.method || productSubData?.paymentMethod || null,
+					paymentStatus: orderData ? orderData.[35mstatus[36m : (productSubData?.paymentStatus || 'not paid'),
+					value: orderData ? orderData.value : null,[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-table\+page.server.ts[39m:602:35
+[31mError[39m: Property 'value' does not exist on type 'unknown'. 
+[36m					paymentStatus: orderData ? orderData.status : (productSubData?.paymentStatus || 'not paid'),
+					value: orderData ? orderData.[35mvalue[36m : null,
+					city: userData?.city || null,[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-table\+page.server.ts[39m:603:22
+[31mError[39m: Property 'city' does not exist on type 'unknown'. 
+[36m					value: orderData ? orderData.value : null,
+					city: userData?.[35mcity[36m || null,
+					county: userData?.county || null[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-table\+page.server.ts[39m:604:24
+[31mError[39m: Property 'county' does not exist on type 'unknown'. 
+[36m					city: userData?.city || null,
+					county: userData?.[35mcounty[36m || null
+				};[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\insurance-new\+page.server.ts[39m:9:2
+[31mError[39m: Type 'string' is not assignable to type '"2026-04-22.dahlia"'. 
+[36mconst stripe = new Stripe(STRIPE_KEY_BACK, {
+	[35mapiVersion[36m: STRIPE_API
+});[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\kit-materiale-formatori\+page.server.ts[39m:15:35
+[31mError[39m: Property 'isRiflessologo' does not exist on type 'User'. 
+[36m	const userLevel = locals.user?.level;
+	const isFormatore = locals.user?.[35misRiflessologo[36m;[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\layout-table\+page.server.ts[39m:408:35
+[31mError[39m: Property 'name' does not exist on type 'FormDataEntryValue'.
+  Property 'name' does not exist on type 'string'. 
+[36m
+		if (!layoutId || !file || !file.[35mname[36m) {
+			return fail(400, { action: 'setProdPic', success: false, message: 'File mancante' });[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\layout-table\+page.server.ts[39m:420:26
+[31mError[39m: Property 'name' does not exist on type 'FormDataEntryValue'.
+  Property 'name' does not exist on type 'string'. 
+[36m					'Content-Type': 'application/json',
+					'x-file-name': file.[35mname[36m,
+					'x-folder-name': `layout/${layoutId}`[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\layout-table\+page.server.ts[39m:435:52
+[31mError[39m: Property 'name' does not exist on type 'FormDataEntryValue'.
+  Property 'name' does not exist on type 'string'. 
+[36m						$set: {
+							urlPic: `/uploads/layout/${layoutId}/${file.[35mname[36m}`
+						}[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\membership-new\+page.server.ts[39m:9:2
+[31mError[39m: Type 'string' is not assignable to type '"2026-04-22.dahlia"'. 
+[36mconst stripe = new Stripe(STRIPE_KEY_BACK, {
+	[35mapiVersion[36m: STRIPE_API // Use a stable API version https://docs.stripe.com/api/versioning
+});[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\membership-table\+page.server.ts[39m:321:33
+[31mError[39m: Property 'name' does not exist on type 'FormDataEntryValue'.
+  Property 'name' does not exist on type 'string'. 
+[36m
+		if (!prodId || !file || !file.[35mname[36m) {
+			return fail(400, { action: 'setProdPic', success: false, message: 'File mancante' });[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\membership-table\+page.server.ts[39m:329:27
+[31mError[39m: Property 'type' does not exist on type 'FormDataEntryValue'.
+  Property 'type' does not exist on type 'string'. 
+[36m				headers: {
+					'Content-Type': file.[35mtype[36m || 'application/octet-stream',
+					'x-file-name': file.name,[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\membership-table\+page.server.ts[39m:330:26
+[31mError[39m: Property 'name' does not exist on type 'FormDataEntryValue'.
+  Property 'name' does not exist on type 'string'. 
+[36m					'Content-Type': file.type || 'application/octet-stream',
+					'x-file-name': file.[35mname[36m,
+					'x-folder-name': `product/${prodId}`[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\membership-table\+page.server.ts[39m:343:23
+[31mError[39m: Property 'type' does not exist on type 'FormDataEntryValue'.
+  Property 'type' does not exist on type 'string'. 
+[36m							type: 'product-primary', //'product-primary', 'product-gallery', 'membership', 'course'
+							fileType: file.[35mtype[36m,
+							fileName: file.name,[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\membership-table\+page.server.ts[39m:344:23
+[31mError[39m: Property 'name' does not exist on type 'FormDataEntryValue'.
+  Property 'name' does not exist on type 'string'. 
+[36m							fileType: file.type,
+							fileName: file.[35mname[36m,
+							fileUrl: `/uploads/product/${prodId}/${file.name}`[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\membership-table\+page.server.ts[39m:345:52
+[31mError[39m: Property 'name' does not exist on type 'FormDataEntryValue'.
+  Property 'name' does not exist on type 'string'. 
+[36m							fileName: file.name,
+							fileUrl: `/uploads/product/${prodId}/${file.[35mname[36m}`
+						}[39m
+
+d:\github\dienchan\[32msrc\routes\(login)\login\+page.server.ts[39m:106:26
+[31mError[39m: Cannot find name 'password'. 
+[36m
+		if (!registerEmail || ![35mpassword[36m || !passwordConfirm) {
+			return fail(400, { registerEmail, error: 'Tutti i campi sono obbligatori.', form: 'register' });[39m
+
+d:\github\dienchan\[32msrc\routes\(login)\login\+page.server.ts[39m:110:7
+[31mError[39m: Cannot find name 'password'. 
+[36m
+		if ([35mpassword[36m !== passwordConfirm) {
+			return fail(400, { registerEmail, error: 'Le password non corrispondono.', form: 'register' }); // [cite: 15][39m
+
+d:\github\dienchan\[32msrc\routes\(login)\login\+page.server.ts[39m:117:54
+[31mError[39m: Cannot find name 'password'. 
+[36m				method: 'POST',
+				body: JSON.stringify({ registerEmail, password1: [35mpassword[36m }), // Assuming API expects 'password1' [cite: 16]
+				headers: { 'Content-Type': 'application/json' }[39m
+
+d:\github\dienchan\[32msrc\routes\(test)\ocrtest\+page.server.ts[39m:22:21
+[31mError[39m: Object literal may only specify known properties, and 'tessjs_load_language' does not exist in type 'Partial<WorkerOptions>'. 
+[36m                    //tessedit_pageseg_mode: 1,
+                    [35mtessjs_load_language[36m: 'ita',
+                    tessjs_load_language_model: true,[39m
+
+d:\github\dienchan\[32msrc\routes\api\mongo\get\getOrders\+server.ts[39m:13:30
+[31mError[39m: This expression is not callable.
+  Each member of the union type '{ <ResultDoc = any>(filter: RootFilterQuery<any>, projection: ProjectionType<any>, options: QueryOptions<any> & { lean: true; } & Abortable): Query<...>; <ResultDoc = any>(filter: RootFilterQuery<...>, projection?: ProjectionType<...>, options?: QueryOptions<...> & Abortable): Query<...>; <ResultDoc = any>(filter: R...' has signatures, but none of those signatures are compatible with each other. 
+[36m		// Query per ottenere tutti gli ordini
+		const orders = await Order.[35mfind[36m({})
+			.populate({[39m
+
+d:\github\dienchan\[32msrc\routes\api\mongo\get\getUsers\+server.ts[39m:12:28
+[31mError[39m: This expression is not callable.
+  Each member of the union type '{ <ResultDoc = any>(filter: RootFilterQuery<any>, projection: ProjectionType<any>, options: QueryOptions<any> & { lean: true; } & Abortable): Query<...>; <ResultDoc = any>(filter: RootFilterQuery<...>, projection?: ProjectionType<...>, options?: QueryOptions<...> & Abortable): Query<...>; <ResultDoc = any>(filter: R...' has signatures, but none of those signatures are compatible with each other. 
+[36m		// Query per ottenere tutti gli utenti
+		const users = await User.[35mfind[36m({})
+			.select('-token -password') // Escludi campi sensibili[39m
+
+d:\github\dienchan\[32msrc\routes\api\mongo\getCourse\accademia\+server.ts[39m:15:33
+[31mError[39m: This expression is not callable.
+  Each member of the union type '{ <ResultDoc = any>(filter: RootFilterQuery<any>, projection: ProjectionType<any>, options: QueryOptions<any> & { lean: true; } & Abortable): Query<...>; <ResultDoc = any>(filter: RootFilterQuery<...>, projection?: ProjectionType<...>, options?: QueryOptions<...> & Abortable): Query<...>; <ResultDoc = any>(filter: R...' has signatures, but none of those signatures are compatible with each other. 
+[36m		// Query per gli ultimi 10 corsi con i criteri specificati
+		const courses = await Product.[35mfind[36m({
+			type: 'event',[39m
+
+d:\github\dienchan\[32msrc\routes\api\mongo\getCourse\conferenzaGratuita\+server.ts[39m:15:33
+[31mError[39m: This expression is not callable.
+  Each member of the union type '{ <ResultDoc = any>(filter: RootFilterQuery<any>, projection: ProjectionType<any>, options: QueryOptions<any> & { lean: true; } & Abortable): Query<...>; <ResultDoc = any>(filter: RootFilterQuery<...>, projection?: ProjectionType<...>, options?: QueryOptions<...> & Abortable): Query<...>; <ResultDoc = any>(filter: R...' has signatures, but none of those signatures are compatible with each other. 
+[36m		// Query per gli ultimi 10 corsi con i criteri specificati
+		const courses = await Product.[35mfind[36m({
+			type: 'event',[39m
+
+d:\github\dienchan\[32msrc\routes\api\mongo\getCourse\corsoAvanzato\+server.ts[39m:15:33
+[31mError[39m: This expression is not callable.
+  Each member of the union type '{ <ResultDoc = any>(filter: RootFilterQuery<any>, projection: ProjectionType<any>, options: QueryOptions<any> & { lean: true; } & Abortable): Query<...>; <ResultDoc = any>(filter: RootFilterQuery<...>, projection?: ProjectionType<...>, options?: QueryOptions<...> & Abortable): Query<...>; <ResultDoc = any>(filter: R...' has signatures, but none of those signatures are compatible with each other. 
+[36m		// Query per gli ultimi 10 corsi con i criteri specificati
+		const courses = await Product.[35mfind[36m({
+			type: 'course',[39m
+
+d:\github\dienchan\[32msrc\routes\api\mongo\getCourse\corsoBase\+server.ts[39m:15:33
+[31mError[39m: This expression is not callable.
+  Each member of the union type '{ <ResultDoc = any>(filter: RootFilterQuery<any>, projection: ProjectionType<any>, options: QueryOptions<any> & { lean: true; } & Abortable): Query<...>; <ResultDoc = any>(filter: RootFilterQuery<...>, projection?: ProjectionType<...>, options?: QueryOptions<...> & Abortable): Query<...>; <ResultDoc = any>(filter: R...' has signatures, but none of those signatures are compatible with each other. 
+[36m		// Query per gli ultimi 10 corsi con i criteri specificati
+		const courses = await Product.[35mfind[36m({
+			type: 'course',[39m
+
+d:\github\dienchan\[32msrc\routes\files\[type]\[folder]\[name]\+server.ts[39m:132:33
+[31mError[39m: Argument of type 'ReadableStream<any>' is not assignable to parameter of type 'BodyInit'.
+  Type 'import("stream/web").ReadableStream<any>' is not assignable to type 'ReadableStream<any>'.
+    The types returned by 'getReader(...).read(...)' are incompatible between these types.
+      Type 'Promise<import("stream/web").ReadableStreamReadResult<T>>' is not assignable to type 'Promise<ReadableStreamReadResult<T>>'.
+        Type 'import("stream/web").ReadableStreamReadResult<T>' is not assignable to type 'ReadableStreamReadResult<T>'.
+          Type 'ReadableStreamReadDoneResult<T>' is not assignable to type 'ReadableStreamReadResult<T>'.
+            Type 'import("stream/web").ReadableStreamReadDoneResult<T>' is not assignable to type 'ReadableStreamReadDoneResult<T>'.
+              Property 'value' is optional in type 'ReadableStreamReadDoneResult<T>' but required in type 'ReadableStreamReadDoneResult<T>'. 
+[36m
+            return new Response([35mwebStream[36m, {
+                status: 206,[39m
+
+d:\github\dienchan\[32msrc\routes\files\[type]\[folder]\[name]\+server.ts[39m:147:29
+[31mError[39m: Argument of type 'ReadableStream<any>' is not assignable to parameter of type 'BodyInit'.
+  Type 'import("stream/web").ReadableStream<any>' is not assignable to type 'ReadableStream<any>'.
+    The types returned by 'getReader(...).read(...)' are incompatible between these types.
+      Type 'Promise<import("stream/web").ReadableStreamReadResult<T>>' is not assignable to type 'Promise<ReadableStreamReadResult<T>>'.
+        Type 'import("stream/web").ReadableStreamReadResult<T>' is not assignable to type 'ReadableStreamReadResult<T>'.
+          Type 'ReadableStreamReadDoneResult<T>' is not assignable to type 'ReadableStreamReadResult<T>'.
+            Type 'import("stream/web").ReadableStreamReadDoneResult<T>' is not assignable to type 'ReadableStreamReadDoneResult<T>'.
+              Property 'value' is optional in type 'ReadableStreamReadDoneResult<T>' but required in type 'ReadableStreamReadDoneResult<T>'. 
+[36m
+        return new Response([35mwebStream[36m, { headers });[39m
+
+d:\github\dienchan\[32msrc\lib\components\DragDrop.svelte[39m:65:15
+[31mError[39m: Property 'files' does not exist on type 'unknown'. (ts)
+[36m			if (file.type.match(/^image\/(jpg|jpeg|png|webp)$/)) {
+				fileInput.[35mfiles[36m = files;
+				previewUrl = URL.createObjectURL(file);[39m
+
+d:\github\dienchan\[32msrc\lib\components\DragDrop.svelte[39m:93:17
+[31mError[39m: Property 'value' does not exist on type 'unknown'. (ts)
+[36m						previewUrl = null;
+						fileInput.[35mvalue[36m = ''; // Reset the file input
+						if (previewUrl) URL.revokeObjectURL(previewUrl); // Clean up the object URL[39m
+
+d:\github\dienchan\[32msrc\lib\components\DragDrop.svelte[39m:119:31
+[31mError[39m: Property 'files' does not exist on type 'EventTarget'. (ts)
+[36m			onchange={(event) => {
+				const file = event.target.[35mfiles[36m[0];
+				if (file) {[39m
+
+d:\github\dienchan\[32msrc\lib\components\Navbar.svelte[39m:101:8
+[33mWarn[39m: noninteractive element cannot have nonnegative tabIndex value
+https://svelte.dev/e/a11y_no_noninteractive_tabindex (svelte)
+[36m
+							[35m<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+								<li><a href="/membership-new"><IdCard size={14} /> Tesseramento</a></li>
+								{#if auth && membershipStatus}
+									<li><a href="/insurance-new"><ShieldCheck size={14} />Contributo praticante</a></li>
+									<!-- <li><a href="#"><ShieldCheck size={14} /> Assicurazione (in progress)</a></li> -->
+								{/if}
+							</ul>[36m
+						</div>[39m
+
+d:\github\dienchan\[32msrc\lib\components\Navbar.svelte[39m:361:8
+[33mWarn[39m: noninteractive element cannot have nonnegative tabIndex value
+https://svelte.dev/e/a11y_no_noninteractive_tabindex (svelte)
+[36m
+							[35m<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+								<li><a href="/membership-new" onclick={toggleMenu}>Tesseramento</a></li>
+								{#if auth && membershipStatus}
+									<li><a href="/insurance-new" onclick={toggleMenu}>Contributo praticante</a></li>
+								{/if}
+							</ul>[36m
+						</div>[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\cart\+page.svelte[39m:59:9
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let formData = $state({
+		name: [35muserData[36m?.name || '',
+		surname: userData?.surname || '',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\cart\+page.svelte[39m:60:12
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		name: userData?.name || '',
+		surname: [35muserData[36m?.surname || '',
+		email: userData?.email || '',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\cart\+page.svelte[39m:61:10
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		surname: userData?.surname || '',
+		email: [35muserData[36m?.email || '',
+		address: userData?.address || '',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\cart\+page.svelte[39m:62:12
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		email: userData?.email || '',
+		address: [35muserData[36m?.address || '',
+		city: userData?.city || '',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\cart\+page.svelte[39m:63:9
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		address: userData?.address || '',
+		city: [35muserData[36m?.city || '',
+		county: userData?.county[0] || 'AG', // provincia[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\cart\+page.svelte[39m:64:11
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		city: userData?.city || '',
+		county: [35muserData[36m?.county[0] || 'AG', // provincia
+		postalCode: userData?.postalCode || '',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\cart\+page.svelte[39m:65:15
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		county: userData?.county[0] || 'AG', // provincia
+		postalCode: [35muserData[36m?.postalCode || '',
+		country: userData?.country || 'Italy',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\cart\+page.svelte[39m:66:12
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		postalCode: userData?.postalCode || '',
+		country: [35muserData[36m?.country || 'Italy',
+		phone: userData?.phone || '',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\cart\+page.svelte[39m:67:10
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		country: userData?.country || 'Italy',
+		phone: [35muserData[36m?.phone || '',
+		mobilePhone: userData?.mobilePhone || '',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\cart\+page.svelte[39m:68:16
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		phone: userData?.phone || '',
+		mobilePhone: [35muserData[36m?.mobilePhone || '',
+		paymentType: 'Carta di credito',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\cart\+page.svelte[39m:72:18
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		usePoint: false,
+		pointsBalance: [35muserData[36m?.pointsBalance || 0,
+		newBalance: 0,[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\cart\+page.svelte[39m:43:6
+[33mWarn[39m: `formEl` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update (svelte)
+[36m
+	let [35mformEl: HTMLFormElement[36m;
+	// Stripe state[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-detail\[idCourse]\+page.svelte[39m:60:6
+[33mWarn[39m: `formEl` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update (svelte)
+[36m
+	let [35mformEl: HTMLFormElement[36m;[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-detail\[idCourse]\+page.svelte[39m:134:44
+[31mError[39m: Property 'courseJoined' does not exist on type 'User'. (ts)
+[36m	let isJoined: boolean = $state(false);
+	if (userData && auth) isJoined = userData.[35mcourseJoined[36m.includes(getCourse.prodId);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-shop\+page.svelte[39m:52:2
+[33mWarn[39m: This reference only captures the initial value of `coursesList`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let numCoursesInProvince: any = $state({});
+	[35mcoursesList[36m.forEach((item) => {
+		item.county.forEach((province) => {[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-shop\+page.svelte[39m:59:73
+[33mWarn[39m: This reference only captures the initial value of `numCoursesInProvince`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	// Ordina le chiavi dell'oggetto in ordine alfabetico
+	const sortedNumCoursesInProvince: Record<string, number> = Object.keys([35mnumCoursesInProvince[36m)
+		.sort((a, b) => {[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-shop\+page.svelte[39m:124:46
+[31mError[39m: Operator '>' cannot be applied to types 'unknown' and 'number'. (ts)
+[36m	const meseAttualeInfo = informazioniMesi.find((item) => item.mese === nomiMesi[currentMonthIndex]);
+	const currentMonthName = meseAttualeInfo && [35mmeseAttualeInfo?.conteggio > 0[36m ? nomiMesi[currentMonthIndex] : nomiMesi[(currentMonthIndex + 1) % 12];
+	// const meseAttualeInfo = informazioniMesi.find((item) => item.meseBase === nomiMesi[currentMonthIndex]);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-shop\+page.svelte[39m:163:66
+[31mError[39m: Property 'checked' does not exist on type 'HTMLElement'. (ts)
+[36m		const accordionList = ['accordion1', 'accordion2', 'accordion3', 'accordion4'];
+		accordionList.forEach((item) => (document.getElementById(item).[35mchecked[36m = false));
+		// document.getElementById('accordion1').checked = false;[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-table\+page.svelte[39m:59:25
+[33mWarn[39m: This reference only captures the initial value of `getTable`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	const { getTable, getTableNames, userData, getLayout } = $derived(data);
+	let tableList = $state([35mgetTable[36m);
+	let loading = $state(false);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-table\+page.svelte[39m:542:34
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let infoExtra = $state('');
+	let productCorsoUserId = $state([35muserData[36m.userId);
+	let productCorsoStatus = $state('enabled');[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\course-table\+page.svelte[39m:553:34
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let academyNumber = $state(0);
+	let notificationEmail = $state([[35muserData[36m.email]);
+	let inputEmail = $state('');[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\discount-table\+page.svelte[39m:29:25
+[33mWarn[39m: This reference only captures the initial value of `getDiscount`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	const { getDiscount, getLayout, getProduct } = $derived(data);
+	let tableList = $state([35mgetDiscount[36m);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\discount-table\+page.svelte[39m:419:8
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m						<section class="col-span-4">
+							[35m<label class="form-label">
+								<p class="font-bold mb-2 label">Tipo di sconto</p>
+							</label>[36m
+							<div class="flex gap-4">[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\insurance-new\+page.svelte[39m:45:9
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let formData = $state({
+		name: [35muserData[36m?.name || '',
+		surname: userData?.surname || '',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\insurance-new\+page.svelte[39m:46:12
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		name: userData?.name || '',
+		surname: [35muserData[36m?.surname || '',
+		email: userData?.email || '',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\insurance-new\+page.svelte[39m:47:10
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		surname: userData?.surname || '',
+		email: [35muserData[36m?.email || '',
+		address: userData?.address || '',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\insurance-new\+page.svelte[39m:48:12
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		email: userData?.email || '',
+		address: [35muserData[36m?.address || '',
+		city: userData?.city || '',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\insurance-new\+page.svelte[39m:49:9
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		address: userData?.address || '',
+		city: [35muserData[36m?.city || '',
+		county: userData?.county[0] || '',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\insurance-new\+page.svelte[39m:50:11
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		city: userData?.city || '',
+		county: [35muserData[36m?.county[0] || '',
+		postalCode: userData?.postalCode || '',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\insurance-new\+page.svelte[39m:51:15
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		county: userData?.county[0] || '',
+		postalCode: [35muserData[36m?.postalCode || '',
+		country: userData?.country || 'Italy',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\insurance-new\+page.svelte[39m:52:12
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		postalCode: userData?.postalCode || '',
+		country: [35muserData[36m?.country || 'Italy',
+		phone: userData?.phone || '',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\insurance-new\+page.svelte[39m:53:10
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		country: userData?.country || 'Italy',
+		phone: [35muserData[36m?.phone || '',
+		mobilePhone: userData?.mobilePhone || '',[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\insurance-new\+page.svelte[39m:54:16
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		phone: userData?.phone || '',
+		mobilePhone: [35muserData[36m?.mobilePhone || '',
+		payment: 'Carta di credito'[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\insurance-new\+page.svelte[39m:36:6
+[33mWarn[39m: `formEl` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update (svelte)
+[36m
+	let [35mformEl: HTMLFormElement[36m;
+	let stripe: Stripe | null = $state(null);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\insurance-new\+page.svelte[39m:465:54
+[31mError[39m: Argument of type 'string | Date' is not assignable to parameter of type 'string'.
+  Type 'Date' is not assignable to type 'string'. (ts)
+[36m											<Calendar class="h-4 w-4" />
+											<span>Scadenza: <strong>{formatExpiryDate([35muserData.insurance.insuranceExpiry[36m)}</strong></span>
+										</div>[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\kit-materiale-formatori\+page.svelte[39m:18:27
+[33mWarn[39m: This reference only captures the initial value of `tableList`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+	console.log('tableList', [35mtableList[36m)[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\kit-materiale-formatori\+page.svelte[39m:23:6
+[33mWarn[39m: `formEl` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update (svelte)
+[36m
+	let [35mformEl: HTMLFormElement[36m;
+	let loading = $state(false);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\kit-materiale-formatori\+page.svelte[39m:682:3
+[33mWarn[39m: Also define the standard property 'line-clamp' for compatibility (css)
+[36m		display: -webkit-box;
+		[35m-webkit-line-clamp[36m: 2;
+		-webkit-box-orient: vertical;[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\layout-table\+page.svelte[39m:29:25
+[33mWarn[39m: This reference only captures the initial value of `getTable`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	const { getTable, getProducts } = $derived(data);
+	let tableList = $state([35mgetTable[36m);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\layout-table\+page.svelte[39m:125:3
+[33mWarn[39m: This reference only captures the initial value of `newList`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+		[35mnewList[36m.forEach((obj: any) => {
+			delete obj.__v;[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\layout-table\+page.svelte[39m:132:22
+[33mWarn[39m: This reference only captures the initial value of `newList`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		//CSV UNPARSE
+		csv = Papa.unparse([35mnewList[36m, {
+			quotes: false,[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\layout-table\+page.svelte[39m:142:26
+[33mWarn[39m: This reference only captures the initial value of `csv`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		//DOWNLOAD file
+		const blob = new Blob([[35mcsv[36m], { type: 'text/csv;charset=utf-8' });
+		const link = document.createElement('a');[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\layout-table\+page.svelte[39m:54:54
+[31mError[39m: Property 'prodId' does not exist on type 'string'. (ts)
+[36m		if (type === 'bundleKit') {
+			console.log('singleProduct.prodId', singleProduct.[35mprodId[36m);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\layout-table\+page.svelte[39m:57:80
+[31mError[39m: Property 'prodId' does not exist on type 'string'. (ts)
+[36m			if (singleProduct != '') {
+				const exists = bundleProducts.some((item) => item.prodId === singleProduct.[35mprodId[36m);
+				console.log('exists', exists);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\membership-new\+page.svelte[39m:53:6
+[33mWarn[39m: `formEl` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update (svelte)
+[36m
+	let [35mformEl: HTMLFormElement[36m;
+	// Stripe state[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\membership-table\+page.svelte[39m:30:25
+[33mWarn[39m: This reference only captures the initial value of `getTable`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	const { getTable } = $derived(data); // deconstruct data from server
+	let tableList = $state([35mgetTable[36m || []);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\membership-table\+page.svelte[39m:79:3
+[33mWarn[39m: This reference only captures the initial value of `newList`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+		[35mnewList[36m.forEach((obj: any) => {
+			delete obj.userView;[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\membership-table\+page.svelte[39m:86:22
+[33mWarn[39m: This reference only captures the initial value of `newList`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		//CSV UNPARSE
+		csv = Papa.unparse([35mnewList[36m, {
+			quotes: false, //or array of booleans[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\membership-table\+page.svelte[39m:98:26
+[33mWarn[39m: This reference only captures the initial value of `csv`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m		//DOWNLOAD file
+		const blob = new Blob([[35mcsv[36m], { type: 'text/csv;charset=utf-8' });
+		// create a link element to download the zip archive[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\membership-table\+page.svelte[39m:184:31
+[31mError[39m: Property 'data' does not exist on type '{ type: "error"; status?: number; error: any; }'. (ts)
+[36m			if (result.type === 'error') {
+				notification.error(result.[35mdata[36m.message);
+			}[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\order-table\+page.svelte[39m:32:34
+[33mWarn[39m: This reference only captures the initial value of `getTable`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let { getTable, getTableNames } = $derived(data);
+	let tableList = $state<Order[]>([35mgetTable[36m || []);
+	let tableNames = $state<TableNames[]>(getTableNames || []);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\order-table\+page.svelte[39m:33:40
+[33mWarn[39m: This reference only captures the initial value of `getTableNames`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let tableList = $state<Order[]>(getTable || []);
+	let tableNames = $state<TableNames[]>([35mgetTableNames[36m || []);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\order-table\+page.svelte[39m:58:27
+[33mWarn[39m: This reference only captures the initial value of `tableList`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	//modal detail
+	let orderDetail = $state([35mtableList[36m[0]);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\order-table\+page.svelte[39m:437:30
+[31mError[39m: Property 'totalDiscount' does not exist on type 'Order'. (ts)
+[36m										{ text: 'Sconto:', style: 'totalLabel', alignment: 'right' },
+										{ text: `€ ${order.[35mtotalDiscount[36m?.toFixed(2) || '0.00'}`, style: 'totalValue', alignment: 'right' }
+									],[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\order-table\+page.svelte[39m:444:30
+[31mError[39m: Property 'totalVAT' does not exist on type 'Order'. Did you mean 'totalCart'? (ts)
+[36m										{ text: 'IVA:', style: 'totalLabel', alignment: 'right' },
+										{ text: `€ ${order.[35mtotalVAT[36m?.toFixed(2) || '0.00'}`, style: 'totalValue', alignment: 'right' }
+									],[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\order-table\+page.svelte[39m:1237:50
+[31mError[39m: Type '{ title: string; urlPic: string; price: number; }' has no properties in common with type '{ promoStatus?: string; promoPrice?: number; promoEndDate?: string; }'. (ts)
+[36m										{#if item.type === 'course' || item.type === 'event'}
+											{#if item.layoutView && isPromoActive([35mitem?.layoutView[36m)}
+												<span class="text-amber-600">{item?.layoutView?.promoPrice}€</span>[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\order-table\+page.svelte[39m:1238:61
+[31mError[39m: Property 'promoPrice' does not exist on type '{ title: string; urlPic: string; price: number; }'. (ts)
+[36m											{#if item.layoutView && isPromoActive(item?.layoutView)}
+												<span class="text-amber-600">{item?.layoutView?.[35mpromoPrice[36m}€</span>
+												<span class="text-xs line-through text-gray-400 block">{item.layoutView.price}€</span>[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\order-table\+page.svelte[39m:1243:35
+[31mError[39m: Type '{ prodId: string; title: string; type: string; orderQuantity: number; price: number; layoutView: { title: string; urlPic: string; price: number; }; uploadfiles: { type: "none" | "product-primary" | "product-gallery" | "membership" | "course"; filetype: string; filename: string; fileUrl: string; }[]; }' has no properties in common with type '{ promoStatus?: string; promoPrice?: number; promoEndDate?: string; }'. (ts)
+[36m											{/if}
+										{:else if isPromoActive([35mitem[36m)}
+											<span class="text-amber-600">{getEffectivePrice(item)}€</span>[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\product-shop\+page.svelte[39m:52:24
+[33mWarn[39m: This reference only captures the initial value of `getTable`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	const { getTable, getCategories, itemCount, auth, user } = $derived(data);
+	let prodList = $state([35mgetTable[36m);
+	let count = $state(itemCount);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\product-shop\+page.svelte[39m:53:21
+[33mWarn[39m: This reference only captures the initial value of `itemCount`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let prodList = $state(getTable);
+	let count = $state([35mitemCount[36m);
+	let loading = $state(false);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\product-shop\+page.svelte[39m:366:58
+[31mError[39m: Property 'isRiflessologo' does not exist on type 'User'. (ts)
+[36m								{#each Object.entries(getCategories) as [key, value] (key)}
+									{#if (key !== 'Materiale riflessologi' || user?.[35misRiflessologo[36m) && key !== 'Materiale formatori'}
+										<button[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\product-table\+page.svelte[39m:38:25
+[33mWarn[39m: This reference only captures the initial value of `getTable`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	// let tableList: Product[] = $state(getTable || []);
+	let tableList = $state([35mgetTable[36m);
+	let count = $state(itemCount);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\product-table\+page.svelte[39m:39:21
+[33mWarn[39m: This reference only captures the initial value of `itemCount`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let tableList = $state(getTable);
+	let count = $state([35mitemCount[36m);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\product-table\+page.svelte[39m:1099:67
+[31mError[39m: Argument of type 'string' is not assignable to parameter of type 'any[]'. (ts)
+[36m				<input type="hidden" name="prodId" value={prodId} />
+				<input type="hidden" name="fileName" value={imgCheck.fileName([35muploadfiles[36m, 'product-primary')} />
+				<header class="col-span-4 text-center text-2xl font-bold text-green-800">Conferma rimozione immagine del prodotto: {title}?</header>[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:98:20
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+	let name = $state([35muserData[36m.name || '');
+	let surname = $state(userData.surname || '');[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:99:23
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let name = $state(userData.name || '');
+	let surname = $state([35muserData[36m.surname || '');
+	let address = $state(userData.address || '');[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:100:23
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let surname = $state(userData.surname || '');
+	let address = $state([35muserData[36m.address || '');
+	let city = $state(userData.city || '');[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:101:20
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let address = $state(userData.address || '');
+	let city = $state([35muserData[36m.city || '');
+	let countyArray = $state(userData.county || []); // provincia[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:102:27
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let city = $state(userData.city || '');
+	let countyArray = $state([35muserData[36m.county || []); // provincia
+	let county = $state(''); // provincia input[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:104:26
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let county = $state(''); // provincia input
+	let postalCode = $state([35muserData[36m.postalCode || '');
+	let country = $state(userData.country || '');[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:105:23
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let postalCode = $state(userData.postalCode || '');
+	let country = $state([35muserData[36m.country || '');
+	let phone = $state(userData.phone || '');[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:106:21
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let country = $state(userData.country || '');
+	let phone = $state([35muserData[36m.phone || '');
+	let mobilePhone = $state(userData.mobilePhone || '');[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:107:27
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let phone = $state(userData.phone || '');
+	let mobilePhone = $state([35muserData[36m.mobilePhone || '');
+	let email = $state(userData.email || '');[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:108:21
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let mobilePhone = $state(userData.mobilePhone || '');
+	let email = $state([35muserData[36m.email || '');
+	let membershipLevel = $state(userData.membership.membershipLevel || '');[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:109:31
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let email = $state(userData.email || '');
+	let membershipLevel = $state([35muserData[36m.membership.membershipLevel || '');
+	//let membershipStatus = $state(userData.membership.membershipStatus || '');[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:111:32
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	//let membershipStatus = $state(userData.membership.membershipStatus || '');
+	let membershipExpiry = $state([35muserData[36m.membership.membershipExpiry || '');
+	let addressPublic = $state(userData.addressPublic || false);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:112:29
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let membershipExpiry = $state(userData.membership.membershipExpiry || '');
+	let addressPublic = $state([35muserData[36m.addressPublic || false);
+	let cityPublic = $state(userData.cityPublic || false);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:113:26
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let addressPublic = $state(userData.addressPublic || false);
+	let cityPublic = $state([35muserData[36m.cityPublic || false);
+	let countyPublic = $state(userData.countyPublic || false);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:114:28
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let cityPublic = $state(userData.cityPublic || false);
+	let countyPublic = $state([35muserData[36m.countyPublic || false);
+	let postalCodePublic = $state(userData.postalCodePublic || false);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:115:32
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let countyPublic = $state(userData.countyPublic || false);
+	let postalCodePublic = $state([35muserData[36m.postalCodePublic || false);
+	let countryPublic = $state(userData.countryPublic || false);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:116:29
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let postalCodePublic = $state(userData.postalCodePublic || false);
+	let countryPublic = $state([35muserData[36m.countryPublic || false);
+	let phonePublic = $state(userData.phonePublic || false);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:117:27
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let countryPublic = $state(userData.countryPublic || false);
+	let phonePublic = $state([35muserData[36m.phonePublic || false);
+	let mobilePhonePublic = $state(userData.mobilePhonePublic || false);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:118:33
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let phonePublic = $state(userData.phonePublic || false);
+	let mobilePhonePublic = $state([35muserData[36m.mobilePhonePublic || false);
+	let namePublic = $state(userData.namePublic || false);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:119:26
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let mobilePhonePublic = $state(userData.mobilePhonePublic || false);
+	let namePublic = $state([35muserData[36m.namePublic || false);
+	let surnamePublic = $state(userData.surnamePublic || false);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:120:29
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let namePublic = $state(userData.namePublic || false);
+	let surnamePublic = $state([35muserData[36m.surnamePublic || false);
+	let emailPublic = $state(userData.emailPublic || false);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:121:27
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let surnamePublic = $state(userData.surnamePublic || false);
+	let emailPublic = $state([35muserData[36m.emailPublic || false);
+	let level = $state(userData.level || '');[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:122:21
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let emailPublic = $state(userData.emailPublic || false);
+	let level = $state([35muserData[36m.level || '');
+	let activeTab = $state('dashboard'); // dashboard profile orders training certificates[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:947:7
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+	if (![35muserData[36m.name && !userData.surname) {
+		notification.info('Registrazione effettuta, completare il profilo');[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:947:25
+[33mWarn[39m: This reference only captures the initial value of `userData`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+	if (!userData.name && ![35muserData[36m.surname) {
+		notification.info('Registrazione effettuta, completare il profilo');[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:584:18
+[31mError[39m: Property 'push' does not exist on type 'string | any[]'.
+  Property 'push' does not exist on type 'string'. (ts)
+[36m				if (!countyArray.includes(item) && countyArray.length < 4) {
+					countyArray.[35mpush[36m(item);
+					county = '';[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:599:38
+[31mError[39m: Property 'splice' does not exist on type 'string | any[]'. Did you mean 'slice'?
+  Property 'splice' does not exist on type 'string'. (ts)
+[36m		if (index !== -1) {
+			if (type == 'county') countyArray.[35msplice[36m(index, 1); /// PROVINCE
+		}[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:2085:62
+[31mError[39m: Property 'approved' does not exist on type '{ hours: number; description: string; date: Date; fileName: string; fileUrl: string; }'. (ts)
+[36m								<span class="font-normal">
+									{userData?.trainingHistory?.filter((entry) => entry.[35mapproved[36m === true).length || 0}
+								</span>[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:2092:62
+[31mError[39m: Property 'approved' does not exist on type '{ hours: number; description: string; date: Date; fileName: string; fileUrl: string; }'. (ts)
+[36m								<span class="font-normal">
+									{userData?.trainingHistory?.filter((entry) => entry.[35mapproved[36m === true).reduce((sum, entry) => sum + (entry.hours || 0), 0) || 0}
+								</span>[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:2216:25
+[31mError[39m: Property 'approved' does not exist on type '{ hours: number; description: string; date: Date; fileName: string; fileUrl: string; }'. (ts)
+[36m												<td>
+													{#if entry.[35mapproved[36m === true}
+														<span class="badge badge-success flex items-center gap-1">[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:2220:30
+[31mError[39m: Property 'approved' does not exist on type '{ hours: number; description: string; date: Date; fileName: string; fileUrl: string; }'. (ts)
+[36m														</span>
+													{:else if entry.[35mapproved[36m === false}
+														<span class="badge badge-warning flex items-center gap-1">[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\profile-area\+page.svelte[39m:2411:21
+[31mError[39m: Property 'pointsHistory' does not exist on type 'User'. (ts)
+[36m		<div class="grid grid-cols-4 bg-base-100 grid-col gap-y-3 p-4 lg:gap-x-4 lg:p-4">
+			{#each userData?.[35mpointsHistory[36m || [] as item}
+				<!-- {#each [...(pointsHistory || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) as item} -->[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\user-list\+page.svelte[39m:30:25
+[33mWarn[39m: This reference only captures the initial value of `getTable`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	const { getTable, itemCount, countyObj, getRiflessologi } = $derived(data);
+	let tableList = $state([35mgetTable[36m || []);
+	let count = $state(itemCount);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\user-list\+page.svelte[39m:31:21
+[33mWarn[39m: This reference only captures the initial value of `itemCount`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let tableList = $state(getTable || []);
+	let count = $state([35mitemCount[36m);
+	let loading = $state(false);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\user-table\+page.svelte[39m:42:25
+[33mWarn[39m: This reference only captures the initial value of `getTable`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	const { getTable, getUser, itemCount, pendingApprovalsList, totalPendingApprovals } = $derived(data);
+	let tableList = $state([35mgetTable[36m);
+	let pendingApprovalsCount = $state(totalPendingApprovals);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\user-table\+page.svelte[39m:43:37
+[33mWarn[39m: This reference only captures the initial value of `totalPendingApprovals`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let tableList = $state(getTable);
+	let pendingApprovalsCount = $state([35mtotalPendingApprovals[36m);
+	let pendingList = $state(pendingApprovalsList);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\user-table\+page.svelte[39m:44:27
+[33mWarn[39m: This reference only captures the initial value of `pendingApprovalsList`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let pendingApprovalsCount = $state(totalPendingApprovals);
+	let pendingList = $state([35mpendingApprovalsList[36m);
+	let loading = $state(false);[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\user-table\+page.svelte[39m:1248:5
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m			<div class="form-control col-span-12 md:col-span-6 mx-auto">
+				[35m<label class="form-label">
+					<div class="flex items-center justify-between gap-4">
+						<span class="label-text font-bold">Status Tessera</span>
+					</div>
+				</label>[36m
+				<div class="flex gap-4 mt-2">[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\user-table\+page.svelte[39m:1289:5
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m			<div class="form-control col-span-12 md:col-span-6 mx-auto">
+				[35m<label class="form-label">
+					<div class="flex items-center justify-between gap-4">
+						<span class="label-text font-bold">Status Assicurazione</span>
+					</div>
+				</label>[36m
+				<div class="flex gap-4 mt-2">[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\video-table\+page.svelte[39m:15:34
+[33mWarn[39m: This reference only captures the initial value of `getTable`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m	let { getTable } = $derived(data);
+	let tableList = $state<Video[]>([35mgetTable[36m || []);
+	// modal[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\video-table\+page.svelte[39m:194:8
+[33mWarn[39m: `<form>` will be treated as an HTML element unless it begins with a capital letter
+https://svelte.dev/e/component_name_lowercase (svelte)
+[36m						<td> 
+							[35m<form method="POST" action="?/toggleStatus" use:enhance={formSubmit}  >
+								<input type="hidden" name="videoId" value={row.videoId} />
+								<div class="flex items-center gap-2">
+									<label class="label cursor-pointer gap-2">
+										<input
+											type="radio"
+											name="status"
+											value="enabled"
+											checked={row.status === 'enabled'}
+											class="radio radio-success radio-sm"
+											onchange={(e) => e.currentTarget.form?.requestSubmit()}
+										/>
+										<span class="label-text text-xs">Attivo</span>
+									</label>
+									<label class="label cursor-pointer gap-2">
+										<input
+											type="radio"
+											name="status"
+											value="disabled"
+											checked={row.status === 'disabled'}
+											class="radio radio-error radio-sm"
+											onchange={(e) => e.currentTarget.form?.requestSubmit()}
+										/>
+										<span class="label-text text-xs">Inattivo</span>
+									</label>
+								</div>
+							</form>[36m
+						</td>[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\video-table\+page.svelte[39m:241:3
+[33mWarn[39m: `<form>` will be treated as an HTML element unless it begins with a capital letter
+https://svelte.dev/e/component_name_lowercase (svelte)
+[36m		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
+		[35m<form method="POST" action={postAction} use:enhance={formSubmit} class="p-6 space-y-6">
+			{#if currentModal === 'modify'}
+				<input type="hidden" name="videoId" value={videoId} />
+			{/if}
+
+			<div class="form-control">
+				<label for="title" class="label">
+					<span class="label-text font-medium">Titolo *</span>
+				</label>
+				<input
+					type="text"
+					id="title"
+					name="title"
+					bind:value={title}
+					required
+					class="input input-bordered w-full"
+					placeholder="Inserisci il titolo del video"
+				/>
+			</div>
+
+			<div class="form-control">
+				<label for="url" class="label">
+					<span class="label-text font-medium">URL *</span>
+				</label>
+				<input type="url" id="url" name="url" bind:value={url} required class="input input-bordered w-full" placeholder="https://vimeo.com/..." />
+			</div>
+
+			{#if currentModal === 'modify'}
+				<div class="form-control">
+					<label for="status" class="label">
+						<span class="label-text font-medium">Stato</span>
+					</label>
+					<select id="status" name="status" bind:value={status} class="select select-bordered w-full">
+						<option value="enabled">Attivo</option>
+						<option value="disabled">Disattivo</option>
+					</select>
+				</div>
+			{/if}
+
+			<div class="form-control">
+				<label class="label">
+					<span class="label-text font-medium">Visibilità (seleziona uno o più livelli) *</span>
+				</label>
+				<div class="grid grid-cols-2 gap-2">
+					{#each levelOptions as level}
+						<label class="label cursor-pointer justify-start gap-2">
+							<input
+								type="checkbox"
+								name="visibility"
+								value={level}
+								checked={visibility.includes(level)}
+								onchange={(e) => {
+									if (e.currentTarget.checked) {
+										visibility = [...visibility, level];
+									} else {
+										visibility = visibility.filter((v) => v !== level);
+									}
+								}}
+								class="checkbox checkbox-primary"
+							/>
+							<span class="label-text">{level}</span>
+						</label>
+					{/each}
+				</div>
+			</div>
+
+			<div class="flex justify-end space-x-2 pt-4">
+				<button type="button" class="btn btn-error" onclick={onCloseModal}>Annulla</button>
+				<button type="submit" class="btn btn-success">
+					{currentModal === 'new' ? 'Crea' : 'Modifica'}
+				</button>
+			</div>
+		</form>[36m
+	</Modal>[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\video-table\+page.svelte[39m:281:5
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m			<div class="form-control">
+				[35m<label class="label">
+					<span class="label-text font-medium">Visibilità (seleziona uno o più livelli) *</span>
+				</label>[36m
+				<div class="grid grid-cols-2 gap-2">[39m
+
+d:\github\dienchan\[32msrc\routes\(app)\video-table\+page.svelte[39m:320:3
+[33mWarn[39m: `<form>` will be treated as an HTML element unless it begins with a capital letter
+https://svelte.dev/e/component_name_lowercase (svelte)
+[36m		<button class="btn btn-sm btn-circle btn-error absolute right-2 top-2" onclick={onCloseModal}>✕</button>
+		[35m<form method="POST" action={postAction} use:enhance={formSubmit} class="p-6">
+			<input type="hidden" name="videoId" value={videoId} />
+			<p class="text-center text-lg mb-6">Confermi la rimozione di questo video?</p>
+			<div class="flex justify-center space-x-4">
+				<button type="button" class="btn btn-sm" onclick={onCloseModal}>Annulla</button>
+				<button type="submit" class="btn btn-error btn-sm text-white">Elimina</button>
+			</div>
+		</form>[36m
+	</Modal>[39m
+
+d:\github\dienchan\[32msrc\routes\(login)\+layout.svelte[39m:9:3
+[31mError[39m: Type '{}' is missing the following properties from type '$$ComponentProps': user, auth (ts)
+[36m<div data-theme="dienchan" class="flex-col flex min-h-screen">
+	<[35mNavbar[36m />[39m
+
+d:\github\dienchan\[32msrc\routes\(test)\prod-sample\+page.svelte[39m:382:7
+[33mWarn[39m: '#' is not a valid href attribute
+https://svelte.dev/e/a11y_invalid_attribute (svelte)
+[36m			<h2 class="text-2xl font-bold">Customer Favorites</h2>
+			<a [35mhref="#"[36m class="text-primary font-medium flex items-center">
+				View All[39m
+
+d:\github\dienchan\[32msrc\routes\(test)\wheel\+page.svelte[39m:208:2
+[33mWarn[39m: Unused CSS selector "#marker"
+https://svelte.dev/e/css_unused_selector (svelte)
+[36m
+	[35m#marker[36m {
+		position: absolute;[39m
+
+d:\github\dienchan\[32msrc\routes\(test)\wheel\+page.svelte[39m:216:2
+[33mWarn[39m: Unused CSS selector "#wheel"
+https://svelte.dev/e/css_unused_selector (svelte)
+[36m
+	[35m#wheel[36m {
+		width: 100%;[39m
+
+d:\github\dienchan\[32msrc\routes\(test)\wheel\+page.svelte[39m:61:7
+[31mError[39m: Cannot find name 'display'. (ts)
+[36m		const winningSymbolNr = Math.ceil(actualDeg / zoneSize);
+		if ([35mdisplay[36m.innerHTML === symbolSegments[winningSymbolNr]) {
+			display.innerHTML = `+${winAmount}`;[39m
+
+d:\github\dienchan\[32msrc\routes\(test)\wheel\+page.svelte[39m:62:4
+[31mError[39m: Cannot find name 'display'. (ts)
+[36m		if (display.innerHTML === symbolSegments[winningSymbolNr]) {
+			[35mdisplay[36m.innerHTML = `+${winAmount}`;
+			dispatch('win', { amount: winAmount });[39m
+
+d:\github\dienchan\[32msrc\routes\(test)\wheel\+page.svelte[39m:65:4
+[31mError[39m: Cannot find name 'display'. (ts)
+[36m		} else {
+			[35mdisplay[36m.innerHTML = `-${loseAmount}`;
+			dispatch('lose', { amount: loseAmount });[39m
+
+d:\github\dienchan\[32msrc\routes\(test)\wheel\+page.svelte[39m:82:7
+[31mError[39m: Object literal may only specify known properties, and '"transition"' does not exist in type 'HTMLProps<"main", HTMLAttributes<any>>'. (ts)
+[36m
+<main [35mtransitio[36mn>
+	<div id="app">[39m
+
+====================================
+[31msvelte-check found 67 errors and 92 warnings in 41 files
+[39m

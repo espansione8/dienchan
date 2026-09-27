@@ -1,90 +1,94 @@
-// `${BASE_URL}/api/mailer/new-order`
-import type { RequestHandler } from '@sveltejs/kit';
-import { APIKEY, MAILER_HOST, MAILER_PORT, MAILER_SECURE, MAILER_USER, MAILER_PASS, BASE_URL } from '$env/static/private';
-import { json } from '@sveltejs/kit';
-import nodemailer from 'nodemailer';
+// plan/probe-env-stub.mjs
+import { readFileSync } from "node:fs";
+var parsed = Object.fromEntries(
+  readFileSync(new URL("../.env", import.meta.url), "utf8").split(/\r?\n/).filter((line) => line.includes("=") && !line.trim().startsWith("#")).map((line) => {
+    const index = line.indexOf("=");
+    return [line.slice(0, index).trim(), line.slice(index + 1).trim().replace(/^["']|["']$/g, "")];
+  })
+);
+var APIKEY = parsed.APIKEY;
+var BASE_URL = "http://probe.local";
+var MAILER_HOST = parsed.MAILER_HOST;
+var MAILER_PORT = parsed.MAILER_PORT;
+var MAILER_SECURE = parsed.MAILER_SECURE;
+var MAILER_USER = parsed.MAILER_USER;
+var MAILER_PASS = parsed.MAILER_PASS;
 
-
-export const POST: RequestHandler = async ({ request }) => {
-    const body = await request.json();
-    const {
-        apiKey,
-        email,
-        order
-    } = body;
-
-    const { orderId, createdAt, totalValue, invoicing, shipping, payment, cart, type, totalDiscount, orderNotes = '' } = order;
-    //const { name, surname, address, city, county, postalCode, country } = invoicing
-    // riflessologo = titolare del corso acquistato (product.userId): il contatto non è salvato nell'ordine, viene risolto qui dal mailer
-    const courseItem = (cart || []).find((item: any) => item.type === 'course' || item.type === 'event');
-
-    if (apiKey !== APIKEY) {
-        return json({ message: 'api error' }, { status: 401 });
+// src/routes/api/mailer/new-order/+server.ts
+import { json } from "@sveltejs/kit";
+import nodemailer from "nodemailer";
+var POST = async ({ request }) => {
+  const body = await request.json();
+  const {
+    apiKey,
+    email,
+    order
+  } = body;
+  const { orderId, createdAt, totalValue, invoicing, shipping, payment, cart, type, totalDiscount, orderNotes = "" } = order;
+  const courseItem = (cart || []).find((item) => item.type === "course" || item.type === "event");
+  if (apiKey !== APIKEY) {
+    return json({ message: "api error" }, { status: 401 });
+  }
+  if (!email || !order) {
+    return json({ message: "Data missing" }, { status: 400 });
+  }
+  const transporter = nodemailer.createTransport({
+    host: MAILER_HOST,
+    port: Number(MAILER_PORT),
+    secure: MAILER_SECURE === "true" ? true : false,
+    // true for 465, false for other ports
+    auth: {
+      user: MAILER_USER,
+      pass: MAILER_PASS
     }
-
-    if (!email || !order) {
-        return json({ message: 'Data missing' }, { status: 400 });
-    }
-
-    const transporter = nodemailer.createTransport({
-        host: MAILER_HOST,
-        port: Number(MAILER_PORT),
-        secure: MAILER_SECURE === 'true' ? true : false, // true for 465, false for other ports
-        auth: {
-            user: MAILER_USER,
-            pass: MAILER_PASS
-        }
-    });
-
-    try {
-        // riflessologo titolare del corso: lo userId del carrello arriva dal client, quindi il titolare si ricava dal prodotto a DB; lookup non bloccante, se fallisce la mail parte comunque senza il blocco
-        let riflessologo: any = null;
-        if (courseItem?.prodId) {
-            try {
-                const courseRes = await fetch(`${BASE_URL}/api/mongo/find`, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        apiKey: APIKEY,
-                        schema: 'product', //product | order | user | layout | discount
-                        query: { prodId: courseItem.prodId, type: { $in: ['course', 'event'] } },
-                        projection: { _id: 0, userId: 1 },
-                        limit: 1
-                    }),
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                const courseOwnerId = courseRes.ok ? (await courseRes.json())[0]?.userId : null;
-                if (courseOwnerId) {
-                    const riflessologoRes = await fetch(`${BASE_URL}/api/mongo/find`, {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            apiKey: APIKEY,
-                            schema: 'user', //product | order | user | layout | discount
-                            query: { userId: courseOwnerId },
-                            projection: { _id: 0, name: 1, surname: 1, phone: 1, mobilePhone: 1 },
-                            limit: 1
-                        }),
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    if (riflessologoRes.ok) riflessologo = (await riflessologoRes.json())[0] ?? null;
-                }
-            } catch (lookupError) {
-                console.log('Riflessologo lookup ERROR:', lookupError);
+  });
+  try {
+    let riflessologo = null;
+    if (courseItem?.prodId) {
+      try {
+        const courseRes = await fetch(`${BASE_URL}/api/mongo/find`, {
+          method: "POST",
+          body: JSON.stringify({
+            apiKey: APIKEY,
+            schema: "product",
+            //product | order | user | layout | discount
+            query: { prodId: courseItem.prodId, type: { $in: ["course", "event"] } },
+            projection: { _id: 0, userId: 1 },
+            limit: 1
+          }),
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        const courseOwnerId = courseRes.ok ? (await courseRes.json())[0]?.userId : null;
+        if (courseOwnerId) {
+          const riflessologoRes = await fetch(`${BASE_URL}/api/mongo/find`, {
+            method: "POST",
+            body: JSON.stringify({
+              apiKey: APIKEY,
+              schema: "user",
+              //product | order | user | layout | discount
+              query: { userId: courseOwnerId },
+              projection: { _id: 0, name: 1, surname: 1, phone: 1, mobilePhone: 1 },
+              limit: 1
+            }),
+            headers: {
+              "Content-Type": "application/json"
             }
+          });
+          if (riflessologoRes.ok) riflessologo = (await riflessologoRes.json())[0] ?? null;
         }
-        const riflessologoHtml = riflessologo?.name
-            ? `
+      } catch (lookupError) {
+        console.log("Riflessologo lookup ERROR:", lookupError);
+      }
+    }
+    const riflessologoHtml = riflessologo?.name ? `
                         <h4 class="margin-top-lg text-black">Il tuo Riflessologo:</h4>
                         <ul class="list-address">
-                            <li style="margin-bottom: 0.5em;">${riflessologo.name} ${riflessologo.surname || ''}</li>
-                            ${riflessologo.phone || riflessologo.mobilePhone ? `<li style="margin-bottom: 0.5em;">Tel: ${riflessologo.phone || riflessologo.mobilePhone}</li>` : ''}
-                        </ul>`
-            : '';
-
-        const emailContentHtml = `
+                            <li style="margin-bottom: 0.5em;">${riflessologo.name} ${riflessologo.surname || ""}</li>
+                            ${riflessologo.phone || riflessologo.mobilePhone ? `<li style="margin-bottom: 0.5em;">Tel: ${riflessologo.phone || riflessologo.mobilePhone}</li>` : ""}
+                        </ul>` : "";
+    const emailContentHtml = `
 				<!DOCTYPE html>
 <html lang="it">
 <head>
@@ -156,18 +160,18 @@ export const POST: RequestHandler = async ({ request }) => {
              
                             <img src="https://riflessologiadienchan.it/wp-content/uploads/2025/06/Associazione_Dien_Chan_BQC_LOGO.png" alt="logo" class="logo-img">
                             <h2>Ciao ${invoicing.name} ${invoicing.surname},</h2>
-                            <h1 class="logo-title">Il tuo Ordine ${orderId} è Confermato! 🎉</h1>
+                            <h1 class="logo-title">Il tuo Ordine ${orderId} \xE8 Confermato! \u{1F389}</h1>
                         
                     </td>
                 </tr>
                 <tr>
                     <td valign="top" class="hero bg_white padding-bottom-md padding-x-lg">
-                        <h2 class="main-title">Il tuo ordine ${orderId} è stato confermato con successo e lo stiamo preparando.</h2>
+                        <h2 class="main-title">Il tuo ordine ${orderId} \xE8 stato confermato con successo e lo stiamo preparando.</h2>
                         <h4 class="subtitle">Riepilogo del tuo ordine:</h4>
                         <ul>
                             <li><strong>Numero d'ordine:</strong> #${orderId}</li>
                             <li><strong>Data dell'ordine:</strong> ${createdAt.substring(0, 10)}</li>
-                            <li><strong>Totale ordine:</strong> ${totalValue.toFixed(2)}€</li>
+                            <li><strong>Totale ordine:</strong> ${totalValue.toFixed(2)}\u20AC</li>
                             <li style="margin-bottom: 0.5em;"><strong>Metodo di pagamento:</strong> ${payment.method}</li>
                         </ul>
                         <h4 class="margin-top-lg text-black">Indirizzo ricevuta:</h4>
@@ -181,25 +185,22 @@ export const POST: RequestHandler = async ({ request }) => {
 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="margin-bottom-sm">
     <tr>
         <th class="table-cell-style text-left" width="50%">Prodotto</th>
-        <th class="table-cell-style text-right" width="25%">Quantità</th>
+        <th class="table-cell-style text-right" width="25%">Quantit\xE0</th>
         <th class="table-cell-style text-right" width="25%">Prezzo</th>
     </tr>
-    ${type === 'course' ?
-                cart.map(item => `
+    ${type === "course" ? cart.map((item) => `
             <tr>
-                <td class="table-cell-style text-left">${item.type == 'course' ? item.layoutView.title : item.title} 
-                    ${item.type == 'course' && item.eventStartDate ? `<br/>${new Date(item.eventStartDate).toLocaleDateString('it-IT')}` : ''}
+                <td class="table-cell-style text-left">${item.type == "course" ? item.layoutView.title : item.title} 
+                    ${item.type == "course" && item.eventStartDate ? `<br/>${new Date(item.eventStartDate).toLocaleDateString("it-IT")}` : ""}
                 </td>
                 <td class="table-cell-style text-right">${item.orderQuantity || 1}</td>
                 <td class="table-cell-style text-right"></td>
             </tr>
-        `).join('')
-                : type === 'product' || type === 'membership' ?
-                    cart.map(item => `
+        `).join("") : type === "product" || type === "membership" ? cart.map((item) => `
             <tr>
                 <td class="table-cell-style text-left">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <img src="${BASE_URL}${item.uploadfiles?.[0]?.fileUrl || 'https://associazione.riflessologiadienchan.it/images/placeholder.jpg'}" 
+                        <img src="${BASE_URL}${item.uploadfiles?.[0]?.fileUrl || "https://associazione.riflessologiadienchan.it/images/placeholder.jpg"}" 
                              alt="${item.title}" 
                              width="80" 
                              height="80" 
@@ -208,36 +209,28 @@ export const POST: RequestHandler = async ({ request }) => {
                     </div>
                 </td>
                 <td class="table-cell-style text-right">${item.orderQuantity || 1}</td>
-                <td class="table-cell-style text-right">${item.price.toFixed(2)}€</td>
+                <td class="table-cell-style text-right">${item.price.toFixed(2)}\u20AC</td>
             </tr>
-        `).join('')
-                    :
-                    cart.map(item => `
+        `).join("") : cart.map((item) => `
             <tr>
-                <td class="table-cell-style text-left">${item.type == 'course' ? item.layoutView.title : item.title}</td>
+                <td class="table-cell-style text-left">${item.type == "course" ? item.layoutView.title : item.title}</td>
                 <td class="table-cell-style text-right">${item.orderQuantity || 1}</td>
-                <td class="table-cell-style text-right">${item.price.toFixed(2)}€</td>
+                <td class="table-cell-style text-right">${item.price.toFixed(2)}\u20AC</td>
             </tr>
-        `).join('')
-            }
+        `).join("")}
     <tr>
         <td colspan="2" class="table-cell-style text-right font-bold">Spedizione</td>
         <td class="table-cell-style text-right font-bold">
-            ${totalValue === 0
-                ? 'Gratuita'
-                : (type === 'product' && (totalValue + totalDiscount) < 100)
-                    ? '9.00 €'
-                    : 'Gratuita'
-            }
+            ${totalValue === 0 ? "Gratuita" : type === "product" && totalValue + totalDiscount < 100 ? "9.00 \u20AC" : "Gratuita"}
         </td>
     </tr>
     <tr>
         <td colspan="2" class="table-cell-style text-right font-bold">Sconti</td>
-        <td class="table-cell-style text-right font-bold">${totalDiscount > 0 ? totalDiscount.toFixed(2) : '0'} €</td>
+        <td class="table-cell-style text-right font-bold">${totalDiscount > 0 ? totalDiscount.toFixed(2) : "0"} \u20AC</td>
     </tr>
     <tr>
         <td colspan="2" class="table-cell-style text-right font-bold">Totale</td>
-        <td class="table-cell-style text-right font-bold">${totalValue.toFixed(2)} €</td>
+        <td class="table-cell-style text-right font-bold">${totalValue.toFixed(2)} \u20AC</td>
     </tr>
 </table>${riflessologoHtml}
 
@@ -256,14 +249,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
                         <h4 class="margin-top-lg text-black">Metodo di pagamento:</h4>
                         <p style="margin-top: 0.5em;">${payment.method}</p>
-                        ${payment.method === 'Bonifico bancario' ?
-                `<p style="margin-top: 0.5em;">L'evasione dell'ordine verrà effettuata dopo la ricezione del pagamento a queste COORDINATE BANCARIE <br />
+                        ${payment.method === "Bonifico bancario" ? `<p style="margin-top: 0.5em;">L'evasione dell'ordine verr\xE0 effettuata dopo la ricezione del pagamento a queste COORDINATE BANCARIE <br />
                             IBAN: IT93 R076 0111 5000 0102 3646 647 <br />
                             BIC/SWIFT: BPPIITRRXXX <br />
                             INTESTATO A: ASSOCIAZIONE DIEN CHAN BUI QUOC CHAU Italia <br />
                             VIA TICINO 12F, 25015, DESENZANO DEL GARDA, BRESCIA <br />
-                        </p>`
-                : ''}
+                        </p>` : ""}
 
                         <p class="margin-top-lg">
                             Puoi visualizzare i dettagli completi del tuo ordine in qualsiasi momento
@@ -279,20 +270,24 @@ export const POST: RequestHandler = async ({ request }) => {
     </center>
 </body>
 </html>
-		`
-        const mailOptions = {
-            from: '"Notifiche Dienchan" <no-reply@riflessologiadienchan.it>', // sender address
-            to: email, // list of receivers
-            subject: `Il tuo Ordine #${orderId} è Confermato! 🎉`, // Subject line
-            html: emailContentHtml
-        };
-
-        const checkMail = await transporter.sendMail(mailOptions);
-        if (!checkMail.messageId) return json({ message: 'New order mailing error', status: 400 });
-        return json({ message: 'New order sent', status: 200 });
-
-    } catch (err) {
-        console.log('New order mailing ERROR:', err);
-        return json({ message: 'New order mailing ERROR' }, { status: 500 });
-    }
+		`;
+    const mailOptions = {
+      from: '"Notifiche Dienchan" <no-reply@riflessologiadienchan.it>',
+      // sender address
+      to: email,
+      // list of receivers
+      subject: `Il tuo Ordine #${orderId} \xE8 Confermato! \u{1F389}`,
+      // Subject line
+      html: emailContentHtml
+    };
+    const checkMail = await transporter.sendMail(mailOptions);
+    if (!checkMail.messageId) return json({ message: "New order mailing error", status: 400 });
+    return json({ message: "New order sent", status: 200 });
+  } catch (err) {
+    console.log("New order mailing ERROR:", err);
+    return json({ message: "New order mailing ERROR" }, { status: 500 });
+  }
+};
+export {
+  POST
 };
