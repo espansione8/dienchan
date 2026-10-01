@@ -39,7 +39,7 @@
 
 	const { data } = $props();
 	const { getTable, getUser, itemCount, pendingApprovalsList, totalPendingApprovals } = $derived(data);
-	let tableList = $state(getTable);
+	let tableList = $derived(getTable);
 	let pendingApprovalsCount = $state(totalPendingApprovals);
 	let pendingList = $state(pendingApprovalsList);
 	let loading = $state(false);
@@ -525,6 +525,7 @@
 			<!-- head -->
 			<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">
 				<tr class="">
+					<th><Fieldset:d></Fieldset:d>oto</th>
 					<th>Data registrazione</th>
 					<th>Email</th>
 					<th>Nome Cognome</th>
