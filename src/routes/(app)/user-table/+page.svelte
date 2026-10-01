@@ -525,7 +525,7 @@
 			<!-- head -->
 			<thead class="text-base italic bg-blue-200 border-b border-blue-200 text-blue-600">
 				<tr class="">
-					<th><Fieldset:d></Fieldset:d>oto</th>
+					<th>Foto</th>
 					<th>Data registrazione</th>
 					<th>Email</th>
 					<th>Nome Cognome</th>
