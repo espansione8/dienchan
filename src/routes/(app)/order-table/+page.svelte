@@ -829,7 +829,7 @@
 						</div>
 					</td>
 					<!-- Note-->
-					<td>{row.orderNotes || '-'}</td>
+					<td>{row.orderNotes || '-'}<br />Punti Spesi:{row.totalPoints}</td>
 					<!-- Totale -->
 					<td>
 						<div class="flex flex-col space-y-1">
