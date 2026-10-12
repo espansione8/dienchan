@@ -7,6 +7,7 @@ import { hash } from '$lib/tools/hash';
 import { tools } from '$lib/tools/backendTools';
 import { customAlphabet } from 'nanoid';
 import Stripe from 'stripe';
+import { createCheckoutSession, createOfflineCheckout, setCheckoutNonceCookie } from '$lib/server/checkout';
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12);
 // corsi ricorrenti: iscrizione ripetibile ogni mese, senza tracking abbonati/storico, mail dedicata via /api/mailer/new-order-12massaggi
 const RECURRING_COURSES = ['CQ112QCNK', 'F82B3JBZT']; // CQ112QCNK = Workshop: 12 Massaggi mattutini (layoutId PYSYPA4QCTH1), F82B3JBZT = corso del 15 di ogni mese (Van Tri Truong)
@@ -187,75 +188,34 @@ const calculateItemDiscount = (
 	return totalDiscount;
 };
 // 
-export const actions: Actions = {
-	createPaymentIntent: async ({ request, locals }) => {
-		try {
-			const formData = await request.formData();
-			const totalValue = formData.get('totalValue') as string;
-			const email = formData.get('email')?.toString().toLowerCase().trim();
-			const name = formData.get('name') as string;
-			const surname = formData.get('surname') as string;
+/**
+ * A guest must not silently attach an order to an account they may not control.
+ * Runs BEFORE any payment, so blocking here never costs the customer money.
+ */
+const emailAlreadyRegistered = async (fetch: typeof globalThis.fetch, email: string) => {
+	const res = await fetch(`${BASE_URL}/api/mongo/find`, {
+		method: 'POST',
+		body: JSON.stringify({
+			apiKey: APIKEY,
+			schema: 'user',
+			query: { email },
+			projection: { email: 1 },
+			sort: { createdAt: -1 },
+			limit: 1,
+			skip: 0
+		}),
+		headers: { 'Content-Type': 'application/json' }
+	});
+	if (!res.ok) throw new Error(await res.text());
+	const rows = await res.json();
+	return rows.length > 0;
+};
 
-			if (!totalValue || !email) {
-				return fail(400, {
-					action: 'createPaymentIntent',
-					success: false,
-					message: 'Dati mancanti'
-				});
-			}
-
-			const amountInCents = Math.round(Number(totalValue) * 100);
-
-			// Create PaymentIntent WITHOUT confirming
-			const paymentIntent = await stripe.paymentIntents.create({
-				amount: amountInCents,
-				currency: 'eur',
-				automatic_payment_methods: {
-					enabled: true
-				},
-				metadata: {
-					email,
-					name: `${name.trim()} ${surname.trim()}`
-				},
-				// Request 3DS when needed
-				payment_method_options: {
-					card: {
-						request_three_d_secure: 'automatic'
-					}
-				}
-			});
-			// 	In the context of Stripe's API, request_three_d_secure can be set to:
-			// 'any' – for trying 3DS with a preference for a frictionless or challenge flow.
-			// 'challenge' – explicitly requesting an active challenge flow.
-			// 'automatic' – letting Stripe decide dynamically based on risk.
-			// 'off' – explicitly avoiding 3DS authentication.
-
-			// console.log('paymentIntent.id', paymentIntent.id);
-			// console.log('paymentIntent.client_secret', paymentIntent.client_secret);
-
-			return {
-				action: 'createPaymentIntent',
-				success: true,
-				payload: {
-					clientSecret: paymentIntent.client_secret,
-					paymentIntentId: paymentIntent.id
-				}
-			};
-		} catch (err: any) {
-			console.error('PaymentIntent creation error:', err);
-			return fail(400, {
-				action: 'createPaymentIntent',
-				success: false,
-				message: `Errore creazione pagamento: ${err.message}`
-			});
-		}
-	},
-
-	new: async ({ request, fetch, locals, cookies }) => {
+export const actions: Actions = {	new: async ({ request, fetch, locals, cookies }) => {
 		const formData = await request.formData();
 		const name = formData.get('name') as string;
 		const surname = formData.get('surname') as string;
-		const email = formData.get('email').toString().toLowerCase().trim();
+		const email = formData.get('email')?.toString().toLowerCase().trim() || '';
 		const address = formData.get('address') as string;
 		const city = formData.get('city') as string;
 		const county = formData.get('county') as string;
@@ -266,683 +226,295 @@ export const actions: Actions = {
 		const payment = formData.get('payment') as string;
 		const password1: any = (formData.get('password1') as string) || '';
 		const password2 = (formData.get('password2') as string) || '';
-		const totalValue = formData.get('totalValue') as string;
+		const totalValue = Number(formData.get('totalValue'));
 		const cart = formData.get('cart') as string;
 		const cartItem = JSON.parse(String(cart)) || null;
 		const discountList = formData.get('discountList') as string;
 		const totalDiscount = formData.get('totalDiscount') || 0;
-		//const paymentMethodId = formData.get('paymentMethodId') as string | null;
-		const paymentIntentId = formData.get('paymentIntentId') as string | null; // Changed from paymentMethodId
 		const promoterId = formData.get('promoterId') as string | null;
-		const isEvent = formData.get('isEvent') === 'true' ? true : false;
-
+		const isEvent = formData.get('isEvent') === 'true';
 		const bundle = formData.get('bundleProducts');
 		const bundleProducts = JSON.parse(String(bundle)) || [];
+		const existingNotes = (formData.get('orderNotes') as string) || '';
 
-		const existingNotes = formData.get('orderNotes') as string || '';
+		const currentUserId: string = locals.user?.userId ?? '';
 
-		// console.log('cartItem.notificationEmail', cartItem.notificationEmail);
-		// return
-
-		//const file = formData.get('image') || '';
-		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
-
-		let currentUserId: string = locals.user?.userId ?? '';
-
-		//let membership = [];
-		let userExist = locals.auth;
-
+		// ---- enrollment check (pre-payment, so a rejected check costs nothing) ----
 		if (locals.auth && currentUserId) {
 			const checkEnrollmentRes = await fetch(`${BASE_URL}/api/mongo/find`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey: APIKEY,
 					schema: 'user',
-					query: {
-						userId: currentUserId,
-						courseJoined: cartItem.prodId
-					},
+					query: { userId: currentUserId, courseJoined: cartItem?.prodId },
 					projection: { _id: 1 },
 					limit: 1
 				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
+				headers: { 'Content-Type': 'application/json' }
 			});
 
 			if (!checkEnrollmentRes.ok) {
-				return fail(400, {
-					action: 'new',
-					success: false,
-					message: 'Errore nel controllo iscrizione'
-				});
+				return fail(400, { action: 'new', success: false, message: 'Errore nel controllo iscrizione' });
 			}
 
 			const alreadyEnrolled = await checkEnrollmentRes.json();
-
 			if (alreadyEnrolled.length > 0) {
-				return fail(400, {
-					action: 'new',
-					success: false,
-					message: 'Sei già iscritto a questo corso'
-				});
+				return fail(400, { action: 'new', success: false, message: 'Sei già iscritto a questo corso' });
 			}
 		}
 
-		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'user', //product | order | user | layout | discount
-				query: { email },
-				projection: { email: 1 },
-				sort: { createdAt: -1 },
-				limit: 1,
-				skip: 0
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
-		const membershipFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'product', //product |order | user | layout | discount								
-				query: { type: 'membership', title: 'Socio ordinario' }, //IF USE Products.model -> type: course / product / membership / event
-				projection: { _id: 0, userView: 0, layoutView: 0 }, // 0: exclude | 1: 'include',
-				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
-				limit: 1,
-				skip: 0
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
-		// Crea la stringa con gli sconti applicati
-		const discountNotes = (() => {
-			if (!discountList || discountList === '[]') return '';
-
-			try {
-				const discounts = JSON.parse(discountList);
-				if (!Array.isArray(discounts) || discounts.length === 0) return '';
-
-				const discountCodes = discounts.map(item => item.code).join(', ');
-				return `Codici sconto applicati: ${discountCodes}`;
-			} catch (error) {
-				console.error('Error parsing discountList:', error);
-				return '';
-			}
-		})();
-
-		// Fai l'append delle note sconti alle note esistenti
-		const finalNotes = existingNotes && discountNotes
-			? `${existingNotes}\n\n${discountNotes}`
-			: existingNotes || discountNotes;
-
-		const mailFetch = (email, order) =>
-			fetch(`${BASE_URL}/api/mailer/new-order`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey: APIKEY,
-					email,
-					order
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-
-		const mail12massaggi = (email, order) =>
-			fetch(`${BASE_URL}/api/mailer/new-order-12massaggi`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey: APIKEY,
-					email,
-					order
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-
-
-
-		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || !cart || !cartItem) {
+		// ---- validation (nothing has been charged yet) ----
+		// A zero total is legitimate (free events), so test for a real number rather than truthiness.
+		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !Number.isFinite(totalValue) || !cart || !cartItem) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
-
 		if (!locals.auth && password1 !== password2) {
 			return fail(400, { action: 'new', success: false, message: 'Password non corrispondenti' });
 		}
-
 		if (!locals.auth && (password1 == '' || password2 == '')) {
 			return fail(400, { action: 'new', success: false, message: 'Password non valide' });
 		}
 
-		// Stripe payment processing
-		//let paymentIntentId: string | null = null;
-		let paymentVerified = false;
-		if (payment === 'Carta di credito') {
-			//if (!paymentMethodId) {
-			if (!paymentIntentId) {
-				return fail(400, {
-					action: 'new',
-					success: false,
-					message: 'ID metodo di pagamento non valido.'
-				});
-			}
-
-			try {
-				const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-
-				if (paymentIntent.status !== 'succeeded') {
-					return fail(400, {
-						action: 'new',
-						success: false,
-						message: `Pagamento non completato: ${paymentIntent.status}`
-					});
-				}
-				paymentVerified = true;
-			} catch (err: any) {
-				console.error('PaymentIntent verification error:', err);
-				return fail(400, {
-					action: 'new',
-					success: false,
-					message: `Errore verifica pagamento: ${err.message}`
-				});
-			}
-		}
-
-		// not necessary, but extra check
-		if (payment === 'Carta di credito' && !paymentVerified) {
-			if (!paymentIntentId) {
-				return fail(400, {
-					action: 'new',
-					success: false,
-					message: 'Pagamento non completato.'
-				});
-			}
-		}
-
-		if (!locals.auth) {
-			try {
-				const userRes = await userFetch;
-				if (!userRes.ok) {
-					console.error('user fetch failed', userRes.status, await userRes.text());
-
-					return fail(400, { action: 'new', success: false, message: 'errore database user' });
-				}
-				const response = await userRes.json();
-
-				if (response.length > 0) {
-					userExist = true;
-					return fail(400, { action: 'new', success: false, message: 'email esistente' });
-				}
-
-			} catch (error) {
-				console.log('userCheck error:', error);
-			}
-
-			if (!userExist) {
-				try {
-					const cookieId = crypto.randomUUID();
-					const res = await fetch(`${BASE_URL}/api/mongo/create`, {
-						method: 'POST',
-						body: JSON.stringify({
-							apiKey: APIKEY,
-							schema: 'user', //product | order | user | layout | discount
-							newDoc: {
-								userId: nanoid(),
-								userCode: crypto.randomUUID(),
-								name,
-								surname,
-								email,
-								address,
-								postalCode,
-								city,
-								county,
-								country,
-								phone,
-								mobilePhone,
-								password: hash(password1, SALT),
-								cookieId,
-								// "membership.membershipLevel": 'Socio ordinario',
-								"membership.membershipSignUp": new Date(),
-								// "membership.membershipActivation": new Date(),
-								// "membership.membershipExpiry": new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-								//"membership.membershipStatus": paymentIntentId ? true : false,
-								"membership.membershipStatus": paymentVerified
-							},
-							returnObj: true
-						}),
-						headers: {
-							'Content-Type': 'application/json'
-						}
-					});
-
-					if (res.status != 200) {
-						return fail(400, { action: 'user', success: false, message: await res.text() });
-					}
-					const response = await res.json();
-
-					currentUserId = response.userId;
-
-					cookies.set('session_id', cookieId, {
-						httpOnly: true,
-						//maxAge: 60 * 60 * 24 * 7 // one week
-						maxAge: 60 * 60 * 24, // one day
-						sameSite: 'lax',
-						secure: process.env.NODE_ENV === 'production',
-						path: '/'
-					});
-
-				} catch (err) {
-					console.error('Error creating new user:', err);
-					return fail(400, { action: 'user', success: false, message: 'Error new user' });
-				}
-			}
+		// A guest must not attach an order to an account they may not control — checked before
+		// ANY payment method is started, so blocking here never costs the customer money.
+		if (!locals.auth && (await emailAlreadyRegistered(fetch, email))) {
+			return fail(400, {
+				action: 'new',
+				success: false,
+				message: "Questa email è già registrata. Accedi per completare l'ordine, oppure usa un altro indirizzo."
+			});
 		}
 
 		try {
-			const newDoc = {
-				// orderId: nanoid(),
-				// orderCode: crypto.randomUUID(),
-				userId: currentUserId,
-				status: 'requested',
-				orderDate: new Date(),
-				orderConfirmDate: null,
-				promotionId: '',
-				promotionName: '',
-				promoterId: promoterId ? promoterId.trim() : null,
-				agencyId: '',
-				orderConfirmed: false,
-				totalPoints: 0,
-				// totalValue: Number(totalValue),
-				totalVAT: 0,
-				browser: '',
-				orderIp: '',
-				orderNotes: finalNotes,
-				type: 'course',
-				invoicing: {
-					name,
-					surname,
-					businessName: '',
-					vatNumber: '',
-					address,
-					city,
-					county,
-					postalCode,
-					state: '',
-					region: '',
-					country,
-					invoiceNotes: '',
-					email,
-					phone,
-					mobilePhone
-				},
-				shipping: {
-					name,
-					surname,
-					address,
-					city,
-					county,
-					postalCode,
-					state: '',
-					region: '',
-					country,
-					deliveryNotes: '',
-					email,
-					phone,
-					mobilePhone
-					// tracking: {
-					// 	company: '',
-					// 	trackingNumber: '',
-					// 	trackingLink: '',
-					// 	status: '',
-					// 	estimatedDelivery: new Date()
-					// }
-				},
-				payment: {
-					method: payment,
-					//statusPayment: paymentIntentId ? 'done' : 'pending',
-					statusPayment: paymentVerified ? 'done' : 'pending',
-					transactionId: paymentIntentId || '',
-					points: '',
-					value: ''
-				}
-				//cart: [cartItem]
-			};
+			const membershipRes = await fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'product',
+					query: { type: 'membership', title: 'Socio ordinario' },
+					projection: { _id: 0, userView: 0, layoutView: 0 },
+					sort: { createdAt: -1 },
+					limit: 1,
+					skip: 0
+				}),
+				headers: { 'Content-Type': 'application/json' }
+			});
 
-			const membershipRes = await membershipFetch;
 			if (!membershipRes.ok) {
-				return fail(400, {
-					action: 'new',
-					success: false,
-					message: await membershipRes.text()
-				});
+				return fail(400, { action: 'new', success: false, message: await membershipRes.text() });
 			}
-
 			const membership = await membershipRes.json();
-
 			if (membership.length < 1) {
 				return fail(400, { action: 'new', success: false, message: 'Missing membership' });
 			}
 
-			let cart = [];
+			const discountNotes = (() => {
+				if (!discountList || discountList === '[]') return '';
+				try {
+					const discounts = JSON.parse(discountList);
+					if (!Array.isArray(discounts) || discounts.length === 0) return '';
+					return `Codici sconto applicati: ${discounts.map((item: any) => item.code).join(', ')}`;
+				} catch (err) {
+					console.error('Error parsing discountList:', err);
+					return '';
+				}
+			})();
 
-			if ((!isEvent && !userExist) || (!isEvent && !locals.user?.membership.membershipStatus)) {
-				cart = [...bundleProducts, cartItem, membership[0]];
+			const finalNotes = existingNotes && discountNotes ? `${existingNotes}\n\n${discountNotes}` : existingNotes || discountNotes;
+
+			const userHasMembership = locals.user?.membership?.membershipStatus;
+			let orderCart: any[] = [];
+			if ((!isEvent && !locals.auth) || (!isEvent && !userHasMembership)) {
+				orderCart = [...bundleProducts, cartItem, membership[0]];
 			} else {
-				cart = [...bundleProducts, cartItem];
+				orderCart = [...bundleProducts, cartItem];
 			}
-			// console.log('cart', cart);
-			// return fail(400, { action: 'new', success: false, message: `bundleProducts` });
 
-			// TODO??? Recalculate to prevent client-side manipulation
-
-			// Cart order
-			const orderId = nanoid();
-			const orderCode = crypto.randomUUID();
-			const orderRes = await fetch(`${BASE_URL}/api/mongo/create`, {
+			// ---- authoritative pricing (floor check) ----
+			// The charge must at least cover the DB price of the item being bought, less the
+			// server-recomputed discount. A floor rather than an equality check is used because the
+			// client total also carries the membership surcharge, and bundle items are not priced.
+			const priceRes = await fetch(`${BASE_URL}/api/mongo/find`, {
 				method: 'POST',
 				body: JSON.stringify({
 					apiKey: APIKEY,
-					schema: 'order', //product | order | user | layout | discount
-					newDoc: {
-						orderId,
-						orderCode,
-						totalValue: Number(totalValue),
-						totalDiscount: Number(totalDiscount),
-						...newDoc,
-						//cart: [cartItem]
-						cart
-					},
-					returnObj: true
+					schema: 'product',
+					query: { prodId: cartItem.prodId },
+					projection: { _id: 0 },
+					sort: { createdAt: -1 },
+					limit: 1,
+					skip: 0
 				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
+				headers: { 'Content-Type': 'application/json' }
 			});
-
-			if (!orderRes.ok) {
-				const errText = await orderRes.text()
-				tools.write(errText, null, null);
-				return fail(400, { action: 'new', success: false, message: `res: ${errText}` });
+			if (!priceRes.ok) {
+				return fail(400, { action: 'new', success: false, message: 'Errore lettura prezzi' });
 			}
-			const order = await orderRes.json();
-
-			if (orderRes.ok) {
-				if (!locals.user?.membership.membershipStatus) {
-					const newExpire = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
-					const membershipUpdateRes = await fetch(`${BASE_URL}/api/mongo/update`, {
-						method: 'POST',
-						body: JSON.stringify({
-							apiKey: APIKEY,
-							schema: 'user', //product | order | user | layout | discount
-							query: { userId: locals.user?.userId },
-							update: {
-								$set: {
-									'membership.membershipLevel': 'Socio ordinario',
-									'membership.membershipExpiry': newExpire,
-									//'membership.membershipStatus': paymentIntentId ? true : false,
-									'membership.membershipStatus': paymentVerified,
-								}
-							},
-							options: { upsert: false },
-							multi: false
-						}),
-						headers: {
-							'Content-Type': 'application/json'
-						}
-					});
-
-					if (!membershipUpdateRes.ok) return fail(400, { action: 'new', success: false, message: 'Error new order' });
-				}
-				if (!RECURRING_COURSES.includes(cartItem.prodId)) {
-					const updateSubscribers = await fetch(`${BASE_URL}/api/mongo/update`, {
-						method: 'POST',
-						body: JSON.stringify({
-							apiKey: APIKEY,
-							schema: 'product', //product | order | user | layout | discount
-							query: { type: { $in: ['course', 'event'] }, prodId: cartItem.prodId }, // 'course', 'product', 'membership', 'event',
-							update: {
-								$addToSet: { // $push: {
-									listSubscribers: {
-										userId: currentUserId, email, name, surname, phone, mobilePhone,
-										...promoterId ? { promoterId: promoterId.trim() } : { promoterId: null }
-									}
-								}
-							},
-							options: { upsert: false },
-							multi: false
-						}),
-						headers: {
-							'Content-Type': 'application/json'
-						}
-					});
-
-					if (!updateSubscribers.ok) {
-						return fail(400, {
-							action: 'new',
-							success: false,
-							message: `updateRes: ${await updateSubscribers.text()}`
-						});
-					}
-				}
-
-				//const mailArray = [...cartItem.notificationEmail, email]; // mail amministrazione dienchan?
-				const mailArray = [email, "vantri70@gmail.com"]; // mail amministrazione dienchan?
-				let mailRes;
-
-				if (RECURRING_COURSES.includes(cartItem.prodId)) { // corsi ricorrenti: prodId 12 massaggi mattutini CQ112QCNK // layoutId PYSYPA4QCTH1 + F82B3JBZT (il 15 di ogni mese) → template per corso nel mailer
-					mailRes = await mail12massaggi(mailArray, order);
-				} else {
-					mailRes = await mailFetch(mailArray, order);
-				}
-
-				if (!mailRes.ok) {
-					// return fail(400, {
-					// 	action: 'new',
-					// 	success: false,
-					// 	message: `mailRes: ${await mailRes.text()}`
-					// });
-					console.error(`mailRes: ${await mailRes.text()}`);
-				}
-				const notificationFetch = (email, order) => {
-					const courseItem = order.cart.find((item) => item.type === 'course' || item.type === 'event');
-					const courseTitle = courseItem?.layoutView.title;
-					const send = fetch(`${BASE_URL}/api/mailer/default`, {
-						method: 'POST',
-						body: JSON.stringify({
-							apiKey: APIKEY,
-							email,
-							content: `${name} ${surname}: iscrizione al corso ${courseTitle}<br>
-					email: ${email}.`
-						}),
-						headers: {
-							'Content-Type': 'application/json'
-						}
-					});
-					return send
-				}
-
-				const notificationRes = await notificationFetch(cartItem.notificationEmail, order);
-				if (!notificationRes.ok) {
-					console.error(`notificationRes: ${await notificationRes.text()}`);
-				}
-
-				if (!RECURRING_COURSES.includes(cartItem.prodId)) {
-					const updateUserFetch = () => fetch(`${BASE_URL}/api/mongo/update`, {
-						method: 'POST',
-						body: JSON.stringify({
-							apiKey: APIKEY,
-							schema: 'user', //product | order | user | layout | discount
-							query: { userId: currentUserId }, // 'course', 'product', 'membership', 'event',
-							update: {
-								$addToSet: { // $push
-									courseJoined: cartItem.prodId
-								}
-							},
-							options: { upsert: false },
-							multi: false
-						}),
-						headers: {
-							'Content-Type': 'application/json'
-						}
-					});
-
-					const updateUserRes = await updateUserFetch();
-
-					if (!updateUserRes.ok) {
-						return fail(400, {
-							action: 'new',
-							success: false,
-							message: `updateUserRes: ${await updateUserRes.text()}`
-						});
-					}
-
-					const updateQty = bundleProducts.map(async (item) => {
-						const updateQtyRes = await fetch(`${BASE_URL}/api/mongo/update`, {
-							method: 'POST',
-							body: JSON.stringify({
-								apiKey: APIKEY,
-								schema: 'product',
-								query: { prodId: item.prodId },
-								update: {
-									$inc: {
-										stockQty: -1
-									}
-								},
-								options: { upsert: false },
-								multi: false
-							}),
-							headers: {
-								'Content-Type': 'application/json'
-							}
-						});
-
-						if (!updateQtyRes.ok) {
-							const errorData = await updateQtyRes.json();
-							console.error(`Failed to update prodId ${item.prodId}:`, errorData);
-							throw new Error(`Failed to update stock for ${item.prodId}`); // return fail do not stop the map and don't trigger try/catch
-						}
-						return updateQtyRes.json();
-					});
-
-					await Promise.all(updateQty);
-				}
-
-
-				if (payment === 'Carta di credito' && promoterId) {
-					const id = cartItem.layoutId
-					let points = 0;
-					let pointsBase = 0;
-					let pointsAvanzato = 0;
-					if (id === 'XW7LYV2LG2BU') points = 10; // base
-					if (id === '794792843') points = 40; // avanzato
-					if (id === 'riflessologo') { // riflessologo
-						pointsBase = 50;
-						pointsAvanzato = 100;
-					}
-
-					//course type
-					const userPointsFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
-						method: 'POST',
-						body: JSON.stringify({
-							apiKey: APIKEY,
-							schema: 'user', //product | order | user | layout | discount
-							query: { email: promoterId }, // 'course', 'product', 'membership', 'event',
-							update: {
-								$inc: {
-									pointsBalance: points
-								},
-								$push: {
-									pointsHistory: {
-										points: points,
-										note: `Commissione ${cartItem.layoutView.title} - Ordine ${orderId}`,
-									}
-								}
-							},
-							options: { upsert: false },
-							multi: false
-						}),
-						headers: {
-							'Content-Type': 'application/json'
-						}
-					});
-
-					if (!userPointsFetch.ok) {
-						return fail(400, {
-							action: 'new',
-							success: false,
-							message: `userPointsFetch: ${await userPointsFetch.text()}`
-						});
-					}
-				}
-				// order response OK
-				// webhook markettari
-				try {
-					// const filePath = resolve("/uploads/webhook.json");
-					////const filePath = resolve("D:/github/dienchan/uploads/webhook.json");
-					// const fileContent = readFileSync(filePath, 'utf-8');
-					// const webhook = JSON.parse(fileContent);
-					//console.log('webhook.url', webhook.url);
-
-					const courseData = cart.filter((item) => item.type === 'course')[0];
-					await fetch("https://nehemias-n8n-prod.brayanjeshua.com/webhook/977bae79-413c-4a54-bf7a-199b7b435eb8", {
-						method: 'POST',
-						body: JSON.stringify({
-							orderId,
-							date: new Date(),
-							courseDate: courseData.eventStartDate,
-							courseName: courseData.layoutView.title,
-							totalValue,
-							statusPayment: newDoc.payment.statusPayment,
-							userId: currentUserId,
-							userEmail: newDoc.invoicing.email,
-							name: newDoc.invoicing.name,
-							surname: newDoc.invoicing.surname
-						}),
-						headers: {
-							'Content-Type': 'application/json'
-						}
-					});
-					//console.log(courseData.eventStartDate, courseData.layoutView.title, newDoc.payment.statusPayment, newDoc.invoicing.email);
-
-				} catch (webhookError) {
-					console.error('Webhook call failed:', webhookError);
-				}
-			} else {
-				return fail(400, { action: 'new', success: false, message: `Errore ordine` });
+			const priceRows: any[] = await priceRes.json();
+			const dbProduct = priceRows[0];
+			if (!dbProduct) {
+				return fail(400, { action: 'new', success: false, message: 'Prodotto non trovato' });
 			}
 
-			if (locals.auth) {
+			const priceSource = cartItem.type === 'course' ? (dbProduct.layoutView ?? {}) : dbProduct;
+			const promoActive =
+				priceSource.promoStatus === 'enabled' &&
+				Number(priceSource.promoPrice) > 0 &&
+				(!priceSource.promoEndDate || new Date(priceSource.promoEndDate) > new Date());
+			const baseUnit = Number(promoActive ? priceSource.promoPrice : priceSource.price);
+			if (!Number.isFinite(baseUnit)) {
+				return fail(400, { action: 'new', success: false, message: 'Prezzo non valido' });
+			}
+
+			const pricedCart = [
+				{
+					...cartItem,
+					price: baseUnit,
+					...(cartItem.layoutView ? { layoutView: { ...cartItem.layoutView, price: baseUnit } } : {})
+				}
+			];
+			const baseTotal = baseUnit * (cartItem.orderQuantity || 1);
+
+			const discountCodes = (JSON.parse(discountList || '[]') as any[]).map((i) => i.code).filter(Boolean);
+			let serverDiscount = 0;
+			if (discountCodes.length) {
+				const dRes = await fetch(`${BASE_URL}/api/mongo/find`, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: APIKEY,
+						schema: 'discount',
+						query: { code: { $in: discountCodes } },
+						projection: { _id: 0, password: 0 },
+						sort: { createdAt: -1 },
+						limit: 1000,
+						skip: 0
+					}),
+					headers: { 'Content-Type': 'application/json' }
+				});
+				if (!dRes.ok) {
+					return fail(400, { action: 'new', success: false, message: 'Errore lettura sconti' });
+				}
+				const discountDocs: DiscountItem[] = await dRes.json();
+				serverDiscount = discountDocs.reduce(
+					(acc: number, d) => acc + calculateItemDiscount(d, pricedCart, baseTotal),
+					0
+				);
+			}
+
+			if (Math.round(Number(totalValue)) < Math.round(baseTotal - serverDiscount)) {
+				return fail(400, { action: 'new', success: false, message: 'Totale non valido' });
+			}
+
+			const invoicing = {
+				name, surname, businessName: '', vatNumber: '', address, city, county, postalCode,
+				state: '', region: '', country, invoiceNotes: '', email, phone, mobilePhone
+			};
+			const shipping = {
+				name, surname, address, city, county, postalCode, state: '', region: '', country,
+				deliveryNotes: '', email, phone, mobilePhone
+			};
+			const isRecurring = RECURRING_COURSES.includes(cartItem.prodId);
+			const newUserData = locals.auth
+				? null
+				: {
+						name, surname, address, postalCode, city, county, country, phone, mobilePhone,
+						passwordHash: hash(password1, SALT), howDidYouKnow: '', eventDetails: ''
+					};
+
+			// promoter commission is derived from the layout, never from the client
+			let promoterPoints = 0;
+			if (promoterId) {
+				const layoutId = cartItem.layoutId;
+				if (layoutId === 'XW7LYV2LG2BU') promoterPoints = 10;
+				if (layoutId === '794792843') promoterPoints = 40;
+			}
+
+			const sharedPayload = {
+				productTitle: cartItem.layoutView?.title ?? 'Corso',
+				orderType: 'course',
+				userId: locals.user?.userId ?? null,
+				newUser: newUserData,
+				cart: orderCart,
+				cartItemProdId: cartItem.prodId,
+				isRecurring,
+				bundleProducts,
+				promoterId: promoterId?.trim() || null,
+				promoterPoints,
+				notificationEmail: cartItem.notificationEmail,
+				mailTemplate: isRecurring ? 'new-order-12massaggi' : 'new-order',
+				mailTo: [email, 'vantri70@gmail.com'],
+				buyerName: `${name} ${surname}`,
+				courseDate: orderCart.find((item) => item.type === 'course')?.eventStartDate,
+				invoicing,
+				shipping,
+				orderNotes: finalNotes,
+				membershipUpdate: !locals.user?.membership?.membershipStatus,
+				subscriber: {
+					userId: currentUserId,
+					email, name, surname, phone, mobilePhone,
+					...(promoterId ? { promoterId: promoterId.trim() } : { promoterId: null })
+				}
+			};
+
+			// ---- bank transfer: order is created immediately, payment pending ----
+			if (payment !== 'Carta di credito') {
+				const { cookieId } = await createOfflineCheckout({
+					flow: 'course',
+					amountCents: Math.round(totalValue * 100),
+					email,
+					name,
+					surname,
+					payload: { ...sharedPayload, paymentMethod: payment, statusPayment: 'pending' }
+				});
+
+				if (cookieId) {
+					cookies.set('session_id', cookieId, {
+						httpOnly: true,
+						maxAge: 60 * 60 * 24,
+						sameSite: 'lax',
+						secure: process.env.NODE_ENV === 'production',
+						path: '/'
+					});
+				}
+
 				return {
 					action: 'new',
 					success: true,
 					message: "L'ordine è stato inviato. Controlla lo storico nel tuo profilo",
-					payload: { redirect: false }
-				};
-
-			} else {
-				return {
-					action: 'new',
-					success: true,
-					message:
-						"Benvenuto! L'ordine è stato inviato. Tra poco verrai reindirizzato sul tuo profilo.",
-					payload: { redirect: true }
+					payload: { redirect: !locals.auth }
 				};
 			}
 
-		} catch (error) {
-			console.error('Error creating new order:', error);
-			return fail(400, { action: 'new', success: false, message: 'Error new order' });
+			// ---- card ----
+			const session = await createCheckoutSession({
+				flow: 'course',
+				amountCents: Math.round(totalValue * 100),
+				email,
+				name,
+				surname,
+				payload: { ...sharedPayload, paymentMethod: 'Carta di credito', statusPayment: 'done' },
+				stripe
+			});
+			// This page is open to guests and the order is written by the webhook, so the only
+			// place a guest account can be logged in is the success page — which requires the
+			// nonce cookie to prove the request comes from the browser that paid.
+			setCheckoutNonceCookie(cookies, session.loginNonce);
+
+			return {
+				action: 'new',
+				success: true,
+				message: 'Reindirizzamento al pagamento…',
+				payload: { redirectUrl: session.url }
+			};
+		} catch (err: any) {
+			console.error('course new error:', err);
+			return fail(400, {
+				action: 'new',
+				success: false,
+				message: "Errore durante la creazione dell'ordine. Riprova o contattaci."
+			});
 		}
 	},
-
 	applyDiscount: async ({ request, fetch, locals }) => {
 		const formData = await request.formData();
 		const discountCode = formData.get('discountCode').toString().toLowerCase().trim();

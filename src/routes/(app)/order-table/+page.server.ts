@@ -57,12 +57,24 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 
 		const resGetOrder = await orderRes.json();
 		if (resGetOrder.length > 0) {
-			getTable = resGetOrder.map((obj: any) => ({
-				...obj,
-				createdAt: obj.createdAt.substring(0, 10),
-				orderDate: obj.orderDate.substring(0, 10),
-				totalCart: (obj.totalValue ?? obj.cart.reduce((total: any, item: any) => total + item.price, 0)).toFixed(2)
-			}));
+			// Defensive: these three fields used to be read with no guard, so a single order
+			// missing a date or a cart threw here and 500'd the whole page — hiding every other
+			// order along with it.
+			const shortDate = (value: any) => (value ? String(value).substring(0, 10) : '');
+
+			getTable = resGetOrder.map((obj: any) => {
+				const cartSum = Array.isArray(obj.cart)
+					? obj.cart.reduce((total: number, item: any) => total + (Number(item?.price) || 0), 0)
+					: 0;
+				const total = Number(obj.totalValue ?? cartSum);
+
+				return {
+					...obj,
+					createdAt: shortDate(obj.createdAt),
+					orderDate: shortDate(obj.orderDate),
+					totalCart: (Number.isFinite(total) ? total : 0).toFixed(2)
+				};
+			});
 		}
 
 		getTableNames = await userRes.json();
@@ -145,14 +157,27 @@ export const actions: Actions = {
 			const oldOrder = await resFetch.json();
 			let oldStatusPayment = '';
 			let orderCartItems = [];
+			let stockAlreadyRestored = false;
+			// The cancel form only posts the orderId, so the enrolment side effects below have to
+			// take the buyer's identity from the order itself.
+			let orderEmail: string | null = null;
+			let orderUserId: string | null = null;
 
 			if (oldOrder.length > 0) {
 				oldStatusPayment = oldOrder[0].payment.statusPayment;
 				orderCartItems = oldOrder[0].cart;
+				stockAlreadyRestored = oldOrder[0].stockRestored === true;
+				orderEmail = oldOrder[0].invoicing?.email ?? oldOrder[0].shipping?.email ?? null;
+				orderUserId = oldOrder[0].userId ?? null;
 			}
 
-			// If payment is being canceled, restore stock quantities
-			if (statusPayment === 'canceled' && oldStatusPayment === 'pending') {
+			// Cancelling has to give the stock back. Stock is taken when the order is created —
+			// straight away for bank transfer, when the payment lands for a card order — so the
+			// return must happen whatever the payment status was. The old check required
+			// `oldStatusPayment === 'pending'`, which meant cancelling a PAID order marked it
+			// cancelled but never put the stock back, and the shop stayed short forever.
+			// `stockRestored` keeps the return once-only, so cancelling twice cannot double it.
+			if (statusPayment === 'canceled' && !stockAlreadyRestored) {
 				const itemsToRestore = cartItem || orderCartItems;
 
 				//const cartItems = orderData[0].cart;
@@ -160,40 +185,45 @@ export const actions: Actions = {
 				//const userId = orderData[0].userId;
 
 				if (itemsToRestore && itemsToRestore.length > 0) {
+					const restoreEmail = (email as string) || orderEmail;
+					const restoreUserId = (userId as string) || orderUserId;
+
 					const restoreQty = itemsToRestore.map(async (item: any) => {
-						// Skip non-product items (courses, events, memberships don't have stock)
-						if (item.type === 'course' || item.type === 'event' || item.type === 'membership') {
-							return Promise.resolve();
-						}
+						const isEnrolment =
+							item.type === 'course' || item.type === 'event' || item.type === 'membership';
 
-						const restoreQtyRes = await fetch(`${BASE_URL}/api/mongo/update`, {
-							method: 'POST',
-							body: JSON.stringify({
-								apiKey: APIKEY,
-								schema: 'product',
-								query: { prodId: item.prodId },
-								update: {
-									$inc: {
-										stockQty: item.orderQuantity || 1
-									}
-								},
-								options: { upsert: false },
-								multi: false
-							}),
-							headers: {
-								'Content-Type': 'application/json'
+						// Courses, events and memberships hold no stock. This used to `return` here,
+						// which made every side effect below unreachable — cancelling a course left
+						// the buyer enrolled and on the subscriber list.
+						if (!isEnrolment) {
+							const restoreQtyRes = await fetch(`${BASE_URL}/api/mongo/update`, {
+								method: 'POST',
+								body: JSON.stringify({
+									apiKey: APIKEY,
+									schema: 'product',
+									query: { prodId: item.prodId },
+									update: {
+										$inc: {
+											stockQty: item.orderQuantity || 1
+										}
+									},
+									options: { upsert: false },
+									multi: false
+								}),
+								headers: {
+									'Content-Type': 'application/json'
+								}
+							});
+
+							if (!restoreQtyRes.ok) {
+								const errorData = await restoreQtyRes.json();
+								console.error(`Failed to restore prodId ${item.prodId}:`, errorData);
+								throw new Error(`Failed to restore stock for ${item.prodId}`);
 							}
-						});
-
-						if (!restoreQtyRes.ok) {
-							const errorData = await restoreQtyRes.json();
-							console.error(`Failed to restore prodId ${item.prodId}:`, errorData);
-							throw new Error(`Failed to restore stock for ${item.prodId}`);
 						}
-						//return restoreQtyRes.json();
 
 						// Remove user from listSubscribers for courses, events, and memberships
-						if ((item.type === 'course' || item.type === 'event' || item.type === 'membership') && email) {
+						if (isEnrolment && restoreEmail) {
 							const removeSubscriberRes = await fetch(`${BASE_URL}/api/mongo/update`, {
 								method: 'POST',
 								body: JSON.stringify({
@@ -202,7 +232,7 @@ export const actions: Actions = {
 									query: { prodId: item.prodId },
 									update: {
 										$pull: {
-											listSubscribers: { email: email }
+											listSubscribers: { email: restoreEmail }
 										}
 									},
 									options: { upsert: false },
@@ -222,13 +252,13 @@ export const actions: Actions = {
 						}
 
 						// Remove course ID from user profile
-						if (item.type === 'course' && userId) {
+						if (item.type === 'course' && restoreUserId) {
 							const removeJoinedRes = await fetch(`${BASE_URL}/api/mongo/update`, {
 								method: 'POST',
 								body: JSON.stringify({
 									apiKey: APIKEY,
 									schema: 'user',  //product | order | user | layout | discount
-									query: { userId },
+									query: { userId: restoreUserId },
 									update: {
 										$pull: { courseJoined: item.prodId }
 									},
@@ -243,8 +273,8 @@ export const actions: Actions = {
 
 							if (!removeJoinedRes.ok) {
 								const errorData = await removeJoinedRes.json();
-								console.error(`Failed to remove courseJoined  from ${userId}:`, errorData);
-								throw new Error(`Failed to remove courseJoined  from ${userId}`);
+								console.error(`Failed to remove courseJoined  from ${restoreUserId}:`, errorData);
+								throw new Error(`Failed to remove courseJoined  from ${restoreUserId}`);
 							}
 						}
 					});
@@ -275,6 +305,8 @@ export const actions: Actions = {
 							...(promoterId && { promoterId: promoterId.trim() }),
 							...(paymentMethod && { 'payment.method': paymentMethod }),
 							...(statusPayment && { 'payment.statusPayment': statusPayment }),
+							// remember that this order already had its stock returned
+							...(statusPayment === 'canceled' && { stockRestored: true }),
 						}
 					},
 					options: { upsert: false },
@@ -505,7 +537,7 @@ export const actions: Actions = {
 					apiKey: APIKEY,
 					schema: 'order',
 					query: { orderId: orderId },
-					projection: { cart: 1, userId: 1, invoicing: 1, _id: 0 },
+					projection: { cart: 1, userId: 1, invoicing: 1, stockRestored: 1, _id: 0 },
 					sort: {},
 					limit: 1,
 					skip: 0
@@ -531,13 +563,16 @@ export const actions: Actions = {
 			const cartItems = orderData[0].cart;
 			const userEmail = orderData[0].invoicing?.email;
 			const userId = orderData[0].userId;
+			// Cancelling an order already returned its stock, and the order can still be deleted
+			// afterwards. Without this the same quantity is added back twice.
+			const stockAlreadyRestored = orderData[0].stockRestored === true;
 			//console.log(userEmail, userId);
 
 			// Restore stock quantities and remove user from listSubscribers
 			if (cartItems && cartItems.length > 0) {
 				const restoreOperations = cartItems.map(async (item) => {
 					// Restore stock for products
-					if (item.type !== 'course' && item.type !== 'event' && item.type !== 'membership') {
+					if (!stockAlreadyRestored && item.type !== 'course' && item.type !== 'event' && item.type !== 'membership') {
 						const restoreQtyRes = await fetch(`${BASE_URL}/api/mongo/update`, {
 							method: 'POST',
 							body: JSON.stringify({

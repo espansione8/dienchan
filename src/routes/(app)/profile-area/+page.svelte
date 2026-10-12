@@ -980,7 +980,7 @@
 					<div class="bg-primary text-primary-content p-6">
 						<div class="flex flex-col items-center">
 							<div class="relative mb-4">
-								{#if userData.uploadfiles.some((file) => file.type === 'profile')}
+								{#if userData.uploadfiles?.some((file) => file.type === 'profile')}
 									<div class="avatar">
 										<div class="w-48 h-48 rounded-full ring ring-emerald-600 ring-offset-base-100 ring-offset-2 overflow-hidden">
 											<Image
@@ -1223,13 +1223,13 @@
 								<NotebookPen size={24} class="text-primary" />
 								<span class="font-semibold text-lg">Formazione</span>
 							</div>
-							{#if userData?.trainingHistory.length > 0}
+							{#if userData?.trainingHistory?.length > 0}
 								<div class="mb-2">
 									<div class="text-base-content/80 text-sm">
-										Ultima formazione: <span class="font-bold">{userData?.trainingHistory[userData?.trainingHistory.length - 1].description}</span>
+										Ultima formazione: <span class="font-bold">{userData?.trainingHistory[userData?.trainingHistory?.length - 1].description}</span>
 									</div>
 									<div class="text-base-content/80 text-sm">
-										Data: {formatDate(userData?.trainingHistory[userData?.trainingHistory.length - 1]?.date)}
+										Data: {formatDate(userData?.trainingHistory[userData?.trainingHistory?.length - 1]?.date)}
 									</div>
 								</div>
 								<button
@@ -2182,7 +2182,7 @@
 					</div>
 					<div class="card bg-base-200/75 shadow-xl p-6">
 						<!-- <h3 class="text-xl font-bold mb-4">Le Tue Voci di Formazione</h3> -->
-						{#if userData?.trainingHistory.length > 0}
+						{#if userData?.trainingHistory?.length > 0}
 							<div class="overflow-x-auto">
 								<table class="table w-full table-zebra">
 									<thead>

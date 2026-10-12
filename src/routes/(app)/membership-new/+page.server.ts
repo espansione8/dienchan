@@ -1,24 +1,34 @@
 import type { PageServerLoad, Actions } from './$types'
 import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK, STRIPE_API } from '$env/static/private';
 import { error, fail } from '@sveltejs/kit';
+import type { Cookies } from '@sveltejs/kit';
 import { hash } from '$lib/tools/hash';
 import { customAlphabet } from 'nanoid'
 import Stripe from 'stripe';
+import {
+	createCheckoutSession,
+	resolveOrCreateUser,
+	setCheckoutNonceCookie
+} from '$lib/server/checkout';
+import type { CheckoutFlow, NewUserData } from '$lib/server/checkout';
+
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9)
 const stripe = new Stripe(STRIPE_KEY_BACK, {
 	apiVersion: STRIPE_API // Use a stable API version https://docs.stripe.com/api/versioning
 });
 
-export const load: PageServerLoad = async ({ fetch, locals, params }) => {
+const INSURANCE_PRICE = 70;
+const VITALIZIO_FALLBACK = 390;
+const ORDINARIO_FALLBACK = 25;
+
+export const load: PageServerLoad = async ({ fetch, locals }) => {
 	let getMembership = [];
 
-	const user = locals.user
 	const membershipFetch = fetch(`${BASE_URL}/api/mongo/find`, {
 		method: 'POST',
 		body: JSON.stringify({
 			apiKey: APIKEY,
 			schema: 'product', //product | order | user | layout | discount
-			//query: { type: 'membership' },
 			query: {
 				$or: [
 					{ title: 'Socio vitalizio' },
@@ -39,7 +49,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 	try {
 		const membershipRes = await membershipFetch;
 		if (membershipRes.status != 200) {
-			console.error('user fetch failed', membershipRes.status, await membershipRes.text());
+			console.error('membership fetch failed', membershipRes.status, await membershipRes.text());
 			throw error(400, 'membershipFetch failed');
 		}
 		getMembership = await membershipRes.json();
@@ -48,885 +58,529 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 		console.log('membershipFetch error:', err);
 		throw error(500, 'Server error');
 	}
-	// if (locals.auth) {
-	// 	user.membership.membershipExpiry = user.membership.membershipExpiry.toISOString().substring(0, 10);
-	// 	user.membership.membershipSignUp = user.membership.membershipSignUp.toISOString().substring(0, 10);
-	// 	user.membership.membershipActivation = user.membership.membershipActivation.toISOString().substring(0, 10);
-	// }
 	return {
-		userData: user,
+		userData: locals.user,
 		auth: locals.auth,
 		getMembership,
 		stripePublishableKey: STRIPE_KEY_FRONT
 	};
 }
 
+// --------------------------------------------------------------------------- shared helpers
+
+type Locals = { user?: any; auth?: any };
+
+/** Fetch the membership product document server-side so the price never comes from the client. */
+const fetchMembershipProduct = async (fetch: typeof globalThis.fetch, title: string) => {
+	const res = await fetch(`${BASE_URL}/api/mongo/find`, {
+		method: 'POST',
+		body: JSON.stringify({
+			apiKey: APIKEY,
+			schema: 'product',
+			query: { type: 'membership', title },
+			projection: { _id: 0, userView: 0, layoutView: 0 },
+			sort: { createdAt: -1 },
+			limit: 1,
+			skip: 0
+		}),
+		headers: { 'Content-Type': 'application/json' }
+	});
+	if (!res.ok) throw new Error(await res.text());
+	const rows = await res.json();
+	if (!rows.length) throw new Error(`Missing membership "${title}"`);
+	return rows[0];
+};
+
+/**
+ * A guest must not silently attach an order to an account they may not control.
+ * This runs BEFORE any payment, so blocking here never costs the customer money.
+ */
+const emailAlreadyRegistered = async (fetch: typeof globalThis.fetch, email: string) => {
+	const res = await fetch(`${BASE_URL}/api/mongo/find`, {
+		method: 'POST',
+		body: JSON.stringify({
+			apiKey: APIKEY,
+			schema: 'user',
+			query: { email },
+			projection: { email: 1 },
+			sort: { createdAt: -1 },
+			limit: 1,
+			skip: 0
+		}),
+		headers: { 'Content-Type': 'application/json' }
+	});
+	if (!res.ok) throw new Error(await res.text());
+	const rows = await res.json();
+	return rows.length > 0;
+};
+
+const INSURANCE_PRODUCT = {
+	title: 'Contributo Socio Praticante',
+	description:
+		"Il presente contributo permette a un socio praticante di godere di alcune agevolazioni quali utilizzo delle sale dell'associazione con tariffa agevolata e inclusione della polizza di copertura RC dell'associazione",
+	price: INSURANCE_PRICE,
+	type: 'insurance',
+	uploadfiles: []
+};
+
+/**
+ * Bank-transfer path: the guest still gets an account (and a session cookie) exactly as on the
+ * card path — only the membership stays inactive until the transfer is confirmed manually.
+ */
+const resolveOfflineUser = async (
+	cookies: Cookies,
+	locals: Locals,
+	email: string,
+	newUser: NewUserData | null,
+	withInsurance: boolean
+): Promise<string> => {
+	const { userId, cookieId } = await resolveOrCreateUser({
+		userId: locals.user?.userId ?? null,
+		email,
+		newUser,
+		activateMembership: false,
+		withInsurance
+	});
+
+	if (cookieId) {
+		cookies.set('session_id', cookieId, {
+			httpOnly: true,
+			maxAge: 60 * 60 * 24,
+			sameSite: 'lax',
+			secure: process.env.NODE_ENV === 'production',
+			path: '/'
+		});
+	}
+	return userId;
+};
+
+const createOfflineOrder = async (fetch: typeof globalThis.fetch, newDoc: any, totalValue: number, cart: any[]) => {
+	const orderId = nanoid();
+	const orderCode = crypto.randomUUID();
+	const res = await fetch(`${BASE_URL}/api/mongo/create`, {
+		method: 'POST',
+		body: JSON.stringify({
+			apiKey: APIKEY,
+			schema: 'order',
+			newDoc: { orderId, orderCode, totalValue, ...newDoc, cart },
+			returnObj: true
+		}),
+		headers: { 'Content-Type': 'application/json' }
+	});
+	if (!res.ok) throw new Error(await res.text());
+	return res.json();
+};
+
+/**
+ * Mail is best-effort: the order is already created by the time this runs, so a network failure
+ * must never turn a successful order into an error response.
+ */
+const mailOrder = async (fetch: typeof globalThis.fetch, path: string, email: string | string[], order: any) => {
+	try {
+		const res = await fetch(`${BASE_URL}/api/mailer/${path}`, {
+			method: 'POST',
+			body: JSON.stringify({ apiKey: APIKEY, email, order }),
+			headers: { 'Content-Type': 'application/json' }
+		});
+		if (!res.ok) console.error(`mailer ${path} failed:`, await res.text());
+	} catch (err) {
+		console.error(`mailer ${path} threw:`, err);
+	}
+};
+
+/** Shared tail for every card checkout: build the payload, open the Stripe session, bind the nonce. */
+const startCardCheckout = async (
+	cookies: Cookies,
+	flow: CheckoutFlow,
+	amountCents: number,
+	payload: Record<string, any>,
+	email: string,
+	name?: string,
+	surname?: string
+) => {
+	const session = await createCheckoutSession({
+		flow,
+		amountCents,
+		email,
+		name,
+		surname,
+		payload,
+		stripe
+	});
+	setCheckoutNonceCookie(cookies, session.loginNonce);
+	return session;
+};
+
+const buildNewUserData = (
+	locals: Locals,
+	form: {
+		name: string; surname: string; address: string; postalCode: string; city: string;
+		county: string; country: string; phone: string; mobilePhone: string;
+		password1: string; howDidYouKnow: string; eventDetails: string;
+	}
+): NewUserData | null => {
+	if (locals.auth) return null;
+	return {
+		name: form.name,
+		surname: form.surname,
+		address: form.address,
+		postalCode: form.postalCode,
+		city: form.city,
+		county: form.county,
+		country: form.country,
+		phone: form.phone,
+		mobilePhone: form.mobilePhone,
+		passwordHash: hash(form.password1, SALT),
+		howDidYouKnow: form.howDidYouKnow,
+		eventDetails: form.eventDetails
+	};
+};
+
 export const actions: Actions = {
-	createPaymentIntent: async ({ request, locals }) => {
-		try {
-			const formData = await request.formData();
-			const totalValue = formData.get('totalValue') as string;
-			const email = formData.get('email')?.toString().toLowerCase().trim();
-			const name = formData.get('name') as string;
-			const surname = formData.get('surname') as string;
 
-			if (!totalValue || !email) {
-				return fail(400, {
-					action: 'createPaymentIntent',
-					success: false,
-					message: 'Dati mancanti'
-				});
-			}
-
-			const amountInCents = Math.round(Number(totalValue) * 100);
-
-			// Create PaymentIntent WITHOUT confirming
-			const paymentIntent = await stripe.paymentIntents.create({
-				amount: amountInCents,
-				currency: 'eur',
-				automatic_payment_methods: {
-					enabled: true
-				},
-				metadata: {
-					email,
-					name: `${name.trim()} ${surname.trim()}`
-				},
-				// Request 3DS when needed
-				payment_method_options: {
-					card: {
-						request_three_d_secure: 'automatic'
-					}
-				}
-			});
-			// 	In the context of Stripe's API, request_three_d_secure can be set to:
-			// 'any' – for trying 3DS with a preference for a frictionless or challenge flow.
-			// 'challenge' – explicitly requesting an active challenge flow.
-			// 'automatic' – letting Stripe decide dynamically based on risk.
-			// 'off' – explicitly avoiding 3DS authentication.
-
-			// console.log('paymentIntent.id', paymentIntent.id);
-			// console.log('paymentIntent.client_secret', paymentIntent.client_secret);
-
-			return {
-				action: 'createPaymentIntent',
-				success: true,
-				payload: {
-					clientSecret: paymentIntent.client_secret,
-					paymentIntentId: paymentIntent.id
-				}
-			};
-		} catch (err: any) {
-			console.error('PaymentIntent creation error:', err);
-			return fail(400, {
-				action: 'createPaymentIntent',
-				success: false,
-				message: `Errore creazione pagamento: ${err.message}`
-			});
-		}
-	},
-
+	/**
+	 * Tesseramento (new membership).
+	 *
+	 * All validation happens BEFORE any money moves. A guest whose email is already registered is
+	 * stopped here and asked to log in, rather than having the order attached to an account they
+	 * may not control.
+	 *
+	 * Historically this "email esistente" check ran *after* the card had been charged, which is
+	 * how 231 payments were taken without an order ever being recorded.
+	 */
 	new: async ({ request, fetch, locals, cookies }) => {
 		const formData = await request.formData();
-		const name = formData.get('name');
-		const surname = formData.get('surname');
+		const name = formData.get('name') as string;
+		const surname = formData.get('surname') as string;
 		const email = formData.get('email')?.toString().toLowerCase().trim() || '';
-		const address = formData.get('address');
-		const city = formData.get('city');
-		const county = formData.get('county');
-		const postalCode = formData.get('postalCode');
-		const country = formData.get('country');
-		const phone = formData.get('phone') || '';
-		const mobilePhone = formData.get('mobilePhone') || '';
-		const payment = formData.get('payment');
-		const membershipLevel = formData.get('membershipLevel') || '';
-		const password1: any = formData.get('password1') || '';
-		const password2 = formData.get('password2') || '';
-		const totalValue = formData.get('totalValue');
-		// const paymentMethodId = formData.get('paymentMethodId') as string | null;
-		const paymentIntentId = formData.get('paymentIntentId') as string | null; // Changed from paymentMethodId
-		const howDidYouKnow = formData.get('howDidYouKnow') || '';
-		const eventDetails = formData.get('eventDetails') || '';
+		const address = formData.get('address') as string;
+		const city = formData.get('city') as string;
+		const county = formData.get('county') as string;
+		const postalCode = formData.get('postalCode') as string;
+		const country = formData.get('country') as string;
+		const phone = (formData.get('phone') as string) || '';
+		const mobilePhone = (formData.get('mobilePhone') as string) || '';
+		const payment = formData.get('payment') as string;
+		const membershipLevel = (formData.get('membershipLevel') as string) || '';
+		const password1: any = (formData.get('password1') as string) || '';
+		const password2 = (formData.get('password2') as string) || '';
+		const howDidYouKnow = (formData.get('howDidYouKnow') as string) || '';
+		const eventDetails = (formData.get('eventDetails') as string) || '';
 
-		// return;
-
-		// const cart = formData.get('cart');
-		// const cartItem = JSON.parse(String(cart)) || null;
-
-		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'user', //product | order | user | layout | discount
-				query: { email },
-				projection: { email: 1 },
-				sort: { createdAt: -1 },
-				limit: 1,
-				skip: 0
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
-
-		const membershipFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'product', //product | order | user | layout | discount
-				query: { type: 'membership', title: membershipLevel }, //IF USE Products.model -> type: course / product / membership / event
-				projection: { _id: 0, userView: 0, layoutView: 0 }, // 0: exclude | 1: include
-				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
-				limit: 1,
-				skip: 0,
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			},
-		});
-
-		const vitalizioFetch = (userId) => fetch(`${BASE_URL}/api/mongo/update`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'user', //product | order | user | layout | discount
-				query: { userId: userId },
-				update: {
-					$set: {
-						'membership.membershipLevel': 'Socio vitalizio',
-						'membership.membershipStatus': true,
-						'membership.membershipExpiry': new Date(Date.now() + 36500 * 24 * 60 * 60 * 1000),
-					}
-				},
-				options: { upsert: false },
-				multi: false
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
-		const mailFetch = (email, order) => fetch(`${BASE_URL}/api/mailer/new-order`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				email,
-				order
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		//const file = formData.get('image') || '';
-		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue);
-		let currentUserId: string = locals.user?.userId ?? '';
-		let membership: any[] = [];
-		let userExist = false;
-
-		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !totalValue || !howDidYouKnow) {
+		// ---- validation (nothing has been charged yet) ----
+		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !howDidYouKnow) {
 			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
-
-
 		if ((howDidYouKnow === 'presentazione' || howDidYouKnow === 'fiera') && !eventDetails) {
-			return fail(400, { action: 'new', success: false, message: 'Specifica i dettagli dell\'evento' });
+			return fail(400, { action: 'new', success: false, message: "Specifica i dettagli dell'evento" });
 		}
-
-		if (!locals.auth && (password1 != password2)) {
-			return fail(400, { action: 'new', success: false, message: 'Password non corrispondenti' });
-		}
-
-		if (!locals.auth && (password1 == '' || password2 == '')) {
-			return fail(400, { action: 'new', success: false, message: 'Password non valide' });
-		}
-
-		// Stripe payment processing
-		// let paymentIntentId: string | null = null;
-		let paymentVerified = false;
-		if (payment === 'Carta di credito') {
-			// if (!paymentMethodId) {
-			if (!paymentIntentId) {
-				return fail(400, {
-					action: 'new',
-					success: false,
-					message: 'ID metodo di pagamento non valido.'
-				});
+		if (!locals.auth) {
+			if (!password1 || !password2) {
+				return fail(400, { action: 'new', success: false, message: 'Password non valide' });
 			}
-
-			try {
-				const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-
-				if (paymentIntent.status !== 'succeeded') {
-					return fail(400, {
-						action: 'new',
-						success: false,
-						message: `Pagamento non completato: ${paymentIntent.status}`
-					});
-				}
-				paymentVerified = true;
-			} catch (err: any) {
-				console.error('PaymentIntent verification error:', err);
-				return fail(400, {
-					action: 'new',
-					success: false,
-					message: `Errore verifica pagamento: ${err.message}`
-				});
+			if (password1 !== password2) {
+				return fail(400, { action: 'new', success: false, message: 'Password non corrispondenti' });
 			}
-		}
-
-		//not needed, but here for extra check
-		if (payment === 'Carta di credito' && !paymentVerified) {
-			if (!paymentIntentId) {
-				return fail(400, {
-					action: 'new',
-					success: false,
-					message: 'Pagamento non completato.'
-				});
+			if (password1.length < 8) {
+				return fail(400, { action: 'new', success: false, message: 'Password troppo corta' });
 			}
 		}
 
 		try {
-			const membershipRes = await membershipFetch
-			if (!membershipRes.ok) {
-				return fail(400, { action: 'new', success: false, message: await membershipRes.text() });
-			}
-			membership = await membershipRes.json()
-			if (membership.length < 1) {
-				return fail(400, { action: 'new', success: false, message: "Missing membership" });
-			}
-
-			if (!locals.auth) {
-				const userRes = await userFetch
-				if (!userRes.ok) {
-					console.error('user fetch failed', userRes.status, await userRes.text());
-					return fail(400, { action: 'new', success: false, message: 'errore database user' });
-				}
-				const response = await userRes.json();
-				if (response.length > 0) {
-					userExist = true;
-					return fail(400, { action: 'new', success: false, message: 'email esistente' });
-				}
-
-				const cookieId = crypto.randomUUID()
-				const resNewUser = await fetch(`${BASE_URL}/api/mongo/create`, {
-					method: 'POST',
-					body: JSON.stringify({
-						apiKey: APIKEY,
-						schema: 'user', //product | order | user | layout | discount
-						newDoc: {
-							userId: nanoid(),
-							userCode: crypto.randomUUID(),
-							name,
-							surname,
-							email,
-							address,
-							postalCode,
-							city,
-							county,
-							country,
-							phone,
-							mobilePhone,
-							password: hash(password1, SALT),
-							cookieId,
-							// "membership.membershipLevel": 'Socio ordinario',
-							"membership.membershipSignUp": new Date(),
-							// "membership.membershipActivation": new Date(),
-							// "membership.membershipExpiry": new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-							"membership.membershipStatus": paymentIntentId ? true : false,
-							extraFieldText1: howDidYouKnow,
-							extraFieldText2: eventDetails,
-						},
-						returnObj: true
-					}),
-					headers: {
-						'Content-Type': 'application/json'
-					}
+			if (!locals.auth && (await emailAlreadyRegistered(fetch, email))) {
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message:
+						"Questa email è già registrata. Accedi per completare l'ordine, oppure usa un altro indirizzo."
 				});
-				if (!resNewUser.ok) {
-					return fail(400, { action: 'resNewUser', success: false, message: await resNewUser.text() });
-				}
-				const newUser = await resNewUser.json();
-				currentUserId = newUser.userId;
-
-				// TODO verificare se questa modifica funziona!
-
-				if (resNewUser.ok && paymentIntentId) {
-					const now = new Date();
-					const expiry = new Date();
-					expiry.setFullYear(expiry.getFullYear() + 1);
-
-					await fetch(`${BASE_URL}/api/mongo/update`, {
-						method: 'POST',
-						body: JSON.stringify({
-							apiKey: APIKEY,
-							schema: 'user',
-							query: { userId: currentUserId },
-							update: {
-								$set: {
-									'membership.membershipLevel': membershipLevel,
-									'membership.membershipStatus': true,
-									'membership.membershipSignUp': now,
-									'membership.membershipActivation': now,
-									'membership.membershipExpiry': expiry
-								}
-							},
-							options: { upsert: false },
-							multi: false
-						}),
-						headers: {
-							'Content-Type': 'application/json'
-						}
-					});
-				}
-
-				userExist = true;
-
-				cookies.set('session_id', cookieId, {
-					httpOnly: true,
-					//maxAge: 60 * 60 * 24 * 7 // one week
-					maxAge: 60 * 60 * 24, // one day
-					sameSite: 'lax',
-					secure: process.env.NODE_ENV === 'production',
-					path: '/'
-				});
-			} else {
-				currentUserId = locals.user.userId
-				userExist = true
 			}
-			// } catch (error) {
-			// 	console.log('userCheck error:', error);
-			// }
 
-			// try {
-			const newDoc = {
-				// orderId: nanoid(),
-				// orderCode: crypto.randomUUID(),
-				userId: currentUserId,
-				status: 'requested',
-				type: 'membership',
-				orderDate: new Date(),
-				orderConfirmDate: null,
-				promotionId: '',
-				promotionName: '',
-				promoterId: '',
-				agencyId: '',
-				orderConfirmed: false,
-				totalPoints: 0,
-				// totalValue: Number(totalValue),
-				totalVAT: 0,
-				browser: '',
-				orderIp: '',
-				orderNotes: '',
-				invoicing: {
-					name,
-					surname,
-					businessName: '',
-					vatNumber: '',
-					address,
-					city,
-					county,
-					postalCode,
-					state: '',
-					region: '',
-					country,
-					invoiceNotes: '',
-					email,
-					phone,
-					mobilePhone
-				},
-				shipping: {
-					name,
-					surname,
-					address,
-					city,
-					county,
-					postalCode,
-					state: '',
-					region: '',
-					country,
-					deliveryNotes: '',
-					email,
-					phone,
-					mobilePhone,
-					// tracking: {
-					// 	company: '',
-					// 	trackingNumber: '',
-					// 	trackingLink: '',
-					// 	status: '',
-					// 	estimatedDelivery: new Date()
-					// }
-				},
-				payment: {
-					method: payment,
-					statusPayment: paymentIntentId ? 'done' : 'pending',
-					transactionId: paymentIntentId || '',
-					points: '',
-					value: ''
-				},
-				//cart: [cartItem]
+			const vitalizio = membershipLevel === 'Socio vitalizio';
+			const membershipProduct = await fetchMembershipProduct(fetch, vitalizio ? 'Socio vitalizio' : 'Socio ordinario');
+			const totalValue = Number(membershipProduct?.price ?? (vitalizio ? VITALIZIO_FALLBACK : ORDINARIO_FALLBACK));
+			const amountCents = Math.round(totalValue * 100);
+
+			const invoicing = {
+				name, surname, businessName: '', vatNumber: '', address, city, county, postalCode,
+				state: '', region: '', country, invoiceNotes: '', email, phone, mobilePhone
 			};
-			//console.log(userExist, membershipLevel, membership);
-
-			if (!userExist || membership.length < 1) return fail(400, { action: 'new', success: false, message: "Errore Ordine" })
-
-			// Membership order
-			const resMembership = await fetch(`${BASE_URL}/api/mongo/create`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey: APIKEY,
-					schema: 'order', //product | order | user | layout | discount
-					newDoc: {
-						orderId: nanoid(),
-						orderCode: crypto.randomUUID(),
-						totalValue: Number(membership[0]?.price || 25.00),
-						...newDoc,
-						cart: membership
-					},
-					returnObj: true
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
+			const newUserData = buildNewUserData(locals, {
+				name, surname, address, postalCode, city, county, country, phone, mobilePhone,
+				password1, howDidYouKnow, eventDetails
 			});
-			if (!resMembership.ok) {
-				return fail(400, { action: 'new', success: false, message: await resMembership.text() });
+
+			// ---- bank transfer: order is created immediately, payment pending ----
+			if (payment !== 'Carta di credito') {
+				const offlineUserId = await resolveOfflineUser(cookies, locals, email, newUserData, false);
+				const order = await createOfflineOrder(
+					fetch,
+					{
+						userId: offlineUserId,
+						status: 'requested', type: 'membership', orderDate: new Date(), orderConfirmDate: null,
+						promotionId: '', promotionName: '', promoterId: '', agencyId: '', orderConfirmed: false,
+						totalPoints: 0, totalVAT: 0, browser: '', orderIp: '', orderNotes: '',
+						invoicing, shipping: { ...invoicing, deliveryNotes: '' },
+						payment: { method: payment, statusPayment: 'pending', transactionId: '', points: '', value: '' }
+					},
+					totalValue,
+					[membershipProduct]
+				);
+				await mailOrder(fetch, 'new-order', email, order);
+				return {
+					action: 'new',
+					success: true,
+					message: "L'ordine è stato inviato. Controlla lo storico nel tuo profilo",
+					payload: { redirect: false }
+				};
 			}
 
-			if (membershipLevel === 'Socio vitalizio') {
-				const resVitalizio = await vitalizioFetch(currentUserId);
-				if (!resVitalizio.ok) {
-					return fail(400, { action: 'new', success: false, message: await resVitalizio.text() });
-				}
-			}
+			// ---- card: prepare everything, then redirect to Stripe ----
+			const session = await startCardCheckout(
+				cookies,
+				'membership-new',
+				amountCents,
+				{
+					productTitle: vitalizio ? 'Socio vitalizio' : 'Socio ordinario',
+					orderType: 'membership',
+					userId: locals.user?.userId ?? null,
+					newUser: newUserData,
+					membershipProduct,
+					extraCart: [],
+					membershipUpdate: {
+						level: vitalizio ? 'Socio vitalizio' : 'Socio ordinario',
+						expiryYears: vitalizio ? 100 : 1,
+						setActivation: true
+					},
+					mailTemplate: 'new-order',
+					mailTo: [email],
+					invoicing,
+					shipping: { ...invoicing, deliveryNotes: '' },
+					orderNotes: ''
+				},
+				email,
+				name,
+				surname
+			);
 
-			const order = await resMembership.json();
-			const mailRes = await mailFetch(email, order);
-			//console.log('mailRes', mailRes);
-
-			if (!mailRes.ok) {
-				return fail(400, { action: 'new', success: false, message: await mailRes.text() });
-			}
-
-			if (locals.auth) {
-				return { action: 'new', success: true, message: "L'ordine è stato inviato. Controlla lo storico nel tuo profilo", payload: { redirect: false } };
-			} else {
-				return { action: 'new', success: true, message: "Benvenuto! L'ordine è stato inviato. Tra poco verrai reindirizzato sul tuo profilo.", payload: { redirect: true } };
-			}
-
-		} catch (error) {
-			console.error('Error creating new order:', error);
-			return fail(400, { action: 'new', success: false, message: 'Error new order' });
+			return { action: 'new', success: true, message: 'Reindirizzamento al pagamento…', payload: { redirectUrl: session.url } };
+		} catch (err: any) {
+			console.error('membership new error:', err);
+			return fail(400, {
+				action: 'new',
+				success: false,
+				message: "Errore durante la creazione dell'ordine. Riprova o contattaci."
+			});
 		}
 	},
 
+	/** Rinnovo tessera — authenticated users only. */
+	renew: async ({ request, fetch, locals, cookies }) => {
+		const userData = locals.user;
+		if (!locals.auth || !userData) {
+			return fail(400, { action: 'renew', success: false, message: 'Devi essere loggato' });
+		}
+		if (!userData.name || !userData.surname || !userData.email || !userData.address ||
+			!userData.city || !userData.county?.[0] || !userData.postalCode || !userData.country) {
+			return fail(400, { action: 'renew', success: false, message: 'Dati utente incompleti' });
+		}
+
+		const formData = await request.formData();
+		const payment = formData.get('payment') as string;
+		if (!payment) {
+			return fail(400, { action: 'renew', success: false, message: 'Metodo di pagamento mancante' });
+		}
+
+		try {
+			const membershipProduct = await fetchMembershipProduct(fetch, 'Socio ordinario');
+			const totalValue = Number(membershipProduct?.price ?? ORDINARIO_FALLBACK);
+			const amountCents = Math.round(totalValue * 100);
+
+			const invoicing = {
+				name: userData.name, surname: userData.surname, businessName: '', vatNumber: '',
+				address: userData.address, city: userData.city, county: userData.county[0],
+				postalCode: userData.postalCode, state: '', region: '', country: userData.country,
+				invoiceNotes: '', email: userData.email, phone: userData.phone, mobilePhone: userData.mobilePhone
+			};
+
+			if (payment !== 'Carta di credito') {
+				const order = await createOfflineOrder(
+					fetch,
+					{
+						userId: userData.userId,
+						status: 'requested', type: 'membership', orderDate: new Date(), orderConfirmDate: null,
+						promotionId: '', promotionName: '', promoterId: '', agencyId: '', orderConfirmed: false,
+						totalPoints: 0, totalVAT: 0, browser: '', orderIp: '', orderNotes: '',
+						invoicing, shipping: { ...invoicing, deliveryNotes: '' },
+						payment: { method: payment, statusPayment: 'pending', transactionId: '', points: '', value: '' }
+					},
+					totalValue,
+					[membershipProduct]
+				);
+				await mailOrder(fetch, 'new-order', userData.email, order);
+				return {
+					action: 'renew',
+					success: true,
+					// the membership is only extended once the transfer is confirmed
+					message:
+						"L'ordine è stato inviato. La tessera sarà rinnovata alla conferma del pagamento.",
+					payload: { redirect: false }
+				};
+			}
+
+			const session = await startCardCheckout(
+				cookies,
+				'membership-renew',
+				amountCents,
+				{
+					productTitle: 'Rinnovo tessera annuale',
+					orderType: 'membership',
+					userId: userData.userId,
+					newUser: null,
+					membershipProduct,
+					extraCart: [],
+					membershipUpdate: { level: 'Socio ordinario', expiryYears: 1, setActivation: false },
+					mailTemplate: 'new-order',
+					mailTo: [userData.email],
+					invoicing,
+					shipping: { ...invoicing, deliveryNotes: '' },
+					orderNotes: ''
+				},
+				userData.email,
+				userData.name,
+				userData.surname
+			);
+
+			return { action: 'renew', success: true, message: 'Reindirizzamento al pagamento…', payload: { redirectUrl: session.url } };
+		} catch (err: any) {
+			console.error('membership renew error:', err);
+			return fail(400, {
+				action: 'renew',
+				success: false,
+				message: "Errore durante il rinnovo della tessera. Riprova o contattaci."
+			});
+		}
+	},
+
+	/** Tesseramento + assicurazione (95 €) — always a new registration. */
 	newWithInsurance: async ({ request, fetch, locals, cookies }) => {
 		const formData = await request.formData();
-		const name = formData.get('name');
-		const surname = formData.get('surname');
+		const name = formData.get('name') as string;
+		const surname = formData.get('surname') as string;
 		const email = formData.get('email')?.toString().toLowerCase().trim() || '';
-		const address = formData.get('address');
-		const city = formData.get('city');
-		const county = formData.get('county');
-		const postalCode = formData.get('postalCode');
-		const country = formData.get('country');
-		const phone = formData.get('phone') || '';
-		const mobilePhone = formData.get('mobilePhone') || '';
-		const payment = formData.get('payment');
-		const password1: any = formData.get('password1') || '';
-		const password2 = formData.get('password2') || '';
-		const paymentIntentId = formData.get('paymentIntentId') as string | null;
-		const howDidYouKnow = formData.get('howDidYouKnow') || '';
-		const eventDetails = formData.get('eventDetails') || '';
-		const promoterId = formData.get('promoterId') as string | null;
-
-		const userFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'user',
-				query: { email },
-				projection: { email: 1 },
-				sort: { createdAt: -1 },
-				limit: 1,
-				skip: 0
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
-		const membershipFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'product',
-				query: { type: 'membership', title: 'Socio ordinario' },
-				projection: { _id: 0, userView: 0, layoutView: 0 },
-				sort: { createdAt: -1 },
-				limit: 1,
-				skip: 0,
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			},
-		});
-
-		// Usa l'endpoint specifico per tessera + assicurazione (con allegato PDF)
-		const mailFetch = (email: string, order: any) => fetch(`${BASE_URL}/api/mailer/new-membership-insurance`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				email,
-				order
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
-		let currentUserId: string = '';
-		let membership: any[] = [];
+		const address = formData.get('address') as string;
+		const city = formData.get('city') as string;
+		const county = formData.get('county') as string;
+		const postalCode = formData.get('postalCode') as string;
+		const country = formData.get('country') as string;
+		const phone = (formData.get('phone') as string) || '';
+		const mobilePhone = (formData.get('mobilePhone') as string) || '';
+		const payment = formData.get('payment') as string;
+		const password1: any = (formData.get('password1') as string) || '';
+		const password2 = (formData.get('password2') as string) || '';
+		const howDidYouKnow = (formData.get('howDidYouKnow') as string) || '';
+		const eventDetails = (formData.get('eventDetails') as string) || '';
+		const promoterId = (formData.get('promoterId') as string) || '';
 
 		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || !howDidYouKnow) {
 			return fail(400, { action: 'newWithInsurance', success: false, message: 'Dati mancanti' });
 		}
-
 		if ((howDidYouKnow === 'presentazione' || howDidYouKnow === 'fiera') && !eventDetails) {
-			return fail(400, { action: 'newWithInsurance', success: false, message: 'Specifica i dettagli dell\'evento' });
+			return fail(400, { action: 'newWithInsurance', success: false, message: "Specifica i dettagli dell'evento" });
 		}
-
-		if (password1 != password2) {
-			return fail(400, { action: 'newWithInsurance', success: false, message: 'Password non corrispondenti' });
-		}
-
-		if (password1 == '' || password2 == '') {
-			return fail(400, { action: 'newWithInsurance', success: false, message: 'Password non valide' });
-		}
-
-		// Stripe payment processing
-		let paymentVerified = false;
-		if (payment === 'Carta di credito') {
-			if (!paymentIntentId) {
-				return fail(400, {
-					action: 'newWithInsurance',
-					success: false,
-					message: 'ID metodo di pagamento non valido.'
-				});
+		if (!locals.auth) {
+			if (!password1 || !password2) {
+				return fail(400, { action: 'newWithInsurance', success: false, message: 'Password non valide' });
 			}
-
-			try {
-				const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-
-				if (paymentIntent.status !== 'succeeded') {
-					return fail(400, {
-						action: 'newWithInsurance',
-						success: false,
-						message: `Pagamento non completato: ${paymentIntent.status}`
-					});
-				}
-				paymentVerified = true;
-			} catch (err: any) {
-				console.error('PaymentIntent verification error:', err);
-				return fail(400, {
-					action: 'newWithInsurance',
-					success: false,
-					message: `Errore verifica pagamento: ${err.message}`
-				});
+			if (password1 !== password2) {
+				return fail(400, { action: 'newWithInsurance', success: false, message: 'Password non corrispondenti' });
 			}
-		}
-
-		if (payment === 'Carta di credito' && !paymentVerified) {
-			if (!paymentIntentId) {
-				return fail(400, {
-					action: 'newWithInsurance',
-					success: false,
-					message: 'Pagamento non completato.'
-				});
+			if (password1.length < 8) {
+				return fail(400, { action: 'newWithInsurance', success: false, message: 'Password troppo corta' });
 			}
 		}
 
 		try {
-			const membershipRes = await membershipFetch;
-			if (!membershipRes.ok) {
-				return fail(400, { action: 'newWithInsurance', success: false, message: await membershipRes.text() });
-			}
-			membership = await membershipRes.json();
-			if (membership.length < 1) {
-				return fail(400, { action: 'newWithInsurance', success: false, message: "Missing membership" });
-			}
-
-			// Check if user exists
-			const userRes = await userFetch;
-			if (!userRes.ok) {
-				console.error('user fetch failed', userRes.status, await userRes.text());
-				return fail(400, { action: 'newWithInsurance', success: false, message: 'errore database user' });
-			}
-			const response = await userRes.json();
-			if (response.length > 0) {
-				return fail(400, { action: 'newWithInsurance', success: false, message: 'email esistente' });
-			}
-
-			// Create new user - UGUALE ALL'ACTION NEW
-			const cookieId = crypto.randomUUID();
-
-			const resNewUser = await fetch(`${BASE_URL}/api/mongo/create`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey: APIKEY,
-					schema: 'user',
-					newDoc: {
-						userId: nanoid(),
-						userCode: crypto.randomUUID(),
-						name,
-						surname,
-						email,
-						address,
-						postalCode,
-						city,
-						county,
-						country,
-						phone,
-						mobilePhone,
-						password: hash(password1, SALT),
-						cookieId,
-						"membership.membershipSignUp": new Date(),
-						"membership.membershipStatus": paymentIntentId ? true : false,
-						"insurance.insuranceStatus": false,
-						extraFieldText1: howDidYouKnow,
-						extraFieldText2: eventDetails,
-					},
-					returnObj: true
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-
-			if (!resNewUser.ok) {
-				return fail(400, { action: 'newWithInsurance', success: false, message: await resNewUser.text() });
-			}
-			const newUser = await resNewUser.json();
-			currentUserId = newUser.userId;
-
-			// Update membership data if payment successful - UGUALE ALL'ACTION NEW
-			if (resNewUser.ok && paymentIntentId) {
-				const now = new Date();
-				const expiry = new Date();
-				expiry.setFullYear(expiry.getFullYear() + 1);
-
-				await fetch(`${BASE_URL}/api/mongo/update`, {
-					method: 'POST',
-					body: JSON.stringify({
-						apiKey: APIKEY,
-						schema: 'user',
-						query: { userId: currentUserId },
-						update: {
-							$set: {
-								'membership.membershipLevel': 'Socio ordinario',
-								'membership.membershipStatus': true,
-								'membership.membershipSignUp': now,
-								'membership.membershipActivation': now,
-								'membership.membershipExpiry': expiry
-							}
-						},
-						options: { upsert: false },
-						multi: false
-					}),
-					headers: {
-						'Content-Type': 'application/json'
-					}
+			if (!locals.auth && (await emailAlreadyRegistered(fetch, email))) {
+				return fail(400, {
+					action: 'newWithInsurance',
+					success: false,
+					message:
+						"Questa email è già registrata. Accedi per completare l'ordine, oppure usa un altro indirizzo."
 				});
 			}
 
-			// Set cookie
-			cookies.set('session_id', cookieId, {
-				httpOnly: true,
-				maxAge: 60 * 60 * 24,
-				sameSite: 'lax',
-				secure: process.env.NODE_ENV === 'production',
-				path: '/'
+			const membershipProduct = await fetchMembershipProduct(fetch, 'Socio ordinario');
+			const membershipPrice = Number(membershipProduct?.price ?? ORDINARIO_FALLBACK);
+			const totalValue = membershipPrice + INSURANCE_PRICE;
+			const amountCents = Math.round(totalValue * 100);
+
+			const invoicing = {
+				name, surname, businessName: '', vatNumber: '', address, city, county, postalCode,
+				state: '', region: '', country, invoiceNotes: '', email, phone, mobilePhone
+			};
+			const newUserData = buildNewUserData(locals, {
+				name, surname, address, postalCode, city, county, country, phone, mobilePhone,
+				password1, howDidYouKnow, eventDetails
 			});
 
-			const baseOrderDoc = {
-				userId: currentUserId,
-				status: 'requested',
-				orderDate: new Date(),
-				orderConfirmDate: null,
-				promotionId: '',
-				promotionName: '',
-				promoterId: promoterId ? promoterId.trim() : '',
-				agencyId: '',
-				orderConfirmed: false,
-				totalPoints: 0,
-				totalVAT: 0,
-				browser: '',
-				orderIp: '',
-				orderNotes: '',
-				invoicing: {
-					name,
-					surname,
-					businessName: '',
-					vatNumber: '',
-					address,
-					city,
-					county,
-					postalCode,
-					state: '',
-					region: '',
-					country,
-					invoiceNotes: '',
-					email,
-					phone,
-					mobilePhone
-				},
-				shipping: {
-					name,
-					surname,
-					address,
-					city,
-					county,
-					postalCode,
-					state: '',
-					region: '',
-					country,
-					deliveryNotes: '',
-					email,
-					phone,
-					mobilePhone
-				},
-				payment: {
-					method: payment,
-					statusPayment: paymentVerified ? 'done' : 'pending',
-					transactionId: paymentIntentId || '',
-					points: '',
-					value: ''
-				},
-			};
-
-			// Prodotto assicurazione da aggiungere al carrello
-			const insuranceProduct = {
-				title: 'Contributo Socio Praticante',
-				description: 'Il presente contributo permette a un socio praticante di godere di alcune agevolazioni quali utilizzo delle sale dell\'associazione con tariffa agevolata e inclusione della polizza di copertura RC dell\'associazione',
-				price: 70,
-				type: 'insurance',
-				uploadfiles: []
-			};
-
-			// Crea UN SOLO ordine con ENTRAMBI i prodotti nel carrello (come il corso base)
-			// type: 'insurance' come richiesto dal collega
-			const membershipPrice = Number(membership[0]?.price || 25.00);
-			const insurancePrice = 70;
-			const totalOrderValue = membershipPrice + insurancePrice; // 95€
-
-			const resOrder = await fetch(`${BASE_URL}/api/mongo/create`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey: APIKEY,
-					schema: 'order',
-					newDoc: {
-						orderId: nanoid(),
-						orderCode: crypto.randomUUID(),
-						totalValue: totalOrderValue,
-						...baseOrderDoc,
-						type: 'insurance', // classificato come "assicurazione" anche se ha la tessera
-						cart: [membership[0], insuranceProduct] // 2 item nel carrello: tessera + assicurazione
+			if (payment !== 'Carta di credito') {
+				const offlineUserId = await resolveOfflineUser(cookies, locals, email, newUserData, true);
+				const order = await createOfflineOrder(
+					fetch,
+					{
+						userId: offlineUserId,
+						status: 'requested', type: 'insurance', orderDate: new Date(), orderConfirmDate: null,
+						promotionId: '', promotionName: '', promoterId: promoterId.trim(), agencyId: '',
+						orderConfirmed: false, totalPoints: 0, totalVAT: 0, browser: '', orderIp: '', orderNotes: '',
+						invoicing, shipping: { ...invoicing, deliveryNotes: '' },
+						payment: { method: payment, statusPayment: 'pending', transactionId: '', points: '', value: '' }
 					},
-					returnObj: true
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-
-			if (!resOrder.ok) {
-				return fail(400, { action: 'newWithInsurance', success: false, message: await resOrder.text() });
+					totalValue,
+					[membershipProduct, INSURANCE_PRODUCT]
+				);
+				await mailOrder(fetch, 'new-membership-insurance', email, order);
+				return {
+					action: 'newWithInsurance',
+					success: true,
+					message: "L'ordine è stato inviato. Controlla lo storico nel tuo profilo",
+					payload: { redirect: false }
+				};
 			}
 
-			const order = await resOrder.json();
+			const session = await startCardCheckout(
+				cookies,
+				'membership-insurance',
+				amountCents,
+				{
+					productTitle: 'Socio praticante + assicurazione',
+					orderType: 'insurance',
+					userId: locals.user?.userId ?? null,
+					newUser: newUserData,
+					withInsurance: true,
+					membershipProduct,
+					extraCart: [INSURANCE_PRODUCT],
+					promoterId: promoterId.trim() || null,
+					membershipUpdate: { level: 'Socio ordinario', expiryYears: 1, setActivation: true },
+					mailTemplate: 'new-membership-insurance',
+					mailTo: [email],
+					invoicing,
+					shipping: { ...invoicing, deliveryNotes: '' },
+					orderNotes: ''
+				},
+				email,
+				name,
+				surname
+			);
 
-			// Handle promoter points (15 points for membership+insurance combo)
-			// if (promoterId) {
-			// 	try {
-			// 		// Prima verifica se l'utente promoter esiste
-			// 		const checkPromoter = await fetch(`${BASE_URL}/api/mongo/find`, {
-			// 			method: 'POST',
-			// 			body: JSON.stringify({
-			// 				apiKey: APIKEY,
-			// 				schema: 'user',
-			// 				query: { email: promoterId.trim() },
-			// 				projection: { userId: 1, email: 1, pointsBalance: 1 },
-			// 				limit: 1
-			// 			}),
-			// 			headers: {
-			// 				'Content-Type': 'application/json'
-			// 			}
-			// 		});
-
-			// 		if (!checkPromoter.ok) {
-			// 			console.error('Error checking promoter:', await checkPromoter.text());
-			// 		} else {
-			// 			const promoterData = await checkPromoter.json();
-			// 			console.log('Promoter found:', promoterData);
-
-			// 			if (promoterData.length === 0) {
-			// 				console.error('Promoter email not found in database:', promoterId);
-			// 			} else {
-			// 				// Promoter esiste, aggiorna i punti
-			// 				const userPointsFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
-			// 					method: 'POST',
-			// 					body: JSON.stringify({
-			// 						apiKey: APIKEY,
-			// 						schema: 'user',
-			// 						query: { email: promoterId.trim() },
-			// 						update: {
-			// 							$inc: {
-			// 								pointsBalance: 15
-			// 							},
-			// 							$push: {
-			// 								pointsHistory: {
-			// 									points: 25,
-			// 									note: `Commissione Tessera + Assicurazione - Ordine ${order.orderId}`,
-			// 									date: new Date()
-			// 								}
-			// 							}
-			// 						},
-			// 						options: { upsert: false },
-			// 						multi: false
-			// 					}),
-			// 					headers: {
-			// 						'Content-Type': 'application/json'
-			// 					}
-			// 				});
-
-			// 				if (!userPointsFetch.ok) {
-			// 					console.error('Error updating promoter points:', await userPointsFetch.text());
-			// 				} else {
-			// 					const result = await userPointsFetch.json();
-			// 					console.log('Promoter points updated successfully:', result);
-			// 				}
-			// 			}
-			// 		}
-			// 	} catch (err) {
-			// 		console.error('Exception updating promoter points:', err);
-			// 	}
-			// }
-
-			// Invia email con l'ordine unico (come il corso base)
-			const mailRes = await mailFetch(email, order);
-
-			if (!mailRes.ok) {
-				console.error('Error sending order email:', await mailRes.text());
-			}
-
-			return {
+			return { action: 'newWithInsurance', success: true, message: 'Reindirizzamento al pagamento…', payload: { redirectUrl: session.url } };
+		} catch (err: any) {
+			console.error('membership newWithInsurance error:', err);
+			return fail(400, {
 				action: 'newWithInsurance',
-				success: true,
-				message: "Benvenuto! L'ordine è stato inviato. Tra poco verrai reindirizzato sul tuo profilo.",
-				payload: { redirect: true }
-			};
-
-		} catch (error) {
-			console.error('Error creating new order with insurance:', error);
-			return fail(400, { action: 'newWithInsurance', success: false, message: 'Error new order' });
+				success: false,
+				message: "Errore durante la creazione dell'ordine. Riprova o contattaci."
+			});
 		}
 	},
 
@@ -946,27 +600,16 @@ export const actions: Actions = {
 					limit: 1,
 					skip: 0
 				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
+				headers: { 'Content-Type': 'application/json' }
 			});
 
 			if (!userFetch.ok) {
-				return fail(400, {
-					action: 'applyEmailRef',
-					success: false,
-					message: 'Utente non trovato'
-				});
+				return fail(400, { action: 'applyEmailRef', success: false, message: 'Utente non trovato' });
 			}
 
 			const user = await userFetch.json();
-
 			if (user.length === 0) {
-				return fail(400, {
-					action: 'applyEmailRef',
-					success: false,
-					message: 'Utente non trovato'
-				});
+				return fail(400, { action: 'applyEmailRef', success: false, message: 'Utente non trovato' });
 			}
 
 			return {
@@ -975,354 +618,13 @@ export const actions: Actions = {
 				message: 'Codice amico applicato con successo',
 				payload: discountCode.trim()
 			};
-
-		} catch (error) {
-			console.error('Error applying applyEmailRef:', error);
-
+		} catch (err) {
+			console.error('Error applying applyEmailRef:', err);
 			return fail(500, {
 				action: 'applyEmailRef',
 				success: false,
 				message: "Errore durante l'applicazione del codice"
 			});
 		}
-	},
-
-	renew: async ({ request, fetch, locals }) => {
-		const userData = locals.user;
-		const userId = userData.userId;
-
-		const formData = await request.formData();
-		const payment = formData.get('payment');
-		// const paymentMethodId = formData.get('paymentMethodId') as string | null;
-		const paymentIntentId = formData.get('paymentIntentId') as string | null;
-
-
-		// return;
-
-		let newExpire = new Date()
-
-		// let paymentIntentId: string | null = null;
-
-
-		if (!userData.name || !userData.surname || !userData.email || !userData.address ||
-			!userData.city || !userData.county[0] || !userData.postalCode || !userData.country) {
-			return fail(400, { action: 'renew', success: false, message: 'Dati utente incompleti' });
-		}
-
-		if (userData.membership && userData.membership.membershipStatus) {
-			const currentExpiryDate = new Date(userData.membership.membershipExpiry); // Conversion date string to Date obj
-			currentExpiryDate.setFullYear(currentExpiryDate.getFullYear() + 1);
-			newExpire = currentExpiryDate;
-		} else {
-			newExpire = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
-		}
-
-		if (!payment || !locals.auth) {
-			return fail(400, { action: 'renew', success: false, message: 'Dati mancanti' });
-		}
-
-		const membershipFetch = fetch(`${BASE_URL}/api/mongo/find`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				schema: 'product', //product | order | user | layout | discount
-				query: { type: 'membership', title: 'Socio ordinario' }, //IF USE Products.model -> type: course / product / membership / event
-				projection: { _id: 0, userView: 0, layoutView: 0 }, // 0: exclude | 1: include
-				sort: { createdAt: -1 }, // 1:Sort ascending | -1:Sort descending
-				limit: 1,
-				skip: 0,
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			},
-		});
-
-		const mailFetch = (email, order) => fetch(`${BASE_URL}/api/mailer/new-order`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				email,
-				order
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
-		try {
-			const resMembership = await membershipFetch;
-			if (!resMembership.ok) {
-				return fail(400, { action: 'renew', success: false, message: await resMembership.text() });
-			}
-			const membership = await resMembership.json();
-			let paymentVerified = false;
-
-			// Stripe payment processing
-			if (payment === 'Carta di credito') {
-				// if (!paymentMethodId) {
-				if (!paymentIntentId) {
-					return fail(400, {
-						action: 'renew',
-						success: false,
-						message: 'ID metodo di pagamento non valido.'
-					});
-				}
-
-				try {
-					const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-
-					if (paymentIntent.status !== 'succeeded') {
-						return fail(400, {
-							action: 'renew',
-							success: false,
-							message: `Pagamento non completato: ${paymentIntent.status}`
-						});
-					}
-					paymentVerified = true;
-				} catch (err: any) {
-					console.error('PaymentIntent verification error:', err);
-					return fail(400, {
-						action: 'renew',
-						success: false,
-						message: `Errore verifica pagamento: ${err.message}`
-					});
-				}
-			}
-
-			// not needed, but extra check
-			if (payment === 'Carta di credito' && !paymentVerified) {
-				if (!paymentIntentId) {
-					return fail(400, {
-						action: 'renew',
-						success: false,
-						message: 'Pagamento non completato.'
-					});
-				}
-			}
-
-			const orderFetchRes = await fetch(`${BASE_URL}/api/mongo/create`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey: APIKEY,
-					schema: 'order', //product | order | user | layout | discount
-					newDoc: {
-						orderId: nanoid(),
-						orderCode: crypto.randomUUID(),
-						userId: userData.userId,
-						status: 'requested',
-						type: 'membership',
-						orderDate: new Date(),
-						orderConfirmDate: null,
-						promotionId: '',
-						promotionName: '',
-						promoterId: '',
-						agencyId: '',
-						orderConfirmed: false,
-						totalPoints: 0,
-						totalValue: Number(membership[0]?.price),
-						totalVAT: 0,
-						browser: '',
-						orderIp: '',
-						orderNotes: '',
-						invoicing: {
-							name: userData.name,
-							surname: userData.surname,
-							businessName: '',
-							vatNumber: '',
-							address: userData.address,
-							city: userData.city,
-							county: userData.county[0],
-							postalCode: userData.postalCode,
-							state: '',
-							region: '',
-							country: userData.country,
-							invoiceNotes: '',
-							email: userData.email,
-							phone: userData.phone,
-							mobilePhone: userData.mobilePhone
-						},
-						shipping: {
-							name: userData.name,
-							surname: userData.surname,
-							address: userData.address,
-							city: userData.city,
-							county: userData.county[0],
-							postalCode: userData.postalCode,
-							state: '',
-							region: '',
-							country: userData.country,
-							deliveryNotes: '',
-							email: userData.email,
-							phone: userData.phone,
-							mobilePhone: userData.mobilePhone,
-							// tracking: {
-							// 	company: '',
-							// 	trackingNumber: '',
-							// 	trackingLink: '',
-							// 	status: '',
-							// 	estimatedDelivery: new Date()
-							// }
-						},
-						payment: {
-							method: payment,
-							statusPayment: paymentIntentId ? 'done' : 'pending',
-							transactionId: paymentIntentId || '',
-							points: '',
-							value: ''
-						},
-						cart: membership
-					},
-					returnObj: true
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-
-			// const orderFetch = (membership) => fetch(`${BASE_URL}/api/mongo/create`, {
-			// 	method: 'POST',
-			// 	body: JSON.stringify({
-			// 		apiKey: APIKEY,
-			// 		schema: 'order', //product | order | user | layout | discount
-			// 		newDoc: {
-			// 			orderId: nanoid(),
-			// 			orderCode: crypto.randomUUID(),
-			// 			userId: userData.userId,
-			// 			status: 'requested',
-			// 			type: 'membership',
-			// 			orderDate: new Date(),
-			// 			orderConfirmDate: null,
-			// 			promotionId: '',
-			// 			promotionName: '',
-			// 			promoterId: '',
-			// 			agencyId: '',
-			// 			orderConfirmed: false,
-			// 			totalPoints: 0,
-			// 			totalValue: Number(membership[0]?.price),
-			// 			totalVAT: 0,
-			// 			browser: '',
-			// 			orderIp: '',
-			// 			orderNotes: '',
-			// 			invoicing: {
-			// 				name: userData.name,
-			// 				surname: userData.surname,
-			// 				businessName: '',
-			// 				vatNumber: '',
-			// 				address: userData.address,
-			// 				city: userData.city,
-			// 				county: userData.county[0],
-			// 				postalCode: userData.postalCode,
-			// 				state: '',
-			// 				region: '',
-			// 				country: userData.country,
-			// 				invoiceNotes: '',
-			// 				email: userData.email,
-			// 				phone: userData.phone,
-			// 				mobilePhone: userData.mobilePhone
-			// 			},
-			// 			shipping: {
-			// 				name: userData.name,
-			// 				surname: userData.surname,
-			// 				address: userData.address,
-			// 				city: userData.city,
-			// 				county: userData.county[0],
-			// 				postalCode: userData.postalCode,
-			// 				state: '',
-			// 				region: '',
-			// 				country: userData.country,
-			// 				deliveryNotes: '',
-			// 				email: userData.email,
-			// 				phone: userData.phone,
-			// 				mobilePhone: userData.mobilePhone,
-			// 				// tracking: {
-			// 				// 	company: '',
-			// 				// 	trackingNumber: '',
-			// 				// 	trackingLink: '',
-			// 				// 	status: '',
-			// 				// 	estimatedDelivery: new Date()
-			// 				// }
-			// 			},
-			// 			payment: {
-			// 				method: payment,
-			// 				statusPayment: paymentIntentId ? 'done' : 'pending',
-			// 				transactionId: paymentIntentId || '',
-			// 				points: '',
-			// 				value: ''
-			// 			},
-			// 			cart: membership
-			// 		},
-			// 		returnObj: true
-			// 	}),
-			// 	headers: {
-			// 		'Content-Type': 'application/json'
-			// 	}
-			// });
-
-			//const orderFetchRes = await orderFetch(membership);
-			if (!orderFetchRes.ok) {
-				return fail(400, { action: 'renew', success: false, message: await orderFetchRes.text() });
-			}
-
-			const resUpdate = await fetch(`${BASE_URL}/api/mongo/update`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey: APIKEY,
-					schema: 'user', //product | order | user | layout | discount
-					query: { userId: userId },
-					update: {
-						$set: {
-							'membership.membershipLevel': 'Socio ordinario',
-							'membership.membershipExpiry': newExpire,
-							'membership.membershipStatus': paymentIntentId ? true : false,
-						}
-					},
-					options: { upsert: false },
-					multi: false
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			// const updateFetch = fetch(`${BASE_URL}/api/mongo/update`, {
-			// 	method: 'POST',
-			// 	body: JSON.stringify({
-			// 		apiKey: APIKEY,
-			// 		schema: 'user', //product | order | user | layout | discount
-			// 		query: { userId: userId },
-			// 		update: {
-			// 			$set: {
-			// 				'membership.membershipLevel': 'Socio ordinario',
-			// 				'membership.membershipExpiry': newExpire,
-			// 				'membership.membershipStatus': paymentIntentId ? true : false,
-			// 			}
-			// 		},
-			// 		options: { upsert: false },
-			// 		multi: false
-			// 	}),
-			// 	headers: {
-			// 		'Content-Type': 'application/json'
-			// 	}
-			// });
-
-			//const resUpdate = await updateFetch;
-			if (!resUpdate.ok) {
-				return fail(400, { action: 'renew', success: false, message: await resUpdate.text() });
-			}
-
-			const order = await orderFetchRes.json();
-			const mailRes = await mailFetch(userData.email, order);
-			//console.log('mailRes', await mailRes.json());
-
-			if (!mailRes.ok) {
-				return fail(400, { action: 'renew', success: false, message: await mailRes.text() });
-			}
-
-			return { action: 'renew', success: true, message: "tessera rinnovata con successo" };
-
-		} catch (err) {
-			console.error('Error renew membership:', err);
-			return { action: 'renew', success: false, message: 'Error renew' };
-		}
-	},
-
+	}
 } satisfies Actions;

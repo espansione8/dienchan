@@ -29,5 +29,5 @@ const stripePaymentSchema = new Schema(
 	{ collection: 'stripe_payments', timestamps: true }
 );
 
-export const StripePayment =
+export const StripePayment: mongoose.Model<any> =
 	mongoose.models.StripePayment || mongoose.model('StripePayment', stripePaymentSchema);

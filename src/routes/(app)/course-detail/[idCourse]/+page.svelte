@@ -9,7 +9,6 @@
 	import Loader from '$lib/components/Loader.svelte';
 	import { imgCheck } from '$lib/tools/tools';
 	import { country_list, province, courseId } from '$lib/stores/arrays.js';
-	import { loadStripe, type Stripe, type StripeElements } from '@stripe/stripe-js';
 	import {
 		Lock,
 		Tag,
@@ -28,7 +27,7 @@
 	} from 'lucide-svelte';
 
 	const { data } = $props();
-	const { getCourse, formatoreData, auth, userData, bundleProducts, stripePublishableKey } = data;
+	const { getCourse, formatoreData, auth, userData, bundleProducts } = data;
 	//console.log('bundleProducts', bundleProducts);
 
 	// calcolo il prezzo effettivo
@@ -46,16 +45,7 @@
 		getCourse.layoutView?.promoPrice > 0 &&
 		(!getCourse.layoutView?.promoEndDate || new Date(getCourse.layoutView.promoEndDate) >= new Date());
 
-	// Stripe state
-	let stripe: Stripe | null = $state(null);
-	let elements: StripeElements | null = $state(null);
-	let cardElement: any;
-	let stripeError = $state<string | null>(null);
-
-	//console.log('stripe error', stripeError);
-	//let paymentMethodId = $state<string | null>(null);
-	let clientSecret = $state<string | null>(null);
-	let paymentIntentId = $state<string | null>(null);
+	// Payment happens on Stripe's hosted page; this component no longer touches Stripe.js.
 
 	let formEl: HTMLFormElement;
 
@@ -140,56 +130,6 @@
 		goto('/login');
 	};
 
-	const initializeStripe = async () => {
-		if (!stripePublishableKey) {
-			stripeError = 'La chiave pubblica di Stripe non è disponibile.';
-			return;
-		}
-
-		try {
-			if (!stripe) {
-				stripe = await loadStripe(stripePublishableKey);
-			}
-
-			if (stripe) {
-				if (!elements) {
-					elements = stripe.elements();
-				}
-				cardElement = elements.create('card', {
-					hidePostalCode: true,
-					style: {
-						base: {
-							fontSize: '16px',
-							color: '#424770',
-							'::placeholder': {
-								color: '#aab7c4'
-							}
-						},
-						invalid: {
-							color: '#9e2146'
-						}
-					}
-				});
-
-				// IMPORTANT: element DOM must be in the HTML
-				const cardElementContainer = document.getElementById('card-element');
-				if (cardElementContainer) {
-					cardElement.mount(cardElementContainer);
-					stripeError = null;
-					//console.log('Stripe Card Element montato con successo.');
-				} else {
-					console.error("ERRORE: Elemento '#card-element' non trovato nel DOM per il montaggio di Stripe.");
-					stripeError = "Si è verificato un errore durante l'inizializzazione del pagamento. Riprova.";
-				}
-			} else {
-				stripeError = 'Impossibile caricare Stripe. Riprova più tardi.';
-			}
-		} catch (e: any) {
-			console.error("Errore durante l'inizializzazione di Stripe:", e);
-			stripeError = `Errore di inizializzazione: ${e.message || 'Errore sconosciuto'}`;
-		}
-	};
-
 	const resetFields = () => {
 		formData.name = userData?.name || '';
 		formData.surname = userData?.surname || '';
@@ -204,16 +144,6 @@
 		formData.payment = getCourse.type === 'course' ? 'Carta di credito' : 'Evento gratuito';
 		password1 = '';
 		password2 = '';
-		if (cardElement) {
-			cardElement.destroy();
-			cardElement = null;
-			elements = null;
-			stripe = null;
-			stripeError = null;
-			//paymentMethodId = null;
-			clientSecret = null;
-			paymentIntentId = null;
-		}
 		discountRadio = 'discountCode';
 		courseId.set('');
 	};
@@ -293,11 +223,6 @@
 	const onClickModal = (type: string, item: any) => {
 		currentModal = type;
 		openModal = true;
-		//initializeStripe();
-		// Wait for DOM to update before initializing Stripe
-		if (getCourse.type !== 'event') {
-			tick().then(() => initializeStripe());
-		}
 		if (type == 'new') {
 			postAction = `?/new`;
 			modalTitle = 'Acquista il Corso';
@@ -310,196 +235,8 @@
 		currentModal = '';
 	};
 
-	// NEW: Create PaymentIntent and get client secret
-	const createPaymentIntent = async () => {
-		if (formData.payment !== 'Carta di credito' || clientSecret) {
-			return true;
-		}
-
-		loading = true;
-		stripeError = null;
-
-		try {
-			const response = await fetch('?/createPaymentIntent', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded'
-				},
-				body: new URLSearchParams({
-					totalValue: subTotal.toString(),
-					email: formData.email,
-					name: formData.name,
-					surname: formData.surname
-				})
-			});
-			// const formDataToSend = new FormData();
-			// formDataToSend.append('totalValue', subTotal.toString());
-			// formDataToSend.append('email', formData.email);
-			// formDataToSend.append('name', formData.name);
-			// formDataToSend.append('surname', formData.surname);
-
-			// const response = await fetch('?/createPaymentIntent', {
-			// 	method: 'POST',
-			// 	body: formDataToSend
-			// });
-			const result = await response.json();
-			//console.log('createPaymentIntent result:', result);
-
-			// Check if action was successful
-			if (result.type === 'success' && result.data) {
-				const dataArray: any[] = JSON.parse(result.data);
-				const resSecret = dataArray?.[4];
-				const resIntent = dataArray?.[5];
-				//console.log(resSecret, resIntent);
-
-				if (resSecret && resIntent) {
-					clientSecret = resSecret;
-					paymentIntentId = resIntent;
-					//console.log('PaymentIntent created:', paymentIntentId);
-					loading = false;
-					return true;
-				} else {
-					stripeError = 'Errore durante la creazione del pagamento (1)';
-					notification.error(stripeError);
-					loading = false;
-					return false;
-				}
-			} else if (result.type === 'failure') {
-				stripeError = 'Errore durante la creazione del pagamento (2)';
-				notification.error(stripeError);
-				loading = false;
-				return false;
-			} else {
-				stripeError = 'Errore durante la creazione del pagamento';
-				notification.error(stripeError);
-				loading = false;
-				return false;
-			}
-		} catch (error: any) {
-			console.error('createPaymentIntent error:', error);
-			stripeError = `Errore: ${error.message}`;
-			notification.error(stripeError);
-			loading = false;
-
-			console.log('stripe error', stripeError);
-			return false;
-		}
-	};
-
-	// NEW: Confirm payment with 3DS using Stripe.js
-	const confirmPaymentWith3DS = async () => {
-		if (formData.payment !== 'Carta di credito' || !clientSecret) {
-			return true;
-		}
-
-		loading = true;
-		stripeError = null;
-
-		if (!stripe || !cardElement) {
-			stripeError = 'Stripe non è stato inizializzato correttamente. Riprova.';
-			notification.error(stripeError);
-			loading = false;
-			return false;
-		}
-
-		try {
-			// Use confirmCardPayment which handles 3DS automatically
-			const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-				payment_method: {
-					card: cardElement,
-					billing_details: {
-						name: `${formData.name} ${formData.surname}`,
-						email: formData.email,
-						phone: formData.phone,
-						address: {
-							city: formData.city,
-							country: formData.country === 'Italy' ? 'IT' : formData.country,
-							line1: formData.address,
-							postal_code: formData.postalCode,
-							state: formData.county
-						}
-					}
-				}
-			});
-
-			//console.log('3DpaymentIntent', paymentIntent);
-			//console.log('error', error);
-
-			if (error) {
-				stripeError = error.message;
-				notification.error(stripeError || 'Errore durante il pagamento');
-				loading = false;
-				return false;
-			}
-
-			if (paymentIntent && paymentIntent.status === 'succeeded') {
-				paymentIntentId = paymentIntent.id;
-				//console.log('id', paymentIntent.id, paymentIntentId);
-				loading = false;
-				return true;
-			} else {
-				stripeError = `Pagamento non completato: ${paymentIntent?.status || 'unknown'}`;
-				notification.error(stripeError);
-				loading = false;
-				return false;
-			}
-		} catch (err: any) {
-			stripeError = err.message || 'Errore sconosciuto';
-			notification.error(stripeError);
-			loading = false;
-			return false;
-		}
-	};
-
-	// const getStripeId = async () => {
-	// 	if (formData.payment === 'Carta di credito' && currentStep === totalSteps) {
-	// 		loading = true;
-	// 		stripeError = null;
-
-	// 		if (!stripe || !elements || !cardElement) {
-	// 			stripeError = 'Stripe non è stato inizializzato correttamente. Riprova.';
-	// 			notification.error(stripeError);
-	// 			loading = false;
-	// 		}
-
-	// 		// get PaymentMethod  Stripe.js
-	// 		const { paymentMethod, error } = await stripe.createPaymentMethod({
-	// 			type: 'card',
-	// 			card: cardElement,
-	// 			billing_details: {
-	// 				name: `${userData?.name || 'nome'} ${userData?.surname || 'cognome'}`,
-	// 				email: userData?.email || 'email@example.com',
-	// 				phone: formData.phone,
-	// 				address: {
-	// 					city: formData.city,
-	// 					country: formData.country === 'Italy' ? 'IT' : formData.country,
-	// 					line1: formData.address,
-	// 					postal_code: formData.postalCode,
-	// 					state: formData.county
-	// 				}
-	// 			}
-	// 		});
-
-	// 		if (error) {
-	// 			stripeError = error.message;
-	// 			notification.error(stripeError);
-	// 			console.error('Stripe.js error:', error);
-	// 			loading = false;
-	// 		}
-
-	// 		if (paymentMethod) {
-	// 			paymentMethodId = paymentMethod.id;
-	// 			loading = false;
-	// 			//alert(`paymentMethodId created: ${paymentMethod.id}`);
-	// 		} else {
-	// 			// Edge case: no error but also no paymentMethod (shouldn't happen with Stripe API)
-	// 			stripeError = 'Impossibile creare il metodo di pagamento. Riprova.';
-	// 			notification.error(stripeError);
-	// 			loading = false;
-	// 		}
-	// 	}
-	// };
-
+	// Payment is completed on Stripe's hosted page. The old client-side PaymentIntent
+	// creation and 3DS confirmation have been removed.
 	const formSubmit = () => {
 		loading = true;
 		return async ({ result }: { result: ActionResult }) => {
@@ -509,6 +246,15 @@
 			//console.log('formData', formData);
 			if (result.type === 'success' && result.data) {
 				const { action, message, payload } = result.data; // { action, success, message, payload }
+
+				// Card checkout: the action prepared everything and handed us a Stripe URL.
+				// The order itself is written by the webhook, so it no longer depends on this tab.
+				if (payload?.redirectUrl) {
+					notification.info(message);
+					loading = false;
+					window.location.href = payload.redirectUrl;
+					return;
+				}
 
 				if (action === 'new') {
 					isJoined = true;
@@ -550,51 +296,16 @@
 		};
 	};
 
-	// Handle final submission with payment confirmation
-	const handleFinalSubmit = async (event: Event) => {
-		//event.preventDefault();
-		loading = true;
-
+	// Validate locally, then let the server action take over: card payments come back with a
+	// Stripe redirect URL, bank transfer creates the order immediately.
+	const handleFinalSubmit = async () => {
 		if (!isCurrentStepValid()) {
 			notification.error('Completa tutti i campi richiesti');
 			loading = false;
 			return;
 		}
-
-		// Step 1: Create PaymentIntent if credit card
-		if (formData.payment === 'Carta di credito' && !clientSecret) {
-			const intentCreated = await createPaymentIntent();
-			//console.log('FINAL intentCreated', intentCreated, paymentIntentId);
-			if (!intentCreated) {
-				return;
-			}
-		}
-
-		// Step 2: Confirm payment with 3DS
-		if (formData.payment === 'Carta di credito') {
-			const paymentConfirmed = await confirmPaymentWith3DS();
-			//console.log('FINAL 3DS paymentConfirmed', paymentConfirmed, paymentIntentId);
-			if (!paymentConfirmed) {
-				return;
-			}
-		}
-		// console.log('FINAL paymentIntentId', paymentIntentId);
-		// Step 3: Submit the form
+		loading = true;
 		await tick();
-
-		// let hiddenInput;
-		// if (paymentIntentId) {
-		// 	console.log('INPUT paymentIntentId', paymentIntentId);
-		// 	hiddenInput = document.createElement('input');
-		// 	hiddenInput.type = 'hidden';
-		// 	hiddenInput.name = 'paymentIntentId';
-		// 	hiddenInput.value = paymentIntentId;
-
-		// 	form.appendChild(hiddenInput);
-		// }
-		//console.log('BEFORE', formEl, typeof formEl);
-		//const form = event.target as HTMLFormElement;
-		//form.requestSubmit();
 		if (formEl) {
 			formEl.requestSubmit();
 		}
@@ -1345,9 +1056,7 @@
 									name="payment"
 									value="Bonifico bancario"
 									class="hidden"
-									bind:group={formData.payment}
-									onclick={() => (stripeError = null)}
-								/>
+									bind:group={formData.payment}								/>
 								<Landmark class="h-8 w-8 text-primary" />
 								<span class="text-center font-medium">Bonifico Bancario</span>
 							</label>
@@ -1362,9 +1071,7 @@
 									name="payment"
 									value="Contanti"
 									class="hidden"
-									bind:group={formData.payment}
-									onclick={() => (stripeError = null)}
-								/>
+									bind:group={formData.payment}								/>
 								<HandCoins class="h-8 w-8 text-primary" />
 								<span class="text-center font-medium"> Contanti (all'inizio corso) </span>
 							</label>
@@ -1373,10 +1080,9 @@
 						<div class="card bg-base-100 shadow-xl p-6" class:hidden={formData.payment !== 'Carta di credito'}>
 							<h3 class="text-xl font-semibold mb-4">Informazioni sulla carta di credito</h3>
 							<div class="form-control">
-								<div id="card-element" class="border border-base-300 p-3 rounded-md"></div>
-								{#if stripeError}
-									<p class="text-error text-sm mt-2">{stripeError}</p>
-								{/if}
+								<p class="text-sm text-base-content/70">
+									Verrai reindirizzato al sito sicuro di Stripe per completare il pagamento con carta.
+								</p>
 							</div>
 							<p class="text-sm text-gray-500 mt-2">
 								<Lock size={14} class="inline-block mr-1" /> Le tue informazioni di pagamento sono protette e crittografate con 3D Secure.
@@ -1393,10 +1099,9 @@
 						<!-- <div class="card bg-base-100 shadow-xl p-6" class:hidden={formData.payment !== 'Carta di credito'}>
 							<h3 class="text-xl font-semibold mb-4">Informazioni sulla carta di credito</h3>
 							<div class="form-control">
-								<div id="card-element" class="border border-base-300 p-3 rounded-md"></div>
-								{#if stripeError}
-									<p class="text-error text-sm mt-2">{stripeError}</p>
-								{/if}
+								<p class="text-sm text-base-content/70">
+									Verrai reindirizzato al sito sicuro di Stripe per completare il pagamento con carta.
+								</p>
 							</div>
 							<p class="text-sm text-gray-500 mt-2">
 								<Lock size={14} class="inline-block mr-1" /> Le tue informazioni di pagamento sono protette.
@@ -1488,10 +1193,10 @@
 				{/if} -->
 
 				<!-- {#if paymentIntentId}
-					<input type="hidden" name="paymentIntentId" value={paymentIntentId} />
+				<input type="hidden" name="checkoutFlow" value="course" />
 				{/if} -->
 
-				<input type="hidden" name="paymentIntentId" value={paymentIntentId} />
+				<input type="hidden" name="checkoutFlow" value="course" />
 
 				{#if promoterId}
 					<input type="hidden" name="promoterId" value={promoterId} />
@@ -1521,7 +1226,7 @@
 							type="button"
 							class="btn btn-success"
 							onclick={handleFinalSubmit}
-							disabled={!isCurrentStepValid() || loading || stripeError != null}
+							disabled={!isCurrentStepValid() || loading}
 						>
 							{getCourse.type === 'course' ? 'Conferma Acquisto' : 'Conferma Partecipazione'}
 						</button>

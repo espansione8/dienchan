@@ -6,6 +6,11 @@
 import { APIKEY, BASE_URL } from '$env/static/private';
 import type { Handle } from '@sveltejs/kit';
 import { fail, error } from '@sveltejs/kit';
+import { startCheckoutSweep } from '$lib/server/checkout';
+
+// Start the periodic checkout sweep once per process. It recovers payments that were taken but
+// never written as orders (missed webhook, or the customer closed the tab before the redirect).
+startCheckoutSweep();
 
 // NOTE: src/app.d.ts to set type of event.locals.[name]
 

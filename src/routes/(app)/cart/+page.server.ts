@@ -1,11 +1,12 @@
 import type { PageServerLoad, Actions } from './$types'
 import type { CartItem, DiscountItem } from '$lib/types';
-import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK, STRIPE_API } from '$env/static/private';
+import { BASE_URL, APIKEY, SALT, STRIPE_KEY_BACK, STRIPE_API } from '$env/static/private';
 import { fail, error } from '@sveltejs/kit';
 import { pageAuth } from '$lib/pageAuth';
 import { hash } from '$lib/tools/hash';
 import { customAlphabet } from 'nanoid'
 import Stripe from 'stripe';
+import { createCheckoutSession, createOfflineCheckout } from '$lib/server/checkout';
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9)
 const stripe = new Stripe(STRIPE_KEY_BACK, {
 	apiVersion: STRIPE_API // Use a stable API version https://docs.stripe.com/api/versioning
@@ -17,7 +18,6 @@ export const load: PageServerLoad = async ({ locals, fetch, url }) => {
 	return {
 		userData: locals.user || null,
 		auth: locals.auth,
-		stripePublishableKey: STRIPE_KEY_FRONT
 	};
 };
 
@@ -122,99 +122,54 @@ const calculateItemDiscount = (
 	return totalDiscount;
 }
 
+/**
+ * A guest must not silently attach an order to an account they may not control.
+ * Runs BEFORE any payment, so blocking here never costs the customer money.
+ */
+const emailAlreadyRegistered = async (fetch: typeof globalThis.fetch, email: string) => {
+	const res = await fetch(`${BASE_URL}/api/mongo/find`, {
+		method: 'POST',
+		body: JSON.stringify({
+			apiKey: APIKEY,
+			schema: 'user',
+			query: { email },
+			projection: { email: 1 },
+			sort: { createdAt: -1 },
+			limit: 1,
+			skip: 0
+		}),
+		headers: { 'Content-Type': 'application/json' }
+	});
+	if (!res.ok) throw new Error(await res.text());
+	const rows = await res.json();
+	return rows.length > 0;
+};
+
 export const actions: Actions = {
-
-	createPaymentIntent: async ({ request, locals }) => {
-		try {
-			const formData = await request.formData();
-			const totalValue = formData.get('totalValue') as string;
-			const email = formData.get('email')?.toString().toLowerCase().trim();
-			const name = formData.get('name') as string;
-			const surname = formData.get('surname') as string;
-
-			if (!totalValue || !email) {
-				return fail(400, {
-					action: 'createPaymentIntent',
-					success: false,
-					message: 'Dati mancanti'
-				});
-			}
-
-			const amountInCents = Math.round(Number(totalValue) * 100);
-
-			// Create PaymentIntent WITHOUT confirming
-			const paymentIntent = await stripe.paymentIntents.create({
-				amount: amountInCents,
-				currency: 'eur',
-				automatic_payment_methods: {
-					enabled: true
-				},
-				metadata: {
-					email,
-					name: `${name.trim()} ${surname.trim()}`
-				},
-				// Request 3DS when needed
-				payment_method_options: {
-					card: {
-						request_three_d_secure: 'automatic'
-					}
-				}
-			});
-			// 	In the context of Stripe's API, request_three_d_secure can be set to:
-			// 'any' – for trying 3DS with a preference for a frictionless or challenge flow.
-			// 'challenge' – explicitly requesting an active challenge flow.
-			// 'automatic' – letting Stripe decide dynamically based on risk.
-			// 'off' – explicitly avoiding 3DS authentication.
-
-			// console.log('paymentIntent.id', paymentIntent.id);
-			// console.log('paymentIntent.client_secret', paymentIntent.client_secret);
-
-			return {
-				action: 'createPaymentIntent',
-				success: true,
-				payload: {
-					clientSecret: paymentIntent.client_secret,
-					paymentIntentId: paymentIntent.id
-				}
-			};
-		} catch (err: any) {
-			console.error('PaymentIntent creation error:', err);
-			return fail(400, {
-				action: 'createPaymentIntent',
-				success: false,
-				message: `Errore creazione pagamento: ${err.message}`
-			});
-		}
-	},
-
 	new: async ({ request, fetch, locals, cookies }) => {
 		const formData = await request.formData();
-		const name = formData.get('name');
-		const surname = formData.get('surname');
-		const email = formData.get('email');
-		const address = formData.get('address');
-		const city = formData.get('city');
-		const county = formData.get('county');
-		const postalCode = formData.get('postalCode');
-		const country = formData.get('country');
-		const phone = formData.get('phone') || '';
-		const mobilePhone = formData.get('mobilePhone') || '';
-		const payment = formData.get('payment');
-		const password1: any = formData.get('password1') || '';
-		const password2 = formData.get('password2') || '';
+		const name = formData.get('name') as string;
+		const surname = formData.get('surname') as string;
+		const email = formData.get('email')?.toString().toLowerCase().trim() || '';
+		const address = formData.get('address') as string;
+		const city = formData.get('city') as string;
+		const county = formData.get('county') as string;
+		const postalCode = formData.get('postalCode') as string;
+		const country = formData.get('country') as string;
+		const phone = (formData.get('phone') as string) || '';
+		const mobilePhone = (formData.get('mobilePhone') as string) || '';
+		const payment = formData.get('payment') as string;
+		const password1: any = (formData.get('password1') as string) || '';
+		const password2 = (formData.get('password2') as string) || '';
 		const totalValue = Number(formData.get('totalValue'));
-		const cart = formData.get('cart');
-		//const discountList = formData.get('discountList')
+		const cart = formData.get('cart') as string;
 		const discountList = formData.get('discountList') as string;
-		const cartItem = JSON.parse(String(cart)) || null;
-		const discountItem = JSON.parse(String(discountList)) || [];
-		const discountArray: string[] = JSON.parse(discountList || '[]').map(item => item.code);
-		const newPointsBalance = Number(formData.get('newPointsBalance'));
-		const usedPoints = Number(formData.get('usedPoints')) || 0;
-		const usePoint = formData.get('usePoint') === 'true' // 'true' make it boolean
-		// const paymentMethodId = formData.get('paymentMethodId') as string | null;
-		const paymentIntentId = formData.get('paymentIntentId') as string | null; // Changed from paymentMethodId
-		const storePickUp = formData.get('storePickUp') === 'true' // 'true' make it boolean
+		const cartItem = JSON.parse(String(cart)) || [];
+		const discountArray: string[] = (JSON.parse(discountList || '[]') as any[]).map((item) => item.code);
+		// note: `usedPoints` / `newPointsBalance` are NOT read from the form — the redemption is
+		// recomputed from the account balance further down.
+		const usePoint = formData.get('usePoint') === 'true';
+		const storePickUp = formData.get('storePickUp') === 'true';
 		const orderNotes = formData.get('orderNotes') as string | null;
 		const shippingName = formData.get('shippingName');
 		const shippingSurname = formData.get('shippingSurname');
@@ -227,129 +182,27 @@ export const actions: Actions = {
 		const shippingPostalCode = formData.get('shippingPostalCode');
 		const shippingCountry = formData.get('shippingCountry');
 
-		const finalShippingData = storePickUp ? {
-			name: '',
-			surname: '',
-			email: '',
-			phone: '',
-			mobilePhone: '',
-			address: 'Ritiro in sede',
-			city: '',
-			county: '',
-			postalCode: '',
-			country: ''
-		} : {
-			name: shippingName,
-			surname: shippingSurname,
-			email: shippingEmail,
-			phone: shippingPhone,
-			mobilePhone: shippingMobilePhone,
-			address: shippingAddress,
-			city: shippingCity,
-			county: shippingCounty,
-			postalCode: shippingPostalCode,
-			country: shippingCountry
-		};
+		const finalShippingData = storePickUp
+			? { name: '', surname: '', email: '', phone: '', mobilePhone: '', address: 'Ritiro in sede', city: '', county: '', postalCode: '', country: '' }
+			: {
+					name: shippingName,
+					surname: shippingSurname,
+					email: shippingEmail,
+					phone: shippingPhone,
+					mobilePhone: shippingMobilePhone,
+					address: shippingAddress,
+					city: shippingCity,
+					county: shippingCounty,
+					postalCode: shippingPostalCode,
+					country: shippingCountry
+				};
 
-		if (usePoint && newPointsBalance < 0) {
-			return fail(400, { action: 'new', success: false, message: 'Saldo punti insufficiente' });
+		let totalDiscount = 0;
+
+		// ---- validation (nothing has been charged yet) ----
+		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || cartItem.length < 1) {
+			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
 		}
-
-
-
-		// Calculate total cart on server anche for security
-		const cartRecalculated = () => {
-			let total = 0;
-			cartItem.forEach((element: any) => {
-				if (element.type == 'course') {
-					total += element.layoutView.price * (element.orderQuantity || 1);
-				} else {
-					// Usa il prezzo promo se attivo e non scaduto
-					let effectivePrice = element.price;
-					if (
-						element.promoStatus === 'enabled' &&
-						element.promoPrice &&
-						element.promoPrice > 0
-					) {
-						if (element.promoEndDate) {
-							const endDate = new Date(element.promoEndDate);
-							if (endDate > new Date()) {
-								effectivePrice = element.promoPrice;
-							}
-						} else {
-							effectivePrice = element.promoPrice;
-						}
-					}
-					total += effectivePrice * (element.orderQuantity || 1);
-				}
-			});
-			return total;
-		};
-
-		let totalDiscount = 0
-		if (usePoint) {
-			totalDiscount = discountItem.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0) + usedPoints
-		} else {
-			totalDiscount = discountItem.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0)
-		}
-
-		//const totalDiscount = discountItem.reduce((acc, element: any) => acc + (element.totalDiscount || 0), 0)
-
-		//let recalculatedTotal = cartRecalculated() - totalDiscount;
-		const recalculatedTotal = () => {
-			let total = cartRecalculated() - totalDiscount;
-			// console.log('cartRecalculated()', cartRecalculated())
-			// console.log('totalDiscount', totalDiscount)
-			if (cartRecalculated() < 100 && !storePickUp) {
-				total += 9; // Add delivery fee if total is below 100
-			}
-			return total;
-		};
-		// console.log('totalValue', Number(totalValue));
-		// console.log('recalculatedTotal', recalculatedTotal());
-		// return
-
-		if (Number(totalValue) !== recalculatedTotal()) {
-			return fail(400, { action: 'new', success: false, message: 'Totale non valido' });
-		}
-
-		// Crea la stringa con gli sconti applicati
-		const discountNotes = (() => {
-			if (!discountList || discountList === '[]') return '';
-
-			try {
-				const discounts = JSON.parse(discountList);
-				if (!Array.isArray(discounts) || discounts.length === 0) return '';
-
-				const discountCodes = discounts.map(item => item.code).join(', ');
-				return `Codici sconto applicati: ${discountCodes}`;
-			} catch (error) {
-				console.error('Error parsing discountList:', error);
-				return '';
-			}
-		})();
-
-		// Fai l'append delle note sconti alle note esistenti
-		const finalNotes = orderNotes && discountNotes
-			? `${orderNotes} - ${discountNotes}`
-			: orderNotes || discountNotes;
-
-		const mailFetch = (email, order) => fetch(`${BASE_URL}/api/mailer/new-order`, {
-			method: 'POST',
-			body: JSON.stringify({
-				apiKey: APIKEY,
-				email,
-				order
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
-		//const file = formData.get('image') || '';
-		//console.log(name, surname, email, address, city, county, postalCode, country, phone, mobilePhone, payment, password1, password2, totalValue, cartItem);
-		let currentUserId: string = locals.user?.userId ?? '';
-
 		if (!locals.auth) {
 			if (!password1 || !password2 || password1.length < 8) {
 				return fail(400, { action: 'new', success: false, message: 'Password troppo corta' });
@@ -359,180 +212,151 @@ export const actions: Actions = {
 			}
 		}
 
-		if (!name || !surname || !email || !address || !city || !county || !postalCode || !country || !payment || cartItem.length < 1) {
-			return fail(400, { action: 'new', success: false, message: 'Dati mancanti' });
-		}
-
-		// Stripe payment processing
-		// let paymentIntentId: string | null = null;
-		const amountInCents = Math.round(Number(totalValue) * 100);
-		let paymentVerified = false;
-		if (payment === 'Carta di credito') {
-
-			// if (!paymentMethodId) {
-			if (!paymentIntentId) {
-				return fail(400, {
-					action: 'new',
-					success: false,
-					message: 'ID metodo di pagamento non valido.'
-				});
-			}
-
-			if (amountInCents < 50) {
-				return fail(400, {
-					action: 'new',
-					success: false,
-					message: `Pagamenti con carta solo per importi superiori a € 0.50`
-				});
-			}
-
-			// try {
-			// 	const paymentIntent = await stripe.paymentIntents.create({
-			// 		amount: amountInCents,
-			// 		currency: 'eur',
-			// 		payment_method: paymentMethodId,
-			// 		confirm: true,
-			// 		automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
-			// 	});
-			// 	// console.log('paymentIntent.status', paymentIntent.status)
-			// 	// paymentIntentId = paymentIntent.id;
-			// 	if (paymentIntent.status === 'succeeded') {
-			// 		paymentIntentId = paymentIntent.id;
-			// 	} else {
-			// 		return fail(400, {
-			// 			action: 'new',
-			// 			success: false,
-			// 			message: `Pagamento fallito: ${paymentIntent.status}`
-			// 		});
-			// 	}
-			// } catch (err: any) {
-			// 	console.error('Stripe error:', err);
-			// 	return fail(400, {
-			// 		action: 'new',
-			// 		success: false,
-			// 		message: `Pagamento fallito: ${err.message}`
-			// 	});
-			// }
-
+		const discountNotes = (() => {
+			if (!discountList || discountList === '[]') return '';
 			try {
-				const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-
-				if (paymentIntent.status !== 'succeeded') {
-					return fail(400, {
-						action: 'new',
-						success: false,
-						message: `Pagamento non completato: ${paymentIntent.status}`
-					});
-				}
-				paymentVerified = true;
-			} catch (err: any) {
-				console.error('PaymentIntent verification error:', err);
-				return fail(400, {
-					action: 'new',
-					success: false,
-					message: `Errore verifica pagamento: ${err.message}`
-				});
+				const discounts = JSON.parse(discountList);
+				if (!Array.isArray(discounts) || discounts.length === 0) return '';
+				return `Codici sconto applicati: ${discounts.map((item: any) => item.code).join(', ')}`;
+			} catch (err) {
+				console.error('Error parsing discountList:', err);
+				return '';
 			}
+		})();
 
-		}
+		const finalNotes = orderNotes && discountNotes ? `${orderNotes} - ${discountNotes}` : orderNotes || discountNotes;
 
-		if (!locals.auth) {
-			let userExist = false;
-			try {
-				const res = await fetch(`${BASE_URL}/api/mongo/find`, {
+		try {
+			// ---- authoritative pricing ----
+			// The client's posted prices and discount amounts are never trusted: the total is
+			// rebuilt from the product and discount documents before anything is charged.
+			const productIds = cartItem.map((i: any) => i.prodId).filter(Boolean);
+			const priceRes = await fetch(`${BASE_URL}/api/mongo/find`, {
+				method: 'POST',
+				body: JSON.stringify({
+					apiKey: APIKEY,
+					schema: 'product',
+					query: { prodId: { $in: productIds } },
+					projection: { _id: 0 },
+					sort: { createdAt: -1 },
+					limit: 1000,
+					skip: 0
+				}),
+				headers: { 'Content-Type': 'application/json' }
+			});
+			if (!priceRes.ok) {
+				return fail(400, { action: 'new', success: false, message: 'Errore lettura prezzi' });
+			}
+			const catalog: any[] = await priceRes.json();
+			const byProdId = new Map(catalog.map((row) => [row.prodId, row]));
+
+			const unitPrice = (element: any) => {
+				const db = byProdId.get(element.prodId);
+				if (!db) throw new Error(`Prodotto non trovato: ${element.prodId}`);
+				const src = element.type === 'course' ? (db.layoutView ?? {}) : db;
+				const promoActive =
+					src.promoStatus === 'enabled' &&
+					Number(src.promoPrice) > 0 &&
+					(!src.promoEndDate || new Date(src.promoEndDate) > new Date());
+				const unit = promoActive ? Number(src.promoPrice) : Number(src.price);
+				if (!Number.isFinite(unit)) throw new Error(`Prezzo non valido: ${element.prodId}`);
+				return unit;
+			};
+
+			const pricedCart = cartItem.map((element: any) => ({
+				...element,
+				price: unitPrice(element),
+				...(element.layoutView ? { layoutView: { ...element.layoutView, price: unitPrice(element) } } : {})
+			}));
+			const cartTotal = pricedCart.reduce((sum: number, el: any) => sum + el.price * (el.orderQuantity || 1), 0);
+
+			const discountCodes = (JSON.parse(discountList || '[]') as any[]).map((i) => i.code).filter(Boolean);
+			let serverDiscount = 0;
+			if (discountCodes.length) {
+				const dRes = await fetch(`${BASE_URL}/api/mongo/find`, {
 					method: 'POST',
 					body: JSON.stringify({
 						apiKey: APIKEY,
-						schema: 'user', //product | order | user | layout | discount
-						query: { email },
-						projection: { email: 1 },
+						schema: 'discount',
+						query: { code: { $in: discountCodes } },
+						projection: { _id: 0, password: 0 },
 						sort: { createdAt: -1 },
-						limit: 1,
+						limit: 1000,
 						skip: 0
 					}),
-					headers: {
-						'Content-Type': 'application/json'
-					}
+					headers: { 'Content-Type': 'application/json' }
 				});
-				if (!res.ok) {
-					console.error('user fetch failed', res.status, await res.text());
-					return fail(400, { action: 'new', success: false, message: 'errore database user' });
+				if (!dRes.ok) {
+					return fail(400, { action: 'new', success: false, message: 'Errore lettura sconti' });
 				}
-				const response = await res.json();
-				if (response.length > 0) {
-					userExist = true;
-					return fail(400, { action: 'new', success: false, message: 'email esistente' });
-				}
-			} catch (err) {
-				console.log('userCheck error:', err);
-				return fail(400, { action: 'new', success: false, message: 'userCheck error' });
+				const discountDocs: DiscountItem[] = await dRes.json();
+				serverDiscount = discountDocs.reduce(
+					(acc: number, d) => acc + calculateItemDiscount(d, pricedCart, cartTotal),
+					0
+				);
 			}
-			if (!userExist) {
-				try {
-					const cookieId = crypto.randomUUID()
-
-					const res = await fetch(`${BASE_URL}/api/mongo/create`, {
-						method: 'POST',
-						body: JSON.stringify({
-							apiKey: APIKEY,
-							schema: 'user', //product | order | user | layout | discount
-							newDoc: {
-								userId: nanoid(),
-								userCode: crypto.randomUUID(),
-								name,
-								surname,
-								email,
-								address,
-								postalCode,
-								city,
-								county,
-								country,
-								phone,
-								mobilePhone,
-								password: hash(password1, SALT),
-								cookieId,
-								// "membership.membershipLevel": 'Socio ordinario',
-								// "membership.membershipSignUp": new Date(),
-								// "membership.membershipActivation": new Date(),
-								// "membership.membershipExpiry": new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-								// "membership.membershipStatus": true
-							},
-							returnObj: true
-						}),
-						headers: {
-							'Content-Type': 'application/json'
-						}
-					});
-					if (!res.ok) {
-						return fail(400, { action: 'user', success: false, message: await res.text() });
-					}
-					const response = await res.json();
-					currentUserId = response.userId;
-
-					cookies.set('session_id', cookieId, {
-						httpOnly: true,
-						//maxAge: 60 * 60 * 24 * 7 // one week
-						maxAge: 60 * 60 * 24, // one day
-						sameSite: 'lax',
-						secure: process.env.NODE_ENV === 'production',
-						path: '/'
-					});
-
-				} catch (error) {
-					console.error('Error creating new user:', error);
-					return fail(400, { action: 'user', success: false, message: 'Error new user' });
-				}
+			// Points redemption is computed here, never taken from the form. The client posts
+			// `usedPoints` and `newPointsBalance`, so trusting them let a tampered form both
+			// discount the order and mint itself points. 1 point = 1 €, capped by the real
+			// balance and by what is actually left to pay.
+			const pointsAvailable = Number(locals.user?.pointsBalance ?? 0);
+			if (usePoint && pointsAvailable <= 0) {
+				return fail(400, { action: 'new', success: false, message: 'Saldo punti insufficiente' });
 			}
-		}
+			const pointsUsed = usePoint ? Math.max(0, Math.min(pointsAvailable, cartTotal - serverDiscount)) : 0;
+			const pointsBalanceAfter = pointsAvailable - pointsUsed;
 
-		try {
-			const orderId = nanoid() // OLD stringHash(crypto.randomUUID());
-			const orderCode = crypto.randomUUID()
+			if (usePoint) serverDiscount += pointsUsed;
 
-			const newDoc = {
-				orderId,
-				orderCode,
-				userId: currentUserId,
+			// Delivery fee mirrors the client's calculateDeliveryFee() rules exactly, so the
+			// server total agrees with what the customer was shown.
+			const deliveryFee = (() => {
+				if (storePickUp) return 0;
+				if (cartTotal >= 100) return 0;
+				const allFree = cartTotal === 0 || pricedCart.every((el: any) => el.price === 0);
+				if (allFree) return 0;
+				const onlyBooks =
+					pricedCart.length > 0 &&
+					pricedCart.every((el: any) => {
+						const category = byProdId.get(el.prodId)?.category ?? el.category;
+						return category && String(category).includes('Libri');
+					});
+				return onlyBooks ? 4.5 : 9;
+			})();
+
+			const expectedTotal = cartTotal - serverDiscount + deliveryFee;
+
+			if (Math.round(Number(totalValue)) !== Math.round(expectedTotal)) {
+				return fail(400, { action: 'new', success: false, message: 'Totale non valido' });
+			}
+			totalDiscount = serverDiscount;
+
+			if (!locals.auth && (await emailAlreadyRegistered(fetch, email))) {
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: "Questa email è già registrata. Accedi per completare l'ordine, oppure usa un altro indirizzo."
+				});
+			}
+
+			const invoicing = {
+				name, surname, businessName: '', vatNumber: '', address, city, county, postalCode,
+				state: '', region: '', country, invoiceNotes: '', email, phone, mobilePhone
+			};
+			const shipping = {
+				name: finalShippingData.name, surname: finalShippingData.surname, address: finalShippingData.address,
+				city: finalShippingData.city, county: finalShippingData.county, postalCode: finalShippingData.postalCode,
+				state: '', region: '', country: finalShippingData.country, deliveryNotes: '',
+				email: finalShippingData.email, phone: finalShippingData.phone, mobilePhone: finalShippingData.mobilePhone
+			};
+			const newUserData = locals.auth
+				? null
+				: {
+						name, surname, address, postalCode, city, county, country, phone, mobilePhone,
+						passwordHash: hash(password1, SALT), howDidYouKnow: '', eventDetails: ''
+					};
+
+			const baseDoc = {
 				status: 'requested',
 				orderDate: new Date(),
 				orderConfirmDate: null,
@@ -541,234 +365,102 @@ export const actions: Actions = {
 				promoterId: '',
 				agencyId: '',
 				orderConfirmed: false,
-				totalPoints: usedPoints,
-				totalValue: totalValue,
+				totalPoints: pointsUsed,
 				totalDiscount: Number(totalDiscount),
 				totalVAT: 0,
 				browser: '',
 				orderIp: '',
 				orderNotes: finalNotes,
 				type: 'product',
-				invoicing: {
+				invoicing,
+				shipping,
+				storePickUp
+			};
+
+			// ---- bank transfer: order is created immediately, payment pending ----
+			if (payment !== 'Carta di credito') {
+				const { cookieId } = await createOfflineCheckout({
+					flow: 'cart',
+					amountCents: Math.round(totalValue * 100),
+					email,
 					name,
 					surname,
-					businessName: '',
-					vatNumber: '',
-					address,
-					city,
-					county,
-					postalCode,
-					state: '',
-					region: '',
-					country,
-					invoiceNotes: '',
-					email,
-					phone,
-					mobilePhone
+					payload: {
+						productTitle: 'Ordine Associazione Diện Chẩn',
+						orderType: 'product',
+						paymentMethod: payment,
+						statusPayment: 'pending',
+						userId: locals.user?.userId ?? null,
+						newUser: newUserData,
+						baseDoc,
+						cartItem,
+						discountArray,
+						usePoint,
+						pointsUsed,
+						pointsBalanceAfter,
+						mailTemplate: 'new-order',
+						mailTo: [email]
+					}
+				});
+				if (cookieId) {
+					cookies.set('session_id', cookieId, {
+						httpOnly: true,
+						maxAge: 60 * 60 * 24,
+						sameSite: 'lax',
+						secure: process.env.NODE_ENV === 'production',
+						path: '/'
+					});
+				}
+
+				return {
+					action: 'new',
+					success: true,
+					message: "L'ordine è stato inviato. Controlla lo storico nel tuo profilo",
+					payload: { redirect: !locals.auth }
+				};
+			}
+
+			// ---- card: prepare everything, then redirect to Stripe ----
+			const session = await createCheckoutSession({
+				flow: 'cart',
+				amountCents: Math.round(totalValue * 100),
+				email,
+				name,
+				surname,
+				payload: {
+					productTitle: 'Ordine Associazione Diện Chẩn',
+					orderType: 'product',
+					paymentMethod: 'Carta di credito',
+					statusPayment: 'done',
+					userId: locals.user?.userId ?? null,
+					newUser: newUserData,
+					baseDoc,
+					cartItem,
+					discountArray,
+					usePoint,
+					pointsUsed,
+					pointsBalanceAfter,
+					mailTemplate: 'new-order',
+					mailTo: [email]
 				},
-				shipping: {
-					name: finalShippingData.name,
-					surname: finalShippingData.surname,
-					address: finalShippingData.address,
-					city: finalShippingData.city,
-					county: finalShippingData.county,
-					postalCode: finalShippingData.postalCode,
-					state: '',
-					region: '',
-					country: finalShippingData.country,
-					deliveryNotes: '',
-					email: finalShippingData.email,
-					phone: finalShippingData.phone,
-					mobilePhone: finalShippingData.mobilePhone,
-				},
-				storePickUp,
-				payment: {
-					method: payment,
-					statusPayment: paymentIntentId ? 'done' : 'pending',
-					transactionId: paymentIntentId || '',
-					points: '',
-					value: ''
-				},
-				cart: cartItem
+				stripe
+			});
+
+			return {
+				action: 'new',
+				success: true,
+				message: 'Reindirizzamento al pagamento…',
+				payload: { redirectUrl: session.url }
 			};
-			const res = await fetch(`${BASE_URL}/api/mongo/create`, {
-				method: 'POST',
-				body: JSON.stringify({
-					apiKey: APIKEY,
-					schema: 'order', //product | order | user | layout | discount
-					newDoc,
-					returnObj: true
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
+		} catch (err: any) {
+			console.error('cart new error:', err);
+			return fail(400, {
+				action: 'new',
+				success: false,
+				message: "Errore durante la creazione dell'ordine. Riprova o contattaci."
 			});
-
-			if (!res.ok) {
-				return fail(400, { action: 'new', success: false, message: await res.text() });
-			}
-
-			const order = await res.json();
-
-
-			const mailArray = ['powerperformance.vn@gmail.com', email]
-			const mailRes = await mailFetch(mailArray, order);
-			if (!mailRes.ok) {
-				console.error('Mail sending failed:', await mailRes.text());
-			}
-
-			const updateQty = cartItem.map(async (item) => {
-				const updateQtyRes = await fetch(`${BASE_URL}/api/mongo/update`, {
-					method: 'POST',
-					body: JSON.stringify({
-						apiKey: APIKEY,
-						schema: 'product',
-						query: { prodId: item.prodId },
-						update: {
-							$inc: {
-								stockQty: -item.orderQuantity
-							}
-						},
-						options: { upsert: false },
-						multi: false
-					}),
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				});
-
-				if (!updateQtyRes.ok) {
-					const errorData = await updateQtyRes.json();
-					console.error(`Failed to update prodId ${item.prodId}:`, errorData);
-					throw new Error(`Failed to update stock for ${item.prodId}`); // return fail do not stop the map and don't trigger try/catch
-				}
-				return updateQtyRes.json();
-			});
-
-			await Promise.all(updateQty);
-
-			if (discountArray.length > 0) {
-				// Calc discount points for user
-				const discountRes = await fetch(`${BASE_URL}/api/mongo/find`, {
-					method: 'POST',
-					body: JSON.stringify({
-						apiKey: APIKEY,
-						schema: 'discount',
-						query: { code: { $in: discountArray }, type: 'referral' },
-						projection: { _id: 0 },
-						sort: { createdAt: -1 },
-						limit: 1,
-						skip: 0
-					}),
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				});
-
-				if (!discountRes.ok) {
-					return fail(400, { action: 'new', success: false, message: await discountRes.text() });
-				}
-				const discount = await discountRes.json();
-				//console.log('discount', discount);
-
-				if (discount.length > 0 && discount[0].referral) {
-					// if (!discount[0].email) {
-					// 	console.error('no refPoint email found');
-					// 	return fail(400, { action: 'new', success: false, message: 'no refPoint email found' });
-					// }
-					const calcPoint = Math.round(totalValue * discount[0].refPoints / 100);
-
-					const updateRes = await fetch(`${BASE_URL}/api/mongo/update`, {
-						method: 'POST',
-						body: JSON.stringify({
-							apiKey: APIKEY,
-							schema: 'user', //product | order | user | layout | discount
-							query: { email: discount[0].referral },
-							update: {
-								$inc: {
-									pointsBalance: calcPoint
-								},
-								$push: {
-									pointsHistory: {
-										points: calcPoint,
-										note: `punti per ordine: ${orderId}`
-									}
-								}
-							},
-							options: { upsert: false },
-							multi: false
-						}),
-						headers: {
-							'Content-Type': 'application/json'
-						}
-					});
-					if (!updateRes.ok) {
-						const errorText = await updateRes.text();
-						console.error('user update failed', updateRes.status, errorText);
-						return fail(400, { action: 'modifyPoints', success: false, message: errorText });
-					}
-
-					const mailFetch = await fetch(`${BASE_URL}/api/mailer/default`, {
-						method: 'POST',
-						body: JSON.stringify({
-							apiKey: APIKEY,
-							email: discount[0].referral,
-							content: `Hai ricevuto punti dal tuo codice formatore: ${discount[0].code} per l'ordine: ${orderId}`
-						}),
-						headers: {
-							'Content-Type': 'application/json'
-						}
-					});
-					if (!mailFetch.ok) {
-						console.error('Referral Mail sending failed:', await mailFetch.text());
-					}
-				}
-			}
-
-			if (usePoint) {
-				const updatePoint = await fetch(`${BASE_URL}/api/mongo/update`, {
-					method: 'POST',
-					body: JSON.stringify({
-						apiKey: APIKEY,
-						schema: 'user', //product | order | user | layout | discount
-						query: { userId: currentUserId },
-						update: {
-							$set: {
-								pointsBalance: Math.round(newPointsBalance)
-							},
-							$push: {
-								pointsHistory: {
-									points: -usedPoints,
-									note: `punti utilizzati per ordine: ${orderId}`
-								}
-							}
-						},
-						options: { upsert: false },
-						multi: false
-					}),
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				});
-				if (!updatePoint.ok) {
-					const errorText = await updatePoint.text();
-					console.error('user points update failed', updatePoint.status, errorText);
-					return fail(400, { action: 'new: update points balance', success: false, message: errorText });
-				}
-			}
-
-			if (locals.auth) {
-				return { action: 'new', success: true, message: "L'ordine è stato inviato. Controlla lo storico nel tuo profilo", payload: { redirect: false } };
-			} else {
-				return { action: 'new', success: true, message: "Benvenuto! L'ordine è stato inviato. Tra poco verrai reindirizzato sul tuo profilo.", payload: { redirect: true } };
-			}
-
-		} catch (error) {
-			console.error('Error creating new order:', error);
-			return fail(400, { action: 'new', success: false, message: 'Error new order' });
 		}
 	},
-
 	applyDiscount: async ({ request, fetch, locals }) => {
 		const formData = await request.formData();
 		const discountCode = formData.get('discountCode').toString().toLowerCase().trim();

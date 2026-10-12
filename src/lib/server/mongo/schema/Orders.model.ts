@@ -31,6 +31,8 @@ const orderSchema = new Schema(
 		promoterId: { type: String, default: null },
 		agencyId: { type: String, default: null },
 		orderConfirmed: { type: Boolean, default: false },
+		// set when a cancelled order has had its stock returned, so the return cannot happen twice
+		stockRestored: { type: Boolean, default: false },
 		totalPoints: { type: Number, default: 0 },
 		totalValue: { type: Number, default: 0 },
 		totalDiscount: { type: Number, default: 0 },
