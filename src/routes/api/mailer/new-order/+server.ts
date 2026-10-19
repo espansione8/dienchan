@@ -13,10 +13,27 @@ export const POST: RequestHandler = async ({ request }) => {
         order
     } = body;
 
-    const { orderId, createdAt, totalValue, invoicing, shipping, payment, cart, type, totalDiscount, orderNotes = '' } = order;
+    const { orderId, createdAt, totalValue, invoicing, shipping, payment, cart, type, totalDiscount, storePickUp = false, orderNotes = '' } = order;
     //const { name, surname, address, city, county, postalCode, country } = invoicing
     // riflessologo = titolare del corso acquistato (product.userId): il contatto non è salvato nell'ordine, viene risolto qui dal mailer
     const courseItem = (cart || []).find((item: any) => item.type === 'course' || item.type === 'event');
+
+    // Spedizione: la stessa regola del carrello (calculateDeliveryFee lato client, specchiata in
+    // cart/+page.server.ts). Ritiro in sede, subtotale >= 100 € o carrello tutto a prezzo 0 →
+    // gratuita; solo libri → 4,50 €; altrimenti 9 €. Prima mostrava 9,00 € anche per i libri.
+    const cartSubtotal = (cart || []).reduce(
+        (sum: number, item: any) => sum + Number(item.price || 0) * (item.orderQuantity || 1),
+        0
+    );
+    const onlyBooks =
+        (cart || []).length > 0 &&
+        cart.every((item: any) => item.category && String(item.category).includes('Libri'));
+    const shippingLabel =
+        type !== 'product' || storePickUp || cartSubtotal === 0 || cartSubtotal >= 100
+            ? 'Gratuita'
+            : onlyBooks
+                ? '4.50 €'
+                : '9.00 €';
 
     if (apiKey !== APIKEY) {
         return json({ message: 'api error' }, { status: 401 });
@@ -223,12 +240,7 @@ export const POST: RequestHandler = async ({ request }) => {
     <tr>
         <td colspan="2" class="table-cell-style text-right font-bold">Spedizione</td>
         <td class="table-cell-style text-right font-bold">
-            ${totalValue === 0
-                ? 'Gratuita'
-                : (type === 'product' && (totalValue + totalDiscount) < 100)
-                    ? '9.00 €'
-                    : 'Gratuita'
-            }
+            ${shippingLabel}
         </td>
     </tr>
     <tr>

@@ -1,7 +1,8 @@
 import type { PageServerLoad, Actions } from './$types';
 import type { CartItem, DiscountItem } from '$lib/types';
 import { BASE_URL, APIKEY, SALT, STRIPE_KEY_FRONT, STRIPE_KEY_BACK, STRIPE_API } from '$env/static/private';
-//import { env } from '$env/dynamic/private';
+// NOTE: never use $env/dynamic/private here — it is empty at runtime in production. Use
+// $env/static/private (see lib/server/checkout.ts).
 import { error, fail } from '@sveltejs/kit';
 import { hash } from '$lib/tools/hash';
 import { tools } from '$lib/tools/backendTools';
@@ -401,7 +402,10 @@ export const actions: Actions = {	new: async ({ request, fetch, locals, cookies 
 				);
 			}
 
-			if (Math.round(Number(totalValue)) < Math.round(baseTotal - serverDiscount)) {
+			// Compare in cents: rounding to whole euros let a tampered form pay up to 0.99 € less
+			// (e.g. 199.60 against 200.00 both round to 200).
+			const cents = (value: number) => Math.round(value * 100);
+			if (cents(Number(totalValue)) < cents(baseTotal - serverDiscount)) {
 				return fail(400, { action: 'new', success: false, message: 'Totale non valido' });
 			}
 

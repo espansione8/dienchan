@@ -16,7 +16,10 @@ export const load: PageServerLoad = async ({ fetch, locals, url }) => {
 			schema: 'order', //product | order | user | layout | discount
 			query: {},
 			projection: { _id: 0, password: 0 },
-			sort: { createdAt: -1 },
+			// Sort by the order's own date, not by when the row was written: orders recovered from
+			// Stripe are inserted now but belong at their payment date, and sorting by createdAt put
+			// the whole recovered batch on the first page and pushed the real recent orders off it.
+			sort: { orderDate: -1 }, // 1:Sort ascending | -1:Sort descending
 			limit: 50,
 			skip: 0
 		}),
@@ -422,56 +425,100 @@ export const actions: Actions = {
 			}
 
 			if (statusPayment === 'done' && oldStatusPayment === 'pending' && (type === 'course' || type === 'membership')) {
-				const resFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
-					method: 'POST',
-					body: JSON.stringify({
-						apiKey: APIKEY,
-						schema: 'user',
-						query: { userId },
-						projection: { _id: 0, membership: 1 },
-						sort: { createdAt: -1 },
-						limit: 1,
-						skip: 0
-					}),
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				});
+				const targetUserId = (userId as string) || orderUserId;
 
-				const userUpdateFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
-					method: 'POST',
-					body: JSON.stringify({
-						apiKey: APIKEY,
-						schema: 'user',
-						query: { userId },
-						update: {
-							$set: {
-								"membership.membershipStatus": true
-							},
-						},
-						options: { upsert: false },
-						multi: false
-					}),
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				});
+				// A vitalizio paid by bank transfer is granted HERE, when the money is confirmed.
+				// The offline checkout creates the account with membershipStatus false and never sets
+				// the level, so without this the buyer ends up "active" with no level and no expiry.
+				// The pre-refactor code granted it at order creation, i.e. before the transfer arrived.
+				const isVitalizio = (orderCartItems ?? []).some(
+					(item: any) =>
+						item?.type === 'membership' &&
+						String(item?.title ?? '').toLowerCase().includes('vitalizio')
+				);
 
-				if (!resFetch.ok) {
-					const errorText = await resFetch.text();
-					console.error('user fetch failed', resFetch.status, errorText);
-					return fail(400, { action: 'modify', success: false, message: errorText });
-				}
+				if (targetUserId) {
+					const resFetch = await fetch(`${BASE_URL}/api/mongo/find`, {
+						method: 'POST',
+						body: JSON.stringify({
+							apiKey: APIKEY,
+							schema: 'user',
+							query: { userId: targetUserId },
+							projection: { _id: 0, membership: 1 },
+							sort: { createdAt: -1 },
+							limit: 1,
+							skip: 0
+						}),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					});
 
-				const user = await resFetch.json();
-				//console.log('user', user);
-
-				if (user[0].membership.membershipStatus === false) {
-					const res = await userUpdateFetch;
-					if (!res.ok) {
-						const errorText = await res.text();
-						console.error('user update failed', res.status, errorText);
+					if (!resFetch.ok) {
+						const errorText = await resFetch.text();
+						console.error('user fetch failed', resFetch.status, errorText);
 						return fail(400, { action: 'modify', success: false, message: errorText });
+					}
+
+					const user = await resFetch.json();
+					//console.log('user', user);
+					const currentMembership = user?.[0]?.membership ?? {};
+
+					const membershipSet: Record<string, any> = {};
+
+					if (currentMembership.membershipStatus !== true) {
+						membershipSet['membership.membershipStatus'] = true;
+					}
+
+					if (isVitalizio) {
+						membershipSet['membership.membershipLevel'] = 'Socio vitalizio';
+						membershipSet['membership.membershipStatus'] = true;
+						membershipSet['membership.membershipExpiry'] = new Date(Date.now() + 36500 * 24 * 60 * 60 * 1000);
+					} else if (type === 'membership') {
+						// Rinnovo ANTICIPATO (tessera ancora valida) → un anno si somma alla scadenza
+						// attuale. Rinnovo TARDIVO o prima tessera → 12 mesi dalla data di pagamento
+						// confermato, che per il bonifico è questa conferma.
+						// Stessa regola di membershipHandler (carta). I corsi non passano di qui:
+						// course-detail usa createOfflineCheckout e la tessera la aggiorna già
+						// courseHandler, sommarla anche qui raddoppierebbe.
+						const currentExpiry = currentMembership.membershipExpiry
+							? new Date(currentMembership.membershipExpiry)
+							: null;
+						const stillActive =
+							currentExpiry !== null &&
+							Number.isFinite(currentExpiry.getTime()) &&
+							currentExpiry.getTime() > Date.now();
+						const newExpiry = stillActive ? currentExpiry! : new Date();
+						newExpiry.setFullYear(newExpiry.getFullYear() + 1);
+
+						membershipSet['membership.membershipLevel'] = 'Socio ordinario';
+						membershipSet['membership.membershipStatus'] = true;
+						membershipSet['membership.membershipExpiry'] = newExpiry;
+					}
+
+					if (Object.keys(membershipSet).length > 0) {
+						const userUpdateFetch = await fetch(`${BASE_URL}/api/mongo/update`, {
+							method: 'POST',
+							body: JSON.stringify({
+								apiKey: APIKEY,
+								schema: 'user',
+								query: { userId: targetUserId },
+								update: {
+									$set: membershipSet
+								},
+								options: { upsert: false },
+								multi: false
+							}),
+							headers: {
+								'Content-Type': 'application/json'
+							}
+						});
+
+						if (!userUpdateFetch.ok) {
+							const errorText = await userUpdateFetch.text();
+							console.error('user update failed', userUpdateFetch.status, errorText);
+							return fail(400, { action: 'modify', success: false, message: errorText });
+						}
 					}
 				}
 			}
@@ -502,7 +549,7 @@ export const actions: Actions = {
 							}),
 						},
 						projection: { _id: 0, password: 0 },
-						sort: { createdAt: -1 },
+						sort: { orderDate: -1 }, // 1:Sort ascending | -1:Sort descending
 						limit: 50,
 						skip: 0
 					}),
@@ -753,13 +800,13 @@ export const actions: Actions = {
 						'cart': {
 							$elemMatch: {
 								type: { $in: ['course', 'event'] },
-								prodId: courseId
-							}
+							prodId: courseId
 						}
-					}),
-				},
-				projection: { _id: 0, password: 0 },
-				sort: { createdAt: -1 },
+					}
+				}),
+			},
+			projection: { _id: 0, password: 0 },
+			sort: { orderDate: -1 }, // 1:Sort ascending | -1:Sort descending
 				limit: 50,
 				skip: 0
 			}),

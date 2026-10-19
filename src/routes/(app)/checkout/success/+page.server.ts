@@ -1,9 +1,16 @@
 import type { PageServerLoad } from './$types';
 import Stripe from 'stripe';
-import { env } from '$env/dynamic/private';
+// $env/static/private ONLY — see the note in lib/server/checkout.ts. The dynamic form is empty at
+// runtime in production, which silently disabled this reconcile and lost the order.
+import { STRIPE_KEY_BACK } from '$env/static/private';
 import dbConnect from '$lib/server/mongo/database';
 import { PendingCheckout } from '$lib/server/mongo/schema/PendingCheckouts.model';
-import { claimAutoLogin, reconcileCheckoutFromStripe, CHECKOUT_NONCE_COOKIE } from '$lib/server/checkout';
+import {
+	claimAutoLogin,
+	reconcileCheckoutFromStripe,
+	CHECKOUT_NONCE_COOKIE,
+	STRIPE_API_VERSION
+} from '$lib/server/checkout';
 
 /**
  * Landing page after Stripe redirects the customer back.
@@ -33,8 +40,11 @@ export const load: PageServerLoad = async ({ url, cookies, locals }) => {
 			// The webhook normally writes the order. If it never arrived, the payment would be
 			// recorded nowhere at all, so use the second chance the returning customer gives us
 			// and reconcile straight from Stripe before reporting a state.
-			if (pending && !pending.materializedOrderId && env.STRIPE_KEY_BACK) {
-				const outcome = await reconcileCheckoutFromStripe(sessionId, new Stripe(env.STRIPE_KEY_BACK));
+			if (pending && !pending.materializedOrderId) {
+				const outcome = await reconcileCheckoutFromStripe(
+					sessionId,
+					new Stripe(STRIPE_KEY_BACK, { apiVersion: STRIPE_API_VERSION })
+				);
 				if (outcome.reconciled) console.log('checkout success: reconciled', sessionId, outcome.reason);
 				if (outcome.paymentStatus !== undefined) {
 					paid = outcome.paymentStatus === 'paid' || outcome.paymentStatus === 'no_payment_required';

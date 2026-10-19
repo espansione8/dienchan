@@ -8,3 +8,8 @@ Il tab Gestione Formazione di /profile-area ha ora un bottone Scarica PDF Formaz
 
 ### Summary - T-5
 L'admin stampa lo storico formazione di qualsiasi utente dal modal del user-table: il builder è stato estratto in $lib/tools/trainingPdf (usato anche dal profile-area, output PDF byte-identico) e il modal preferisce la riga più fresca di tableList, con fallback sullo stato. Verificato con autofixer, npm run check (0 errori nuovi) e probe che ri-renderizza il PDF.
+
+### Summary - T-6 (RISOLTA 2026-10-19 — regola decisa dall'utente)
+**Rinnovo ANTICIPATO: un anno si somma alla scadenza attuale. Rinnovo TARDIVO o prima tessera: 12 mesi dalla data di pagamento confermato.**
+Carta: `membershipHandler` legge la scadenza a DB dentro `once(pending, 'membershipApplied')` e somma, oppure parte da adesso; vitalizio 100 anni da adesso. Bonifico: stessa regola in `order-table` pending→done, dove la data di pagamento è la conferma dell'admin. Il `once()` è necessario: senza, un retry del webhook aggiungerebbe un altro anno.
+

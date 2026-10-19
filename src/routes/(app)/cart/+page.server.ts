@@ -8,6 +8,10 @@ import { customAlphabet } from 'nanoid'
 import Stripe from 'stripe';
 import { createCheckoutSession, createOfflineCheckout } from '$lib/server/checkout';
 const nanoid = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9)
+
+// Internal copy of every order confirmation, sent together with the customer's one.
+// Same convention as kit-materiale-formatori: `[internal, customer]`.
+const ORDER_NOTIFICATION_EMAIL = 'powerperformance.vn@gmail.com';
 const stripe = new Stripe(STRIPE_KEY_BACK, {
 	apiVersion: STRIPE_API // Use a stable API version https://docs.stripe.com/api/versioning
 });
@@ -295,19 +299,6 @@ export const actions: Actions = {
 					0
 				);
 			}
-			// Points redemption is computed here, never taken from the form. The client posts
-			// `usedPoints` and `newPointsBalance`, so trusting them let a tampered form both
-			// discount the order and mint itself points. 1 point = 1 €, capped by the real
-			// balance and by what is actually left to pay.
-			const pointsAvailable = Number(locals.user?.pointsBalance ?? 0);
-			if (usePoint && pointsAvailable <= 0) {
-				return fail(400, { action: 'new', success: false, message: 'Saldo punti insufficiente' });
-			}
-			const pointsUsed = usePoint ? Math.max(0, Math.min(pointsAvailable, cartTotal - serverDiscount)) : 0;
-			const pointsBalanceAfter = pointsAvailable - pointsUsed;
-
-			if (usePoint) serverDiscount += pointsUsed;
-
 			// Delivery fee mirrors the client's calculateDeliveryFee() rules exactly, so the
 			// server total agrees with what the customer was shown.
 			const deliveryFee = (() => {
@@ -324,9 +315,30 @@ export const actions: Actions = {
 				return onlyBooks ? 4.5 : 9;
 			})();
 
+			// Points redemption is computed here, never taken from the form. The client posts
+			// `usedPoints` and `newPointsBalance`, so trusting them let a tampered form both
+			// discount the order and mint itself points. 1 point = 1 €, capped by the real
+			// balance and by what is actually left to pay — delivery included, exactly like the
+			// client's pointsDiscount (`subTotal + fee - couponDiscount`). Capping at the subtotal
+			// only made the server disagree with the shown total and reject every order where the
+			// balance covered the goods but not the shipping.
+			const pointsAvailable = Number(locals.user?.pointsBalance ?? 0);
+			if (usePoint && pointsAvailable <= 0) {
+				return fail(400, { action: 'new', success: false, message: 'Saldo punti insufficiente' });
+			}
+			const pointsUsed = usePoint
+				? Math.max(0, Math.min(pointsAvailable, cartTotal - serverDiscount + deliveryFee))
+				: 0;
+			const pointsBalanceAfter = pointsAvailable - pointsUsed;
+
+			if (usePoint) serverDiscount += pointsUsed;
+
 			const expectedTotal = cartTotal - serverDiscount + deliveryFee;
 
-			if (Math.round(Number(totalValue)) !== Math.round(expectedTotal)) {
+			// Compare in cents: rounding to whole euros let a tampered form pay up to 0.99 € less
+			// (104.60 and 105.00 both round to 105). The pre-refactor code compared the raw total.
+			const cents = (value: number) => Math.round(value * 100);
+			if (cents(Number(totalValue)) !== cents(expectedTotal)) {
 				return fail(400, { action: 'new', success: false, message: 'Totale non valido' });
 			}
 			totalDiscount = serverDiscount;
@@ -399,7 +411,7 @@ export const actions: Actions = {
 						pointsUsed,
 						pointsBalanceAfter,
 						mailTemplate: 'new-order',
-						mailTo: [email]
+						mailTo: [ORDER_NOTIFICATION_EMAIL, email]
 					}
 				});
 				if (cookieId) {
@@ -421,6 +433,17 @@ export const actions: Actions = {
 			}
 
 			// ---- card: prepare everything, then redirect to Stripe ----
+			// Stripe's floor is 50 cents. The client forces "Punti" when the total is 0, but a
+			// tampered or stale form can still post a card order below it; answer with the same
+			// message the pre-refactor action gave instead of a generic creation error.
+			if (Math.round(totalValue * 100) < 50) {
+				return fail(400, {
+					action: 'new',
+					success: false,
+					message: 'Pagamenti con carta solo per importi superiori a € 0.50'
+				});
+			}
+
 			const session = await createCheckoutSession({
 				flow: 'cart',
 				amountCents: Math.round(totalValue * 100),
@@ -441,7 +464,7 @@ export const actions: Actions = {
 					pointsUsed,
 					pointsBalanceAfter,
 					mailTemplate: 'new-order',
-					mailTo: [email]
+					mailTo: [ORDER_NOTIFICATION_EMAIL, email]
 				},
 				stripe
 			});

@@ -18,6 +18,7 @@ const stripe = new Stripe(STRIPE_KEY_BACK, {
 });
 
 const INSURANCE_PRICE = 70;
+// Prezzi reali (confermati dall'utente): usati solo se il prodotto a DB non ha un prezzo.
 const VITALIZIO_FALLBACK = 390;
 const ORDINARIO_FALLBACK = 25;
 

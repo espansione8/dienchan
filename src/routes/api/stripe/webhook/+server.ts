@@ -5,28 +5,36 @@
 //   checkout.session.completed -> materialise the pending order (idempotent)
 //   payment_intent.succeeded   -> record the captured payment in `stripe_payments`
 //   charge.refunded            -> update the recorded refund amount
+//   checkout.session.expired   -> mark the pending record abandoned, so the sweep stops polling it
 //
 // Setup:
 //   1. STRIPE_WEBHOOK_SECRET must be present in .env
 //   2. Stripe dashboard -> Developers -> Webhooks -> Add endpoint
 //        URL:     https://associazione.riflessologiadienchan.it/api/stripe/webhook
-//        Events:  checkout.session.completed, payment_intent.succeeded, charge.refunded
+//        Events:  checkout.session.completed, payment_intent.succeeded, charge.refunded,
+//                 checkout.session.expired
 //        API version: pin the same version as STRIPE_API in .env
 //   3. copy the signing secret into STRIPE_WEBHOOK_SECRET and redeploy
 //
 // Until step 1-3 are done this endpoint returns 503 and does nothing else.
+//
+// NOTE: the config is read from `$env/static/private`, never `$env/dynamic/private`. The static
+// form is inlined at build time; the dynamic form reads `process.env` at runtime, which is EMPTY
+// in the production service — reading the key from there made `new Stripe(undefined)` throw while
+// this module was loading, so the endpoint answered 500 to every delivery for a week (Oct 2026).
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 import Stripe from 'stripe';
-import { env } from '$env/dynamic/private';
+import { STRIPE_KEY_BACK, STRIPE_WEBHOOK_SECRET } from '$env/static/private';
 import dbConnect from '$lib/server/mongo/database';
 import { StripePayment } from '$lib/server/mongo/schema/StripePayments.model';
-import { materializeCheckout } from '$lib/server/checkout';
+import { PendingCheckout } from '$lib/server/mongo/schema/PendingCheckouts.model';
+import { materializeCheckout, STRIPE_API_VERSION } from '$lib/server/checkout';
 
-const stripe = new Stripe(env.STRIPE_KEY_BACK);
+const stripe = new Stripe(STRIPE_KEY_BACK, { apiVersion: STRIPE_API_VERSION });
 
 export const POST: RequestHandler = async ({ request }) => {
-	const secret = env.STRIPE_WEBHOOK_SECRET;
+	const secret = STRIPE_WEBHOOK_SECRET;
 	if (!secret) {
 		console.error('stripe webhook: STRIPE_WEBHOOK_SECRET not configured');
 		return json({ message: 'webhook not configured' }, { status: 503 });
@@ -92,11 +100,20 @@ export const POST: RequestHandler = async ({ request }) => {
 			// ---- mirror every captured payment, so a leak is always detectable ----
 			case 'payment_intent.succeeded': {
 				const pi = event.data.object as Stripe.PaymentIntent;
-				const charge = pi.latest_charge
-					? await stripe.charges.retrieve(
+
+				// The charge lookup only enriches the mirror row. A transient failure here must not
+				// fail the whole event: a 500 makes Stripe retry for up to three days and the
+				// payment would never be mirrored at all. Record what we have instead.
+				let charge: Stripe.Charge | null = null;
+				if (pi.latest_charge) {
+					try {
+						charge = await stripe.charges.retrieve(
 							typeof pi.latest_charge === 'string' ? pi.latest_charge : pi.latest_charge.id
-						)
-					: null;
+						);
+					} catch (err) {
+						console.error('payment_intent.succeeded: charge lookup failed for', pi.id, err);
+					}
+				}
 
 				await StripePayment.updateOne(
 					{ paymentIntentId: pi.id },
@@ -128,6 +145,19 @@ export const POST: RequestHandler = async ({ request }) => {
 				if (pi) {
 					await StripePayment.updateOne({ paymentIntentId: pi }, { $set: { amountRefunded: ch.amount_refunded } });
 				}
+				break;
+			}
+
+			// ---- the customer never paid: close the record so the sweep stops asking ----
+			case 'checkout.session.expired': {
+				const session = event.data.object as Stripe.Checkout.Session;
+				const token = session.metadata?.pendingCheckoutToken;
+				const query = token ? { token } : { sessionId: session.id };
+				// only ever closes an order that was never written
+				await PendingCheckout.updateOne(
+					{ ...query, materializedOrderId: null, status: 'pending' },
+					{ $set: { status: 'abandoned' } }
+				);
 				break;
 			}
 

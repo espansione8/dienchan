@@ -10,8 +10,11 @@
  * The order is therefore written by Stripe's webhook, never by the browser. A customer who
  * closes the tab after paying still gets their order.
  */
-import { BASE_URL, APIKEY } from '$env/static/private';
-import { env } from '$env/dynamic/private';
+// Config is read from `$env/static/private` ONLY — never `$env/dynamic/private`.
+// The static form is inlined at build time; the dynamic form reads `process.env` at runtime, which
+// is empty in the production service. Reading STRIPE_KEY_BACK from there made the sweep a silent
+// no-op and the success-page reconcile a no-op for a week in Oct 2026, losing every card order.
+import { BASE_URL, APIKEY, STRIPE_KEY_BACK, STRIPE_API } from '$env/static/private';
 import type { Cookies } from '@sveltejs/kit';
 import Stripe from 'stripe';
 import mongoose from 'mongoose';
@@ -25,6 +28,13 @@ import { PendingCheckout } from '$lib/server/mongo/schema/PendingCheckouts.model
 // of two incompatible Model types. Narrow them here so the queries below type-check.
 const UserModel = User as mongoose.Model<any>;
 const OrderModel = Order as mongoose.Model<any>;
+
+/**
+ * `$env/static/private` types every value as `string`, but the SDK declares `apiVersion` as the
+ * exact literal it ships with. One cast, exported, keeps every call site clean.
+ */
+type StripeConfigArg = NonNullable<ConstructorParameters<typeof Stripe>[1]>;
+export const STRIPE_API_VERSION = STRIPE_API as StripeConfigArg['apiVersion'];
 
 const nanoid9 = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 9);
 const nanoid12 = customAlphabet('123456789ABCDEFGHJKLMNPQRSTUVWXYZ', 12);
@@ -376,8 +386,14 @@ export async function reconcileCheckoutFromStripe(
 
 /** Let the webhook have first refusal: a checkout must be at least this old before the sweep looks. */
 const SWEEP_MIN_AGE_MS = 10 * 60 * 1000;
-/** Older than this and the checkout was simply abandoned — not worth a Stripe call. */
-const SWEEP_LOOKBACK_MS = 48 * 60 * 60 * 1000;
+/**
+ * How far back the sweep looks. Deliberately long: a shorter window means an outage longer than the
+ * window loses those payments for good (the Oct 2026 outage ran 7 days unnoticed, and a 48 h window
+ * had already pushed two of its payments out of reach). The cost stays bounded in practice because
+ * an abandoned checkout is closed by `checkout.session.expired` within 24 h and then drops out of
+ * the candidate set, and because of the `lastSweepAt` throttle below.
+ */
+const SWEEP_LOOKBACK_MS = 14 * 24 * 60 * 60 * 1000;
 /** Ask Stripe about the same checkout at most this often. */
 const SWEEP_REVISIT_MS = 60 * 60 * 1000;
 /** How often the sweep runs once the server is up. */
@@ -399,17 +415,16 @@ export interface SweepResult {
  * redirect is covered by neither, and the money would sit there with no order.
  *
  * Deliberately bounded so it cannot run away:
- *   - only the last 48 hours are considered
  *   - a checkout must be at least 10 minutes old, so a webhook still in flight wins
  *   - each checkout is asked about at most once an hour (`lastSweepAt`)
  *   - at most 50 per pass
+ *   - abandoned checkouts are closed by `checkout.session.expired` and then ignored
  *
  * It only ever materialises a session Stripe reports as `paid`, so an abandoned checkout costs
  * one API call and nothing else.
  */
 export async function sweepPendingCheckouts(stripe?: Stripe): Promise<SweepResult> {
-	const client = stripe ?? (env.STRIPE_KEY_BACK ? new Stripe(env.STRIPE_KEY_BACK) : null);
-	if (!client) return { checked: 0, reconciled: 0, failed: 0 };
+	const client = stripe ?? new Stripe(STRIPE_KEY_BACK, { apiVersion: STRIPE_API_VERSION });
 
 	await dbConnect();
 
@@ -487,6 +502,23 @@ async function postMailer(path: string, email: string | string[], order: any) {
 	} catch (err) {
 		// never let a mail failure break order creation
 		console.error(`mailer ${path} threw:`, err);
+	}
+}
+
+/**
+ * Plain-text notification through the `default` mailer. Non-fatal, like `postMailer`:
+ * a mail failure must never fail the materialisation and make Stripe retry the whole order.
+ */
+async function postDefaultMailer(email: string, content: string) {
+	try {
+		const res = await fetch(`${BASE_URL}/api/mailer/default`, {
+			method: 'POST',
+			body: JSON.stringify({ apiKey: APIKEY, email, content }),
+			headers: { 'Content-Type': 'application/json' }
+		});
+		if (!res.ok) console.error('mailer default failed:', await res.text());
+	} catch (err) {
+		console.error('mailer default threw:', err);
 	}
 }
 
@@ -641,16 +673,30 @@ function buildOrderDoc(pending: any, userId: string, cart: any[]) {
 
 /**
  * Run a non-idempotent side effect at most once, even if the materialiser is retried after a
- * later step failed. The flag is persisted immediately after the operation succeeds.
+ * later step failed.
+ *
+ * The flag is *claimed* atomically before the operation runs. The previous read-flag / run / set-flag
+ * version was not safe against a concurrent reclaim (see STALE_CLAIM_MS): a slow-but-alive attempt
+ * and a reclaiming attempt could both pass the guard and both run the side effect, decrementing
+ * stock or awarding points twice. Claiming first makes the flag a single-writer lock.
  */
 async function once(pending: any, flag: string, fn: () => Promise<void>) {
-	const p = pending.payload ?? {};
-	if (p[flag]) return;
+	const claimed = await PendingCheckout.findOneAndUpdate(
+		{ token: pending.token, [`payload.${flag}`]: { $ne: true } },
+		{ $set: { [`payload.${flag}`]: true } }
+	);
+	if (!claimed) return;
 
-	await fn();
-
-	await PendingCheckout.updateOne({ token: pending.token }, { $set: { [`payload.${flag}`]: true } });
-	p[flag] = true;
+	try {
+		await fn();
+	} catch (err) {
+		// release the claim so a retry can run the side effect again
+		await PendingCheckout.updateOne(
+			{ token: pending.token },
+			{ $set: { [`payload.${flag}`]: false } }
+		);
+		throw err;
+	}
 }
 
 /**
@@ -723,7 +769,7 @@ async function decrementStock(cart: any[]) {
 }
 
 /** Award referral points for the discount codes used on an order. */
-async function awardReferralPoints(codes: string[], totalValue: number) {
+async function awardReferralPoints(codes: string[], totalValue: number, orderId: string) {
 	if (!codes?.length) return;
 	try {
 		const res = await fetch(`${BASE_URL}/api/mongo/find`, {
@@ -744,10 +790,22 @@ async function awardReferralPoints(codes: string[], totalValue: number) {
 		if (!discount.length || !discount[0].referral) return;
 
 		const calcPoint = Math.round((totalValue * discount[0].refPoints) / 100);
-		await mongoUpdate('user', { email: discount[0].referral }, {
+		const updated = await mongoUpdate('user', { email: discount[0].referral }, {
 			$inc: { pointsBalance: calcPoint },
 			$push: { pointsHistory: { points: calcPoint, note: `punti per codice formatore: ${discount[0].code}` } }
 		});
+
+		// Only tell the referrer once the points are actually on their account — `mongoUpdate`
+		// is non-fatal and returns null on failure, so mailing unconditionally would promise
+		// points that were never credited.
+		if (updated === null) return;
+
+		// Tell the referrer they earned points. Restored from the pre-refactor cart flow,
+		// where it was lost along with the internal order copy.
+		await postDefaultMailer(
+			discount[0].referral,
+			`Hai ricevuto punti dal tuo codice formatore: ${discount[0].code} per l'ordine: ${orderId}`
+		);
 	} catch (err) {
 		console.error('referral points failed:', err);
 	}
@@ -776,18 +834,41 @@ const membershipHandler: FlowHandler = async (pending) => {
 	const order = await upsertOrder(pending, userId, cart);
 
 	if (p.membershipUpdate) {
-		const { level, expiryYears, setActivation } = p.membershipUpdate;
-		const now = new Date();
-		const expiry = new Date();
-		expiry.setFullYear(expiry.getFullYear() + (expiryYears ?? 1));
+		// Rinnovo ANTICIPATO (tessera ancora valida) → un anno si somma alla scadenza attuale.
+		// Rinnovo TARDIVO o prima tessera → 12 mesi dalla data di pagamento confermato, cioè adesso.
+		// `once()` rende sicuro il read-modify-write sui retry: senza, un secondo tentativo
+		// aggiungerebbe un altro anno alla scadenza già prolungata.
+		await once(pending, 'membershipApplied', async () => {
+			const { level, expiryYears, setActivation } = p.membershipUpdate;
+			const now = new Date();
+			const years = expiryYears ?? 1;
 
-		await mongoUpdate('user', { userId }, {
-			$set: {
-				'membership.membershipLevel': level,
-				'membership.membershipStatus': true,
-				...(setActivation ? { 'membership.membershipSignUp': now, 'membership.membershipActivation': now } : {}),
-				'membership.membershipExpiry': expiry
+			let expiry: Date;
+			if (years >= 100) {
+				// vitalizio: 100 anni da adesso, non si somma a nulla
+				expiry = new Date(Date.now() + 36500 * 24 * 60 * 60 * 1000);
+			} else {
+				const currentUser = await UserModel.findOne({ userId }).lean<any>();
+				const storedExpiry = currentUser?.membership?.membershipExpiry
+					? new Date(currentUser.membership.membershipExpiry)
+					: null;
+				const stillActive =
+					storedExpiry !== null &&
+					Number.isFinite(storedExpiry.getTime()) &&
+					storedExpiry.getTime() > now.getTime();
+
+				expiry = stillActive ? storedExpiry! : new Date();
+				expiry.setFullYear(expiry.getFullYear() + years);
 			}
+
+			await mongoUpdate('user', { userId }, {
+				$set: {
+					'membership.membershipLevel': level,
+					'membership.membershipStatus': true,
+					...(setActivation ? { 'membership.membershipSignUp': now, 'membership.membershipActivation': now } : {}),
+					'membership.membershipExpiry': expiry
+				}
+			});
 		});
 	}
 
@@ -839,7 +920,9 @@ const cartHandler: FlowHandler = async (pending) => {
 	const order = await upsertOrder(pending, userId, cart);
 
 	await once(pending, 'stockDecremented', () => decrementStock(cart));
-	await once(pending, 'referralAwarded', () => awardReferralPoints(p.discountArray ?? [], pending.amount / 100));
+	await once(pending, 'referralAwarded', () =>
+		awardReferralPoints(p.discountArray ?? [], pending.amount / 100, pending.orderId)
+	);
 
 	// points spent on this order — the payload carries the SERVER-computed redemption. The old
 	// key names are still read so a checkout prepared before this change cannot silently zero
