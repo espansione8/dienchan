@@ -52,7 +52,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 				},
 				sort: { eventStartDate: 1 },
 				//projection: { _id: 0 },
-				projection: { prodId: 1, userId: 1, layoutView: 1, eventStartDate: 1, eventEndDate: 1, layoutId: 1, county: 1, timeStartDate: 1, timeEndDate: 1, type: 1, name: 1, surname: 1 },
+				projection: { prodId: 1, userId: 1, layoutView: 1, eventStartDate: 1, eventEndDate: 1, layoutId: 1, county: 1, location: 1, timeStartDate: 1, timeEndDate: 1, type: 1, name: 1, surname: 1 },
 				limit: 1000,
 				skip: 0
 			}),

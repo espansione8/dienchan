@@ -572,8 +572,8 @@
 				<div
 					class="card overflow-hidden bg-base-100 rounded-xl shadow-lg border
 	border-base-200 hover:shadow-xl transition-shadow duration-300 flex flex-col w-full sm:w-81"
-					class:h-122={auth && userData?.membership.membershipStatus}
-					class:h-136={!auth || !userData?.membership.membershipStatus}
+					class:h-132={auth && userData?.membership.membershipStatus}
+					class:h-146={!auth || !userData?.membership.membershipStatus}
 				>
 					<div class="relative px-6 pt-6 pb-2 bg-base-200/30 space-y-0">
 						<a href="/course-detail/{courseData.prodId}">
@@ -649,6 +649,14 @@
 								{/if}
 							</span>
 						</div>
+
+						<!-- città: county è già "Online" per i corsi online, quindi non si ripete -->
+						{#if courseData.location && courseData.location !== 'Online'}
+							<div class="flex items-center gap-2 mb-2 text-sm min-w-0">
+								<MapPin size={16} class="text-primary/60 flex-shrink-0" />
+								<span class="font-medium truncate" title={courseData.location}>{courseData.location}</span>
+							</div>
+						{/if}
 
 						<div class="flex items-center gap-2 mb-1 text-sm">
 							<CircleUser size={16} class="text-primary flex-shrink-0" />
